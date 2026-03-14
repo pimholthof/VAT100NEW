@@ -38,24 +38,13 @@ export async function generateInvoiceNumber(): Promise<ActionResult<string>> {
 
   if (!user) return { error: "Niet ingelogd." };
 
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("invoice_number")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
+  const { data, error } = await supabase.rpc("generate_invoice_number", {
+    p_user_id: user.id,
+  });
 
   if (error) return { error: error.message };
 
-  let nextNumber = 1;
-  if (data && data.length > 0) {
-    const lastNumber = parseInt(data[0].invoice_number, 10);
-    if (!isNaN(lastNumber)) {
-      nextNumber = lastNumber + 1;
-    }
-  }
-
-  return { error: null, data: String(nextNumber).padStart(4, "0") };
+  return { error: null, data: data as string };
 }
 
 export async function createInvoice(
@@ -70,23 +59,53 @@ export async function createInvoice(
 
   const totals = calculateTotals(input.lines, input.vat_rate);
 
-  const { data: invoice, error: invoiceError } = await supabase
-    .from("invoices")
-    .insert({
-      user_id: user.id,
-      client_id: input.client_id,
-      invoice_number: input.invoice_number,
-      status: input.status,
-      issue_date: input.issue_date,
-      due_date: input.due_date,
-      vat_rate: input.vat_rate,
-      notes: input.notes,
-      ...totals,
-    })
-    .select("id")
-    .single();
+  // Retry loop: if a unique constraint violation occurs on invoice_number
+  // (e.g. two tabs submitting simultaneously), regenerate the number and retry.
+  const MAX_RETRIES = 3;
+  let invoice: { id: string } | null = null;
+  let invoiceNumber = input.invoice_number;
 
-  if (invoiceError) return { error: invoiceError.message };
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const { data, error: insertError } = await supabase
+      .from("invoices")
+      .insert({
+        user_id: user.id,
+        client_id: input.client_id,
+        invoice_number: invoiceNumber,
+        status: input.status,
+        issue_date: input.issue_date,
+        due_date: input.due_date,
+        vat_rate: input.vat_rate,
+        notes: input.notes,
+        ...totals,
+      })
+      .select("id")
+      .single();
+
+    if (!insertError) {
+      invoice = data;
+      break;
+    }
+
+    // Unique violation = PostgreSQL error code 23505
+    const isUniqueViolation =
+      insertError.code === "23505" ||
+      insertError.message?.includes("idx_invoices_user_number");
+
+    if (!isUniqueViolation || attempt === MAX_RETRIES - 1) {
+      return { error: insertError.message };
+    }
+
+    // Regenerate invoice number via the atomic DB function
+    const { data: newNumber, error: rpcError } = await supabase.rpc(
+      "generate_invoice_number",
+      { p_user_id: user.id }
+    );
+    if (rpcError) return { error: rpcError.message };
+    invoiceNumber = newNumber as string;
+  }
+
+  if (!invoice) return { error: "Factuurnummer kon niet worden gegenereerd." };
 
   if (input.lines.length > 0) {
     const lineRows = input.lines.map((line, index) => ({
