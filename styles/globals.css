@@ -218,4 +218,13 @@ tbody tr:hover {
   .stat-cards-grid {
     grid-template-columns: 1fr !important;
   }
+
+  .vat-deadline-banner {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  .vat-deadline-banner > div {
+    text-align: center !important;
+  }
 }

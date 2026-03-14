@@ -158,6 +158,163 @@ export async function getUpcomingDueInvoices(): Promise<ActionResult<UpcomingInv
   return { error: null, data: invoices };
 }
 
+export interface CashflowSummary {
+  monthlyRevenue: { month: string; amount: number }[];
+  monthlyExpenses: { month: string; amount: number }[];
+  netThisMonth: number;
+  netLastMonth: number;
+  trend: "up" | "down" | "stable";
+}
+
+export async function getCashflowSummary(): Promise<ActionResult<CashflowSummary>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const startDate = sixMonthsAgo.toISOString().split("T")[0];
+
+  const { data: paidInvoices } = await supabase
+    .from("invoices")
+    .select("issue_date, total_inc_vat")
+    .eq("user_id", user.id)
+    .eq("status", "paid")
+    .gte("issue_date", startDate);
+
+  const { data: receipts } = await supabase
+    .from("receipts")
+    .select("receipt_date, total_amount")
+    .eq("user_id", user.id)
+    .gte("receipt_date", startDate);
+
+  const revenueMap = new Map<string, number>();
+  const expenseMap = new Map<string, number>();
+
+  // Initialize all 6 months
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    revenueMap.set(key, 0);
+    expenseMap.set(key, 0);
+  }
+
+  for (const inv of paidInvoices ?? []) {
+    if (!inv.issue_date) continue;
+    const d = new Date(inv.issue_date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (revenueMap.has(key)) {
+      revenueMap.set(key, (revenueMap.get(key) ?? 0) + (Number(inv.total_inc_vat) || 0));
+    }
+  }
+
+  for (const rec of receipts ?? []) {
+    if (!rec.receipt_date) continue;
+    const d = new Date(rec.receipt_date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (expenseMap.has(key)) {
+      expenseMap.set(key, (expenseMap.get(key) ?? 0) + (Number(rec.total_amount) || 0));
+    }
+  }
+
+  const months = Array.from(revenueMap.keys());
+  const monthlyRevenue = months.map((m) => ({ month: m, amount: Math.round((revenueMap.get(m) ?? 0) * 100) / 100 }));
+  const monthlyExpenses = months.map((m) => ({ month: m, amount: Math.round((expenseMap.get(m) ?? 0) * 100) / 100 }));
+
+  const currentMonth = months[months.length - 1];
+  const lastMonth = months[months.length - 2];
+
+  const netThisMonth = Math.round(((revenueMap.get(currentMonth) ?? 0) - (expenseMap.get(currentMonth) ?? 0)) * 100) / 100;
+  const netLastMonth = Math.round(((revenueMap.get(lastMonth) ?? 0) - (expenseMap.get(lastMonth) ?? 0)) * 100) / 100;
+
+  const trend: CashflowSummary["trend"] =
+    netThisMonth > netLastMonth ? "up" : netThisMonth < netLastMonth ? "down" : "stable";
+
+  return {
+    error: null,
+    data: { monthlyRevenue, monthlyExpenses, netThisMonth, netLastMonth, trend },
+  };
+}
+
+export interface VatDeadline {
+  quarter: string;
+  deadline: string;
+  daysRemaining: number;
+  estimatedAmount: number;
+}
+
+export async function getVatDeadline(): Promise<ActionResult<VatDeadline>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-based
+  const currentYear = now.getFullYear();
+
+  // Determine current quarter and its deadline
+  // Q1 (jan-mar) → 30 april, Q2 (apr-jun) → 31 july, Q3 (jul-sep) → 31 oct, Q4 (oct-dec) → 31 jan next year
+  const currentQ = Math.floor(currentMonth / 3) + 1;
+  const deadlines: Record<number, { month: number; day: number; yearOffset: number }> = {
+    1: { month: 3, day: 30, yearOffset: 0 },  // April 30
+    2: { month: 6, day: 31, yearOffset: 0 },  // July 31
+    3: { month: 9, day: 31, yearOffset: 0 },  // October 31
+    4: { month: 0, day: 31, yearOffset: 1 },  // January 31 next year
+  };
+
+  const dl = deadlines[currentQ];
+  const deadlineDate = new Date(currentYear + dl.yearOffset, dl.month, dl.day);
+  const daysRemaining = Math.max(0, Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+  // Quarter date range
+  const qStart = new Date(currentYear, (currentQ - 1) * 3, 1);
+  const qEnd = new Date(currentYear, currentQ * 3, 0);
+  const qStartStr = qStart.toISOString().split("T")[0];
+  const qEndStr = qEnd.toISOString().split("T")[0];
+
+  const quarter = `Q${currentQ} ${currentYear}`;
+
+  // Output VAT from invoices
+  const { data: invoices } = await supabase
+    .from("invoices")
+    .select("vat_amount")
+    .eq("user_id", user.id)
+    .in("status", ["sent", "paid"])
+    .gte("issue_date", qStartStr)
+    .lte("issue_date", qEndStr);
+
+  const outputVat = (invoices ?? []).reduce((sum, inv) => sum + (Number(inv.vat_amount) || 0), 0);
+
+  // Input VAT from receipts
+  const { data: receipts } = await supabase
+    .from("receipts")
+    .select("vat_amount")
+    .eq("user_id", user.id)
+    .gte("receipt_date", qStartStr)
+    .lte("receipt_date", qEndStr);
+
+  const inputVat = (receipts ?? []).reduce((sum, rec) => sum + (Number(rec.vat_amount) || 0), 0);
+
+  const estimatedAmount = Math.round((outputVat - inputVat) * 100) / 100;
+
+  const deadlineStr = deadlineDate.toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  return {
+    error: null,
+    data: { quarter, deadline: deadlineStr, daysRemaining, estimatedAmount },
+  };
+}
+
 export async function getRecentInvoices(): Promise<ActionResult<RecentInvoice[]>> {
   const supabase = await createClient();
   const {
