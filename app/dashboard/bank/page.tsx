@@ -10,6 +10,8 @@ import {
   syncTransactions,
   initiateBankConnection,
   completeBankConnection,
+  autoCategorizeTransactions,
+  learnFromCorrection,
 } from "@/lib/actions/banking";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
@@ -85,9 +87,19 @@ export default function BankPage() {
   });
 
   const categorizeMutation = useMutation({
-    mutationFn: ({ id, category }: { id: string; category: string }) =>
-      categorizeTransaction(id, category),
-    onSuccess: () => {
+    mutationFn: async ({ id, category }: { id: string; category: string }) => {
+      const result = await categorizeTransaction(id, category);
+      // Learn from manual correction
+      await learnMutation.mutateAsync({ transactionId: id, category });
+      return result;
+    },
+    onSuccess: (_, variables) => {
+      // Remove from AI-categorized set once manually confirmed/changed
+      setAiCategorized((prev) => {
+        const next = new Set(prev);
+        next.delete(variables.id);
+        return next;
+      });
       queryClient.invalidateQueries({ queryKey: ["bank-transactions"] });
     },
   });
@@ -108,6 +120,23 @@ export default function BankPage() {
     },
   });
 
+  const [aiCategorized, setAiCategorized] = useState<Set<string>>(new Set());
+
+  const autoCategorizeMutation = useMutation({
+    mutationFn: (ids: string[]) => autoCategorizeTransactions(ids),
+    onSuccess: (result) => {
+      if (result.data) {
+        setAiCategorized(new Set(Object.keys(result.data)));
+      }
+      queryClient.invalidateQueries({ queryKey: ["bank-transactions"] });
+    },
+  });
+
+  const learnMutation = useMutation({
+    mutationFn: ({ transactionId, category }: { transactionId: string; category: string }) =>
+      learnFromCorrection(transactionId, category),
+  });
+
   const connectMutation = useMutation({
     mutationFn: async (institutionId: string) => {
       const result = await initiateBankConnection(institutionId);
@@ -125,6 +154,12 @@ export default function BankPage() {
 
   const connections = connectionsResult?.data ?? [];
   const transactions = useMemo(() => transactionsResult?.data ?? [], [transactionsResult?.data]);
+
+  const uncategorizedTransactions = useMemo(
+    () => transactions.filter((tx) => !tx.category),
+    [transactions]
+  );
+  const uncategorizedCount = uncategorizedTransactions.length;
 
   const totals = useMemo(() => {
     let income = 0;
@@ -391,6 +426,53 @@ export default function BankPage() {
           </select>
         </div>
 
+        {/* Auto-categorization banner */}
+        {!transactionsLoading && uncategorizedCount > 0 && (
+          <div
+            style={{
+              borderLeft: "2px solid var(--foreground)",
+              padding: "12px 16px",
+              marginBottom: 24,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-body-lg)",
+                fontWeight: 300,
+              }}
+            >
+              {uncategorizedCount} transactie{uncategorizedCount !== 1 ? "s" : ""} wacht{uncategorizedCount === 1 ? "" : "en"} op categorisatie
+            </span>
+            <button
+              onClick={() =>
+                autoCategorizeMutation.mutate(
+                  uncategorizedTransactions.map((tx) => tx.id)
+                )
+              }
+              disabled={autoCategorizeMutation.isPending}
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-body-lg)",
+                fontWeight: 500,
+                letterSpacing: "0.05em",
+                padding: "12px 20px",
+                border: "none",
+                background: "var(--foreground)",
+                color: "var(--background)",
+                cursor: "pointer",
+              }}
+            >
+              {autoCategorizeMutation.isPending
+                ? "Bezig met categoriseren..."
+                : "Categoriseer automatisch"}
+            </button>
+          </div>
+        )}
+
         {transactionsLoading ? (
           <SkeletonTable />
         ) : transactions.length === 0 ? (
@@ -439,7 +521,15 @@ export default function BankPage() {
             </thead>
             <tbody>
               {transactions.map((tx: BankTransaction) => (
-                <tr key={tx.id} style={{ borderBottom: "var(--border)" }}>
+                <tr
+                  key={tx.id}
+                  style={{
+                    borderBottom: "var(--border)",
+                    borderLeft: aiCategorized.has(tx.id)
+                      ? "2px solid var(--foreground)"
+                      : "2px solid transparent",
+                  }}
+                >
                   <Td>{formatDate(tx.booking_date)}</Td>
                   <Td>{tx.description ?? "—"}</Td>
                   <Td>{tx.counterpart_name ?? "—"}</Td>

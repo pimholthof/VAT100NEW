@@ -1,7 +1,9 @@
 "use server";
 
+import Anthropic from "@anthropic-ai/sdk";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
+import { KOSTENSOORTEN } from "@/lib/constants/costs";
 
 export async function getBankConnections(): Promise<ActionResult<BankConnection[]>> {
   const supabase = await createSupabaseClient();
@@ -237,6 +239,171 @@ export async function deleteBankConnection(
     .delete()
     .eq("id", id)
     .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+const AI_CATEGORIES = [
+  "Omzet",
+  ...KOSTENSOORTEN.map((k) => k.label),
+];
+
+export async function autoCategorizeTransactions(
+  transactionIds: string[]
+): Promise<ActionResult<Record<string, string>>> {
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  // Fetch the transactions
+  const { data: transactions, error: fetchError } = await supabase
+    .from("bank_transactions")
+    .select("id, description, counterpart_name, amount")
+    .eq("user_id", user.id)
+    .in("id", transactionIds);
+
+  if (fetchError) return { error: fetchError.message };
+  if (!transactions || transactions.length === 0) {
+    return { error: null, data: {} };
+  }
+
+  // Fetch existing categorization rules for this user
+  const { data: rules } = await supabase
+    .from("categorization_rules")
+    .select("counterpart_pattern, category, is_income")
+    .eq("user_id", user.id);
+
+  const rulesMap = new Map(
+    (rules ?? []).map((r) => [r.counterpart_pattern.toLowerCase(), r])
+  );
+
+  // Separate transactions that match existing rules from those needing AI
+  const results: Record<string, string> = {};
+  const needsAI: typeof transactions = [];
+
+  for (const tx of transactions) {
+    const key = (tx.counterpart_name ?? "").toLowerCase();
+    const rule = rulesMap.get(key);
+    if (rule && key) {
+      // Apply existing rule directly
+      await supabase
+        .from("bank_transactions")
+        .update({ category: rule.category, is_income: rule.is_income })
+        .eq("id", tx.id)
+        .eq("user_id", user.id);
+      results[tx.id] = rule.category;
+    } else {
+      needsAI.push(tx);
+    }
+  }
+
+  if (needsAI.length === 0) {
+    return { error: null, data: results };
+  }
+
+  // Batch in groups of 20
+  const batches: (typeof needsAI)[] = [];
+  for (let i = 0; i < needsAI.length; i += 20) {
+    batches.push(needsAI.slice(i, i + 20));
+  }
+
+  const anthropic = new Anthropic();
+  const categoryList = AI_CATEGORIES.join(", ");
+
+  for (const batch of batches) {
+    const input = batch.map((tx) => ({
+      id: tx.id,
+      description: tx.description,
+      counterpart_name: tx.counterpart_name,
+      amount: tx.amount,
+    }));
+
+    try {
+      const message = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1024,
+        system: `Je categoriseert banktransacties voor een Nederlandse freelancer/ZZP'er.
+Categoriseer elke transactie in exact één van deze categorieën: ${categoryList}.
+Markeer ook of het inkomsten (is_income: true) of uitgaven (is_income: false) zijn.
+Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income}]`,
+        messages: [
+          {
+            role: "user",
+            content: JSON.stringify(input),
+          },
+        ],
+      });
+
+      const text =
+        message.content[0].type === "text" ? message.content[0].text : "";
+      // Extract JSON from response (may be wrapped in markdown code block)
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) continue;
+
+      const parsed: { id: string; category: string; is_income: boolean }[] =
+        JSON.parse(jsonMatch[0]);
+
+      // Update each transaction
+      for (const item of parsed) {
+        if (!AI_CATEGORIES.includes(item.category)) continue;
+
+        await supabase
+          .from("bank_transactions")
+          .update({ category: item.category, is_income: item.is_income })
+          .eq("id", item.id)
+          .eq("user_id", user.id);
+
+        results[item.id] = item.category;
+      }
+    } catch {
+      // Continue with next batch on error
+      continue;
+    }
+  }
+
+  return { error: null, data: results };
+}
+
+export async function learnFromCorrection(
+  transactionId: string,
+  newCategory: string
+): Promise<ActionResult> {
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  // Fetch the transaction to get counterpart_name
+  const { data: tx, error: fetchError } = await supabase
+    .from("bank_transactions")
+    .select("counterpart_name, amount")
+    .eq("id", transactionId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError || !tx) return { error: "Transactie niet gevonden." };
+  if (!tx.counterpart_name) return { error: null }; // No counterpart to learn from
+
+  const isIncome = newCategory === "Omzet" || Number(tx.amount) > 0;
+
+  // Upsert the rule
+  const { error } = await supabase
+    .from("categorization_rules")
+    .upsert(
+      {
+        user_id: user.id,
+        counterpart_pattern: tx.counterpart_name.toLowerCase(),
+        category: newCategory,
+        is_income: isIncome,
+      },
+      { onConflict: "user_id,counterpart_pattern" }
+    );
 
   if (error) return { error: error.message };
   return { error: null };
