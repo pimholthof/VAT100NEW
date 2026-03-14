@@ -42,15 +42,13 @@ const MARGIN = 56; // 7 × 8px baseline
 const LABEL: {
   fontSize: number;
   letterSpacing: number;
-  textTransform: "uppercase";
   color: string;
   fontFamily: string;
   fontWeight: number;
 } = {
-  fontSize: 8,
-  letterSpacing: 0.22 * 8, // 0.22em at 8pt
-  textTransform: "uppercase",
-  color: "rgba(13,13,11,0.4)",
+  fontSize: 10,
+  letterSpacing: 0.02 * 10,
+  color: "rgba(13,13,11,0.5)",
   fontFamily: "Barlow",
   fontWeight: 400,
 };
@@ -123,43 +121,30 @@ const s = StyleSheet.create({
 
   // Header
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginBottom: 16, // 2 × baseline
-  },
-  studioName: {
-    fontFamily: "Barlow Condensed",
-    fontWeight: 900,
-    fontSize: 72,
-    lineHeight: 0.85,
-    letterSpacing: 0.01 * 72,
-    textTransform: "uppercase",
-    color: COLOR,
-    maxWidth: 320,
+    marginBottom: 24,
   },
   vat100Mark: {
     fontFamily: "Barlow Condensed",
     fontWeight: 900,
-    fontSize: 84,
-    letterSpacing: 0.02 * 84,
+    fontSize: 120,
+    lineHeight: 0.85,
+    letterSpacing: 0.02 * 120,
     color: COLOR,
-    textAlign: "right",
-  },
-
-  // Separator
-  separator: {
-    ...RULE,
-    marginBottom: 24, // 3 × baseline
   },
 
   // Meta row
   metaRow: {
     flexDirection: "row",
-    marginBottom: 32, // 4 × baseline
+    marginBottom: 48,
+    gap: 24,
   },
   metaCol: {
     flex: 1,
+  },
+  metaLine: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 2,
   },
   metaLabel: {
     ...LABEL,
@@ -179,7 +164,7 @@ const s = StyleSheet.create({
   // Parties
   partiesRow: {
     flexDirection: "row",
-    marginBottom: 32,
+    marginBottom: 48,
   },
   partyCol: {
     flex: 1,
@@ -205,8 +190,6 @@ const s = StyleSheet.create({
   // Table
   tableHeader: {
     flexDirection: "row",
-    borderTopWidth: 0.5,
-    borderTopColor: COLOR,
     ...RULE,
     paddingVertical: 8,
   },
@@ -214,6 +197,10 @@ const s = StyleSheet.create({
     ...LABEL,
   },
   tableRow: {
+    flexDirection: "row",
+    paddingVertical: 8,
+  },
+  tableRowLast: {
     flexDirection: "row",
     ...RULE,
     paddingVertical: 8,
@@ -291,8 +278,7 @@ const s = StyleSheet.create({
     fontFamily: "Barlow",
     fontWeight: 400,
     color: "rgba(13,13,11,0.4)",
-    letterSpacing: 0.22 * 9,
-    textTransform: "uppercase",
+    letterSpacing: 0.02 * 9,
     marginBottom: 2,
   },
   footerValue: {
@@ -320,39 +306,52 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
       <Page size="A4" style={s.page}>
         {/* ── Header ── */}
         <View style={s.header}>
-          <Text style={s.studioName}>
-            {profile.studio_name || profile.full_name}
-          </Text>
           <Text style={s.vat100Mark}>VAT100</Text>
         </View>
-
-        {/* ── Separator ── */}
-        <View style={s.separator} />
 
         {/* ── Meta Row ── */}
         <View style={s.metaRow}>
           <View style={s.metaCol}>
-            <Text style={s.metaLabel}>FACTUUR</Text>
-            <Text style={s.metaInvoiceNumber}>{invoice.invoice_number}</Text>
+            <Text style={s.partyName}>
+              {profile.studio_name || profile.full_name}
+            </Text>
+            {profile.kvk_number && (
+              <Text style={s.partyDetail}>KVK {profile.kvk_number}</Text>
+            )}
+            {profile.btw_number && (
+              <Text style={s.partyDetail}>BTW {profile.btw_number}</Text>
+            )}
+            {profile.address && (
+              <Text style={s.partyDetail}>{profile.address}</Text>
+            )}
+            {(profile.postal_code || profile.city) && (
+              <Text style={s.partyDetail}>
+                {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
+              </Text>
+            )}
           </View>
           <View style={s.metaCol}>
-            <Text style={s.metaLabel}>DATUM</Text>
-            <Text style={s.metaValue}>{formatDate(invoice.issue_date)}</Text>
-          </View>
-          <View style={s.metaCol}>
-            <Text style={s.metaLabel}>VERVALDATUM</Text>
-            <Text style={s.metaValue}>{formatDate(invoice.due_date)}</Text>
-          </View>
-          <View style={s.metaCol}>
-            <Text style={s.metaLabel}>VIA</Text>
-            <Text style={s.metaValue}>{sentViaLabel(invoice.sent_via)}</Text>
+            <View style={s.metaLine}>
+              <Text style={s.metaLabel}>Factuurnr</Text>
+              <Text style={s.metaValue}>{invoice.invoice_number}</Text>
+            </View>
+            <View style={s.metaLine}>
+              <Text style={s.metaLabel}>Factuurdatum</Text>
+              <Text style={s.metaValue}>{formatDate(invoice.issue_date)}</Text>
+            </View>
+            {invoice.due_date && (
+              <View style={s.metaLine}>
+                <Text style={s.metaLabel}>Vervaldatum</Text>
+                <Text style={s.metaValue}>{formatDate(invoice.due_date)}</Text>
+              </View>
+            )}
           </View>
         </View>
 
         {/* ── Parties ── */}
         <View style={s.partiesRow}>
           <View style={s.partyCol}>
-            <Text style={s.partyLabel}>AAN</Text>
+            <Text style={s.partyLabel}>Aan</Text>
             <Text style={s.partyName}>{client.name}</Text>
             {client.contact_name && (
               <Text style={s.partyDetail}>{client.contact_name}</Text>
@@ -369,40 +368,26 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
               <Text style={s.partyDetail}>KVK {client.kvk_number}</Text>
             )}
           </View>
-          <View style={s.partyCol}>
-            <Text style={s.partyLabel}>VAN</Text>
-            <Text style={s.partyName}>
-              {profile.studio_name || profile.full_name}
-            </Text>
-            {profile.address && (
-              <Text style={s.partyDetail}>{profile.address}</Text>
-            )}
-            {(profile.postal_code || profile.city) && (
-              <Text style={s.partyDetail}>
-                {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
-              </Text>
-            )}
-            {profile.kvk_number && (
-              <Text style={s.partyDetail}>KVK {profile.kvk_number}</Text>
-            )}
-            {profile.btw_number && (
-              <Text style={s.partyDetail}>BTW {profile.btw_number}</Text>
-            )}
-          </View>
+          {invoice.notes && (
+            <View style={s.partyCol}>
+              <Text style={s.partyLabel}>Omschrijving</Text>
+              <Text style={s.partyDetail}>{invoice.notes}</Text>
+            </View>
+          )}
         </View>
 
         {/* ── Table Header ── */}
         <View style={s.tableHeader}>
-          <Text style={[s.tableHeaderCell, s.colDesc]}>OMSCHRIJVING</Text>
-          <Text style={[s.tableHeaderCell, s.colQty]}>AANTAL</Text>
-          <Text style={[s.tableHeaderCell, s.colRate]}>TARIEF</Text>
-          <Text style={[s.tableHeaderCell, s.colAmount]}>BEDRAG</Text>
+          <Text style={[s.tableHeaderCell, s.colDesc]}>Omschrijving</Text>
+          <Text style={[s.tableHeaderCell, s.colQty]}>Aantal</Text>
+          <Text style={[s.tableHeaderCell, s.colRate]}>Tarief</Text>
+          <Text style={[s.tableHeaderCell, s.colAmount]}>Bedrag</Text>
           <Text style={s.colPad} />
         </View>
 
         {/* ── Table Rows ── */}
-        {lines.map((line) => (
-          <View style={s.tableRow} key={line.id}>
+        {lines.map((line, i) => (
+          <View style={i === lines.length - 1 ? s.tableRowLast : s.tableRow} key={line.id}>
             <Text style={[s.tableCell, s.colDesc]}>{line.description}</Text>
             <Text style={[s.tableCell, s.colQty]}>
               {line.quantity} {unitLabel(line.unit).toLowerCase()}
@@ -455,7 +440,7 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
               </View>
             )}
             <View style={s.footerCol}>
-              <Text style={s.footerLabel}>BETAALTERMIJN</Text>
+              <Text style={s.footerLabel}>Betaaltermijn</Text>
               <Text style={s.footerValue}>
                 {invoice.due_date
                   ? `${Math.max(0, Math.ceil((new Date(invoice.due_date).getTime() - new Date(invoice.issue_date).getTime()) / (1000 * 60 * 60 * 24)))} dagen`

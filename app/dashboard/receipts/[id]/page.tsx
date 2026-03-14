@@ -84,10 +84,9 @@ export default function ReceiptDetailPage() {
           href="/dashboard/receipts"
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-xs)",
-            fontWeight: 500,
-            letterSpacing: "var(--tracking-caps)",
-            textTransform: "uppercase",
+            fontSize: "var(--text-body-sm)",
+            fontWeight: 400,
+            letterSpacing: "0.02em",
             color: "var(--foreground)",
             opacity: 0.6,
             textDecoration: "none",
@@ -141,8 +140,8 @@ export default function ReceiptDetailPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: "1px",
-            border: "1px solid var(--foreground)",
+            gap: 0,
+            border: "none",
             marginBottom: 32,
           }}
         >
@@ -198,14 +197,13 @@ function DetailCell({
   value: string | null;
 }) {
   return (
-    <div style={{ padding: 20, borderBottom: "1px solid var(--foreground)" }}>
+    <div style={{ padding: "20px 0", borderBottom: "var(--border-rule)" }}>
       <p
         style={{
           fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-xs)",
-          fontWeight: 500,
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
+          fontSize: "10px",
+          fontWeight: 400,
+          letterSpacing: "0.02em",
           margin: "0 0 4px",
           opacity: 0.6,
         }}
@@ -230,10 +228,9 @@ const buttonSecondaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "10px 16px",
-  border: "1px solid var(--foreground)",
+  border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",
   color: "var(--foreground)",
   cursor: "pointer",

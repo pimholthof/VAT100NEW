@@ -11,10 +11,9 @@ export default function NewReceiptPage() {
           href="/dashboard/receipts"
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-xs)",
-            fontWeight: 500,
-            letterSpacing: "var(--tracking-caps)",
-            textTransform: "uppercase",
+            fontSize: "var(--text-body-sm)",
+            fontWeight: 400,
+            letterSpacing: "0.02em",
             color: "var(--foreground)",
             opacity: 0.6,
             textDecoration: "none",
