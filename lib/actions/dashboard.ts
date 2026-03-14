@@ -97,6 +97,67 @@ export async function getDashboardStats(): Promise<ActionResult<DashboardStats>>
   };
 }
 
+export interface UpcomingInvoice {
+  id: string;
+  invoice_number: string;
+  status: string;
+  due_date: string;
+  total_inc_vat: number;
+  client_name: string;
+  client_email: string | null;
+  days_overdue: number;
+}
+
+export async function getUpcomingDueInvoices(): Promise<ActionResult<UpcomingInvoice[]>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+  const cutoff = sevenDaysFromNow.toISOString().split("T")[0];
+
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("id, invoice_number, status, due_date, total_inc_vat, client:clients(name, email)")
+    .eq("user_id", user.id)
+    .in("status", ["sent", "overdue"])
+    .not("due_date", "is", null)
+    .lte("due_date", cutoff)
+    .order("due_date", { ascending: true })
+    .limit(10);
+
+  if (error) return { error: error.message };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const invoices: UpcomingInvoice[] = (data ?? []).map((row: Record<string, unknown>) => {
+    const dueDate = new Date(row.due_date as string);
+    dueDate.setHours(0, 0, 0, 0);
+    const diffMs = today.getTime() - dueDate.getTime();
+    const daysOverdue = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    const client = row.client as Record<string, unknown> | null;
+
+    return {
+      id: row.id as string,
+      invoice_number: row.invoice_number as string,
+      status: row.status as string,
+      due_date: row.due_date as string,
+      total_inc_vat: row.total_inc_vat as number,
+      client_name: (client?.name as string) ?? "—",
+      client_email: (client?.email as string) ?? null,
+      days_overdue: daysOverdue,
+    };
+  });
+
+  return { error: null, data: invoices };
+}
+
 export async function getRecentInvoices(): Promise<ActionResult<RecentInvoice[]>> {
   const supabase = await createClient();
   const {

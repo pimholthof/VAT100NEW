@@ -8,6 +8,7 @@ import {
   getInvoice,
   updateInvoiceStatus,
   sendInvoice,
+  sendReminder,
   generateShareToken,
 } from "@/lib/actions/invoices";
 import { InvoiceForm } from "@/components/invoice/InvoiceForm";
@@ -51,6 +52,7 @@ export default function EditInvoicePage() {
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
+  const [reminderSending, setReminderSending] = useState(false);
   const [localShareToken, setLocalShareToken] = useState<string | null>(null);
   const [shareLoading, setShareLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -110,6 +112,18 @@ export default function EditInvoicePage() {
       queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
     }
     setEmailSending(false);
+  };
+
+  const handleSendReminder = async () => {
+    setReminderSending(true);
+    setStatusMsg(null);
+    const res = await sendReminder(params.id);
+    if (res.error) {
+      setStatusMsg(res.error);
+    } else {
+      setStatusMsg("Herinnering verstuurd.");
+    }
+    setReminderSending(false);
   };
 
   const shareToken = localShareToken ?? serverShareToken;
@@ -242,6 +256,16 @@ export default function EditInvoicePage() {
               style={buttonSecondaryStyle}
             >
               Terug naar concept
+            </button>
+          )}
+          {currentStatus === "overdue" && result?.data?.client?.email && (
+            <button
+              type="button"
+              onClick={handleSendReminder}
+              disabled={reminderSending}
+              style={buttonSecondaryStyle}
+            >
+              {reminderSending ? "Verzenden..." : "Stuur herinnering"}
             </button>
           )}
           {(currentStatus === "sent" || currentStatus === "paid") &&

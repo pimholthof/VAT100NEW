@@ -1,12 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   getDashboardStats,
   getRecentInvoices,
+  getUpcomingDueInvoices,
   type RecentInvoice,
+  type UpcomingInvoice,
 } from "@/lib/actions/dashboard";
+import { sendReminder } from "@/lib/actions/invoices";
 
 const statusLabels: Record<string, string> = {
   draft: "Concept",
@@ -41,8 +45,14 @@ export default function DashboardPage() {
     queryFn: () => getRecentInvoices(),
   });
 
+  const { data: upcomingResult, isLoading: upcomingLoading } = useQuery({
+    queryKey: ["dashboard-upcoming-invoices"],
+    queryFn: () => getUpcomingDueInvoices(),
+  });
+
   const stats = statsResult?.data;
   const invoices = invoicesResult?.data;
+  const upcomingInvoices = upcomingResult?.data;
 
   return (
     <div>
@@ -98,6 +108,37 @@ export default function DashboardPage() {
           </>
         ) : null}
       </div>
+
+      {/* Upcoming due invoices */}
+      <h2
+        style={{
+          fontFamily: "var(--font-display), sans-serif",
+          fontSize: "1.5rem",
+          fontWeight: 900,
+          letterSpacing: "var(--tracking-display)",
+          lineHeight: 1,
+          margin: "0 0 16px",
+        }}
+      >
+        Openstaande facturen
+      </h2>
+
+      {upcomingLoading ? (
+        <SkeletonTable />
+      ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
+        <UpcomingInvoiceTable invoices={upcomingInvoices} />
+      ) : (
+        <p
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-lg)",
+            opacity: 0.5,
+            marginBottom: 48,
+          }}
+        >
+          Geen openstaande facturen.
+        </p>
+      )}
 
       {/* Recent invoices table */}
       <h2
@@ -287,6 +328,174 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/* ── Upcoming Invoice Table ── */
+
+function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  const handleSendReminder = async (invoiceId: string) => {
+    setSendingId(invoiceId);
+    setStatusMsg(null);
+    const res = await sendReminder(invoiceId);
+    if (res.error) {
+      setStatusMsg(res.error);
+    } else {
+      setStatusMsg("Herinnering verstuurd.");
+    }
+    setSendingId(null);
+  };
+
+  const cellStyle: React.CSSProperties = {
+    padding: "10px 12px",
+    fontFamily: "var(--font-body), sans-serif",
+    fontSize: "var(--text-body-lg)",
+    fontWeight: 400,
+    letterSpacing: "0.05em",
+    borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
+    textAlign: "left",
+  };
+
+  const headerStyle: React.CSSProperties = {
+    ...cellStyle,
+    fontSize: "10px",
+    fontWeight: 500,
+    letterSpacing: "0.02em",
+    opacity: 0.5,
+    borderBottom: "1px solid var(--foreground)",
+  };
+
+  const buttonSecondaryStyle: React.CSSProperties = {
+    fontFamily: "var(--font-body), sans-serif",
+    fontSize: "var(--text-body-md)",
+    fontWeight: 500,
+    letterSpacing: "0.05em",
+    padding: "10px 16px",
+    border: "1px solid rgba(13, 13, 11, 0.2)",
+    background: "transparent",
+    color: "var(--foreground)",
+    cursor: "pointer",
+  };
+
+  return (
+    <div style={{ marginBottom: 48 }}>
+      {statusMsg && (
+        <div
+          style={{
+            padding: "12px 16px",
+            borderLeft: "2px solid var(--foreground)",
+            marginBottom: 16,
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-md)",
+            fontWeight: 400,
+          }}
+        >
+          {statusMsg}
+        </div>
+      )}
+      <div style={{ overflowX: "auto" }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            borderSpacing: 0,
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={headerStyle}>Klant</th>
+              <th style={headerStyle}>Factuurnr</th>
+              <th style={{ ...headerStyle, textAlign: "right" }}>Bedrag</th>
+              <th style={headerStyle}>Status</th>
+              <th style={{ ...headerStyle, width: 160 }}>Actie</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoices.map((inv) => {
+              const isOverdue = inv.days_overdue > 0;
+              return (
+                <tr key={inv.id}>
+                  <td
+                    style={{
+                      ...cellStyle,
+                      borderLeft: isOverdue
+                        ? "2px solid var(--foreground)"
+                        : "2px solid transparent",
+                    }}
+                  >
+                    {inv.client_name}
+                  </td>
+                  <td style={cellStyle}>
+                    <Link
+                      href={`/dashboard/invoices/${inv.id}`}
+                      style={{
+                        fontFamily: "var(--font-body), sans-serif",
+                        fontSize: "var(--text-body-lg)",
+                        fontWeight: 400,
+                        color: "var(--foreground)",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      {inv.invoice_number}
+                    </Link>
+                  </td>
+                  <td
+                    style={{
+                      ...cellStyle,
+                      textAlign: "right",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {formatCurrency(inv.total_inc_vat)}
+                  </td>
+                  <td style={cellStyle}>
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        fontWeight: 500,
+                        letterSpacing: "0.02em",
+                      }}
+                    >
+                      {isOverdue
+                        ? `${inv.days_overdue}d verlopen`
+                        : inv.days_overdue === 0
+                          ? "Vandaag"
+                          : `${Math.abs(inv.days_overdue)}d`}
+                    </span>
+                  </td>
+                  <td style={cellStyle}>
+                    {inv.client_email ? (
+                      <button
+                        type="button"
+                        onClick={() => handleSendReminder(inv.id)}
+                        disabled={sendingId === inv.id}
+                        style={buttonSecondaryStyle}
+                      >
+                        {sendingId === inv.id
+                          ? "Verzenden..."
+                          : "Stuur herinnering"}
+                      </button>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: "var(--text-body-sm)",
+                          opacity: 0.4,
+                        }}
+                      >
+                        Geen e-mail
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
