@@ -39,7 +39,28 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const queryClient = useQueryClient();
-  const store = useInvoiceStore();
+
+  const clientId = useInvoiceStore((s) => s.clientId);
+  const setClientId = useInvoiceStore((s) => s.setClientId);
+  const invoiceNumber = useInvoiceStore((s) => s.invoiceNumber);
+  const setInvoiceNumber = useInvoiceStore((s) => s.setInvoiceNumber);
+  const issueDate = useInvoiceStore((s) => s.issueDate);
+  const setIssueDate = useInvoiceStore((s) => s.setIssueDate);
+  const dueDate = useInvoiceStore((s) => s.dueDate);
+  const setDueDate = useInvoiceStore((s) => s.setDueDate);
+  const vatRate = useInvoiceStore((s) => s.vatRate);
+  const setVatRate = useInvoiceStore((s) => s.setVatRate);
+  const notes = useInvoiceStore((s) => s.notes);
+  const setNotes = useInvoiceStore((s) => s.setNotes);
+  const lines = useInvoiceStore((s) => s.lines);
+  const addLine = useInvoiceStore((s) => s.addLine);
+  const updateLine = useInvoiceStore((s) => s.updateLine);
+  const removeLine = useInvoiceStore((s) => s.removeLine);
+  const moveLine = useInvoiceStore((s) => s.moveLine);
+  const totals = useInvoiceStore((s) => s.totals);
+  const lastSavedAt = useInvoiceStore((s) => s.lastSavedAt);
+  const markSaved = useInvoiceStore((s) => s.markSaved);
+  const toInput = useInvoiceStore((s) => s.toInput);
 
   const { data: clientsResult } = useQuery({
     queryKey: ["clients"],
@@ -49,14 +70,14 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
   // Generate invoice number for new invoices
   useEffect(() => {
-    if (!invoiceId && !store.invoiceNumber) {
+    if (!invoiceId && !invoiceNumber) {
       generateInvoiceNumber().then((result) => {
         if (result.data) {
-          store.setInvoiceNumber(result.data);
+          setInvoiceNumber(result.data);
         }
       });
     }
-  }, [invoiceId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [invoiceId, invoiceNumber, setInvoiceNumber]);
 
   // Auto-save draft every 30 seconds
   const handleAutoSave = useCallback(async () => {
@@ -80,11 +101,11 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   }, [handleAutoSave]);
 
   const handleSave = async (andPreview: boolean) => {
-    if (!store.clientId) {
+    if (!clientId) {
       setError("Selecteer een klant.");
       return;
     }
-    if (!store.invoiceNumber) {
+    if (!invoiceNumber) {
       setError("Factuurnummer is verplicht.");
       return;
     }
@@ -93,13 +114,13 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     setError(null);
 
     const status = andPreview ? "sent" : "draft";
-    const input = store.toInput(status as "draft" | "sent");
+    const input = toInput(status as "draft" | "sent");
 
     let result;
     if (invoiceId) {
       result = await updateInvoice(invoiceId, input);
       if (!result.error) {
-        store.markSaved();
+        markSaved();
         if (andPreview) {
           router.push(`/dashboard/invoices/${invoiceId}/preview`);
         }
@@ -107,7 +128,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     } else {
       result = await createInvoice(input);
       if (!result.error && result.data) {
-        store.markSaved();
+        markSaved();
         if (andPreview) {
           router.push(`/dashboard/invoices/${result.data}/preview`);
         } else {
@@ -135,7 +156,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       btw_number: null,
     });
     if (result.data) {
-      store.setClientId(result.data.id);
+      setClientId(result.data.id);
       setNewClientName("");
       setNewClientEmail("");
       setNewClientAddress("");
@@ -157,8 +178,8 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       <FieldGroup label="Klant">
         <div style={{ display: "flex", gap: 8 }}>
           <select
-            value={store.clientId}
-            onChange={(e) => store.setClientId(e.target.value)}
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
             style={inputStyle}
           >
             <option value="">— Selecteer klant —</option>
@@ -277,24 +298,24 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         <FieldGroup label="Factuurnummer">
           <input
             type="text"
-            value={store.invoiceNumber}
-            onChange={(e) => store.setInvoiceNumber(e.target.value)}
+            value={invoiceNumber}
+            onChange={(e) => setInvoiceNumber(e.target.value)}
             style={inputStyle}
           />
         </FieldGroup>
         <FieldGroup label="Factuurdatum">
           <input
             type="date"
-            value={store.issueDate}
-            onChange={(e) => store.setIssueDate(e.target.value)}
+            value={issueDate}
+            onChange={(e) => setIssueDate(e.target.value)}
             style={inputStyle}
           />
         </FieldGroup>
         <FieldGroup label="Vervaldatum">
           <input
             type="date"
-            value={store.dueDate}
-            onChange={(e) => store.setDueDate(e.target.value)}
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
             style={inputStyle}
           />
         </FieldGroup>
@@ -317,20 +338,20 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           <LabelCell>Bedrag</LabelCell>
           <LabelCell />
         </div>
-        {store.lines.map((line, index) => (
+        {lines.map((line, index) => (
           <InvoiceLineRow
             key={line.id}
             line={line}
             index={index}
-            totalLines={store.lines.length}
-            onUpdate={store.updateLine}
-            onRemove={store.removeLine}
-            onMove={store.moveLine}
+            totalLines={lines.length}
+            onUpdate={updateLine}
+            onRemove={removeLine}
+            onMove={moveLine}
           />
         ))}
         <button
           type="button"
-          onClick={store.addLine}
+          onClick={addLine}
           style={{
             ...buttonSecondaryStyle,
             marginTop: 8,
@@ -351,8 +372,8 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       >
         <FieldGroup label="BTW-tarief">
           <select
-            value={store.vatRate}
-            onChange={(e) => store.setVatRate(Number(e.target.value) as VatRate)}
+            value={vatRate}
+            onChange={(e) => setVatRate(Number(e.target.value) as VatRate)}
             style={{ ...inputStyle, width: 120 }}
           >
             <option value={21}>21%</option>
@@ -368,10 +389,10 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             fontSize: "var(--text-body-md)",
           }}
         >
-          <TotalRow label="Subtotaal" value={store.totals.subtotal} />
+          <TotalRow label="Subtotaal" value={totals.subtotal} />
           <TotalRow
-            label={`BTW (${store.vatRate}%)`}
-            value={store.totals.vatAmount}
+            label={`BTW (${vatRate}%)`}
+            value={totals.vatAmount}
           />
           <div
             style={{
@@ -380,7 +401,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               marginTop: 8,
             }}
           >
-            <TotalRow label="Totaal" value={store.totals.total} bold />
+            <TotalRow label="Totaal" value={totals.total} bold />
           </div>
         </div>
       </div>
@@ -388,8 +409,8 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       {/* Notes */}
       <FieldGroup label="Notities (optioneel)">
         <textarea
-          value={store.notes}
-          onChange={(e) => store.setNotes(e.target.value)}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
           rows={3}
           placeholder="Bijv. betalingsvoorwaarden, referentie..."
           style={{ ...inputStyle, resize: "vertical" }}
@@ -414,7 +435,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         </ButtonPrimary>
       </div>
 
-      {store.lastSavedAt && (
+      {lastSavedAt && (
         <p
           style={{
             fontFamily: "var(--font-body), sans-serif",
@@ -424,7 +445,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             marginTop: 12,
           }}
         >
-          Laatst opgeslagen: {new Date(store.lastSavedAt).toLocaleTimeString("nl-NL")}
+          Laatst opgeslagen: {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
         </p>
       )}
     </div>

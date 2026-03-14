@@ -12,6 +12,10 @@ import type {
   InvoiceWithDetails,
 } from "@/lib/types";
 
+export type InvoiceWithClient = Invoice & {
+  client: { name: string } | null;
+};
+
 function calculateTotals(
   lines: { quantity: number; rate: number }[],
   vatRate: number
@@ -244,7 +248,7 @@ export async function deleteInvoice(id: string): Promise<ActionResult> {
   return { error: null };
 }
 
-export async function getInvoices(): Promise<ActionResult<Invoice[]>> {
+export async function getInvoices(): Promise<ActionResult<InvoiceWithClient[]>> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -259,7 +263,7 @@ export async function getInvoices(): Promise<ActionResult<Invoice[]>> {
     .order("created_at", { ascending: false });
 
   if (error) return { error: error.message };
-  return { error: null, data: data ?? [] };
+  return { error: null, data: (data ?? []) as unknown as InvoiceWithClient[] };
 }
 
 export async function getInvoice(

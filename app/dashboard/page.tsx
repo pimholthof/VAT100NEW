@@ -4,11 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import {
-  getDashboardStats,
-  getRecentInvoices,
-  getUpcomingDueInvoices,
-  getCashflowSummary,
-  getVatDeadline,
+  getDashboardData,
   type RecentInvoice,
   type UpcomingInvoice,
   type CashflowSummary,
@@ -47,36 +43,22 @@ function formatDate(dateStr: string): string {
 }
 
 export default function DashboardPage() {
-  const { data: statsResult, isLoading: statsLoading } = useQuery({
-    queryKey: ["dashboard-stats"],
-    queryFn: () => getDashboardStats(),
+  const { data: dashboardResult, isLoading } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: () => getDashboardData(),
   });
 
-  const { data: invoicesResult, isLoading: invoicesLoading } = useQuery({
-    queryKey: ["dashboard-recent-invoices"],
-    queryFn: () => getRecentInvoices(),
-  });
+  const stats = dashboardResult?.data?.stats;
+  const invoices = dashboardResult?.data?.recentInvoices;
+  const upcomingInvoices = dashboardResult?.data?.upcomingInvoices;
+  const cashflow = dashboardResult?.data?.cashflow;
+  const vatDeadline = dashboardResult?.data?.vatDeadline;
 
-  const { data: upcomingResult, isLoading: upcomingLoading } = useQuery({
-    queryKey: ["dashboard-upcoming-invoices"],
-    queryFn: () => getUpcomingDueInvoices(),
-  });
-
-  const { data: cashflowResult, isLoading: cashflowLoading } = useQuery({
-    queryKey: ["dashboard-cashflow"],
-    queryFn: () => getCashflowSummary(),
-  });
-
-  const { data: vatDeadlineResult, isLoading: vatDeadlineLoading } = useQuery({
-    queryKey: ["dashboard-vat-deadline"],
-    queryFn: () => getVatDeadline(),
-  });
-
-  const stats = statsResult?.data;
-  const invoices = invoicesResult?.data;
-  const upcomingInvoices = upcomingResult?.data;
-  const cashflow = cashflowResult?.data;
-  const vatDeadline = vatDeadlineResult?.data;
+  const statsLoading = isLoading;
+  const invoicesLoading = isLoading;
+  const upcomingLoading = isLoading;
+  const cashflowLoading = isLoading;
+  const vatDeadlineLoading = isLoading;
 
   return (
     <div>
