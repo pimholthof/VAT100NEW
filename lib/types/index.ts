@@ -134,6 +134,40 @@ export interface ReceiptInput {
   receipt_date: string | null;
 }
 
+// ─── Bank types ───
+
+export type BankConnectionStatus = "pending" | "active" | "expired" | "error";
+
+export interface BankConnection {
+  id: string;
+  user_id: string;
+  institution_id: string;
+  institution_name: string;
+  requisition_id: string | null;
+  account_id: string | null;
+  iban: string | null;
+  status: BankConnectionStatus;
+  last_synced_at: string | null;
+  created_at: string;
+}
+
+export interface BankTransaction {
+  id: string;
+  user_id: string;
+  bank_connection_id: string;
+  external_id: string;
+  booking_date: string;
+  amount: number;
+  currency: string;
+  description: string | null;
+  counterpart_name: string | null;
+  category: string | null;
+  is_income: boolean;
+  linked_invoice_id: string | null;
+  linked_receipt_id: string | null;
+  created_at: string;
+}
+
 // ─── Action result types ───
 
 export interface ActionResult<T = undefined> {
