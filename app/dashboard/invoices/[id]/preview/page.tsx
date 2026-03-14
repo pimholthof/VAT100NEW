@@ -14,7 +14,7 @@ export default async function InvoicePreviewPage({
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#E8E8E6",
+        backgroundColor: "var(--background)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -35,12 +35,12 @@ export default async function InvoicePreviewPage({
           <Link
             href="/dashboard/invoices"
             style={{
-              fontSize: "12px",
-              fontFamily: '"Barlow", sans-serif',
+              fontSize: "var(--text-body-md)",
+              fontFamily: "var(--font-body), sans-serif",
               fontWeight: 400,
-              color: "#0D0D0B",
+              color: "var(--foreground)",
               textDecoration: "none",
-              letterSpacing: "0.02em",
+              letterSpacing: "0.05em",
             }}
           >
             &larr; Overzicht
@@ -48,12 +48,12 @@ export default async function InvoicePreviewPage({
           <Link
             href={`/dashboard/invoices/${id}`}
             style={{
-              fontSize: "12px",
-              fontFamily: '"Barlow", sans-serif',
+              fontSize: "var(--text-body-md)",
+              fontFamily: "var(--font-body), sans-serif",
               fontWeight: 400,
-              color: "#0D0D0B",
+              color: "var(--foreground)",
               textDecoration: "none",
-              letterSpacing: "0.02em",
+              letterSpacing: "0.05em",
             }}
           >
             Bewerken
@@ -62,14 +62,15 @@ export default async function InvoicePreviewPage({
         <a
           href={`/api/invoice/${id}/pdf`}
           style={{
-            fontSize: "12px",
-            fontFamily: '"Barlow", sans-serif',
+            fontSize: "var(--text-body-md)",
+            fontFamily: "var(--font-body), sans-serif",
             fontWeight: 500,
-            color: "#0D0D0B",
+            color: "var(--foreground)",
             textDecoration: "none",
-            letterSpacing: "0.02em",
+            letterSpacing: "0.25em",
+            textTransform: "uppercase",
             padding: "8px 20px",
-            border: "0.5px solid #0D0D0B",
+            border: "1px solid var(--foreground)",
           }}
         >
           Download PDF
@@ -79,7 +80,7 @@ export default async function InvoicePreviewPage({
       {/* Invoice Preview */}
       <div
         style={{
-          boxShadow: "0 2px 24px rgba(0,0,0,0.08)",
+          border: "1px solid var(--foreground)",
         }}
       >
         <InvoiceHTML data={data} />

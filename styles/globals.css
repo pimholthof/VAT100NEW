@@ -77,6 +77,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
   font-size: var(--text-body-md);
+  letter-spacing: 0.05em;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -111,7 +112,7 @@ body {
 
 /* Sidebar nav item hover */
 .sidebar-nav-item:hover:not([data-active]) {
-  background: rgba(13, 13, 11, 0.04) !important;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent) !important;
 }
 
 /* ─── Skeleton Loaders ─── */
