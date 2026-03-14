@@ -8,10 +8,19 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
-    const data = await fetchInvoiceData(id);
+  const { id } = await params;
+  const result = await fetchInvoiceData(id);
 
+  if (result.error || !result.data) {
+    return NextResponse.json(
+      { error: result.error ?? "Er is een fout opgetreden" },
+      { status: 401 }
+    );
+  }
+
+  const data = result.data;
+
+  try {
     const element = createElement(InvoicePDF, { data });
     const buffer = await renderToBuffer(
       element as unknown as Parameters<typeof renderToBuffer>[0]
@@ -30,6 +39,6 @@ export async function GET(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Er is een fout opgetreden";
-    return NextResponse.json({ error: message }, { status: 401 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

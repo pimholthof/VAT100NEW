@@ -1,15 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
-import type { InvoiceData } from "@/lib/types";
+import type { ActionResult, InvoiceData } from "@/lib/types";
 
 export async function fetchInvoiceData(
   invoiceId: string
-): Promise<InvoiceData> {
+): Promise<ActionResult<InvoiceData>> {
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Niet ingelogd");
+  if (!user) return { error: "Niet ingelogd" };
 
   const { data: invoice, error: invoiceError } = await supabase
     .from("invoices")
@@ -17,7 +17,7 @@ export async function fetchInvoiceData(
     .eq("id", invoiceId)
     .single();
 
-  if (invoiceError || !invoice) throw new Error("Factuur niet gevonden");
+  if (invoiceError || !invoice) return { error: "Factuur niet gevonden" };
 
   const [linesResult, clientResult, profileResult] = await Promise.all([
     supabase
@@ -30,14 +30,17 @@ export async function fetchInvoiceData(
   ]);
 
   if (clientResult.error || !clientResult.data)
-    throw new Error("Klant niet gevonden");
+    return { error: "Klant niet gevonden" };
   if (profileResult.error || !profileResult.data)
-    throw new Error("Profiel niet gevonden");
+    return { error: "Profiel niet gevonden" };
 
   return {
-    invoice,
-    lines: linesResult.data ?? [],
-    client: clientResult.data,
-    profile: profileResult.data,
+    error: null,
+    data: {
+      invoice,
+      lines: linesResult.data ?? [],
+      client: clientResult.data,
+      profile: profileResult.data,
+    },
   };
 }

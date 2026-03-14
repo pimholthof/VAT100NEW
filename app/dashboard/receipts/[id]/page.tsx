@@ -7,7 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getReceipt, getReceiptImageUrl } from "@/lib/actions/receipts";
 import { getKostensoortByCode } from "@/lib/constants/costs";
 import { ReceiptForm } from "@/components/receipt/ReceiptForm";
-import { DetailCell, buttonSecondaryStyle } from "@/components/ui";
+import { DetailCell, ButtonSecondary, PageHeader } from "@/components/ui";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
@@ -94,66 +94,33 @@ export default function ReceiptDetailPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 32 }}>
-        <Link
-          href="/dashboard/receipts"
+      <PageHeader
+        title={receipt.vendor_name || "Bon"}
+        titleSize="md"
+        backHref="/dashboard/receipts"
+        backLabel="Terug naar bonnen"
+        action={
+          !editing ? (
+            <ButtonSecondary onClick={() => setEditing(true)}>
+              Bewerken
+            </ButtonSecondary>
+          ) : undefined
+        }
+      />
+      {receipt.ai_processed && (
+        <p
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-sm)",
+            fontSize: "var(--text-body-xs)",
             fontWeight: 400,
-            letterSpacing: "0.02em",
-            color: "var(--foreground)",
-            opacity: 0.6,
-            textDecoration: "none",
+            opacity: 0.5,
+            marginTop: -24,
+            marginBottom: 32,
           }}
         >
-          ← Terug naar bonnen
-        </Link>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 16,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <h1
-              style={{
-                fontFamily: "var(--font-display), sans-serif",
-                fontSize: "var(--text-display-md)",
-                fontWeight: 900,
-                letterSpacing: "var(--tracking-display)",
-                lineHeight: 1,
-                margin: 0,
-              }}
-            >
-              {receipt.vendor_name || "Bon"}
-            </h1>
-            {receipt.ai_processed && (
-              <span
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-body-xs)",
-                  fontWeight: 400,
-                  opacity: 0.5,
-                }}
-              >
-                AI verwerkt ✓
-              </span>
-            )}
-          </div>
-          {!editing && (
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              style={buttonSecondaryStyle}
-            >
-              Bewerken
-            </button>
-          )}
-        </div>
-      </div>
+          AI verwerkt ✓
+        </p>
+      )}
 
       {editing ? (
         <ReceiptForm

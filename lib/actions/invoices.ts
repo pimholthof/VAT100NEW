@@ -373,8 +373,11 @@ export async function sendReminder(invoiceId: string): Promise<ActionResult> {
     return { error: "Klant heeft geen e-mailadres." };
   }
 
-  const data = await fetchInvoiceData(invoiceId);
-  return sendReminderEmail(data);
+  const result = await fetchInvoiceData(invoiceId);
+  if (result.error || !result.data) {
+    return { error: result.error ?? "Kon factuurgegevens niet ophalen." };
+  }
+  return sendReminderEmail(result.data);
 }
 
 export async function sendInvoice(id: string): Promise<ActionResult> {

@@ -7,8 +7,9 @@ import type { Client, ClientInput } from "@/lib/types";
 import {
   FieldGroup,
   inputStyle,
-  buttonPrimaryStyle,
-  buttonSecondaryStyle,
+  ButtonPrimary,
+  ButtonSecondary,
+  ErrorMessage,
 } from "@/components/ui";
 
 interface ClientFormProps {
@@ -67,19 +68,7 @@ export function ClientForm({ client }: ClientFormProps) {
   return (
     <div style={{ maxWidth: 600 }}>
       {error && (
-        <div
-          style={{
-            padding: "12px 16px",
-            border: "none",
-            borderLeft: "2px solid var(--foreground)",
-            marginBottom: 24,
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-          }}
-        >
-          {error}
-        </div>
+        <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
       )}
 
       <FieldGroup label="Bedrijfsnaam *">
@@ -185,21 +174,12 @@ export function ClientForm({ client }: ClientFormProps) {
           borderTop: "var(--border-rule)",
         }}
       >
-        <button
-          type="button"
-          onClick={() => router.back()}
-          style={buttonSecondaryStyle}
-        >
+        <ButtonSecondary onClick={() => router.back()}>
           Annuleer
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={saving}
-          style={buttonPrimaryStyle}
-        >
+        </ButtonSecondary>
+        <ButtonPrimary onClick={handleSubmit} disabled={saving}>
           {saving ? "Opslaan..." : client ? "Bijwerken" : "Klant aanmaken"}
-        </button>
+        </ButtonPrimary>
       </div>
     </div>
   );

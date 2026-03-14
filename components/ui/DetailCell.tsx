@@ -3,9 +3,11 @@ import React from "react";
 export function DetailCell({
   label,
   value,
+  labelWeight = 500,
 }: {
   label: string;
   value: string | null;
+  labelWeight?: number;
 }) {
   return (
     <div style={{ padding: "20px 0", borderBottom: "var(--border-rule)" }}>
@@ -13,7 +15,7 @@ export function DetailCell({
         style={{
           fontFamily: "var(--font-body), sans-serif",
           fontSize: "10px",
-          fontWeight: 500,
+          fontWeight: labelWeight,
           letterSpacing: "0.02em",
           margin: "0 0 4px",
           opacity: 0.6,

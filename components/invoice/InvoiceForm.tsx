@@ -15,6 +15,9 @@ import type { VatRate } from "@/lib/types";
 import {
   FieldGroup,
   inputStyle,
+  ButtonPrimary,
+  ButtonSecondary,
+  ErrorMessage,
   buttonPrimaryStyle,
   buttonSecondaryStyle,
 } from "@/components/ui";
@@ -147,19 +150,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   return (
     <div style={{ maxWidth: 800 }}>
       {error && (
-        <div
-          style={{
-            padding: "12px 16px",
-            border: "none",
-            borderLeft: "2px solid var(--foreground)",
-            marginBottom: 24,
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-          }}
-        >
-          {error}
-        </div>
+        <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
       )}
 
       {/* Client selector */}
@@ -415,22 +406,12 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           borderTop: "var(--border-rule)",
         }}
       >
-        <button
-          type="button"
-          onClick={() => handleSave(false)}
-          disabled={saving}
-          style={buttonSecondaryStyle}
-        >
+        <ButtonSecondary onClick={() => handleSave(false)} disabled={saving}>
           {saving ? "Opslaan..." : "Opslaan als concept"}
-        </button>
-        <button
-          type="button"
-          onClick={() => handleSave(true)}
-          disabled={saving}
-          style={buttonPrimaryStyle}
-        >
+        </ButtonSecondary>
+        <ButtonPrimary onClick={() => handleSave(true)} disabled={saving}>
           {saving ? "Opslaan..." : "Opslaan en preview"}
-        </button>
+        </ButtonPrimary>
       </div>
 
       {store.lastSavedAt && (

@@ -18,7 +18,10 @@ import {
   StatCard,
   SkeletonCard,
   SkeletonTable,
-  buttonSecondaryStyle,
+  Th,
+  Td,
+  ErrorMessage,
+  ButtonSecondary,
 } from "@/components/ui";
 
 const statusLabels: Record<string, string> = {
@@ -349,25 +352,6 @@ export default function DashboardPage() {
 /* ── Invoice Table ── */
 
 function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
-  const cellStyle: React.CSSProperties = {
-    padding: "10px 12px",
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "var(--text-body-lg)",
-    fontWeight: 400,
-    letterSpacing: "0.05em",
-    borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
-    textAlign: "left",
-  };
-
-  const headerStyle: React.CSSProperties = {
-    ...cellStyle,
-    fontSize: "10px",
-    fontWeight: 500,
-    letterSpacing: "0.02em",
-    opacity: 0.5,
-    borderBottom: "1px solid var(--foreground)",
-  };
-
   return (
     <div style={{ overflowX: "auto" }}>
       <table
@@ -379,17 +363,17 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
       >
         <thead>
           <tr>
-            <th style={headerStyle}>Status</th>
-            <th style={headerStyle}>Klant</th>
-            <th style={headerStyle}>Datum</th>
-            <th style={{ ...headerStyle, textAlign: "right" }}>Bedrag</th>
-            <th style={{ ...headerStyle, width: 80 }}>Actie</th>
+            <Th>Status</Th>
+            <Th>Klant</Th>
+            <Th>Datum</Th>
+            <Th style={{ textAlign: "right" }}>Bedrag</Th>
+            <Th style={{ width: 80 }}>Actie</Th>
           </tr>
         </thead>
         <tbody>
           {invoices.map((inv) => (
             <tr key={inv.id}>
-              <td style={cellStyle}>
+              <Td>
                 <span
                   style={{
                     fontSize: "10px",
@@ -399,13 +383,13 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
                 >
                   {statusLabels[inv.status] ?? inv.status}
                 </span>
-              </td>
-              <td style={cellStyle}>{inv.client_name}</td>
-              <td style={cellStyle}>{formatDate(inv.issue_date)}</td>
-              <td style={{ ...cellStyle, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+              </Td>
+              <Td>{inv.client_name}</Td>
+              <Td>{formatDate(inv.issue_date)}</Td>
+              <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
                 {formatCurrency(inv.total_inc_vat)}
-              </td>
-              <td style={cellStyle}>
+              </Td>
+              <Td>
                 <Link
                   href={`/dashboard/invoices/${inv.id}`}
                   style={{
@@ -419,7 +403,7 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
                 >
                   Bekijk
                 </Link>
-              </td>
+              </Td>
             </tr>
           ))}
         </tbody>
@@ -446,41 +430,9 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
     setSendingId(null);
   };
 
-  const cellStyle: React.CSSProperties = {
-    padding: "10px 12px",
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "var(--text-body-lg)",
-    fontWeight: 400,
-    letterSpacing: "0.05em",
-    borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
-    textAlign: "left",
-  };
-
-  const headerStyle: React.CSSProperties = {
-    ...cellStyle,
-    fontSize: "10px",
-    fontWeight: 500,
-    letterSpacing: "0.02em",
-    opacity: 0.5,
-    borderBottom: "1px solid var(--foreground)",
-  };
-
   return (
     <div style={{ marginBottom: 48 }}>
-      {statusMsg && (
-        <div
-          style={{
-            padding: "12px 16px",
-            borderLeft: "2px solid var(--foreground)",
-            marginBottom: 16,
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-          }}
-        >
-          {statusMsg}
-        </div>
-      )}
+      {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
       <div style={{ overflowX: "auto" }}>
         <table
           style={{
@@ -491,11 +443,11 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
         >
           <thead>
             <tr>
-              <th style={headerStyle}>Klant</th>
-              <th style={headerStyle}>Factuurnr</th>
-              <th style={{ ...headerStyle, textAlign: "right" }}>Bedrag</th>
-              <th style={headerStyle}>Status</th>
-              <th style={{ ...headerStyle, width: 160 }}>Actie</th>
+              <Th>Klant</Th>
+              <Th>Factuurnr</Th>
+              <Th style={{ textAlign: "right" }}>Bedrag</Th>
+              <Th>Status</Th>
+              <Th style={{ width: 160 }}>Actie</Th>
             </tr>
           </thead>
           <tbody>
@@ -503,17 +455,16 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
               const isOverdue = inv.days_overdue > 0;
               return (
                 <tr key={inv.id}>
-                  <td
+                  <Td
                     style={{
-                      ...cellStyle,
                       borderLeft: isOverdue
                         ? "2px solid var(--foreground)"
                         : "2px solid transparent",
                     }}
                   >
                     {inv.client_name}
-                  </td>
-                  <td style={cellStyle}>
+                  </Td>
+                  <Td>
                     <Link
                       href={`/dashboard/invoices/${inv.id}`}
                       style={{
@@ -526,17 +477,16 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                     >
                       {inv.invoice_number}
                     </Link>
-                  </td>
-                  <td
+                  </Td>
+                  <Td
                     style={{
-                      ...cellStyle,
                       textAlign: "right",
                       fontVariantNumeric: "tabular-nums",
                     }}
                   >
                     {formatCurrency(inv.total_inc_vat)}
-                  </td>
-                  <td style={cellStyle}>
+                  </Td>
+                  <Td>
                     <span
                       style={{
                         fontSize: "10px",
@@ -550,19 +500,17 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                           ? "Vandaag"
                           : `${Math.abs(inv.days_overdue)}d`}
                     </span>
-                  </td>
-                  <td style={cellStyle}>
+                  </Td>
+                  <Td>
                     {inv.client_email ? (
-                      <button
-                        type="button"
+                      <ButtonSecondary
                         onClick={() => handleSendReminder(inv.id)}
                         disabled={sendingId === inv.id}
-                        style={buttonSecondaryStyle}
                       >
                         {sendingId === inv.id
                           ? "Verzenden..."
                           : "Stuur herinnering"}
-                      </button>
+                      </ButtonSecondary>
                     ) : (
                       <span
                         style={{
@@ -573,7 +521,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                         Geen e-mail
                       </span>
                     )}
-                  </td>
+                  </Td>
                 </tr>
               );
             })}
@@ -593,28 +541,6 @@ function formatMonth(key: string): string {
 }
 
 function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
-  const cellStyle: React.CSSProperties = {
-    padding: "10px 12px",
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "var(--text-body-lg)",
-    fontWeight: 400,
-    letterSpacing: "0.05em",
-    borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
-    textAlign: "right",
-    fontVariantNumeric: "tabular-nums",
-  };
-
-  const headerStyle: React.CSSProperties = {
-    padding: "10px 12px",
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "10px",
-    fontWeight: 500,
-    letterSpacing: "0.02em",
-    opacity: 0.5,
-    borderBottom: "1px solid var(--foreground)",
-    textAlign: "right",
-  };
-
   return (
     <div style={{ overflowX: "auto" }}>
       <table
@@ -626,10 +552,10 @@ function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
       >
         <thead>
           <tr>
-            <th style={{ ...headerStyle, textAlign: "left" }}>Maand</th>
-            <th style={headerStyle}>Omzet</th>
-            <th style={headerStyle}>Kosten</th>
-            <th style={headerStyle}>Netto</th>
+            <Th style={{ textAlign: "left" }}>Maand</Th>
+            <Th style={{ textAlign: "right" }}>Omzet</Th>
+            <Th style={{ textAlign: "right" }}>Kosten</Th>
+            <Th style={{ textAlign: "right" }}>Netto</Th>
           </tr>
         </thead>
         <tbody>
@@ -638,12 +564,18 @@ function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
             const net = Math.round((rev.amount - expense) * 100) / 100;
             return (
               <tr key={rev.month}>
-                <td style={{ ...cellStyle, textAlign: "left" }}>
+                <Td style={{ textAlign: "left" }}>
                   {formatMonth(rev.month)}
-                </td>
-                <td style={cellStyle}>{formatCurrency(rev.amount)}</td>
-                <td style={cellStyle}>{formatCurrency(expense)}</td>
-                <td style={cellStyle}>{formatCurrency(net)}</td>
+                </Td>
+                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(rev.amount)}
+                </Td>
+                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(expense)}
+                </Td>
+                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(net)}
+                </Td>
               </tr>
             );
           })}
@@ -652,4 +584,3 @@ function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
     </div>
   );
 }
-

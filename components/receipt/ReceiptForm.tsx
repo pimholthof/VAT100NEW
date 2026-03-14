@@ -19,8 +19,9 @@ import type { Receipt, ReceiptInput } from "@/lib/types";
 import {
   FieldGroup,
   inputStyle,
-  buttonPrimaryStyle,
-  buttonSecondaryStyle,
+  ButtonPrimary,
+  ButtonSecondary,
+  ErrorMessage,
 } from "@/components/ui";
 
 type Step = "upload" | "processing" | "form";
@@ -266,7 +267,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   if (step === "upload") {
     return (
       <div style={{ maxWidth: 600 }}>
-        {uploadError && <ErrorBanner message={uploadError} />}
+        {uploadError && <ErrorMessage style={{ marginBottom: 24 }}>{uploadError}</ErrorMessage>}
 
         <div
           onClick={() => fileInputRef.current?.click()}
@@ -444,22 +445,13 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
         )}
 
         {confidence !== null && confidence < 0.7 && (
-          <div
-            style={{
-              borderLeft: "2px solid var(--foreground)",
-              padding: "12px 16px",
-              marginBottom: 24,
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-md)",
-              fontWeight: 400,
-            }}
-          >
+          <ErrorMessage style={{ marginBottom: 24 }}>
             Let op: lage betrouwbaarheid, controleer extra
-          </div>
+          </ErrorMessage>
         )}
 
-        {scanError && <ErrorBanner message={scanError} />}
-        {error && <ErrorBanner message={error} />}
+        {scanError && <ErrorMessage style={{ marginBottom: 24 }}>{scanError}</ErrorMessage>}
+        {error && <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>}
 
         <FieldGroup label="Datum *">
           <input
@@ -571,44 +563,18 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             borderTop: "var(--border-rule)",
           }}
         >
-          <button
-            type="button"
-            onClick={() => router.back()}
-            style={buttonSecondaryStyle}
-          >
+          <ButtonSecondary onClick={() => router.back()}>
             Annuleer
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={saving}
-            style={buttonPrimaryStyle}
-          >
+          </ButtonSecondary>
+          <ButtonPrimary onClick={handleSubmit} disabled={saving}>
             {saving ? "Opslaan..." : "Bon opslaan"}
-          </button>
+          </ButtonPrimary>
         </div>
       </div>
     </div>
   );
 }
 
-function ErrorBanner({ message }: { message: string }) {
-  return (
-    <div
-      style={{
-        padding: "12px 16px",
-        border: "none",
-        borderLeft: "2px solid var(--foreground)",
-        marginBottom: 24,
-        fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-body-md)",
-        fontWeight: 400,
-      }}
-    >
-      {message}
-    </div>
-  );
-}
 
 function SkeletonField() {
   return (
