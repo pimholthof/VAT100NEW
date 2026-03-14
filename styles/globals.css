@@ -45,16 +45,7 @@
   --radius: 0px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground: var(--color-white);
-    --background: var(--color-black);
-    --border: var(--border-dark);
-    --border-rule: 0.5px solid rgba(255, 255, 255, 0.15);
-    --border-input: 1px solid rgba(255, 255, 255, 0.2);
-    --border-input-focus: 1px solid rgba(255, 255, 255, 0.5);
-  }
-}
+/* Force light mode — no dark mode swap */
 
 /* ─── Tailwind theme integration ─── */
 @theme inline {
@@ -81,6 +72,7 @@
 }
 
 body {
+  color-scheme: light;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
