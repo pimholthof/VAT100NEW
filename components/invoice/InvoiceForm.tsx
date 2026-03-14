@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import {
   createInvoice,
@@ -23,8 +23,13 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [showNewClient, setShowNewClient] = useState(false);
   const [newClientName, setNewClientName] = useState("");
+  const [newClientEmail, setNewClientEmail] = useState("");
+  const [newClientAddress, setNewClientAddress] = useState("");
+  const [newClientCity, setNewClientCity] = useState("");
+  const [newClientPostalCode, setNewClientPostalCode] = useState("");
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const queryClient = useQueryClient();
   const store = useInvoiceStore();
 
   const { data: clientsResult } = useQuery({
@@ -113,16 +118,23 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     const result = await createQuickClient({
       name: newClientName.trim(),
       contact_name: null,
-      email: null,
-      address: null,
-      city: null,
-      postal_code: null,
+      email: newClientEmail.trim() || null,
+      address: newClientAddress.trim() || null,
+      city: newClientCity.trim() || null,
+      postal_code: newClientPostalCode.trim() || null,
       kvk_number: null,
+      btw_number: null,
     });
     if (result.data) {
       store.setClientId(result.data.id);
       setNewClientName("");
+      setNewClientEmail("");
+      setNewClientAddress("");
+      setNewClientCity("");
+      setNewClientPostalCode("");
       setShowNewClient(false);
+      // Refresh clients list
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     }
   };
 
@@ -145,21 +157,110 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* Client selector */}
       <FieldGroup label="Klant">
-        {showNewClient ? (
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              type="text"
-              value={newClientName}
-              onChange={(e) => setNewClientName(e.target.value)}
-              placeholder="Bedrijfsnaam"
-              style={inputStyle}
-            />
+        <div style={{ display: "flex", gap: 8 }}>
+          <select
+            value={store.clientId}
+            onChange={(e) => store.setClientId(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="">— Selecteer klant —</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setShowNewClient(!showNewClient)}
+            style={buttonSecondaryStyle}
+          >
+            {showNewClient ? "Annuleer" : "+ Nieuw"}
+          </button>
+        </div>
+      </FieldGroup>
+
+      {/* Slide-in new client panel */}
+      {showNewClient && (
+        <div
+          style={{
+            border: "1px solid var(--foreground)",
+            padding: 20,
+            marginBottom: 24,
+            background: "var(--background)",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-body-xs)",
+              fontWeight: 500,
+              letterSpacing: "var(--tracking-caps)",
+              textTransform: "uppercase",
+              margin: "0 0 16px",
+            }}
+          >
+            Nieuwe klant aanmaken
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={quickLabelStyle}>Bedrijfsnaam *</label>
+              <input
+                type="text"
+                value={newClientName}
+                onChange={(e) => setNewClientName(e.target.value)}
+                placeholder="Bedrijfsnaam"
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={quickLabelStyle}>E-mailadres</label>
+              <input
+                type="email"
+                value={newClientEmail}
+                onChange={(e) => setNewClientEmail(e.target.value)}
+                placeholder="email@voorbeeld.nl"
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={quickLabelStyle}>Adres</label>
+              <input
+                type="text"
+                value={newClientAddress}
+                onChange={(e) => setNewClientAddress(e.target.value)}
+                placeholder="Straatnaam en huisnummer"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={quickLabelStyle}>Postcode</label>
+              <input
+                type="text"
+                value={newClientPostalCode}
+                onChange={(e) => setNewClientPostalCode(e.target.value)}
+                placeholder="1234 AB"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={quickLabelStyle}>Stad</label>
+              <input
+                type="text"
+                value={newClientCity}
+                onChange={(e) => setNewClientCity(e.target.value)}
+                placeholder="Stad"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
             <button
               type="button"
               onClick={handleCreateQuickClient}
-              style={buttonSecondaryStyle}
+              style={buttonPrimaryStyle}
             >
-              Toevoegen
+              Klant aanmaken
             </button>
             <button
               type="button"
@@ -169,30 +270,8 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               Annuleer
             </button>
           </div>
-        ) : (
-          <div style={{ display: "flex", gap: 8 }}>
-            <select
-              value={store.clientId}
-              onChange={(e) => store.setClientId(e.target.value)}
-              style={inputStyle}
-            >
-              <option value="">— Selecteer klant —</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => setShowNewClient(true)}
-              style={buttonSecondaryStyle}
-            >
-              + Nieuw
-            </button>
-          </div>
-        )}
-      </FieldGroup>
+        </div>
+      )}
 
       {/* Invoice number + dates */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
@@ -476,4 +555,14 @@ const buttonSecondaryStyle: React.CSSProperties = {
   background: "transparent",
   color: "var(--foreground)",
   cursor: "pointer",
+};
+
+const quickLabelStyle: React.CSSProperties = {
+  display: "block",
+  fontFamily: "var(--font-body), sans-serif",
+  fontSize: "var(--text-body-xs)",
+  fontWeight: 500,
+  letterSpacing: "var(--tracking-caps)",
+  textTransform: "uppercase",
+  marginBottom: 4,
 };
