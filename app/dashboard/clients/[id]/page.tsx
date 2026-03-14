@@ -168,10 +168,9 @@ export default function ClientDetailPage() {
           href="/dashboard/clients"
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-xs)",
+            fontSize: "var(--text-body-sm)",
             fontWeight: 500,
-            letterSpacing: "var(--tracking-caps)",
-            textTransform: "uppercase",
+            letterSpacing: "0.02em",
             color: "var(--foreground)",
             opacity: 0.6,
             textDecoration: "none",
@@ -445,10 +444,9 @@ export default function ClientDetailPage() {
                 <Td>
                   <span
                     style={{
-                      fontSize: "var(--text-body-xs)",
+                      fontSize: "10px",
                       fontWeight: 500,
-                      letterSpacing: "var(--tracking-caps)",
-                      textTransform: "uppercase",
+                      letterSpacing: "0.02em",
                       padding: "4px 0",
                       border: "none",
                       borderBottom: "var(--border-rule)",
@@ -473,8 +471,7 @@ export default function ClientDetailPage() {
                       fontSize: "var(--text-body-xs)",
                       fontWeight: 500,
                       color: "var(--foreground)",
-                      textTransform: "uppercase",
-                      letterSpacing: "var(--tracking-caps)",
+                      letterSpacing: "0.05em",
                     }}
                   >
                     Bekijk
@@ -503,10 +500,9 @@ function DetailCell({
       <p
         style={{
           fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-xs)",
+          fontSize: "10px",
           fontWeight: 500,
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
+          letterSpacing: "0.02em",
           margin: "0 0 4px",
           opacity: 0.6,
         }}
@@ -533,10 +529,9 @@ function StatCard({ label, value }: { label: string; value: string }) {
       <p
         style={{
           fontFamily: "var(--font-body), sans-serif",
-          fontSize: "9px",
+          fontSize: "10px",
           fontWeight: 500,
-          letterSpacing: "0.25em",
-          textTransform: "uppercase",
+          letterSpacing: "0.02em",
           margin: "0 0 8px",
           opacity: 0.6,
         }}
@@ -571,10 +566,9 @@ function FieldGroup({
         style={{
           display: "block",
           fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-xs)",
+          fontSize: "10px",
           fontWeight: 500,
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
+          letterSpacing: "0.02em",
           marginBottom: 6,
         }}
       >
@@ -596,9 +590,8 @@ function Th({
     <th
       style={{
         fontWeight: 500,
-        fontSize: "var(--text-body-xs)",
-        letterSpacing: "var(--tracking-caps)",
-        textTransform: "uppercase",
+        fontSize: "10px",
+        letterSpacing: "0.02em",
         padding: "12px 8px",
         ...style,
       }}
@@ -639,8 +632,7 @@ const buttonPrimaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-lg)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "12px 20px",
   border: "none",
   background: "var(--foreground)",
@@ -652,8 +644,7 @@ const buttonSecondaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "10px 16px",
   border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",

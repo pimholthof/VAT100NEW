@@ -43,7 +43,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.field}>
             <label htmlFor="full_name" style={styles.label}>
-              VOLLEDIGE NAAM
+              Volledige naam
             </label>
             <input
               id="full_name"
@@ -57,7 +57,7 @@ export default function RegisterPage() {
 
           <div style={styles.field}>
             <label htmlFor="studio_name" style={styles.label}>
-              STUDIONAAM
+              Studionaam
             </label>
             <input
               id="studio_name"
@@ -72,7 +72,7 @@ export default function RegisterPage() {
 
           <div style={styles.field}>
             <label htmlFor="email" style={styles.label}>
-              E-MAILADRES
+              E-mailadres
             </label>
             <input
               id="email"
@@ -86,7 +86,7 @@ export default function RegisterPage() {
 
           <div style={styles.field}>
             <label htmlFor="password" style={styles.label}>
-              WACHTWOORD
+              Wachtwoord
             </label>
             <input
               id="password"
@@ -101,7 +101,7 @@ export default function RegisterPage() {
 
           <div style={styles.field}>
             <label htmlFor="confirm_password" style={styles.label}>
-              WACHTWOORD BEVESTIGEN
+              Wachtwoord bevestigen
             </label>
             <input
               id="confirm_password"
@@ -170,10 +170,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   label: {
     fontFamily: "var(--font-body), sans-serif",
-    fontSize: "9px",
-    fontWeight: 500,
-    letterSpacing: "0.25em",
-    textTransform: "uppercase" as const,
+    fontSize: "10px",
+    fontWeight: 400,
+    letterSpacing: "0.02em",
   },
   input: {
     fontFamily: "var(--font-body), sans-serif",
@@ -200,8 +199,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "var(--font-body), sans-serif",
     fontSize: "var(--text-body-lg)",
     fontWeight: 500,
-    letterSpacing: "0.25em",
-    textTransform: "uppercase" as const,
+    letterSpacing: "0.05em",
     padding: "14px 16px",
     border: "none",
     background: "var(--foreground)",

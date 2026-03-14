@@ -140,10 +140,9 @@ export default function TaxPage() {
                 <Td>
                   <span
                     style={{
-                      fontSize: "var(--text-body-xs)",
+                      fontSize: "10px",
                       fontWeight: 500,
-                      letterSpacing: "var(--tracking-caps)",
-                      textTransform: "uppercase",
+                      letterSpacing: "0.02em",
                       padding: "4px 0",
                       border: "none",
                       borderBottom: "var(--border-rule)",
@@ -207,10 +206,9 @@ function StatCard({
       <p
         style={{
           fontFamily: "var(--font-body), sans-serif",
-          fontSize: "9px",
+          fontSize: "10px",
           fontWeight: 500,
-          letterSpacing: "0.25em",
-          textTransform: "uppercase",
+          letterSpacing: "0.02em",
           margin: "0 0 8px",
           opacity: 0.6,
         }}
@@ -295,9 +293,8 @@ function Th({
     <th
       style={{
         fontWeight: 500,
-        fontSize: "var(--text-body-xs)",
-        letterSpacing: "var(--tracking-caps)",
-        textTransform: "uppercase",
+        fontSize: "var(--text-body-sm)",
+        letterSpacing: "0.02em",
         padding: "12px 8px",
         ...style,
       }}

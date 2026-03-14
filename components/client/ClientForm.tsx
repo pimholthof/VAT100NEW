@@ -212,10 +212,9 @@ function FieldGroup({
         style={{
           display: "block",
           fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-xs)",
+          fontSize: "var(--text-body-sm)",
           fontWeight: 500,
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
+          letterSpacing: "0.02em",
           marginBottom: 6,
         }}
       >
@@ -243,8 +242,7 @@ const buttonPrimaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-lg)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "12px 20px",
   border: "none",
   background: "var(--foreground)",
@@ -256,8 +254,7 @@ const buttonSecondaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "10px 16px",
   border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",

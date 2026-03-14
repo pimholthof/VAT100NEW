@@ -52,39 +52,52 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
     <div style={page}>
       {/* ── Header ── */}
       <div style={header}>
-        <div style={studioName}>
-          {profile.studio_name || profile.full_name}
-        </div>
         <div style={vat100Mark}>VAT100</div>
       </div>
 
-      {/* ── Separator ── */}
-      <div style={separator} />
-
       {/* ── Meta Row ── */}
       <div style={metaRow}>
-        <div style={metaCol}>
-          <div style={label}>FACTUUR</div>
-          <div style={invoiceNumber}>{invoice.invoice_number}</div>
+        <div style={{ flex: 1 }}>
+          <div style={partyName}>
+            {profile.studio_name || profile.full_name}
+          </div>
+          {profile.kvk_number && (
+            <div style={partyDetail}>KVK {profile.kvk_number}</div>
+          )}
+          {profile.btw_number && (
+            <div style={partyDetail}>BTW {profile.btw_number}</div>
+          )}
+          {profile.address && (
+            <div style={partyDetail}>{profile.address}</div>
+          )}
+          {(profile.postal_code || profile.city) && (
+            <div style={partyDetail}>
+              {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
+            </div>
+          )}
         </div>
-        <div style={metaCol}>
-          <div style={label}>DATUM</div>
-          <div style={value}>{formatDate(invoice.issue_date)}</div>
-        </div>
-        <div style={metaCol}>
-          <div style={label}>VERVALDATUM</div>
-          <div style={value}>{formatDate(invoice.due_date)}</div>
-        </div>
-        <div style={metaCol}>
-          <div style={label}>VIA</div>
-          <div style={value}>{sentViaLabel(invoice.sent_via)}</div>
+        <div style={{ flex: 1 }}>
+          <div style={metaLine}>
+            <span style={label}>Factuurnr</span>
+            <span style={value}>{invoice.invoice_number}</span>
+          </div>
+          <div style={metaLine}>
+            <span style={label}>Factuurdatum</span>
+            <span style={value}>{formatDate(invoice.issue_date)}</span>
+          </div>
+          {invoice.due_date && (
+            <div style={metaLine}>
+              <span style={label}>Vervaldatum</span>
+              <span style={value}>{formatDate(invoice.due_date)}</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* ── Parties ── */}
       <div style={partiesRow}>
         <div style={partyCol}>
-          <div style={label}>AAN</div>
+          <div style={label}>Aan</div>
           <div style={partyName}>{client.name}</div>
           {client.contact_name && (
             <div style={partyDetail}>{client.contact_name}</div>
@@ -101,46 +114,32 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
             <div style={partyDetail}>KVK {client.kvk_number}</div>
           )}
         </div>
-        <div style={partyCol}>
-          <div style={label}>VAN</div>
-          <div style={partyName}>
-            {profile.studio_name || profile.full_name}
+        {invoice.notes && (
+          <div style={partyCol}>
+            <div style={label}>Omschrijving</div>
+            <div style={partyDetail}>{invoice.notes}</div>
           </div>
-          {profile.address && (
-            <div style={partyDetail}>{profile.address}</div>
-          )}
-          {(profile.postal_code || profile.city) && (
-            <div style={partyDetail}>
-              {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
-            </div>
-          )}
-          {profile.kvk_number && (
-            <div style={partyDetail}>KVK {profile.kvk_number}</div>
-          )}
-          {profile.btw_number && (
-            <div style={partyDetail}>BTW {profile.btw_number}</div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* ── Table ── */}
       <div>
         {/* Header */}
         <div style={tableHeader}>
-          <div style={{ ...tableHeaderCell, width: "46%" }}>OMSCHRIJVING</div>
-          <div style={{ ...tableHeaderCell, width: "10%" }}>AANTAL</div>
+          <div style={{ ...tableHeaderCell, width: "46%" }}>Omschrijving</div>
+          <div style={{ ...tableHeaderCell, width: "10%" }}>Aantal</div>
           <div style={{ ...tableHeaderCell, width: "16%", textAlign: "right" }}>
-            TARIEF
+            Tarief
           </div>
           <div style={{ ...tableHeaderCell, width: "16%", textAlign: "right" }}>
-            BEDRAG
+            Bedrag
           </div>
           <div style={{ width: "12%" }} />
         </div>
 
         {/* Rows */}
-        {lines.map((line) => (
-          <div style={tableRow} key={line.id}>
+        {lines.map((line, i) => (
+          <div style={i === lines.length - 1 ? tableRowLast : tableRow} key={line.id}>
             <div style={{ ...tableCell, width: "46%" }}>
               {line.description}
             </div>
@@ -200,7 +199,7 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
             </div>
           )}
           <div style={footerCol}>
-            <div style={footerLabel}>BETAALTERMIJN</div>
+            <div style={footerLabel}>Betaaltermijn</div>
             <div style={footerValue}>{paymentDays} dagen</div>
           </div>
         </div>
@@ -226,53 +225,35 @@ const page: React.CSSProperties = {
 };
 
 const header: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "flex-end",
-  marginBottom: "16px",
-};
-
-const studioName: React.CSSProperties = {
-  fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif',
-  fontWeight: 900,
-  fontSize: "72px",
-  lineHeight: "0.85",
-  letterSpacing: "0.01em",
-  textTransform: "uppercase",
-  color: COLOR,
-  maxWidth: "320px",
+  marginBottom: "24px",
 };
 
 const vat100Mark: React.CSSProperties = {
   fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif',
   fontWeight: 900,
-  fontSize: "84px",
+  fontSize: "120px",
+  lineHeight: "0.85",
   letterSpacing: "0.02em",
   color: COLOR,
-  textAlign: "right",
-};
-
-const separator: React.CSSProperties = {
-  borderBottom: `0.5px solid ${COLOR}`,
-  marginBottom: "24px",
 };
 
 const metaRow: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
-  marginBottom: "32px",
+  marginBottom: "48px",
+  gap: "24px",
 };
 
-const metaCol: React.CSSProperties = {
-  flex: 1,
+const metaLine: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: "2px",
 };
 
 const label: React.CSSProperties = {
-  fontSize: "8px",
-  letterSpacing: "0.22em",
-  textTransform: "uppercase",
-  color: "rgba(13,13,11,0.4)",
+  fontSize: "10px",
+  letterSpacing: "0.02em",
+  color: "rgba(13,13,11,0.5)",
   fontWeight: 400,
   marginBottom: "4px",
 };
@@ -294,7 +275,7 @@ const invoiceNumber: React.CSSProperties = {
 const partiesRow: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
-  marginBottom: "32px",
+  marginBottom: "48px",
 };
 
 const partyCol: React.CSSProperties = {
@@ -317,24 +298,28 @@ const partyDetail: React.CSSProperties = {
 const tableHeader: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
-  borderTop: `0.5px solid ${COLOR}`,
   borderBottom: `0.5px solid ${COLOR}`,
   padding: "8px 0",
 };
 
 const tableHeaderCell: React.CSSProperties = {
-  fontSize: "8px",
-  letterSpacing: "0.22em",
-  textTransform: "uppercase",
-  color: "rgba(13,13,11,0.4)",
+  fontSize: "10px",
+  letterSpacing: "0.02em",
+  color: "rgba(13,13,11,0.5)",
   fontWeight: 400,
 };
 
 const tableRow: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
-  borderBottom: `0.5px solid ${COLOR}`,
   padding: "8px 0",
+};
+
+const tableRowLast: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "row",
+  padding: "8px 0",
+  borderBottom: `0.5px solid ${COLOR}`,
 };
 
 const tableCell: React.CSSProperties = {
@@ -414,8 +399,7 @@ const footerLabel: React.CSSProperties = {
   fontSize: "9px",
   fontWeight: 400,
   color: "rgba(13,13,11,0.4)",
-  letterSpacing: "0.22em",
-  textTransform: "uppercase",
+  letterSpacing: "0.02em",
   marginBottom: "2px",
 };
 

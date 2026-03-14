@@ -154,10 +154,9 @@ function StatCard({
       <p
         style={{
           fontFamily: "var(--font-body), sans-serif",
-          fontSize: "9px",
+          fontSize: "10px",
           fontWeight: 500,
-          letterSpacing: "0.25em",
-          textTransform: "uppercase",
+          letterSpacing: "0.02em",
           margin: "0 0 8px",
           opacity: 0.6,
         }}
@@ -225,10 +224,9 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
 
   const headerStyle: React.CSSProperties = {
     ...cellStyle,
-    fontSize: "9px",
+    fontSize: "10px",
     fontWeight: 500,
-    letterSpacing: "0.25em",
-    textTransform: "uppercase",
+    letterSpacing: "0.02em",
     opacity: 0.5,
     borderBottom: "1px solid var(--foreground)",
   };
@@ -257,10 +255,9 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
               <td style={cellStyle}>
                 <span
                   style={{
-                    fontSize: "9px",
+                    fontSize: "10px",
                     fontWeight: 500,
-                    letterSpacing: "0.25em",
-                    textTransform: "uppercase",
+                    letterSpacing: "0.02em",
                   }}
                 >
                   {statusLabels[inv.status] ?? inv.status}
