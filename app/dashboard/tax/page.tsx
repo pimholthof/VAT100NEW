@@ -24,14 +24,14 @@ export default function TaxPage() {
   return (
     <div>
       {/* Section 1: Title */}
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 64 }}>
         <h1
           style={{
             fontFamily: "var(--font-display), sans-serif",
             fontSize: "var(--text-display-lg)",
             fontWeight: 900,
             letterSpacing: "var(--tracking-display)",
-            lineHeight: 1,
+            lineHeight: 0.9,
             margin: 0,
           }}
         >
@@ -53,44 +53,56 @@ export default function TaxPage() {
       {isLoading ? (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 24,
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
             marginBottom: 48,
           }}
-          className="stat-cards-grid"
         >
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 24,
+            }}
+            className="stat-cards-grid"
+          >
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
         </div>
       ) : current ? (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 24,
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
             marginBottom: 48,
           }}
-          className="stat-cards-grid"
         >
-          <StatCard
-            label="Output BTW"
-            value={formatCurrency(current.outputVat)}
-          />
-          <StatCard
-            label="Aftrekbare BTW"
-            value={formatCurrency(current.inputVat)}
-          />
-          <StatCard
-            label={current.netVat >= 0 ? "Te betalen" : "Te vorderen"}
-            value={formatCurrency(Math.abs(current.netVat))}
-          />
-          <StatCard
-            label="Aantal facturen"
-            value={String(current.invoiceCount)}
-          />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 24,
+            }}
+            className="stat-cards-grid"
+          >
+            <StatCard
+              label="Output BTW"
+              value={formatCurrency(current.outputVat)}
+            />
+            <StatCard
+              label="Aftrekbare BTW"
+              value={formatCurrency(current.inputVat)}
+            />
+            <StatCard
+              label={current.netVat >= 0 ? "Te betalen" : "Te vorderen"}
+              value={formatCurrency(Math.abs(current.netVat))}
+            />
+            <StatCard
+              label="Aantal facturen"
+              value={String(current.invoiceCount)}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -109,18 +121,11 @@ export default function TaxPage() {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
             marginBottom: 48,
           }}
         >
           <thead>
-            <tr
-              style={{
-                borderBottom: "1px solid var(--foreground)",
-                textAlign: "left",
-              }}
-            >
+            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Kwartaal</Th>
               <Th style={{ textAlign: "right" }}>Omzet excl. BTW</Th>
               <Th style={{ textAlign: "right" }}>Output BTW</Th>
@@ -131,30 +136,39 @@ export default function TaxPage() {
           </thead>
           <tbody>
             {quarters.map((q: QuarterStats) => (
-              <tr key={q.quarter} style={{ borderBottom: "var(--border)" }}>
-                <Td style={{ fontWeight: 500 }}>{q.quarter}</Td>
-                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(q.revenueExVat)}
+              <tr key={q.quarter} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+                <Td style={{ fontWeight: 400 }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                    {q.quarter}
+                  </span>
                 </Td>
-                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(q.outputVat)}
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(q.revenueExVat)}
+                  </span>
                 </Td>
-                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(q.inputVat)}
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(q.outputVat)}
+                  </span>
                 </Td>
-                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(q.netVat)}
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(q.inputVat)}
+                  </span>
+                </Td>
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(q.netVat)}
+                  </span>
                 </Td>
                 <Td>
                   <span
                     style={{
-                      fontSize: "10px",
+                      fontSize: "var(--text-label)",
                       fontWeight: 500,
-                      letterSpacing: "0.02em",
-                      padding: "4px 0",
-                      border: "none",
-                      borderBottom: "var(--border-rule)",
-                      display: "inline-block",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
                     }}
                   >
                     {q.netVat >= 0 ? "Te betalen" : "Te vorderen"}
@@ -168,10 +182,11 @@ export default function TaxPage() {
         <p
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
+            fontSize: "13px",
             fontWeight: 300,
-            opacity: 0.5,
+            opacity: 0.3,
             marginBottom: 48,
+            paddingTop: 48,
           }}
         >
           Nog geen gegevens beschikbaar.
@@ -181,11 +196,10 @@ export default function TaxPage() {
       {/* Section 4: Disclaimer */}
       <div
         style={{
-          padding: "12px 16px",
-          border: "none",
-          borderLeft: "2px solid var(--foreground)",
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-md)",
+          padding: 16,
+          background: "rgba(13,13,11,0.02)",
+          fontFamily: "var(--font-mono), monospace",
+          fontSize: "11px",
           fontWeight: 400,
         }}
       >
@@ -195,4 +209,3 @@ export default function TaxPage() {
     </div>
   );
 }
-

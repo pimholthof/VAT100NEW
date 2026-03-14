@@ -42,29 +42,23 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Determine initial step
   const initialStep: Step = receipt ? "form" : "upload";
   const [step, setStep] = useState<Step>(initialStep);
 
-  // Upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Processing state
   const [scanError, setScanError] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
 
-  // Receipt image URL (for preview)
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  // The receipt ID we're working with (existing or newly created)
   const [workingReceiptId, setWorkingReceiptId] = useState<string | null>(
     receipt?.id ?? null
   );
 
-  // Form state
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +75,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     receipt?.vat_rate != null ? String(receipt.vat_rate) : "21"
   );
 
-  // Drag state
   const [dragOver, setDragOver] = useState(false);
 
   const parsedAmount = parseFloat(amountExVat) || 0;
@@ -89,12 +82,10 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const computedVat = Math.round(parsedAmount * (parsedVatRate / 100) * 100) / 100;
   const computedIncVat = Math.round((parsedAmount + computedVat) * 100) / 100;
 
-  // Derive category from cost_code
   const category = costCode
     ? KOSTENSOORTEN.find((k) => k.code === costCode)?.label ?? "Overig"
     : "Overig";
 
-  // Load existing receipt image
   useEffect(() => {
     if (receipt?.storage_path && !imageUrl) {
       getReceiptImageUrl(receipt.storage_path).then((result) => {
@@ -116,12 +107,10 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     setSelectedFile(file);
     setUploadError(null);
 
-    // Create local preview
     const reader = new FileReader();
     reader.onload = (e) => setFilePreview(e.target?.result as string);
     reader.readAsDataURL(file);
 
-    // Start upload flow
     await handleUpload(file);
   };
 
@@ -130,7 +119,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     setUploadError(null);
 
     try {
-      // If no receipt yet, create a minimal one first
       let receiptId = workingReceiptId;
       if (!receiptId) {
         const createResult = await createReceipt({
@@ -150,7 +138,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
         setWorkingReceiptId(receiptId);
       }
 
-      // Upload the file
       const formData = new FormData();
       formData.append("file", file);
       const uploadResult = await uploadReceiptImage(receiptId, formData);
@@ -161,7 +148,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
         return;
       }
 
-      // Get signed URL for preview
       if (uploadResult.data) {
         const urlResult = await getReceiptImageUrl(uploadResult.data);
         if (urlResult.data) setImageUrl(urlResult.data);
@@ -169,7 +155,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
       setUploading(false);
 
-      // Move to processing step
       setStep("processing");
       await handleScan(receiptId);
     } catch {
@@ -187,7 +172,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
       if (result.error) {
         setScanError(result.error);
       } else if (result.data) {
-        // Fill form fields with AI results
         if (result.data.vendor_name) setVendorName(result.data.vendor_name);
         if (result.data.receipt_date) setReceiptDate(result.data.receipt_date);
         if (result.data.amount_ex_vat != null)
@@ -234,7 +218,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
       return;
     }
 
-    // Mark as AI processed if we did a scan
     const finalId = workingReceiptId ?? result.data?.id;
     if (finalId && imageUrl) {
       await markReceiptAiProcessed(finalId);
@@ -276,8 +259,8 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           onDragLeave={handleDragLeave}
           style={{
             border: dragOver
-              ? "1px dashed rgba(13,13,11,0.4)"
-              : "1px dashed rgba(13,13,11,0.2)",
+              ? "0.5px dashed rgba(13,13,11,0.4)"
+              : "0.5px dashed rgba(13,13,11,0.2)",
             padding: 40,
             textAlign: "center" as const,
             cursor: "pointer",
@@ -310,7 +293,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
                 alt="Preview"
                 style={{ maxWidth: 200, maxHeight: 150, objectFit: "contain" as const }}
               />
-              <p style={{ ...uploadTextStyle, fontSize: "var(--text-body-xs)" }}>
+              <p style={{ ...uploadTextStyle, fontSize: "var(--text-label)" }}>
                 {selectedFile.name}
               </p>
             </>
@@ -330,12 +313,13 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             background: "none",
             border: "none",
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-sm)",
-            fontWeight: 400,
+            fontSize: "var(--text-label)",
+            fontWeight: 500,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase" as const,
             color: "var(--foreground)",
-            opacity: 0.6,
+            opacity: 0.3,
             cursor: "pointer",
-            textDecoration: "underline",
             padding: 0,
           }}
         >
@@ -356,7 +340,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           maxWidth: 800,
         }}
       >
-        {/* Left: image preview */}
         <div>
           {(imageUrl || filePreview) && (
             <img
@@ -366,19 +349,18 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
                 width: "100%",
                 maxHeight: 400,
                 objectFit: "contain" as const,
-                border: "var(--border-rule)",
+                border: "0.5px solid rgba(13,13,11,0.15)",
               }}
             />
           )}
         </div>
 
-        {/* Right: skeleton form */}
         <div>
           <p
             style={{
               fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-body-md)",
-              fontWeight: 400,
+              fontWeight: 300,
               margin: "0 0 24px",
             }}
           >
@@ -394,7 +376,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     );
   }
 
-  // ─── STEP 3: FORM (CONTROLEREN & OPSLAAN) ───
+  // ─── STEP 3: FORM ───
   const showImageColumn = !!imageUrl || !!filePreview;
 
   return (
@@ -410,7 +392,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           : { maxWidth: 600 }
       }
     >
-      {/* Left column: image */}
       {showImageColumn && (
         <div style={{ position: "sticky" as const, top: 80, alignSelf: "start" }}>
           <img
@@ -420,23 +401,22 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
               width: "100%",
               maxHeight: 400,
               objectFit: "contain" as const,
-              border: "var(--border-rule)",
+              border: "0.5px solid rgba(13,13,11,0.15)",
             }}
           />
         </div>
       )}
 
-      {/* Right column: form */}
       <div>
         {confidence !== null && (
           <p
             style={{
               fontFamily: "var(--font-body), sans-serif",
-              fontSize: 9,
+              fontSize: "var(--text-label)",
               fontWeight: 500,
               textTransform: "uppercase" as const,
-              letterSpacing: "0.25em",
-              opacity: 0.6,
+              letterSpacing: "0.08em",
+              opacity: 0.4,
               margin: "0 0 16px",
             }}
           >
@@ -459,7 +439,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             value={receiptDate}
             onChange={(e) => setReceiptDate(e.target.value)}
             required
-            style={inputStyle}
+            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
           />
         </FieldGroup>
 
@@ -504,9 +484,9 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             {costCode && (
               <span
                 style={{
-                  fontSize: 9,
-                  opacity: 0.4,
-                  fontFamily: "var(--font-body), sans-serif",
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: "var(--text-mono-sm)",
+                  opacity: 0.35,
                 }}
               >
                 {costCode}
@@ -522,7 +502,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             value={amountExVat}
             onChange={(e) => setAmountExVat(e.target.value)}
             placeholder="0,00"
-            style={inputStyle}
+            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
           />
         </FieldGroup>
 
@@ -540,14 +520,13 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
         <p
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
+            fontFamily: "var(--font-mono), monospace",
+            fontSize: "var(--text-mono-md)",
             fontWeight: 400,
             margin: "0 0 24px",
-            padding: "12px 16px",
-            border: "none",
-            borderTop: "var(--border-rule)",
-            borderBottom: "var(--border-rule)",
+            padding: "12px 0",
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
+            borderBottom: "0.5px solid rgba(13,13,11,0.15)",
           }}
         >
           BTW: {formatCurrency(computedVat)} | Incl. BTW:{" "}
@@ -560,7 +539,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             gap: 12,
             marginTop: 32,
             paddingTop: 24,
-            borderTop: "var(--border-rule)",
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
           }}
         >
           <ButtonSecondary onClick={() => router.back()}>
@@ -594,6 +573,5 @@ const uploadTextStyle: React.CSSProperties = {
   fontWeight: 300,
   margin: 0,
   color: "var(--foreground)",
-  opacity: 0.6,
+  opacity: 0.3,
 };
-

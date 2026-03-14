@@ -14,26 +14,45 @@ export function PageHeader({
   action?: React.ReactNode;
   titleSize?: "md" | "lg";
 }) {
-  const titleClass =
-    titleSize === "md"
-      ? "font-display text-[2rem] font-black tracking-[0.02em] leading-none m-0"
-      : "font-display text-[4rem] font-black tracking-[0.02em] leading-none m-0";
-
   return (
-    <div className="mb-8">
+    <div style={{ marginBottom: 64 }}>
       {backHref && backLabel && (
         <Link
           href={backHref}
-          className="font-body text-[11px] font-medium tracking-[0.02em] text-foreground opacity-60 no-underline"
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-label)",
+            fontWeight: 500,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: "var(--foreground)",
+            opacity: 0.3,
+            textDecoration: "none",
+          }}
         >
           &larr; {backLabel}
         </Link>
       )}
       <div
-        className="flex justify-between items-center"
-        style={{ marginTop: backHref ? 16 : 0 }}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: backHref ? 16 : 0,
+        }}
       >
-        <h1 className={titleClass}>{title}</h1>
+        <h1
+          style={{
+            fontFamily: "var(--font-display), sans-serif",
+            fontSize: titleSize === "md" ? "var(--text-display-md)" : "var(--text-display-lg)",
+            fontWeight: 900,
+            letterSpacing: "var(--tracking-display)",
+            lineHeight: 0.9,
+            margin: 0,
+          }}
+        >
+          {title}
+        </h1>
         {action}
       </div>
     </div>

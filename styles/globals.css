@@ -23,19 +23,27 @@
 
   /* Refined borders */
   --border-rule: 0.5px solid rgba(13, 13, 11, 0.15);
-  --border-input: 1px solid rgba(13, 13, 11, 0.2);
-  --border-input-focus: 1px solid rgba(13, 13, 11, 0.5);
+  --border-input: 0.5px solid rgba(13, 13, 11, 0.12);
+  --border-input-focus: 0.5px solid rgba(13, 13, 11, 0.5);
 
   /* Display font sizes */
-  --text-display-xl: 9rem;
+  --text-display-xl: 10rem;
   --text-display-lg: 4rem;
   --text-display-md: 2rem;
+  --text-display-sm: 1.125rem;
 
   /* Body font sizes */
   --text-body-lg: 13px;
   --text-body-md: 12px;
   --text-body-sm: 11px;
   --text-body-xs: 9px;
+
+  /* Monospace font sizes */
+  --text-mono-md: 12px;
+  --text-mono-sm: 11px;
+
+  /* Label size */
+  --text-label: 9px;
 
   /* Letter spacing */
   --tracking-display: 0.02em;
@@ -55,6 +63,7 @@
   --color-white: var(--color-white);
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
   --font-body: "Barlow", "Arial", "Helvetica", sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;
@@ -77,16 +86,25 @@ body {
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
   font-size: var(--text-body-md);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─── Selection ─── */
+::selection {
+  background: rgba(13, 13, 11, 0.08);
+}
+
 /* ─── Global transitions ─── */
 input, select, textarea {
   transition: border-color 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(13, 13, 11, 0.5) !important;
 }
 
 button {
@@ -107,7 +125,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background: color-mix(in srgb, var(--foreground) 1.5%, transparent);
+  background: rgba(13, 13, 11, 0.012);
 }
 
 /* ─── Dashboard Shell ─── */
@@ -123,15 +141,15 @@ tbody tr:hover {
   top: 0;
   z-index: 1000;
   background: var(--background);
-  border-bottom: var(--border-rule);
-  padding: 0 48px;
+  border-bottom: 0.5px solid rgba(13, 13, 11, 0.08);
+  padding: 0 64px;
 }
 
 .dashboard-nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 48px;
+  height: 56px;
 }
 
 .dashboard-nav-links {
@@ -141,7 +159,7 @@ tbody tr:hover {
 }
 
 .dashboard-nav-links a:hover {
-  opacity: 0.7 !important;
+  opacity: 0.6 !important;
 }
 
 .dashboard-nav-right {
@@ -169,10 +187,16 @@ tbody tr:hover {
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 64px 48px;
-  max-width: 960px;
+  padding: 72px 64px;
+  max-width: 1024px;
   width: 100%;
   margin: 0 auto;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* ─── Skeleton Loaders ─── */
@@ -190,6 +214,34 @@ tbody tr:hover {
 @media (max-width: 1024px) {
   .stat-cards-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(13, 13, 11, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(13, 13, 11, 0.2);
+}
+
+/* ─── Print ─── */
+@media print {
+  .dashboard-nav {
+    display: none;
+  }
+  .dashboard-content {
+    padding: 0;
+    max-width: 100%;
   }
 }
 
@@ -212,7 +264,7 @@ tbody tr:hover {
   }
 
   .dashboard-content {
-    padding: 32px 24px;
+    padding: 40px 24px;
   }
 
   .stat-cards-grid {

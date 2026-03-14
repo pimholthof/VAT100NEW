@@ -3,11 +3,26 @@ import React from "react";
 export function ButtonPrimary({
   children,
   className,
+  style,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className={`font-body text-[13px] font-medium tracking-[0.05em] cursor-pointer py-3 px-5 border-0 bg-foreground text-background ${className ?? ""}`}
+      className={className ?? ""}
+      style={{
+        fontFamily: "var(--font-body), sans-serif",
+        fontSize: "var(--text-label)",
+        fontWeight: 500,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        cursor: "pointer",
+        padding: "14px 28px",
+        border: "none",
+        background: "var(--foreground)",
+        color: "var(--background)",
+        transition: "opacity 0.15s ease",
+        ...style,
+      }}
       {...props}
     >
       {children}
@@ -18,11 +33,26 @@ export function ButtonPrimary({
 export function ButtonSecondary({
   children,
   className,
+  style,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className={`font-body text-[12px] font-medium tracking-[0.05em] cursor-pointer py-2.5 px-4 border border-foreground/20 bg-transparent text-foreground ${className ?? ""}`}
+      className={className ?? ""}
+      style={{
+        fontFamily: "var(--font-body), sans-serif",
+        fontSize: "var(--text-label)",
+        fontWeight: 500,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        cursor: "pointer",
+        padding: "14px 28px",
+        border: "0.5px solid rgba(13,13,11,0.2)",
+        background: "transparent",
+        color: "var(--foreground)",
+        transition: "all 0.2s ease",
+        ...style,
+      }}
       {...props}
     >
       {children}

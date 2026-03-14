@@ -18,8 +18,8 @@ export default function SettingsPage() {
         <div className="skeleton" style={{ height: 40, width: 200, marginBottom: 48 }} />
         {[...Array(4)].map((_, i) => (
           <div key={i} style={{ marginBottom: 16 }}>
-            <div className="skeleton" style={{ height: 10, width: 80, marginBottom: 8 }} />
-            <div className="skeleton" style={{ height: 36, width: "100%", maxWidth: 600 }} />
+            <div className="skeleton" style={{ height: 9, width: 80, marginBottom: 8 }} />
+            <div className="skeleton" style={{ height: 36, width: "100%", maxWidth: 480 }} />
           </div>
         ))}
       </div>
@@ -35,8 +35,8 @@ export default function SettingsPage() {
             fontSize: "var(--text-display-lg)",
             fontWeight: 900,
             letterSpacing: "var(--tracking-display)",
-            lineHeight: 1,
-            margin: "0 0 48px",
+            lineHeight: 0.9,
+            margin: "0 0 64px",
           }}
         >
           Instellingen
@@ -99,8 +99,8 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
           fontSize: "var(--text-display-lg)",
           fontWeight: 900,
           letterSpacing: "var(--tracking-display)",
-          lineHeight: 1,
-          margin: "0 0 48px",
+          lineHeight: 0.9,
+          margin: "0 0 64px",
         }}
       >
         Instellingen
@@ -118,7 +118,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         </ErrorMessage>
       )}
 
-      <div style={{ maxWidth: 600 }}>
+      <div style={{ maxWidth: 480 }}>
         {/* Persoonlijk */}
         <SectionTitle>Persoonlijk</SectionTitle>
 
@@ -145,7 +145,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         {/* Bedrijfsgegevens */}
         <div
           style={{
-            borderTop: "var(--border-rule)",
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
             marginTop: 32,
             paddingTop: 32,
           }}
@@ -166,7 +166,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={kvkNumber}
               onChange={(e) => setKvkNumber(e.target.value)}
               placeholder="12345678"
-              style={inputStyle}
+              style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
             />
           </FieldGroup>
           <FieldGroup label="BTW-nummer">
@@ -175,7 +175,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={btwNumber}
               onChange={(e) => setBtwNumber(e.target.value)}
               placeholder="NL123456789B01"
-              style={inputStyle}
+              style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
             />
           </FieldGroup>
         </div>
@@ -230,7 +230,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={iban}
               onChange={(e) => setIban(e.target.value)}
               placeholder="NL00BANK0123456789"
-              style={inputStyle}
+              style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
             />
           </FieldGroup>
           <FieldGroup label="BIC">
@@ -239,7 +239,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={bic}
               onChange={(e) => setBic(e.target.value)}
               placeholder="BANKNL2A"
-              style={inputStyle}
+              style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
             />
           </FieldGroup>
         </div>
@@ -248,7 +248,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
           style={{
             marginTop: 32,
             paddingTop: 24,
-            borderTop: "var(--border-rule)",
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
           }}
         >
           <ButtonPrimary
@@ -267,16 +267,17 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2
       style={{
-        fontFamily: "var(--font-display), sans-serif",
-        fontSize: "var(--text-display-sm)",
-        fontWeight: 900,
-        letterSpacing: "var(--tracking-display)",
+        fontFamily: "var(--font-body), sans-serif",
+        fontSize: "var(--text-label)",
+        fontWeight: 500,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        opacity: 0.4,
         lineHeight: 1,
-        margin: "0 0 24px",
+        margin: "0 0 32px",
       }}
     >
       {children}
     </h2>
   );
 }
-

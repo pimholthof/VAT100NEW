@@ -51,7 +51,7 @@ export function InvoiceLineRow({
         }
         min={0}
         step={0.5}
-        style={cellInputStyle}
+        style={{ ...cellInputStyle, fontFamily: "var(--font-mono), monospace" }}
       />
       <select
         value={line.unit}
@@ -72,7 +72,7 @@ export function InvoiceLineRow({
         }
         min={0}
         step={0.01}
-        style={cellInputStyle}
+        style={{ ...cellInputStyle, fontFamily: "var(--font-mono), monospace" }}
       />
       <div
         style={{
@@ -82,8 +82,10 @@ export function InvoiceLineRow({
           borderBottom: "1px solid transparent",
           display: "flex",
           alignItems: "center",
+          fontFamily: "var(--font-mono), monospace",
           fontVariantNumeric: "tabular-nums",
           fontWeight: 400,
+          opacity: 0.5,
         }}
       >
         {new Intl.NumberFormat("nl-NL", {
@@ -116,7 +118,7 @@ export function InvoiceLineRow({
           disabled={totalLines <= 1}
           style={{
             ...iconBtnStyle,
-            opacity: totalLines <= 1 ? 0.3 : 0.6,
+            opacity: totalLines <= 1 ? 0.15 : 0.3,
           }}
           title="Verwijder"
         >
@@ -129,9 +131,9 @@ export function InvoiceLineRow({
 
 const cellInputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "8px 2px",
+  padding: "8px 0",
   border: "none",
-  borderBottom: "var(--border-input)",
+  borderBottom: "0.5px solid rgba(13,13,11,0.12)",
   background: "transparent",
   color: "var(--foreground)",
   fontFamily: "var(--font-body), sans-serif",
@@ -141,15 +143,16 @@ const cellInputStyle: React.CSSProperties = {
 };
 
 const iconBtnStyle: React.CSSProperties = {
-  width: 20,
-  height: 20,
+  width: 16,
+  height: 16,
   padding: 0,
   border: "none",
   background: "transparent",
   color: "var(--foreground)",
   cursor: "pointer",
-  fontSize: "11px",
+  fontSize: "10px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  opacity: 0.3,
 };

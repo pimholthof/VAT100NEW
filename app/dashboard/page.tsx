@@ -68,8 +68,8 @@ export default function DashboardPage() {
           fontSize: "var(--text-display-lg)",
           fontWeight: 900,
           letterSpacing: "var(--tracking-display)",
-          lineHeight: 1,
-          margin: "0 0 48px",
+          lineHeight: 0.9,
+          margin: "0 0 64px",
         }}
       >
         Dashboard
@@ -78,49 +78,55 @@ export default function DashboardPage() {
       {/* Stat cards */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 24,
-          marginBottom: 48,
+          borderTop: "0.5px solid rgba(13,13,11,0.15)",
+          marginBottom: 72,
         }}
-        className="stat-cards-grid"
       >
-        {statsLoading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : stats ? (
-          <>
-            <StatCard
-              label="Omzet deze maand"
-              value={formatCurrency(stats.revenueThisMonth)}
-            />
-            <StatCard
-              label="Open facturen"
-              value={String(stats.openInvoiceCount)}
-              sub={formatCurrency(stats.openInvoiceAmount)}
-            />
-            <StatCard
-              label="BTW te betalen"
-              value={formatCurrency(stats.vatToPay)}
-            />
-            <StatCard
-              label="Bonnen deze maand"
-              value={String(stats.receiptsThisMonth)}
-            />
-          </>
-        ) : null}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 24,
+          }}
+          className="stat-cards-grid"
+        >
+          {statsLoading ? (
+            <>
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </>
+          ) : stats ? (
+            <>
+              <StatCard
+                label="Omzet deze maand"
+                value={formatCurrency(stats.revenueThisMonth)}
+              />
+              <StatCard
+                label="Open facturen"
+                value={String(stats.openInvoiceCount)}
+                sub={formatCurrency(stats.openInvoiceAmount)}
+              />
+              <StatCard
+                label="BTW te betalen"
+                value={formatCurrency(stats.vatToPay)}
+              />
+              <StatCard
+                label="Bonnen deze maand"
+                value={String(stats.receiptsThisMonth)}
+              />
+            </>
+          ) : null}
+        </div>
       </div>
 
       {/* BTW-deadline banner */}
       {vatDeadlineLoading ? (
         <div
           style={{
-            borderTop: "var(--border-rule)",
-            borderBottom: "var(--border-rule)",
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
+            borderBottom: "0.5px solid rgba(13,13,11,0.15)",
             padding: "24px 0",
             marginBottom: 48,
             opacity: 0.12,
@@ -132,8 +138,8 @@ export default function DashboardPage() {
         <div
           className="vat-deadline-banner"
           style={{
-            borderTop: "var(--border-rule)",
-            borderBottom: "var(--border-rule)",
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
+            borderBottom: "0.5px solid rgba(13,13,11,0.15)",
             padding: "24px 0",
             marginBottom: 48,
             display: "flex",
@@ -146,11 +152,12 @@ export default function DashboardPage() {
             <p
               style={{
                 fontFamily: "var(--font-body), sans-serif",
-                fontSize: "10px",
+                fontSize: "var(--text-label)",
                 fontWeight: 500,
-                letterSpacing: "0.02em",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
                 margin: "0 0 8px",
-                opacity: 0.6,
+                opacity: 0.4,
               }}
             >
               BTW-AANGIFTE {vatDeadline.quarter}
@@ -170,9 +177,9 @@ export default function DashboardPage() {
             <p
               style={{
                 fontFamily: "var(--font-display), sans-serif",
-                fontSize: "2.5rem",
+                fontSize: "3rem",
                 fontWeight: 900,
-                lineHeight: 1,
+                lineHeight: 0.9,
                 margin: 0,
               }}
             >
@@ -182,11 +189,12 @@ export default function DashboardPage() {
               <p
                 style={{
                   fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "10px",
+                  fontSize: "var(--text-label)",
                   fontWeight: 500,
-                  letterSpacing: "0.02em",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
                   margin: "8px 0 0",
-                  opacity: 0.6,
+                  opacity: 0.4,
                 }}
               >
                 Deadline nadert
@@ -197,11 +205,12 @@ export default function DashboardPage() {
             <p
               style={{
                 fontFamily: "var(--font-body), sans-serif",
-                fontSize: "10px",
+                fontSize: "var(--text-label)",
                 fontWeight: 500,
-                letterSpacing: "0.02em",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
                 margin: "0 0 8px",
-                opacity: 0.6,
+                opacity: 0.4,
               }}
             >
               GESCHAT BEDRAG
@@ -209,9 +218,9 @@ export default function DashboardPage() {
             <p
               style={{
                 fontFamily: "var(--font-display), sans-serif",
-                fontSize: "2.5rem",
+                fontSize: "3rem",
                 fontWeight: 900,
-                lineHeight: 1,
+                lineHeight: 0.9,
                 margin: 0,
               }}
             >
@@ -231,13 +240,14 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : cashflow ? (
-        <div style={{ marginBottom: 48 }}>
+        <div style={{ marginBottom: 72 }}>
           <h2
             style={{
               fontFamily: "var(--font-display), sans-serif",
-              fontSize: "1.5rem",
+              fontSize: "var(--text-display-sm)",
               fontWeight: 900,
-              letterSpacing: "var(--tracking-display)",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
               lineHeight: 1,
               margin: "0 0 16px",
             }}
@@ -247,20 +257,26 @@ export default function DashboardPage() {
 
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 24,
-              marginBottom: 24,
+              borderTop: "0.5px solid rgba(13,13,11,0.15)",
             }}
           >
-            <StatCard
-              label="Netto resultaat deze maand"
-              value={`${cashflow.trend === "up" ? "↑ " : cashflow.trend === "down" ? "↓ " : ""}${formatCurrency(cashflow.netThisMonth)}`}
-            />
-            <StatCard
-              label="Netto resultaat vorige maand"
-              value={formatCurrency(cashflow.netLastMonth)}
-            />
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: 24,
+                marginBottom: 24,
+              }}
+            >
+              <StatCard
+                label="Netto resultaat deze maand"
+                value={`${cashflow.trend === "up" ? "↑ " : cashflow.trend === "down" ? "↓ " : ""}${formatCurrency(cashflow.netThisMonth)}`}
+              />
+              <StatCard
+                label="Netto resultaat vorige maand"
+                value={formatCurrency(cashflow.netLastMonth)}
+              />
+            </div>
           </div>
 
           <CashflowTable cashflow={cashflow} />
@@ -271,9 +287,10 @@ export default function DashboardPage() {
       <h2
         style={{
           fontFamily: "var(--font-display), sans-serif",
-          fontSize: "1.5rem",
+          fontSize: "var(--text-display-sm)",
           fontWeight: 900,
-          letterSpacing: "var(--tracking-display)",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
           lineHeight: 1,
           margin: "0 0 16px",
         }}
@@ -289,9 +306,11 @@ export default function DashboardPage() {
         <p
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
-            opacity: 0.5,
+            fontSize: "13px",
+            fontWeight: 300,
+            opacity: 0.3,
             marginBottom: 48,
+            paddingTop: 48,
           }}
         >
           Geen openstaande facturen.
@@ -302,11 +321,12 @@ export default function DashboardPage() {
       <h2
         style={{
           fontFamily: "var(--font-display), sans-serif",
-          fontSize: "1.5rem",
+          fontSize: "var(--text-display-sm)",
           fontWeight: 900,
-          letterSpacing: "var(--tracking-display)",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
           lineHeight: 1,
-          margin: "0 0 16px",
+          margin: "72px 0 16px",
         }}
       >
         Laatste facturen
@@ -320,8 +340,10 @@ export default function DashboardPage() {
         <p
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
-            opacity: 0.5,
+            fontSize: "13px",
+            fontWeight: 300,
+            opacity: 0.3,
+            paddingTop: 48,
           }}
         >
           Nog geen facturen aangemaakt.
@@ -344,7 +366,7 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
         }}
       >
         <thead>
-          <tr>
+          <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)" }}>
             <Th>Status</Th>
             <Th>Klant</Th>
             <Th>Datum</Th>
@@ -354,33 +376,41 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
         </thead>
         <tbody>
           {invoices.map((inv) => (
-            <tr key={inv.id}>
+            <tr key={inv.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
               <Td>
                 <span
                   style={{
-                    fontSize: "10px",
+                    fontSize: "var(--text-label)",
                     fontWeight: 500,
-                    letterSpacing: "0.02em",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
                   }}
                 >
                   {statusLabels[inv.status] ?? inv.status}
                 </span>
               </Td>
               <Td>{inv.client_name}</Td>
-              <Td>{formatDate(inv.issue_date)}</Td>
-              <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                {formatCurrency(inv.total_inc_vat)}
+              <Td>
+                <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                  {formatDate(inv.issue_date)}
+                </span>
+              </Td>
+              <Td style={{ textAlign: "right" }}>
+                <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(inv.total_inc_vat)}
+                </span>
               </Td>
               <Td>
                 <Link
                   href={`/dashboard/invoices/${inv.id}`}
                   style={{
                     fontFamily: "var(--font-body), sans-serif",
-                    fontSize: "var(--text-body-sm)",
+                    fontSize: "var(--text-label)",
                     fontWeight: 500,
-                    letterSpacing: "0.05em",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
                     color: "var(--foreground)",
-                    textDecoration: "underline",
+                    textDecoration: "none",
                   }}
                 >
                   Bekijk
@@ -424,7 +454,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
           }}
         >
           <thead>
-            <tr>
+            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)" }}>
               <Th>Klant</Th>
               <Th>Factuurnr</Th>
               <Th style={{ textAlign: "right" }}>Bedrag</Th>
@@ -436,7 +466,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
             {invoices.map((inv) => {
               const isOverdue = inv.days_overdue > 0;
               return (
-                <tr key={inv.id}>
+                <tr key={inv.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
                   <Td
                     style={{
                       borderLeft: isOverdue
@@ -450,30 +480,28 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                     <Link
                       href={`/dashboard/invoices/${inv.id}`}
                       style={{
-                        fontFamily: "var(--font-body), sans-serif",
-                        fontSize: "var(--text-body-lg)",
+                        fontFamily: "var(--font-mono), monospace",
+                        fontSize: "var(--text-mono-md)",
                         fontWeight: 400,
                         color: "var(--foreground)",
-                        textDecoration: "underline",
+                        textDecoration: "none",
                       }}
                     >
                       {inv.invoice_number}
                     </Link>
                   </Td>
-                  <Td
-                    style={{
-                      textAlign: "right",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {formatCurrency(inv.total_inc_vat)}
+                  <Td style={{ textAlign: "right" }}>
+                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                      {formatCurrency(inv.total_inc_vat)}
+                    </span>
                   </Td>
                   <Td>
                     <span
                       style={{
-                        fontSize: "10px",
+                        fontSize: "var(--text-label)",
                         fontWeight: 500,
-                        letterSpacing: "0.02em",
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
                       }}
                     >
                       {isOverdue
@@ -496,8 +524,11 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                     ) : (
                       <span
                         style={{
-                          fontSize: "var(--text-body-sm)",
-                          opacity: 0.4,
+                          fontSize: "var(--text-label)",
+                          fontWeight: 500,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          opacity: 0.3,
                         }}
                       >
                         Geen e-mail
@@ -533,7 +564,7 @@ function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
         }}
       >
         <thead>
-          <tr>
+          <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)" }}>
             <Th style={{ textAlign: "left" }}>Maand</Th>
             <Th style={{ textAlign: "right" }}>Omzet</Th>
             <Th style={{ textAlign: "right" }}>Kosten</Th>
@@ -545,18 +576,24 @@ function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
             const expense = cashflow.monthlyExpenses[i]?.amount ?? 0;
             const net = Math.round((rev.amount - expense) * 100) / 100;
             return (
-              <tr key={rev.month}>
+              <tr key={rev.month} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
                 <Td style={{ textAlign: "left" }}>
                   {formatMonth(rev.month)}
                 </Td>
-                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(rev.amount)}
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(rev.amount)}
+                  </span>
                 </Td>
-                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(expense)}
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(expense)}
+                  </span>
                 </Td>
-                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(net)}
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(net)}
+                  </span>
                 </Td>
               </tr>
             );

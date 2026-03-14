@@ -160,11 +160,14 @@ export default function EditInvoicePage() {
           fontSize: "var(--text-display-lg)",
           fontWeight: 900,
           letterSpacing: "var(--tracking-display)",
-          lineHeight: 1,
+          lineHeight: 0.9,
           margin: "0 0 32px",
         }}
       >
-        Factuur {result?.data?.invoice_number}
+        Factuur{" "}
+        <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-display-md)" }}>
+          {result?.data?.invoice_number}
+        </span>
       </h1>
 
       {/* Status bar */}
@@ -173,21 +176,18 @@ export default function EditInvoicePage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          border: "none",
-          borderTop: "var(--border-rule)",
-          borderBottom: "var(--border-rule)",
+          borderTop: "0.5px solid rgba(13,13,11,0.15)",
+          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
           padding: "16px 0",
           marginBottom: 8,
         }}
       >
         <span
           style={{
-            fontSize: "10px",
+            fontSize: "var(--text-label)",
             fontWeight: 500,
-            letterSpacing: "0.02em",
-            padding: "4px 0",
-            border: "none",
-            display: "inline-block",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
           }}
         >
           {statusLabels[currentStatus ?? ""] ?? currentStatus}
@@ -250,17 +250,19 @@ export default function EditInvoicePage() {
       {/* Share link section */}
       <div
         style={{
-          borderBottom: "var(--border-rule)",
+          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
           padding: "16px 0",
           marginBottom: 8,
         }}
       >
         <div
           style={{
-            fontSize: "10px",
+            fontSize: "var(--text-label)",
             fontWeight: 500,
-            letterSpacing: "0.02em",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
             marginBottom: 8,
+            opacity: 0.4,
           }}
         >
           Deel link
@@ -269,10 +271,10 @@ export default function EditInvoicePage() {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-md)",
+                fontFamily: "var(--font-mono), monospace",
+                fontSize: "var(--text-mono-md)",
                 fontWeight: 300,
-                color: "rgba(13,13,11,0.6)",
+                opacity: 0.6,
                 wordBreak: "break-all",
                 flex: 1,
               }}

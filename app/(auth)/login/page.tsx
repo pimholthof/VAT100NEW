@@ -23,18 +23,46 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-[600px]">
-        <h1 className="font-display text-[9rem] font-black tracking-[0.02em] leading-[0.85] m-0">
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ width: "100%", maxWidth: 400 }}>
+        <h1
+          style={{
+            fontFamily: "var(--font-display), sans-serif",
+            fontSize: "var(--text-display-xl)",
+            fontWeight: 900,
+            letterSpacing: "var(--tracking-display)",
+            lineHeight: 0.85,
+            margin: 0,
+          }}
+        >
           VAT100
         </h1>
-        <p className="font-body text-[13px] font-light mt-3 mb-14">
+        <p
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "13px",
+            fontWeight: 300,
+            opacity: 0.4,
+            marginTop: 16,
+            marginBottom: 56,
+          }}
+        >
           Inloggen
         </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="font-body text-[10px] font-normal tracking-[0.02em]">
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <label
+              htmlFor="email"
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-label)",
+                fontWeight: 500,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                opacity: 0.4,
+              }}
+            >
               E-mailadres
             </label>
             <input
@@ -43,12 +71,32 @@ export default function LoginPage() {
               type="email"
               required
               autoComplete="email"
-              className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none"
+              style={{
+                fontFamily: "var(--font-mono), monospace",
+                fontSize: "13px",
+                fontWeight: 300,
+                padding: "12px 0",
+                border: "none",
+                borderBottom: "0.5px solid rgba(13,13,11,0.12)",
+                background: "transparent",
+                color: "var(--foreground)",
+                outline: "none",
+              }}
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="font-body text-[10px] font-normal tracking-[0.02em]">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <label
+              htmlFor="password"
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-label)",
+                fontWeight: 500,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                opacity: 0.4,
+              }}
+            >
               Wachtwoord
             </label>
             <input
@@ -58,28 +106,75 @@ export default function LoginPage() {
               required
               minLength={6}
               autoComplete="current-password"
-              className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none"
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "13px",
+                fontWeight: 300,
+                padding: "12px 0",
+                border: "none",
+                borderBottom: "0.5px solid rgba(13,13,11,0.12)",
+                background: "transparent",
+                color: "var(--foreground)",
+                outline: "none",
+              }}
             />
           </div>
 
           {error && (
-            <p className="font-body text-[11px] font-normal text-foreground m-0 py-3 px-4 border-0 border-l-2 border-l-foreground">
+            <div
+              style={{
+                padding: 16,
+                background: "rgba(13,13,11,0.02)",
+                fontFamily: "var(--font-mono), monospace",
+                fontSize: "11px",
+              }}
+            >
               {error}
-            </p>
+            </div>
           )}
 
           <button
             type="submit"
             disabled={pending}
-            className="font-body text-[13px] font-medium tracking-[0.05em] py-3.5 px-4 border-0 bg-foreground text-background cursor-pointer w-full"
+            style={{
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "10px",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              padding: 18,
+              border: "none",
+              background: "var(--foreground)",
+              color: "var(--background)",
+              cursor: "pointer",
+              width: "100%",
+            }}
           >
             {pending ? "Bezig..." : "Inloggen"}
           </button>
         </form>
 
-        <p className="font-body text-[12px] font-light mt-8">
+        <p
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-label)",
+            fontWeight: 500,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            opacity: 0.3,
+            marginTop: 32,
+          }}
+        >
           Nog geen account?{" "}
-          <Link href="/register" className="font-medium text-foreground underline">
+          <Link
+            href="/register"
+            style={{
+              fontWeight: 500,
+              color: "var(--foreground)",
+              textDecoration: "none",
+              opacity: 1,
+            }}
+          >
             Registreer
           </Link>
         </p>
