@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getReceipt } from "@/lib/actions/receipts";
+import { getReceipt, getReceiptImageUrl } from "@/lib/actions/receipts";
+import { getKostensoortByCode } from "@/lib/constants/costs";
 import { ReceiptForm } from "@/components/receipt/ReceiptForm";
 
 function formatCurrency(amount: number): string {
@@ -28,6 +29,7 @@ export default function ReceiptDetailPage() {
   const id = params.id as string;
 
   const [editing, setEditing] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["receipt", id],
@@ -35,6 +37,14 @@ export default function ReceiptDetailPage() {
   });
 
   const receipt = result?.data;
+
+  useEffect(() => {
+    if (receipt?.storage_path) {
+      getReceiptImageUrl(receipt.storage_path).then((res) => {
+        if (res.data) setImageUrl(res.data);
+      });
+    }
+  }, [receipt?.storage_path]);
 
   if (isLoading) {
     return (
@@ -77,6 +87,10 @@ export default function ReceiptDetailPage() {
     );
   }
 
+  const kostensoort = receipt.cost_code
+    ? getKostensoortByCode(receipt.cost_code)
+    : null;
+
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
@@ -102,18 +116,32 @@ export default function ReceiptDetailPage() {
             marginTop: 16,
           }}
         >
-          <h1
-            style={{
-              fontFamily: "var(--font-display), sans-serif",
-              fontSize: "var(--text-display-md)",
-              fontWeight: 900,
-              letterSpacing: "var(--tracking-display)",
-              lineHeight: 1,
-              margin: 0,
-            }}
-          >
-            {receipt.vendor_name || "Bon"}
-          </h1>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <h1
+              style={{
+                fontFamily: "var(--font-display), sans-serif",
+                fontSize: "var(--text-display-md)",
+                fontWeight: 900,
+                letterSpacing: "var(--tracking-display)",
+                lineHeight: 1,
+                margin: 0,
+              }}
+            >
+              {receipt.vendor_name || "Bon"}
+            </h1>
+            {receipt.ai_processed && (
+              <span
+                style={{
+                  fontFamily: "var(--font-body), sans-serif",
+                  fontSize: "var(--text-body-xs)",
+                  fontWeight: 400,
+                  opacity: 0.5,
+                }}
+              >
+                AI verwerkt ✓
+              </span>
+            )}
+          </div>
           {!editing && (
             <button
               type="button"
@@ -136,54 +164,77 @@ export default function ReceiptDetailPage() {
           }}
         />
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 0,
-            border: "none",
-            marginBottom: 32,
-          }}
-        >
-          <DetailCell
-            label="Datum"
-            value={receipt.receipt_date ? formatDate(receipt.receipt_date) : null}
-          />
-          <DetailCell label="Leverancier" value={receipt.vendor_name} />
-          <DetailCell label="Categorie" value={receipt.category} />
-          <DetailCell
-            label="BTW-tarief"
-            value={receipt.vat_rate != null ? `${receipt.vat_rate}%` : null}
-          />
-          <DetailCell
-            label="Bedrag excl. BTW"
-            value={
-              receipt.amount_ex_vat != null
-                ? formatCurrency(receipt.amount_ex_vat)
-                : null
-            }
-          />
-          <DetailCell
-            label="BTW"
-            value={
-              receipt.vat_amount != null
-                ? formatCurrency(receipt.vat_amount)
-                : null
-            }
-          />
-          <DetailCell
-            label="Bedrag incl. BTW"
-            value={
-              receipt.amount_inc_vat != null
-                ? formatCurrency(receipt.amount_inc_vat)
-                : null
-            }
-          />
-          <DetailCell
-            label="Aangemaakt"
-            value={formatDate(receipt.created_at)}
-          />
-        </div>
+        <>
+          {imageUrl && (
+            <div style={{ marginBottom: 32 }}>
+              <img
+                src={imageUrl}
+                alt="Bon afbeelding"
+                style={{
+                  maxWidth: 300,
+                  objectFit: "contain" as const,
+                  border: "var(--border-rule)",
+                }}
+              />
+            </div>
+          )}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 0,
+              border: "none",
+              marginBottom: 32,
+            }}
+          >
+            <DetailCell
+              label="Datum"
+              value={receipt.receipt_date ? formatDate(receipt.receipt_date) : null}
+            />
+            <DetailCell label="Leverancier" value={receipt.vendor_name} />
+            <DetailCell
+              label="Kostensoort"
+              value={
+                kostensoort
+                  ? `${kostensoort.label} (${kostensoort.code})`
+                  : receipt.category
+              }
+            />
+            <DetailCell
+              label="BTW-tarief"
+              value={receipt.vat_rate != null ? `${receipt.vat_rate}%` : null}
+            />
+            <DetailCell
+              label="Bedrag excl. BTW"
+              value={
+                receipt.amount_ex_vat != null
+                  ? formatCurrency(receipt.amount_ex_vat)
+                  : null
+              }
+            />
+            <DetailCell
+              label="BTW"
+              value={
+                receipt.vat_amount != null
+                  ? formatCurrency(receipt.vat_amount)
+                  : null
+              }
+            />
+            <DetailCell
+              label="Bedrag incl. BTW"
+              value={
+                receipt.amount_inc_vat != null
+                  ? formatCurrency(receipt.amount_inc_vat)
+                  : null
+              }
+            />
+            <DetailCell
+              label="Aangemaakt"
+              value={formatDate(receipt.created_at)}
+            />
+          </div>
+        </>
       )}
     </div>
   );

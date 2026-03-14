@@ -118,6 +118,7 @@ export interface Receipt {
   amount_inc_vat: number | null;
   vat_rate: number | null;
   category: string | null;
+  cost_code: number | null;
   receipt_date: string | null;
   storage_path: string | null;
   ai_processed: boolean;
@@ -129,6 +130,7 @@ export interface ReceiptInput {
   amount_ex_vat: number | null;
   vat_rate: number | null;
   category: string | null;
+  cost_code: number | null;
   receipt_date: string | null;
 }
 
