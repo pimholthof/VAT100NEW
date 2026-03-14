@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoiceHTML } from "@/components/invoice/InvoiceHTML";
+import { SendEmailButton } from "@/components/invoice/SendEmailButton";
 
 export default async function InvoicePreviewPage({
   params,
@@ -59,21 +60,29 @@ export default async function InvoicePreviewPage({
             Bewerken
           </Link>
         </div>
-        <a
-          href={`/api/invoice/${id}/pdf`}
-          style={{
-            fontSize: "var(--text-body-md)",
-            fontFamily: "var(--font-body), sans-serif",
-            fontWeight: 500,
-            color: "var(--foreground)",
-            textDecoration: "none",
-            letterSpacing: "0.05em",
-            padding: "8px 20px",
-            border: "1px solid rgba(13, 13, 11, 0.2)",
-          }}
-        >
-          Download PDF
-        </a>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {data.invoice.status !== "draft" && data.client.email && (
+            <SendEmailButton
+              invoiceId={id}
+              clientEmail={data.client.email}
+            />
+          )}
+          <a
+            href={`/api/invoice/${id}/pdf`}
+            style={{
+              fontSize: "var(--text-body-md)",
+              fontFamily: "var(--font-body), sans-serif",
+              fontWeight: 500,
+              color: "var(--foreground)",
+              textDecoration: "none",
+              letterSpacing: "0.05em",
+              padding: "8px 20px",
+              border: "1px solid rgba(13, 13, 11, 0.2)",
+            }}
+          >
+            Download PDF
+          </a>
+        </div>
       </div>
 
       {/* Invoice Preview */}

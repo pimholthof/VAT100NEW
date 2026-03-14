@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendInvoiceEmail } from "@/lib/email/send-invoice";
 import type {
   ActionResult,
   Invoice,
@@ -280,4 +281,39 @@ export async function getInvoice(
     error: null,
     data: { ...invoice, lines: lines ?? [], client },
   };
+}
+
+export async function sendInvoice(id: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  // Verify ownership
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("status, client_id")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!invoice) return { error: "Factuur niet gevonden." };
+
+  if (invoice.status === "draft") {
+    return { error: "Conceptfacturen kunnen niet worden verzonden." };
+  }
+
+  const { data: client } = await supabase
+    .from("clients")
+    .select("email")
+    .eq("id", invoice.client_id)
+    .single();
+
+  if (!client?.email) {
+    return { error: "Klant heeft geen e-mailadres." };
+  }
+
+  return sendInvoiceEmail(id);
 }
