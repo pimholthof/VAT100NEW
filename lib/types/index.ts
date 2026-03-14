@@ -28,6 +28,7 @@ export interface Client {
   city: string | null;
   postal_code: string | null;
   kvk_number: string | null;
+  btw_number: string | null;
   created_at: string;
 }
 
@@ -102,6 +103,7 @@ export interface ClientInput {
   city: string | null;
   postal_code: string | null;
   kvk_number: string | null;
+  btw_number: string | null;
 }
 
 // ─── Action result types ───
