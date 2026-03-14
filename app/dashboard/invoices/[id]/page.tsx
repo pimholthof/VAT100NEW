@@ -35,7 +35,7 @@ const buttonSecondaryStyle: React.CSSProperties = {
   letterSpacing: "var(--tracking-caps)",
   textTransform: "uppercase",
   padding: "10px 16px",
-  border: "1px solid var(--foreground)",
+  border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",
   color: "var(--foreground)",
   cursor: "pointer",
@@ -123,7 +123,7 @@ export default function EditInvoicePage() {
       <h1
         style={{
           fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-md)",
+          fontSize: "var(--text-display-lg)",
           fontWeight: 900,
           letterSpacing: "var(--tracking-display)",
           lineHeight: 1,
@@ -139,8 +139,10 @@ export default function EditInvoicePage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          border: "1px solid var(--foreground)",
-          padding: "16px 20px",
+          border: "none",
+          borderTop: "var(--border-rule)",
+          borderBottom: "var(--border-rule)",
+          padding: "16px 0",
           marginBottom: 8,
         }}
       >
@@ -150,8 +152,8 @@ export default function EditInvoicePage() {
             fontWeight: 500,
             letterSpacing: "var(--tracking-caps)",
             textTransform: "uppercase",
-            padding: "4px 8px",
-            border: "1px solid var(--foreground)",
+            padding: "4px 0",
+            border: "none",
             display: "inline-block",
           }}
         >
@@ -204,7 +206,8 @@ export default function EditInvoicePage() {
         <div
           style={{
             padding: "12px 16px",
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderLeft: "2px solid var(--foreground)",
             marginBottom: 24,
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",

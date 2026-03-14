@@ -49,11 +49,11 @@ export default function DashboardPage() {
       <h1
         style={{
           fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-md)",
+          fontSize: "var(--text-display-lg)",
           fontWeight: 900,
           letterSpacing: "var(--tracking-display)",
           lineHeight: 1,
-          margin: "0 0 32px",
+          margin: "0 0 48px",
         }}
       >
         Dashboard
@@ -103,7 +103,7 @@ export default function DashboardPage() {
       <h2
         style={{
           fontFamily: "var(--font-display), sans-serif",
-          fontSize: "1.25rem",
+          fontSize: "1.5rem",
           fontWeight: 900,
           letterSpacing: "var(--tracking-display)",
           lineHeight: 1,

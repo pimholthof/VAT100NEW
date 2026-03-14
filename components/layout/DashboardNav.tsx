@@ -11,7 +11,6 @@ const navItems = [
   { href: "/dashboard/invoices", label: "Facturen" },
   { href: "/dashboard/receipts", label: "Bonnen" },
   { href: "/dashboard/tax", label: "Belasting" },
-  { href: "/dashboard/settings", label: "Instellingen" },
 ];
 
 export function DashboardNav({
@@ -24,148 +23,153 @@ export function DashboardNav({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const sidebar = (
-    <aside className="dashboard-sidebar" data-open={mobileOpen || undefined}>
-      {/* Logo + user info */}
-      <div style={{ padding: "32px 24px 24px" }}>
+  return (
+    <header className="dashboard-nav">
+      <div className="dashboard-nav-inner">
+        {/* Logo */}
         <Link
           href="/dashboard"
           style={{
             fontFamily: "var(--font-display), sans-serif",
-            fontSize: "24px",
+            fontSize: "18px",
             fontWeight: 900,
             letterSpacing: "var(--tracking-display)",
             textDecoration: "none",
             color: "var(--foreground)",
-            display: "block",
             lineHeight: 1,
           }}
         >
           VAT100
         </Link>
-        <div
-          style={{
-            marginTop: 12,
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            letterSpacing: "0.05em",
-            lineHeight: 1.4,
-          }}
-        >
-          <span style={{ display: "block", opacity: 0.6 }}>{userName}</span>
+
+        {/* Desktop nav */}
+        <nav className="dashboard-nav-links">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  fontFamily: "var(--font-body), sans-serif",
+                  fontSize: "var(--text-body-sm)",
+                  fontWeight: 500,
+                  letterSpacing: "var(--tracking-caps)",
+                  textTransform: "uppercase",
+                  textDecoration: "none",
+                  color: "var(--foreground)",
+                  opacity: isActive ? 1 : 0.4,
+                  transition: "opacity 0.15s ease",
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Right section: user + logout */}
+        <div className="dashboard-nav-right">
           {studioName && (
-            <span style={{ display: "block", opacity: 0.4, fontSize: "var(--text-body-sm)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-body-xs)",
+                fontWeight: 400,
+                letterSpacing: "0.05em",
+                opacity: 0.4,
+              }}
+            >
               {studioName}
             </span>
           )}
-        </div>
-      </div>
-
-      {/* Nav items */}
-      <nav style={{ flex: 1, padding: "8px 0" }}>
-        {navItems.map((item) => {
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className="sidebar-nav-item"
-              data-active={isActive || undefined}
+          <form action={logout}>
+            <button
+              type="submit"
               style={{
-                display: "block",
-                padding: "10px 24px",
                 fontFamily: "var(--font-body), sans-serif",
-                fontSize: "13px",
-                fontWeight: 400,
-                letterSpacing: "0.05em",
-                textDecoration: "none",
-                color: isActive ? "var(--color-white)" : "var(--foreground)",
-                background: isActive ? "var(--color-black)" : "transparent",
+                fontSize: "var(--text-body-xs)",
+                fontWeight: 500,
+                letterSpacing: "var(--tracking-caps)",
+                textTransform: "uppercase",
+                background: "none",
+                border: "none",
+                color: "var(--foreground)",
+                opacity: 0.4,
+                cursor: "pointer",
+                padding: 0,
               }}
             >
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+              Uitloggen
+            </button>
+          </form>
+        </div>
 
-      {/* Logout button at bottom */}
-      <div style={{ padding: "16px 24px 32px" }}>
-        <form action={logout}>
-          <button
-            type="submit"
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "13px",
-              fontWeight: 400,
-              letterSpacing: "0.05em",
-              padding: "10px 24px",
-              border: "none",
-              borderBottom: "1px solid rgba(13, 13, 11, 0.15)",
-              background: "transparent",
-              color: "var(--foreground)",
-              cursor: "pointer",
-              width: "100%",
-              textAlign: "left",
-            }}
-          >
-            Uitloggen
-          </button>
-        </form>
+        {/* Mobile hamburger */}
+        <button
+          className="dashboard-nav-hamburger"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Menu"
+        >
+          {mobileOpen ? "✕" : "☰"}
+        </button>
       </div>
-    </aside>
-  );
 
-  return (
-    <>
-      {/* Mobile hamburger button */}
-      <button
-        className="sidebar-hamburger"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label="Menu"
-        style={{
-          position: "fixed",
-          top: 16,
-          left: 16,
-          zIndex: 1001,
-          background: "var(--background)",
-          border: "1px solid rgba(13, 13, 11, 0.15)",
-          color: "var(--foreground)",
-          width: 40,
-          height: 40,
-          display: "none",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "18px",
-          lineHeight: 1,
-        }}
-      >
-        {mobileOpen ? "✕" : "☰"}
-      </button>
-
-      {/* Overlay for mobile */}
+      {/* Mobile dropdown */}
       {mobileOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setMobileOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.3)",
-            zIndex: 999,
-            display: "none",
-          }}
-        />
+        <nav className="dashboard-nav-mobile">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-body), sans-serif",
+                  fontSize: "var(--text-body-md)",
+                  fontWeight: 500,
+                  letterSpacing: "var(--tracking-caps)",
+                  textTransform: "uppercase",
+                  textDecoration: "none",
+                  color: "var(--foreground)",
+                  opacity: isActive ? 1 : 0.4,
+                  padding: "10px 0",
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+          <form action={logout} style={{ marginTop: 8 }}>
+            <button
+              type="submit"
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-body-xs)",
+                fontWeight: 500,
+                letterSpacing: "var(--tracking-caps)",
+                textTransform: "uppercase",
+                background: "none",
+                border: "none",
+                color: "var(--foreground)",
+                opacity: 0.4,
+                cursor: "pointer",
+                padding: "10px 0",
+              }}
+            >
+              Uitloggen
+            </button>
+          </form>
+        </nav>
       )}
-
-      {sidebar}
-    </>
+    </header>
   );
 }

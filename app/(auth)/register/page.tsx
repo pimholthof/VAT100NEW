@@ -142,11 +142,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   container: {
     width: "100%",
-    maxWidth: 480,
+    maxWidth: 600,
   },
   title: {
     fontFamily: "var(--font-display), sans-serif",
-    fontSize: "var(--text-display-lg)",
+    fontSize: "var(--text-display-xl)",
     fontWeight: 900,
     letterSpacing: "var(--tracking-display)",
     lineHeight: 0.85,
@@ -156,7 +156,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "var(--font-body), sans-serif",
     fontSize: "var(--text-body-lg)",
     fontWeight: 300,
-    margin: "8px 0 40px",
+    margin: "12px 0 56px",
   },
   form: {
     display: "flex",

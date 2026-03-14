@@ -190,7 +190,7 @@ export default function ClientDetailPage() {
           <h1
             style={{
               fontFamily: "var(--font-display), sans-serif",
-              fontSize: "var(--text-display-md)",
+              fontSize: "var(--text-display-lg)",
               fontWeight: 900,
               letterSpacing: "var(--tracking-display)",
               lineHeight: 1,
@@ -215,7 +215,8 @@ export default function ClientDetailPage() {
         <div
           style={{
             padding: "12px 16px",
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderLeft: "2px solid var(--foreground)",
             marginBottom: 24,
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
@@ -230,7 +231,9 @@ export default function ClientDetailPage() {
       {editing ? (
         <div
           style={{
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderTop: "var(--border-rule)",
+            borderBottom: "var(--border-rule)",
             padding: 24,
             marginBottom: 32,
           }}
@@ -330,8 +333,8 @@ export default function ClientDetailPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: "1px",
-            border: "1px solid var(--foreground)",
+            gap: 0,
+            border: "none",
             marginBottom: 32,
           }}
         >
@@ -446,8 +449,9 @@ export default function ClientDetailPage() {
                       fontWeight: 500,
                       letterSpacing: "var(--tracking-caps)",
                       textTransform: "uppercase",
-                      padding: "4px 8px",
-                      border: "1px solid var(--foreground)",
+                      padding: "4px 0",
+                      border: "none",
+                      borderBottom: "var(--border-rule)",
                       display: "inline-block",
                     }}
                   >
@@ -495,7 +499,7 @@ function DetailCell({
   value: string | null;
 }) {
   return (
-    <div style={{ padding: 20, borderBottom: "1px solid var(--foreground)" }}>
+    <div style={{ padding: "20px 0", borderBottom: "var(--border-rule)" }}>
       <p
         style={{
           fontFamily: "var(--font-body), sans-serif",
@@ -525,7 +529,7 @@ function DetailCell({
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ border: "1px solid var(--foreground)", padding: 24 }}>
+    <div style={{ border: "none", borderTop: "var(--border-rule)", padding: "24px 0" }}>
       <p
         style={{
           fontFamily: "var(--font-body), sans-serif",
@@ -620,9 +624,10 @@ function Td({
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "10px 12px",
-  border: "1px solid var(--foreground)",
-  background: "var(--background)",
+  padding: "10px 2px",
+  border: "none",
+  borderBottom: "var(--border-input)",
+  background: "transparent",
   color: "var(--foreground)",
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
@@ -650,7 +655,7 @@ const buttonSecondaryStyle: React.CSSProperties = {
   letterSpacing: "var(--tracking-caps)",
   textTransform: "uppercase",
   padding: "10px 16px",
-  border: "1px solid var(--foreground)",
+  border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",
   color: "var(--foreground)",
   cursor: "pointer",
