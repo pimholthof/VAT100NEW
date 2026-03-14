@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getBtwOverview } from "@/lib/actions/tax";
 import type { QuarterStats } from "@/lib/actions/tax";
+import { StatCard, SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
@@ -95,7 +96,14 @@ export default function TaxPage() {
 
       {/* Section 3: Quarterly table */}
       {isLoading ? (
-        <SkeletonTable />
+        <div style={{ marginBottom: 48 }}>
+          <SkeletonTable
+            columns="1fr 1fr 1fr 1fr 1fr 1fr"
+            rows={4}
+            headerWidths={[60, 80, 70, 70, 60, 50]}
+            bodyWidths={[50, 70, 60, 60, 50, 40]}
+          />
+        </div>
       ) : quarters.length > 0 ? (
         <table
           style={{
@@ -188,138 +196,3 @@ export default function TaxPage() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div
-      style={{
-        border: "none",
-        borderTop: "var(--border-rule)",
-        padding: "24px 0",
-      }}
-    >
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "10px",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          margin: "0 0 8px",
-          opacity: 0.6,
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "2.5rem",
-          fontWeight: 900,
-          lineHeight: 1,
-          margin: 0,
-        }}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div
-      style={{
-        border: "none",
-        borderTop: "var(--border-rule)",
-        padding: "24px 0",
-        opacity: 0.12,
-      }}
-    >
-      <div className="skeleton" style={{ width: "60%", height: 9, marginBottom: 12 }} />
-      <div className="skeleton" style={{ width: "80%", height: 32 }} />
-    </div>
-  );
-}
-
-function SkeletonTable() {
-  return (
-    <div style={{ opacity: 0.12, marginBottom: 48 }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr",
-          gap: 12,
-          padding: "10px 12px",
-          borderBottom: "1px solid var(--foreground)",
-        }}
-      >
-        {[60, 80, 70, 70, 60, 50].map((w, i) => (
-          <div key={i} className="skeleton" style={{ width: `${w}%`, height: 9 }} />
-        ))}
-      </div>
-      {Array.from({ length: 4 }).map((_, row) => (
-        <div
-          key={row}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr",
-            gap: 12,
-            padding: "12px 12px",
-            borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
-          }}
-        >
-          {[50, 70, 60, 60, 50, 40].map((w, i) => (
-            <div key={i} className="skeleton" style={{ width: `${w}%`, height: 13 }} />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function Th({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <th
-      style={{
-        fontWeight: 500,
-        fontSize: "var(--text-body-sm)",
-        letterSpacing: "0.02em",
-        padding: "12px 8px",
-        ...style,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <td
-      style={{
-        padding: "12px 8px",
-        fontWeight: 300,
-        ...style,
-      }}
-    >
-      {children}
-    </td>
-  );
-}

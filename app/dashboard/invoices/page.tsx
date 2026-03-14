@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoices, deleteInvoice, updateInvoiceStatus } from "@/lib/actions/invoices";
 import type { Invoice, InvoiceStatus } from "@/lib/types";
+import { Th, Td } from "@/components/ui";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
@@ -252,44 +253,3 @@ export default function InvoicesPage() {
   );
 }
 
-function Th({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <th
-      style={{
-        fontWeight: 500,
-        fontSize: "var(--text-body-sm)",
-        letterSpacing: "0.02em",
-        padding: "12px 8px",
-        ...style,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <td
-      style={{
-        padding: "12px 8px",
-        fontWeight: 300,
-        ...style,
-      }}
-    >
-      {children}
-    </td>
-  );
-}

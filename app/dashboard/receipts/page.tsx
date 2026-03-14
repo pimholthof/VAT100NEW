@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getReceipts, deleteReceipt } from "@/lib/actions/receipts";
 import { getKostensoortByCode } from "@/lib/constants/costs";
 import type { Receipt } from "@/lib/types";
+import { Th, Td, SkeletonTable } from "@/components/ui";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
@@ -80,7 +81,11 @@ export default function ReceiptsPage() {
       </div>
 
       {isLoading ? (
-        <SkeletonTable />
+        <SkeletonTable
+          columns="24px 1fr 2fr 1fr 1fr 1fr 1fr 80px"
+          headerWidths={[10, 60, 80, 70, 60, 50, 50, 40]}
+          bodyWidths={[10, 50, 70, 60, 50, 40, 40, 30]}
+        />
       ) : receipts.length === 0 ? (
         <div
           style={{
@@ -225,80 +230,3 @@ export default function ReceiptsPage() {
   );
 }
 
-function Th({
-  children,
-  style,
-}: {
-  children?: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <th
-      style={{
-        fontWeight: 500,
-        fontSize: "var(--text-body-sm)",
-        letterSpacing: "0.02em",
-        padding: "12px 8px",
-        ...style,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({
-  children,
-  style,
-}: {
-  children?: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <td
-      style={{
-        padding: "12px 8px",
-        fontWeight: 300,
-        ...style,
-      }}
-    >
-      {children}
-    </td>
-  );
-}
-
-function SkeletonTable() {
-  return (
-    <div style={{ opacity: 0.12 }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "24px 1fr 2fr 1fr 1fr 1fr 1fr 80px",
-          gap: 12,
-          padding: "10px 12px",
-          borderBottom: "1px solid var(--foreground)",
-        }}
-      >
-        {[10, 60, 80, 70, 60, 50, 50, 40].map((w, i) => (
-          <div key={i} className="skeleton" style={{ width: `${w}%`, height: 9 }} />
-        ))}
-      </div>
-      {Array.from({ length: 5 }).map((_, row) => (
-        <div
-          key={row}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "24px 1fr 2fr 1fr 1fr 1fr 1fr 80px",
-            gap: 12,
-            padding: "12px 12px",
-            borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
-          }}
-        >
-          {[10, 50, 70, 60, 50, 40, 40, 30].map((w, i) => (
-            <div key={i} className="skeleton" style={{ width: `${w}%`, height: 13 }} />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}

@@ -14,6 +14,12 @@ import {
   type CashflowSummary,
 } from "@/lib/actions/dashboard";
 import { sendReminder } from "@/lib/actions/invoices";
+import {
+  StatCard,
+  SkeletonCard,
+  SkeletonTable,
+  buttonSecondaryStyle,
+} from "@/components/ui";
 
 const statusLabels: Record<string, string> = {
   draft: "Concept",
@@ -340,83 +346,6 @@ export default function DashboardPage() {
   );
 }
 
-/* ── Stat Card ── */
-
-function StatCard({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-}) {
-  return (
-    <div
-      style={{
-        border: "none",
-        borderTop: "var(--border-rule)",
-        padding: "24px 0",
-      }}
-    >
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "10px",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          margin: "0 0 8px",
-          opacity: 0.6,
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "2.5rem",
-          fontWeight: 900,
-          lineHeight: 1,
-          margin: 0,
-        }}
-      >
-        {value}
-      </p>
-      {sub && (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-sm)",
-            fontWeight: 400,
-            margin: "8px 0 0",
-            opacity: 0.5,
-          }}
-        >
-          {sub}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ── Skeleton Card ── */
-
-function SkeletonCard() {
-  return (
-    <div
-      style={{
-        border: "none",
-        borderTop: "var(--border-rule)",
-        padding: "24px 0",
-        opacity: 0.12,
-      }}
-    >
-      <div className="skeleton" style={{ width: "60%", height: 9, marginBottom: 12 }} />
-      <div className="skeleton" style={{ width: "80%", height: 32 }} />
-    </div>
-  );
-}
-
 /* ── Invoice Table ── */
 
 function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
@@ -534,18 +463,6 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
     letterSpacing: "0.02em",
     opacity: 0.5,
     borderBottom: "1px solid var(--foreground)",
-  };
-
-  const buttonSecondaryStyle: React.CSSProperties = {
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "var(--text-body-md)",
-    fontWeight: 500,
-    letterSpacing: "0.05em",
-    padding: "10px 16px",
-    border: "1px solid rgba(13, 13, 11, 0.2)",
-    background: "transparent",
-    color: "var(--foreground)",
-    cursor: "pointer",
   };
 
   return (
@@ -736,42 +653,3 @@ function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
   );
 }
 
-/* ── Skeleton Table ── */
-
-function SkeletonTable() {
-  return (
-    <div style={{ opacity: 0.12 }}>
-      {/* Header row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 2fr 1fr 1fr 80px",
-          gap: 12,
-          padding: "10px 12px",
-          borderBottom: "1px solid var(--foreground)",
-        }}
-      >
-        {[60, 80, 70, 60, 40].map((w, i) => (
-          <div key={i} className="skeleton" style={{ width: `${w}%`, height: 9 }} />
-        ))}
-      </div>
-      {/* Body rows */}
-      {Array.from({ length: 5 }).map((_, row) => (
-        <div
-          key={row}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 2fr 1fr 1fr 80px",
-            gap: 12,
-            padding: "12px 12px",
-            borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
-          }}
-        >
-          {[50, 70, 60, 50, 30].map((w, i) => (
-            <div key={i} className="skeleton" style={{ width: `${w}%`, height: 13 }} />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
