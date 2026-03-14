@@ -39,13 +39,13 @@ export default function ClientsPage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 32,
+          marginBottom: 48,
         }}
       >
         <h1
           style={{
             fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-md)",
+            fontSize: "var(--text-display-lg)",
             fontWeight: 900,
             letterSpacing: "var(--tracking-display)",
             lineHeight: 1,

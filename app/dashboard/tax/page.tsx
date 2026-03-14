@@ -27,7 +27,7 @@ export default function TaxPage() {
         <h1
           style={{
             fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-md)",
+            fontSize: "var(--text-display-lg)",
             fontWeight: 900,
             letterSpacing: "var(--tracking-display)",
             lineHeight: 1,
@@ -54,7 +54,7 @@ export default function TaxPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 16,
+            gap: 24,
             marginBottom: 48,
           }}
           className="stat-cards-grid"
@@ -69,7 +69,7 @@ export default function TaxPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 16,
+            gap: 24,
             marginBottom: 48,
           }}
           className="stat-cards-grid"
@@ -144,8 +144,9 @@ export default function TaxPage() {
                       fontWeight: 500,
                       letterSpacing: "var(--tracking-caps)",
                       textTransform: "uppercase",
-                      padding: "4px 8px",
-                      border: "1px solid var(--foreground)",
+                      padding: "4px 0",
+                      border: "none",
+                      borderBottom: "var(--border-rule)",
                       display: "inline-block",
                     }}
                   >
@@ -174,7 +175,8 @@ export default function TaxPage() {
       <div
         style={{
           padding: "12px 16px",
-          border: "1px solid var(--foreground)",
+          border: "none",
+          borderLeft: "2px solid var(--foreground)",
           fontFamily: "var(--font-body), sans-serif",
           fontSize: "var(--text-body-md)",
           fontWeight: 400,
@@ -197,8 +199,9 @@ function StatCard({
   return (
     <div
       style={{
-        border: "1px solid var(--foreground)",
-        padding: 24,
+        border: "none",
+        borderTop: "var(--border-rule)",
+        padding: "24px 0",
       }}
     >
       <p
@@ -233,8 +236,9 @@ function SkeletonCard() {
   return (
     <div
       style={{
-        border: "1px solid var(--foreground)",
-        padding: 24,
+        border: "none",
+        borderTop: "var(--border-rule)",
+        padding: "24px 0",
         opacity: 0.12,
       }}
     >

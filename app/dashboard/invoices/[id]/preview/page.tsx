@@ -70,7 +70,7 @@ export default async function InvoicePreviewPage({
             letterSpacing: "0.25em",
             textTransform: "uppercase",
             padding: "8px 20px",
-            border: "1px solid var(--foreground)",
+            border: "1px solid rgba(13, 13, 11, 0.2)",
           }}
         >
           Download PDF
@@ -80,7 +80,7 @@ export default async function InvoicePreviewPage({
       {/* Invoice Preview */}
       <div
         style={{
-          border: "1px solid var(--foreground)",
+          border: "var(--border-rule)",
         }}
       >
         <InvoiceHTML data={data} />
