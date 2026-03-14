@@ -7,8 +7,11 @@ import {
   getDashboardStats,
   getRecentInvoices,
   getUpcomingDueInvoices,
+  getCashflowSummary,
+  getVatDeadline,
   type RecentInvoice,
   type UpcomingInvoice,
+  type CashflowSummary,
 } from "@/lib/actions/dashboard";
 import { sendReminder } from "@/lib/actions/invoices";
 
@@ -50,9 +53,21 @@ export default function DashboardPage() {
     queryFn: () => getUpcomingDueInvoices(),
   });
 
+  const { data: cashflowResult, isLoading: cashflowLoading } = useQuery({
+    queryKey: ["dashboard-cashflow"],
+    queryFn: () => getCashflowSummary(),
+  });
+
+  const { data: vatDeadlineResult, isLoading: vatDeadlineLoading } = useQuery({
+    queryKey: ["dashboard-vat-deadline"],
+    queryFn: () => getVatDeadline(),
+  });
+
   const stats = statsResult?.data;
   const invoices = invoicesResult?.data;
   const upcomingInvoices = upcomingResult?.data;
+  const cashflow = cashflowResult?.data;
+  const vatDeadline = vatDeadlineResult?.data;
 
   return (
     <div>
@@ -108,6 +123,158 @@ export default function DashboardPage() {
           </>
         ) : null}
       </div>
+
+      {/* BTW-deadline banner */}
+      {vatDeadlineLoading ? (
+        <div
+          style={{
+            borderTop: "var(--border-rule)",
+            borderBottom: "var(--border-rule)",
+            padding: "24px 0",
+            marginBottom: 48,
+            opacity: 0.12,
+          }}
+        >
+          <div className="skeleton" style={{ width: "40%", height: 32 }} />
+        </div>
+      ) : vatDeadline ? (
+        <div
+          className="vat-deadline-banner"
+          style={{
+            borderTop: "var(--border-rule)",
+            borderBottom: "var(--border-rule)",
+            padding: "24px 0",
+            marginBottom: 48,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 24,
+          }}
+        >
+          <div>
+            <p
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "10px",
+                fontWeight: 500,
+                letterSpacing: "0.02em",
+                margin: "0 0 8px",
+                opacity: 0.6,
+              }}
+            >
+              BTW-AANGIFTE {vatDeadline.quarter}
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-body-lg)",
+                fontWeight: 400,
+                margin: 0,
+              }}
+            >
+              Deadline: {vatDeadline.deadline}
+            </p>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <p
+              style={{
+                fontFamily: "var(--font-display), sans-serif",
+                fontSize: "2.5rem",
+                fontWeight: 900,
+                lineHeight: 1,
+                margin: 0,
+              }}
+            >
+              {vatDeadline.daysRemaining} dagen
+            </p>
+            {vatDeadline.daysRemaining < 14 && (
+              <p
+                style={{
+                  fontFamily: "var(--font-body), sans-serif",
+                  fontSize: "10px",
+                  fontWeight: 500,
+                  letterSpacing: "0.02em",
+                  margin: "8px 0 0",
+                  opacity: 0.6,
+                }}
+              >
+                Deadline nadert
+              </p>
+            )}
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "10px",
+                fontWeight: 500,
+                letterSpacing: "0.02em",
+                margin: "0 0 8px",
+                opacity: 0.6,
+              }}
+            >
+              GESCHAT BEDRAG
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--font-display), sans-serif",
+                fontSize: "2.5rem",
+                fontWeight: 900,
+                lineHeight: 1,
+                margin: 0,
+              }}
+            >
+              {formatCurrency(vatDeadline.estimatedAmount)}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Cashflow section */}
+      {cashflowLoading ? (
+        <div style={{ marginBottom: 48 }}>
+          <div className="skeleton" style={{ width: "30%", height: 20, marginBottom: 16, opacity: 0.12 }} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24, opacity: 0.12 }}>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </div>
+      ) : cashflow ? (
+        <div style={{ marginBottom: 48 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-display), sans-serif",
+              fontSize: "1.5rem",
+              fontWeight: 900,
+              letterSpacing: "var(--tracking-display)",
+              lineHeight: 1,
+              margin: "0 0 16px",
+            }}
+          >
+            Cashflow
+          </h2>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 24,
+              marginBottom: 24,
+            }}
+          >
+            <StatCard
+              label="Netto resultaat deze maand"
+              value={`${cashflow.trend === "up" ? "↑ " : cashflow.trend === "down" ? "↓ " : ""}${formatCurrency(cashflow.netThisMonth)}`}
+            />
+            <StatCard
+              label="Netto resultaat vorige maand"
+              value={formatCurrency(cashflow.netLastMonth)}
+            />
+          </div>
+
+          <CashflowTable cashflow={cashflow} />
+        </div>
+      ) : null}
 
       {/* Upcoming due invoices */}
       <h2
@@ -496,6 +663,75 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+/* ── Cashflow Table ── */
+
+function formatMonth(key: string): string {
+  const [year, month] = key.split("-");
+  const date = new Date(Number(year), Number(month) - 1, 1);
+  return date.toLocaleDateString("nl-NL", { month: "short", year: "numeric" });
+}
+
+function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
+  const cellStyle: React.CSSProperties = {
+    padding: "10px 12px",
+    fontFamily: "var(--font-body), sans-serif",
+    fontSize: "var(--text-body-lg)",
+    fontWeight: 400,
+    letterSpacing: "0.05em",
+    borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
+    textAlign: "right",
+    fontVariantNumeric: "tabular-nums",
+  };
+
+  const headerStyle: React.CSSProperties = {
+    padding: "10px 12px",
+    fontFamily: "var(--font-body), sans-serif",
+    fontSize: "10px",
+    fontWeight: 500,
+    letterSpacing: "0.02em",
+    opacity: 0.5,
+    borderBottom: "1px solid var(--foreground)",
+    textAlign: "right",
+  };
+
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          borderSpacing: 0,
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={{ ...headerStyle, textAlign: "left" }}>Maand</th>
+            <th style={headerStyle}>Omzet</th>
+            <th style={headerStyle}>Kosten</th>
+            <th style={headerStyle}>Netto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cashflow.monthlyRevenue.map((rev, i) => {
+            const expense = cashflow.monthlyExpenses[i]?.amount ?? 0;
+            const net = Math.round((rev.amount - expense) * 100) / 100;
+            return (
+              <tr key={rev.month}>
+                <td style={{ ...cellStyle, textAlign: "left" }}>
+                  {formatMonth(rev.month)}
+                </td>
+                <td style={cellStyle}>{formatCurrency(rev.amount)}</td>
+                <td style={cellStyle}>{formatCurrency(expense)}</td>
+                <td style={cellStyle}>{formatCurrency(net)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
