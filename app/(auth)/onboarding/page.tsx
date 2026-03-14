@@ -31,7 +31,7 @@ export default function OnboardingPage() {
           <div style={styles.row}>
             <div style={styles.field}>
               <label htmlFor="kvk_number" style={styles.label}>
-                KVK-NUMMER
+                KVK-nummer
               </label>
               <input
                 id="kvk_number"
@@ -47,7 +47,7 @@ export default function OnboardingPage() {
 
             <div style={styles.field}>
               <label htmlFor="btw_number" style={styles.label}>
-                BTW-NUMMER
+                BTW-nummer
               </label>
               <input
                 id="btw_number"
@@ -63,7 +63,7 @@ export default function OnboardingPage() {
 
           <div style={styles.field}>
             <label htmlFor="address" style={styles.label}>
-              ADRES
+              Adres
             </label>
             <input
               id="address"
@@ -78,7 +78,7 @@ export default function OnboardingPage() {
           <div style={styles.row}>
             <div style={styles.field}>
               <label htmlFor="postal_code" style={styles.label}>
-                POSTCODE
+                Postcode
               </label>
               <input
                 id="postal_code"
@@ -94,7 +94,7 @@ export default function OnboardingPage() {
 
             <div style={styles.field}>
               <label htmlFor="city" style={styles.label}>
-                PLAATS
+                Plaats
               </label>
               <input
                 id="city"
@@ -189,10 +189,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   label: {
     fontFamily: "var(--font-body), sans-serif",
-    fontSize: "9px",
-    fontWeight: 500,
-    letterSpacing: "0.25em",
-    textTransform: "uppercase" as const,
+    fontSize: "10px",
+    fontWeight: 400,
+    letterSpacing: "0.02em",
   },
   input: {
     fontFamily: "var(--font-body), sans-serif",
@@ -221,8 +220,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "var(--font-body), sans-serif",
     fontSize: "var(--text-body-lg)",
     fontWeight: 500,
-    letterSpacing: "0.25em",
-    textTransform: "uppercase" as const,
+    letterSpacing: "0.05em",
     padding: "14px 16px",
     border: "none",
     background: "var(--foreground)",

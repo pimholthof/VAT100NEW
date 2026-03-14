@@ -196,10 +196,9 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           <p
             style={{
               fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-xs)",
+              fontSize: "var(--text-body-sm)",
               fontWeight: 500,
-              letterSpacing: "var(--tracking-caps)",
-              textTransform: "uppercase",
+              letterSpacing: "0.02em",
               margin: "0 0 16px",
             }}
           >
@@ -460,10 +459,9 @@ function FieldGroup({
         style={{
           display: "block",
           fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-xs)",
+          fontSize: "var(--text-body-sm)",
           fontWeight: 500,
-          letterSpacing: "var(--tracking-caps)",
-          textTransform: "uppercase",
+          letterSpacing: "0.02em",
           marginBottom: 6,
         }}
       >
@@ -479,10 +477,9 @@ function LabelCell({ children }: { children?: React.ReactNode }) {
     <span
       style={{
         fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-body-xs)",
+        fontSize: "var(--text-body-sm)",
         fontWeight: 500,
-        letterSpacing: "var(--tracking-caps)",
-        textTransform: "uppercase",
+        letterSpacing: "0.02em",
       }}
     >
       {children}
@@ -539,8 +536,7 @@ const buttonPrimaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-lg)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "12px 20px",
   border: "none",
   background: "var(--foreground)",
@@ -552,8 +548,7 @@ const buttonSecondaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "10px 16px",
   border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",
@@ -564,9 +559,8 @@ const buttonSecondaryStyle: React.CSSProperties = {
 const quickLabelStyle: React.CSSProperties = {
   display: "block",
   fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-xs)",
+  fontSize: "var(--text-body-sm)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.02em",
   marginBottom: 4,
 };

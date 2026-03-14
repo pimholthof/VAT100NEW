@@ -60,8 +60,7 @@ export default function ClientsPage() {
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-lg)",
             fontWeight: 500,
-            letterSpacing: "var(--tracking-caps)",
-            textTransform: "uppercase",
+            letterSpacing: "0.05em",
             padding: "12px 20px",
             border: "none",
             background: "var(--foreground)",
@@ -200,8 +199,7 @@ export default function ClientsPage() {
                         fontSize: "var(--text-body-xs)",
                         fontWeight: 500,
                         color: "var(--foreground)",
-                        textTransform: "uppercase",
-                        letterSpacing: "var(--tracking-caps)",
+                        letterSpacing: "0.02em",
                       }}
                     >
                       Bekijk
@@ -223,8 +221,7 @@ export default function ClientsPage() {
                         background: "none",
                         border: "none",
                         cursor: "pointer",
-                        textTransform: "uppercase",
-                        letterSpacing: "var(--tracking-caps)",
+                        letterSpacing: "0.02em",
                         opacity: 0.6,
                       }}
                     >
@@ -268,9 +265,8 @@ function Th({
     <th
       style={{
         fontWeight: 500,
-        fontSize: "var(--text-body-xs)",
-        letterSpacing: "var(--tracking-caps)",
-        textTransform: "uppercase",
+        fontSize: "var(--text-body-sm)",
+        letterSpacing: "0.02em",
         padding: "12px 8px",
         ...style,
       }}

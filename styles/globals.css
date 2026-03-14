@@ -77,7 +77,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
   font-size: var(--text-body-md);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -106,7 +107,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+  background: color-mix(in srgb, var(--foreground) 1.5%, transparent);
 }
 
 /* ─── Dashboard Shell ─── */
@@ -130,7 +131,7 @@ tbody tr:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
+  height: 48px;
 }
 
 .dashboard-nav-links {
@@ -168,7 +169,7 @@ tbody tr:hover {
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 48px;
+  padding: 64px 48px;
   max-width: 960px;
   width: 100%;
   margin: 0 auto;

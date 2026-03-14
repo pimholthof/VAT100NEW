@@ -19,8 +19,7 @@ const buttonPrimaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-lg)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "12px 20px",
   border: "none",
   background: "var(--foreground)",
@@ -32,8 +31,7 @@ const buttonSecondaryStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
   fontWeight: 500,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase",
+  letterSpacing: "0.05em",
   padding: "10px 16px",
   border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",
@@ -148,10 +146,9 @@ export default function EditInvoicePage() {
       >
         <span
           style={{
-            fontSize: "var(--text-body-xs)",
+            fontSize: "10px",
             fontWeight: 500,
-            letterSpacing: "var(--tracking-caps)",
-            textTransform: "uppercase",
+            letterSpacing: "0.02em",
             padding: "4px 0",
             border: "none",
             display: "inline-block",
