@@ -8,6 +8,7 @@ import {
   getInvoice,
   updateInvoiceStatus,
   sendInvoice,
+  generateShareToken,
 } from "@/lib/actions/invoices";
 import { InvoiceForm } from "@/components/invoice/InvoiceForm";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
@@ -50,11 +51,16 @@ export default function EditInvoicePage() {
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
+  const [localShareToken, setLocalShareToken] = useState<string | null>(null);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoice", params.id],
     queryFn: () => getInvoice(params.id),
   });
+
+  const serverShareToken = result?.data?.share_token ?? null;
 
   useEffect(() => {
     if (result?.data) {
@@ -104,6 +110,27 @@ export default function EditInvoicePage() {
       queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
     }
     setEmailSending(false);
+  };
+
+  const shareToken = localShareToken ?? serverShareToken;
+
+  const handleGenerateShareLink = async () => {
+    setShareLoading(true);
+    const res = await generateShareToken(params.id);
+    if (res.error) {
+      setStatusMsg(res.error);
+    } else if (res.data) {
+      setLocalShareToken(res.data);
+    }
+    setShareLoading(false);
+  };
+
+  const handleCopyShareLink = async () => {
+    if (!shareToken) return;
+    const url = `${window.location.origin}/invoice/${shareToken}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (isLoading) {
@@ -245,6 +272,60 @@ export default function EditInvoicePage() {
           {statusMsg}
         </div>
       )}
+      {/* Share link section */}
+      <div
+        style={{
+          borderBottom: "var(--border-rule)",
+          padding: "16px 0",
+          marginBottom: 8,
+        }}
+      >
+        <div
+          style={{
+            fontSize: "10px",
+            fontWeight: 500,
+            letterSpacing: "0.02em",
+            marginBottom: 8,
+          }}
+        >
+          Deel link
+        </div>
+        {shareToken ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-body-md)",
+                fontWeight: 300,
+                color: "rgba(13,13,11,0.6)",
+                wordBreak: "break-all",
+                flex: 1,
+              }}
+            >
+              {typeof window !== "undefined"
+                ? `${window.location.origin}/invoice/${shareToken}`
+                : `/invoice/${shareToken}`}
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyShareLink}
+              style={buttonSecondaryStyle}
+            >
+              {copied ? "Gekopieerd" : "Kopieer"}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleGenerateShareLink}
+            disabled={shareLoading}
+            style={buttonSecondaryStyle}
+          >
+            {shareLoading ? "Genereren..." : "Genereer deellink"}
+          </button>
+        )}
+      </div>
+
       <div style={{ marginTop: 24 }}>
         <InvoiceForm invoiceId={params.id} />
       </div>

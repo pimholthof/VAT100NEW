@@ -283,6 +283,43 @@ export async function getInvoice(
   };
 }
 
+export async function generateShareToken(
+  invoiceId: string
+): Promise<ActionResult<string>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  // Verify ownership
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("share_token")
+    .eq("id", invoiceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!invoice) return { error: "Factuur niet gevonden." };
+
+  // Return existing token if already generated
+  if (invoice.share_token) {
+    return { error: null, data: invoice.share_token };
+  }
+
+  const token = crypto.randomUUID().replace(/-/g, "");
+
+  const { error } = await supabase
+    .from("invoices")
+    .update({ share_token: token })
+    .eq("id", invoiceId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  return { error: null, data: token };
+}
+
 export async function sendInvoice(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {

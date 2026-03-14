@@ -57,6 +57,7 @@ export interface Invoice {
   vat_amount: number;
   total_inc_vat: number;
   notes: string | null;
+  share_token: string | null;
   created_at: string;
 }
 
