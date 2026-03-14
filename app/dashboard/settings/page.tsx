@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getProfile, updateProfile } from "@/lib/actions/profile";
 import type { Profile } from "@/lib/types";
+import { FieldGroup, inputStyle, buttonPrimaryStyle } from "@/components/ui";
 
 export default function SettingsPage() {
   const { data: result, isLoading } = useQuery({
@@ -333,54 +334,3 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-function FieldGroup({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <label
-        style={{
-          display: "block",
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "9px",
-          fontWeight: 500,
-          textTransform: "uppercase",
-          letterSpacing: "0.25em",
-          marginBottom: 6,
-        }}
-      >
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 2px",
-  border: "none",
-  borderBottom: "var(--border-input)",
-  background: "transparent",
-  color: "var(--foreground)",
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-md)",
-  fontWeight: 300,
-  outline: "none",
-};
-
-const buttonPrimaryStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-lg)",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "12px 20px",
-  border: "none",
-  background: "var(--foreground)",
-  color: "var(--background)",
-  cursor: "pointer",
-};

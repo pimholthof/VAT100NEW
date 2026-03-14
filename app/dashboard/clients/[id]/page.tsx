@@ -11,6 +11,16 @@ import {
   updateClient,
 } from "@/lib/actions/clients";
 import type { ClientInput } from "@/lib/types";
+import {
+  DetailCell,
+  StatCard,
+  FieldGroup,
+  Th,
+  Td,
+  inputStyle,
+  buttonPrimaryStyle,
+  buttonSecondaryStyle,
+} from "@/components/ui";
 
 const statusLabels: Record<string, string> = {
   draft: "Concept",
@@ -486,168 +496,3 @@ export default function ClientDetailPage() {
   );
 }
 
-/* ── Sub-components ── */
-
-function DetailCell({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null;
-}) {
-  return (
-    <div style={{ padding: "20px 0", borderBottom: "var(--border-rule)" }}>
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "10px",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          margin: "0 0 4px",
-          opacity: 0.6,
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-lg)",
-          fontWeight: 300,
-          margin: 0,
-        }}
-      >
-        {value ?? "—"}
-      </p>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ border: "none", borderTop: "var(--border-rule)", padding: "24px 0" }}>
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "10px",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          margin: "0 0 8px",
-          opacity: 0.6,
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "2.5rem",
-          fontWeight: 900,
-          lineHeight: 1,
-          margin: 0,
-        }}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function FieldGroup({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <label
-        style={{
-          display: "block",
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "10px",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          marginBottom: 6,
-        }}
-      >
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-function Th({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <th
-      style={{
-        fontWeight: 500,
-        fontSize: "10px",
-        letterSpacing: "0.02em",
-        padding: "12px 8px",
-        ...style,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <td style={{ padding: "12px 8px", fontWeight: 300, ...style }}>
-      {children}
-    </td>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 2px",
-  border: "none",
-  borderBottom: "var(--border-input)",
-  background: "transparent",
-  color: "var(--foreground)",
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-md)",
-  fontWeight: 300,
-  outline: "none",
-};
-
-const buttonPrimaryStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-lg)",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "12px 20px",
-  border: "none",
-  background: "var(--foreground)",
-  color: "var(--background)",
-  cursor: "pointer",
-};
-
-const buttonSecondaryStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-md)",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "10px 16px",
-  border: "1px solid rgba(13, 13, 11, 0.2)",
-  background: "transparent",
-  color: "var(--foreground)",
-  cursor: "pointer",
-};

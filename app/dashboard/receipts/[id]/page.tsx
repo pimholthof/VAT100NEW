@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getReceipt, getReceiptImageUrl } from "@/lib/actions/receipts";
 import { getKostensoortByCode } from "@/lib/constants/costs";
 import { ReceiptForm } from "@/components/receipt/ReceiptForm";
+import { DetailCell, buttonSecondaryStyle } from "@/components/ui";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
@@ -240,49 +241,3 @@ export default function ReceiptDetailPage() {
   );
 }
 
-function DetailCell({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null;
-}) {
-  return (
-    <div style={{ padding: "20px 0", borderBottom: "var(--border-rule)" }}>
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "10px",
-          fontWeight: 400,
-          letterSpacing: "0.02em",
-          margin: "0 0 4px",
-          opacity: 0.6,
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-lg)",
-          fontWeight: 300,
-          margin: 0,
-        }}
-      >
-        {value ?? "—"}
-      </p>
-    </div>
-  );
-}
-
-const buttonSecondaryStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-md)",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "10px 16px",
-  border: "1px solid rgba(13, 13, 11, 0.2)",
-  background: "transparent",
-  color: "var(--foreground)",
-  cursor: "pointer",
-};

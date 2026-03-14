@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getClients, deleteClient } from "@/lib/actions/clients";
 import type { Client } from "@/lib/types";
+import { Th, Td } from "@/components/ui";
 
 export default function ClientsPage() {
   const queryClient = useQueryClient();
@@ -254,44 +255,3 @@ export default function ClientsPage() {
   );
 }
 
-function Th({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <th
-      style={{
-        fontWeight: 500,
-        fontSize: "var(--text-body-sm)",
-        letterSpacing: "0.02em",
-        padding: "12px 8px",
-        ...style,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <td
-      style={{
-        padding: "12px 8px",
-        fontWeight: 300,
-        ...style,
-      }}
-    >
-      {children}
-    </td>
-  );
-}

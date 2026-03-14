@@ -13,36 +13,13 @@ import {
 } from "@/lib/actions/invoices";
 import { InvoiceForm } from "@/components/invoice/InvoiceForm";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
+import { buttonPrimaryStyle, buttonSecondaryStyle } from "@/components/ui";
 
 const statusLabels: Record<string, string> = {
   draft: "Concept",
   sent: "Verzonden",
   paid: "Betaald",
   overdue: "Verlopen",
-};
-
-const buttonPrimaryStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-lg)",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "12px 20px",
-  border: "none",
-  background: "var(--foreground)",
-  color: "var(--background)",
-  cursor: "pointer",
-};
-
-const buttonSecondaryStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-md)",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "10px 16px",
-  border: "1px solid rgba(13, 13, 11, 0.2)",
-  background: "transparent",
-  color: "var(--foreground)",
-  cursor: "pointer",
 };
 
 export default function EditInvoicePage() {

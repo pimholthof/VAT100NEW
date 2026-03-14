@@ -4,6 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createNewClient, updateClient } from "@/lib/actions/clients";
 import type { Client, ClientInput } from "@/lib/types";
+import {
+  FieldGroup,
+  inputStyle,
+  buttonPrimaryStyle,
+  buttonSecondaryStyle,
+} from "@/components/ui";
 
 interface ClientFormProps {
   client?: Client;
@@ -199,65 +205,3 @@ export function ClientForm({ client }: ClientFormProps) {
   );
 }
 
-function FieldGroup({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <label
-        style={{
-          display: "block",
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-sm)",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          marginBottom: 6,
-        }}
-      >
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 2px",
-  border: "none",
-  borderBottom: "var(--border-input)",
-  background: "transparent",
-  color: "var(--foreground)",
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-md)",
-  fontWeight: 300,
-  outline: "none",
-};
-
-const buttonPrimaryStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-lg)",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "12px 20px",
-  border: "none",
-  background: "var(--foreground)",
-  color: "var(--background)",
-  cursor: "pointer",
-};
-
-const buttonSecondaryStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-md)",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "10px 16px",
-  border: "1px solid rgba(13, 13, 11, 0.2)",
-  background: "transparent",
-  color: "var(--foreground)",
-  cursor: "pointer",
-};
