@@ -14,12 +14,20 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
+  // Fetch profile for studio name
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("studio_name")
+    .eq("id", user.id)
+    .single();
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div className="dashboard-shell">
       <DashboardNav
         userName={user.user_metadata?.full_name || user.email || ""}
+        studioName={profile?.studio_name ?? undefined}
       />
-      <main style={{ flex: 1, padding: "24px 32px" }}>{children}</main>
+      <main className="dashboard-content">{children}</main>
     </div>
   );
 }
