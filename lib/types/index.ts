@@ -59,6 +59,15 @@ export interface Invoice {
   created_at: string;
 }
 
+// ─── Composed types for rendering ───
+
+export interface InvoiceData {
+  invoice: Invoice;
+  lines: InvoiceLine[];
+  client: Client;
+  profile: Profile;
+}
+
 export interface InvoiceWithDetails extends Invoice {
   lines: InvoiceLine[];
   client: Client;
