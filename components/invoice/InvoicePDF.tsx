@@ -90,13 +90,6 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-function sentViaLabel(v: string | null): string {
-  if (v === "email") return "E-mail";
-  if (v === "peppol") return "Peppol";
-  if (v === "both") return "E-mail + Peppol";
-  return "—";
-}
-
 function unitLabel(unit: string): string {
   if (unit === "dagen") return "Dagen";
   if (unit === "uren") return "Uren";
@@ -153,14 +146,6 @@ const s = StyleSheet.create({
   metaValue: {
     ...VALUE,
   },
-  metaInvoiceNumber: {
-    fontFamily: "Barlow Condensed",
-    fontWeight: 900,
-    fontSize: 28,
-    color: COLOR,
-    lineHeight: 1,
-  },
-
   // Parties
   partiesRow: {
     flexDirection: "row",

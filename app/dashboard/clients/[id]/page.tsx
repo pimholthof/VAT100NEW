@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getClient,
@@ -17,9 +17,11 @@ import {
   FieldGroup,
   Th,
   Td,
+  ButtonPrimary,
+  ButtonSecondary,
+  ErrorMessage,
+  PageHeader,
   inputStyle,
-  buttonPrimaryStyle,
-  buttonSecondaryStyle,
 } from "@/components/ui";
 
 const statusLabels: Record<string, string> = {
@@ -46,7 +48,6 @@ function formatDate(dateStr: string): string {
 
 export default function ClientDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const id = params.id as string;
 
@@ -131,15 +132,15 @@ export default function ClientDetailPage() {
 
   if (clientLoading) {
     return (
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-lg)",
-          fontWeight: 300,
-        }}
-      >
-        Laden...
-      </p>
+      <div style={{ padding: "64px 0" }}>
+        <div className="skeleton" style={{ width: 200, height: 32, marginBottom: 32 }} />
+        {[...Array(4)].map((_, i) => (
+          <div key={i} style={{ marginBottom: 20 }}>
+            <div className="skeleton" style={{ width: 80, height: 9, marginBottom: 8 }} />
+            <div className="skeleton" style={{ width: "100%", height: 36 }} />
+          </div>
+        ))}
+      </div>
     );
   }
 
@@ -172,68 +173,21 @@ export default function ClientDetailPage() {
 
   return (
     <div>
-      {/* Back link + title */}
-      <div style={{ marginBottom: 32 }}>
-        <Link
-          href="/dashboard/clients"
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-sm)",
-            fontWeight: 500,
-            letterSpacing: "0.02em",
-            color: "var(--foreground)",
-            opacity: 0.6,
-            textDecoration: "none",
-          }}
-        >
-          ← Terug naar klanten
-        </Link>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 16,
-          }}
-        >
-          <h1
-            style={{
-              fontFamily: "var(--font-display), sans-serif",
-              fontSize: "var(--text-display-lg)",
-              fontWeight: 900,
-              letterSpacing: "var(--tracking-display)",
-              lineHeight: 1,
-              margin: 0,
-            }}
-          >
-            {client.name}
-          </h1>
-          {!editing && (
-            <button
-              type="button"
-              onClick={startEditing}
-              style={buttonSecondaryStyle}
-            >
+      <PageHeader
+        title={client.name}
+        backHref="/dashboard/clients"
+        backLabel="Terug naar klanten"
+        action={
+          !editing ? (
+            <ButtonSecondary onClick={startEditing}>
               Bewerken
-            </button>
-          )}
-        </div>
-      </div>
+            </ButtonSecondary>
+          ) : undefined
+        }
+      />
 
       {error && (
-        <div
-          style={{
-            padding: "12px 16px",
-            border: "none",
-            borderLeft: "2px solid var(--foreground)",
-            marginBottom: 24,
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-          }}
-        >
-          {error}
-        </div>
+        <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
       )}
 
       {/* Client details */}
@@ -320,21 +274,12 @@ export default function ClientDetailPage() {
             </FieldGroup>
           </div>
           <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              style={buttonSecondaryStyle}
-            >
+            <ButtonSecondary onClick={() => setEditing(false)}>
               Annuleer
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              style={buttonPrimaryStyle}
-            >
+            </ButtonSecondary>
+            <ButtonPrimary onClick={handleSave} disabled={saving}>
               {saving ? "Opslaan..." : "Opslaan"}
-            </button>
+            </ButtonPrimary>
           </div>
         </div>
       ) : (

@@ -2,6 +2,7 @@
 
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import type { ActionResult, Receipt, ReceiptInput } from "@/lib/types";
+import { receiptSchema, validate } from "@/lib/validation";
 
 export async function getReceipts(): Promise<ActionResult<Receipt[]>> {
   const supabase = await createSupabaseClient();
@@ -53,6 +54,9 @@ export async function createReceipt(
 
   if (!user) return { error: "Niet ingelogd." };
 
+  const v = validate(receiptSchema, input);
+  if (v.error) return { error: v.error };
+
   const amountExVat = input.amount_ex_vat ?? 0;
   const vatRate = input.vat_rate ?? 21;
   const vatAmount = Math.round(amountExVat * (vatRate / 100) * 100) / 100;
@@ -89,6 +93,9 @@ export async function updateReceipt(
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Niet ingelogd." };
+
+  const v = validate(receiptSchema, input);
+  if (v.error) return { error: v.error };
 
   const amountExVat = input.amount_ex_vat ?? 0;
   const vatRate = input.vat_rate ?? 21;

@@ -1,37 +1,15 @@
 import React from "react";
 
-const buttonBaseStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  cursor: "pointer",
-};
-
-export const buttonPrimaryStyle: React.CSSProperties = {
-  ...buttonBaseStyle,
-  fontSize: "var(--text-body-lg)",
-  padding: "12px 20px",
-  border: "none",
-  background: "var(--foreground)",
-  color: "var(--background)",
-};
-
-export const buttonSecondaryStyle: React.CSSProperties = {
-  ...buttonBaseStyle,
-  fontSize: "var(--text-body-md)",
-  padding: "10px 16px",
-  border: "1px solid rgba(13, 13, 11, 0.2)",
-  background: "transparent",
-  color: "var(--foreground)",
-};
-
 export function ButtonPrimary({
   children,
-  style,
+  className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button style={{ ...buttonPrimaryStyle, ...style }} {...props}>
+    <button
+      className={`font-body text-[13px] font-medium tracking-[0.05em] cursor-pointer py-3 px-5 border-0 bg-foreground text-background ${className ?? ""}`}
+      {...props}
+    >
       {children}
     </button>
   );
@@ -39,11 +17,14 @@ export function ButtonPrimary({
 
 export function ButtonSecondary({
   children,
-  style,
+  className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button style={{ ...buttonSecondaryStyle, ...style }} {...props}>
+    <button
+      className={`font-body text-[12px] font-medium tracking-[0.05em] cursor-pointer py-2.5 px-4 border border-foreground/20 bg-transparent text-foreground ${className ?? ""}`}
+      {...props}
+    >
       {children}
     </button>
   );

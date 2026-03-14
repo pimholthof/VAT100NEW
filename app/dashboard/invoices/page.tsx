@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getInvoices, deleteInvoice, updateInvoiceStatus } from "@/lib/actions/invoices";
-import type { Invoice, InvoiceStatus } from "@/lib/types";
+import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient } from "@/lib/actions/invoices";
+import type { InvoiceStatus } from "@/lib/types";
 import { Th, Td } from "@/components/ui";
 
 function formatCurrency(amount: number): string {
@@ -88,15 +88,15 @@ export default function InvoicesPage() {
       </div>
 
       {isLoading ? (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
-            fontWeight: 300,
-          }}
-        >
-          Laden...
-        </p>
+        <div>
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{ width: "100%", height: 40, marginBottom: 1 }}
+            />
+          ))}
+        </div>
       ) : invoices.length === 0 ? (
         <div
           style={{
@@ -154,7 +154,7 @@ export default function InvoicesPage() {
             </tr>
           </thead>
           <tbody>
-            {invoices.map((invoice: Invoice & { client?: { name: string } }) => (
+            {invoices.map((invoice: InvoiceWithClient) => (
               <tr
                 key={invoice.id}
                 style={{ borderBottom: "var(--border)" }}
@@ -170,7 +170,7 @@ export default function InvoicesPage() {
                     {invoice.invoice_number}
                   </Link>
                 </Td>
-                <Td>{(invoice as Invoice & { client?: { name: string } }).client?.name ?? "—"}</Td>
+                <Td>{invoice.client?.name ?? "—"}</Td>
                 <Td>{formatDate(invoice.issue_date)}</Td>
                 <Td>
                   <select

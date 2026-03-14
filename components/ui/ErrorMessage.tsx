@@ -9,15 +9,8 @@ export function ErrorMessage({
 }) {
   return (
     <div
-      style={{
-        padding: "12px 16px",
-        borderLeft: "2px solid var(--foreground)",
-        marginBottom: 16,
-        fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-body-md)",
-        fontWeight: 400,
-        ...style,
-      }}
+      className="py-3 px-4 border-l-2 border-l-foreground mb-4 font-body text-[12px] font-normal"
+      style={style}
     >
       {children}
     </div>

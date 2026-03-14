@@ -10,46 +10,15 @@ export function StatCard({
   sub?: string;
 }) {
   return (
-    <div
-      style={{
-        border: "none",
-        borderTop: "var(--border-rule)",
-        padding: "24px 0",
-      }}
-    >
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "10px",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          margin: "0 0 8px",
-          opacity: 0.6,
-        }}
-      >
+    <div className="border-0 border-t border-t-foreground/15 py-6">
+      <p className="font-body text-[10px] font-medium tracking-[0.02em] m-0 mb-2 opacity-60">
         {label}
       </p>
-      <p
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "2.5rem",
-          fontWeight: 900,
-          lineHeight: 1,
-          margin: 0,
-        }}
-      >
+      <p className="font-display text-[2.5rem] font-black leading-none m-0">
         {value}
       </p>
       {sub && (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-sm)",
-            fontWeight: 400,
-            margin: "8px 0 0",
-            opacity: 0.5,
-          }}
-        >
+        <p className="font-body text-[11px] font-normal mt-2 mb-0 opacity-50">
           {sub}
         </p>
       )}
@@ -59,19 +28,9 @@ export function StatCard({
 
 export function SkeletonCard() {
   return (
-    <div
-      style={{
-        border: "none",
-        borderTop: "var(--border-rule)",
-        padding: "24px 0",
-        opacity: 0.12,
-      }}
-    >
-      <div
-        className="skeleton"
-        style={{ width: "60%", height: 9, marginBottom: 12 }}
-      />
-      <div className="skeleton" style={{ width: "80%", height: 32 }} />
+    <div className="border-0 border-t border-t-foreground/15 py-6 opacity-12">
+      <div className="skeleton w-3/5 h-[9px] mb-3" />
+      <div className="skeleton w-4/5 h-8" />
     </div>
   );
 }

@@ -20,6 +20,24 @@ export interface RecentInvoice {
   client_name: string;
 }
 
+interface RecentInvoiceRow {
+  id: string;
+  invoice_number: string;
+  status: string;
+  issue_date: string;
+  total_inc_vat: number;
+  client: { name: string } | null;
+}
+
+interface UpcomingInvoiceRow {
+  id: string;
+  invoice_number: string;
+  status: string;
+  due_date: string;
+  total_inc_vat: number;
+  client: { name: string; email: string | null } | null;
+}
+
 export async function getDashboardStats(): Promise<ActionResult<DashboardStats>> {
   const supabase = await createClient();
   const {
@@ -135,22 +153,20 @@ export async function getUpcomingDueInvoices(): Promise<ActionResult<UpcomingInv
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const invoices: UpcomingInvoice[] = (data ?? []).map((row: Record<string, unknown>) => {
-    const dueDate = new Date(row.due_date as string);
+  const invoices: UpcomingInvoice[] = (data as unknown as UpcomingInvoiceRow[] ?? []).map((row) => {
+    const dueDate = new Date(row.due_date);
     dueDate.setHours(0, 0, 0, 0);
     const diffMs = today.getTime() - dueDate.getTime();
     const daysOverdue = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    const client = row.client as Record<string, unknown> | null;
-
     return {
-      id: row.id as string,
-      invoice_number: row.invoice_number as string,
-      status: row.status as string,
-      due_date: row.due_date as string,
-      total_inc_vat: row.total_inc_vat as number,
-      client_name: (client?.name as string) ?? "—",
-      client_email: (client?.email as string) ?? null,
+      id: row.id,
+      invoice_number: row.invoice_number,
+      status: row.status,
+      due_date: row.due_date,
+      total_inc_vat: row.total_inc_vat,
+      client_name: row.client?.name ?? "—",
+      client_email: row.client?.email ?? null,
       days_overdue: daysOverdue,
     };
   });
@@ -315,6 +331,15 @@ export async function getVatDeadline(): Promise<ActionResult<VatDeadline>> {
   };
 }
 
+export interface DashboardData {
+  stats: DashboardStats;
+  recentInvoices: RecentInvoice[];
+  upcomingInvoices: UpcomingInvoice[];
+  cashflow: CashflowSummary;
+  vatDeadline: VatDeadline;
+}
+
+/** @deprecated Use getDashboardData instead */
 export async function getRecentInvoices(): Promise<ActionResult<RecentInvoice[]>> {
   const supabase = await createClient();
   const {
@@ -332,14 +357,42 @@ export async function getRecentInvoices(): Promise<ActionResult<RecentInvoice[]>
 
   if (error) return { error: error.message };
 
-  const invoices: RecentInvoice[] = (data ?? []).map((row: Record<string, unknown>) => ({
-    id: row.id as string,
-    invoice_number: row.invoice_number as string,
-    status: row.status as string,
-    issue_date: row.issue_date as string,
-    total_inc_vat: row.total_inc_vat as number,
-    client_name: (row.client as Record<string, unknown>)?.name as string ?? "—",
+  const invoices: RecentInvoice[] = (data as unknown as RecentInvoiceRow[] ?? []).map((row) => ({
+    id: row.id,
+    invoice_number: row.invoice_number,
+    status: row.status,
+    issue_date: row.issue_date,
+    total_inc_vat: row.total_inc_vat,
+    client_name: row.client?.name ?? "—",
   }));
 
   return { error: null, data: invoices };
+}
+
+export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
+  const [statsResult, recentResult, upcomingResult, cashflowResult, vatResult] =
+    await Promise.all([
+      getDashboardStats(),
+      getRecentInvoices(),
+      getUpcomingDueInvoices(),
+      getCashflowSummary(),
+      getVatDeadline(),
+    ]);
+
+  if (statsResult.error) return { error: statsResult.error };
+  if (recentResult.error) return { error: recentResult.error };
+  if (upcomingResult.error) return { error: upcomingResult.error };
+  if (cashflowResult.error) return { error: cashflowResult.error };
+  if (vatResult.error) return { error: vatResult.error };
+
+  return {
+    error: null,
+    data: {
+      stats: statsResult.data!,
+      recentInvoices: recentResult.data!,
+      upcomingInvoices: upcomingResult.data!,
+      cashflow: cashflowResult.data!,
+      vatDeadline: vatResult.data!,
+    },
+  };
 }

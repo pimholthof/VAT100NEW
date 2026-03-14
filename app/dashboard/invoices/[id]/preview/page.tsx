@@ -9,7 +9,48 @@ export default async function InvoicePreviewPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const data = await fetchInvoiceData(id);
+  const result = await fetchInvoiceData(id);
+
+  if (result.error || !result.data) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "var(--background)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "40px 20px",
+        }}
+      >
+        <div
+          style={{
+            padding: "12px 16px",
+            borderLeft: "2px solid var(--foreground)",
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-md)",
+            fontWeight: 400,
+            marginBottom: 24,
+          }}
+        >
+          {result.error ?? "Factuur niet gevonden"}
+        </div>
+        <Link
+          href="/dashboard/invoices"
+          style={{
+            fontSize: "var(--text-body-md)",
+            fontFamily: "var(--font-body), sans-serif",
+            fontWeight: 400,
+            color: "var(--foreground)",
+          }}
+        >
+          ← Terug naar facturen
+        </Link>
+      </div>
+    );
+  }
+
+  const data = result.data;
 
   return (
     <div

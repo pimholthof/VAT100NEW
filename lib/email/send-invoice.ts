@@ -26,7 +26,11 @@ function formatDate(dateStr: string): string {
 export async function sendInvoiceEmail(
   invoiceId: string
 ): Promise<ActionResult> {
-  const data = await fetchInvoiceData(invoiceId);
+  const result = await fetchInvoiceData(invoiceId);
+  if (result.error || !result.data) {
+    return { error: result.error ?? "Kon factuurgegevens niet ophalen." };
+  }
+  const data = result.data;
   const { invoice, client, profile } = data;
 
   if (!client.email) {

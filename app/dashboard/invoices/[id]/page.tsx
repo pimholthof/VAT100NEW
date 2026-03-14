@@ -13,7 +13,11 @@ import {
 } from "@/lib/actions/invoices";
 import { InvoiceForm } from "@/components/invoice/InvoiceForm";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
-import { buttonPrimaryStyle, buttonSecondaryStyle } from "@/components/ui";
+import {
+  ButtonPrimary,
+  ButtonSecondary,
+  ErrorMessage,
+} from "@/components/ui";
 
 const statusLabels: Record<string, string> = {
   draft: "Concept",
@@ -126,29 +130,23 @@ export default function EditInvoicePage() {
 
   if (isLoading) {
     return (
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-lg)",
-          fontWeight: 300,
-        }}
-      >
-        Laden...
-      </p>
+      <div style={{ padding: "64px 0" }}>
+        <div className="skeleton" style={{ width: 200, height: 32, marginBottom: 32 }} />
+        {[...Array(4)].map((_, i) => (
+          <div key={i} style={{ marginBottom: 20 }}>
+            <div className="skeleton" style={{ width: 80, height: 9, marginBottom: 8 }} />
+            <div className="skeleton" style={{ width: "100%", height: 36 }} />
+          </div>
+        ))}
+      </div>
     );
   }
 
   if (result?.error) {
     return (
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-lg)",
-          fontWeight: 400,
-        }}
-      >
+      <ErrorMessage>
         Fout: {result.error}
-      </p>
+      </ErrorMessage>
     );
   }
 
@@ -196,82 +194,58 @@ export default function EditInvoicePage() {
         </span>
         <div style={{ display: "flex", gap: 8 }}>
           {currentStatus === "draft" && (
-            <button
-              type="button"
+            <ButtonPrimary
               onClick={() => handleStatusChange("sent")}
               disabled={statusUpdating}
-              style={buttonPrimaryStyle}
             >
               Markeer als verzonden
-            </button>
+            </ButtonPrimary>
           )}
           {currentStatus === "sent" && (
             <>
-              <button
-                type="button"
+              <ButtonPrimary
                 onClick={() => handleStatusChange("paid")}
                 disabled={statusUpdating}
-                style={buttonPrimaryStyle}
               >
                 Markeer als betaald
-              </button>
-              <button
-                type="button"
+              </ButtonPrimary>
+              <ButtonSecondary
                 onClick={() => handleStatusChange("overdue")}
                 disabled={statusUpdating}
-                style={buttonSecondaryStyle}
               >
                 Markeer als verlopen
-              </button>
+              </ButtonSecondary>
             </>
           )}
           {(currentStatus === "paid" || currentStatus === "overdue") && (
-            <button
-              type="button"
+            <ButtonSecondary
               onClick={() => handleStatusChange("draft")}
               disabled={statusUpdating}
-              style={buttonSecondaryStyle}
             >
               Terug naar concept
-            </button>
+            </ButtonSecondary>
           )}
           {currentStatus === "overdue" && result?.data?.client?.email && (
-            <button
-              type="button"
+            <ButtonSecondary
               onClick={handleSendReminder}
               disabled={reminderSending}
-              style={buttonSecondaryStyle}
             >
               {reminderSending ? "Verzenden..." : "Stuur herinnering"}
-            </button>
+            </ButtonSecondary>
           )}
           {(currentStatus === "sent" || currentStatus === "paid") &&
             result?.data?.client?.email && (
-              <button
-                type="button"
+              <ButtonPrimary
                 onClick={handleSendEmail}
                 disabled={emailSending}
-                style={buttonPrimaryStyle}
               >
                 {emailSending ? "Verzenden..." : "Verstuur per e-mail"}
-              </button>
+              </ButtonPrimary>
             )}
         </div>
       </div>
       {statusMsg && (
-        <div
-          style={{
-            padding: "12px 16px",
-            border: "none",
-            borderLeft: "2px solid var(--foreground)",
-            marginBottom: 24,
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-          }}
-        >
-          {statusMsg}
-        </div>
+        <ErrorMessage style={{ marginBottom: 24 }}>{statusMsg}</ErrorMessage>
       )}
       {/* Share link section */}
       <div
@@ -307,23 +281,17 @@ export default function EditInvoicePage() {
                 ? `${window.location.origin}/invoice/${shareToken}`
                 : `/invoice/${shareToken}`}
             </span>
-            <button
-              type="button"
-              onClick={handleCopyShareLink}
-              style={buttonSecondaryStyle}
-            >
+            <ButtonSecondary onClick={handleCopyShareLink}>
               {copied ? "Gekopieerd" : "Kopieer"}
-            </button>
+            </ButtonSecondary>
           </div>
         ) : (
-          <button
-            type="button"
+          <ButtonSecondary
             onClick={handleGenerateShareLink}
             disabled={shareLoading}
-            style={buttonSecondaryStyle}
           >
             {shareLoading ? "Genereren..." : "Genereer deellink"}
-          </button>
+          </ButtonSecondary>
         )}
       </div>
 

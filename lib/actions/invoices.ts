@@ -11,6 +11,11 @@ import type {
   InvoiceStatus,
   InvoiceWithDetails,
 } from "@/lib/types";
+import { invoiceSchema, validate } from "@/lib/validation";
+
+export type InvoiceWithClient = Invoice & {
+  client: { name: string } | null;
+};
 
 function calculateTotals(
   lines: { quantity: number; rate: number }[],
@@ -56,6 +61,9 @@ export async function createInvoice(
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Niet ingelogd." };
+
+  const v = validate(invoiceSchema, input);
+  if (v.error) return { error: v.error };
 
   const totals = calculateTotals(input.lines, input.vat_rate);
 
@@ -142,6 +150,9 @@ export async function updateInvoice(
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Niet ingelogd." };
+
+  const v = validate(invoiceSchema, input);
+  if (v.error) return { error: v.error };
 
   const totals = calculateTotals(input.lines, input.vat_rate);
 
@@ -244,7 +255,7 @@ export async function deleteInvoice(id: string): Promise<ActionResult> {
   return { error: null };
 }
 
-export async function getInvoices(): Promise<ActionResult<Invoice[]>> {
+export async function getInvoices(): Promise<ActionResult<InvoiceWithClient[]>> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -259,7 +270,7 @@ export async function getInvoices(): Promise<ActionResult<Invoice[]>> {
     .order("created_at", { ascending: false });
 
   if (error) return { error: error.message };
-  return { error: null, data: data ?? [] };
+  return { error: null, data: (data ?? []) as unknown as InvoiceWithClient[] };
 }
 
 export async function getInvoice(
@@ -373,8 +384,11 @@ export async function sendReminder(invoiceId: string): Promise<ActionResult> {
     return { error: "Klant heeft geen e-mailadres." };
   }
 
-  const data = await fetchInvoiceData(invoiceId);
-  return sendReminderEmail(data);
+  const result = await fetchInvoiceData(invoiceId);
+  if (result.error || !result.data) {
+    return { error: result.error ?? "Kon factuurgegevens niet ophalen." };
+  }
+  return sendReminderEmail(result.data);
 }
 
 export async function sendInvoice(id: string): Promise<ActionResult> {

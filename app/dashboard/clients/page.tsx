@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getClients, deleteClient } from "@/lib/actions/clients";
 import type { Client } from "@/lib/types";
-import { Th, Td } from "@/components/ui";
+import { Th, Td, ErrorMessage } from "@/components/ui";
 
 export default function ClientsPage() {
   const queryClient = useQueryClient();
@@ -98,15 +98,15 @@ export default function ClientsPage() {
       </div>
 
       {isLoading ? (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
-            fontWeight: 300,
-          }}
-        >
-          Laden...
-        </p>
+        <div>
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{ width: "100%", height: 40, marginBottom: 1 }}
+            />
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
         <div
           style={{
@@ -237,19 +237,9 @@ export default function ClientsPage() {
       )}
 
       {deleteMutation.data?.error && (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            marginTop: 16,
-            padding: "12px 16px",
-            border: "none",
-            borderLeft: "2px solid var(--foreground)",
-          }}
-        >
+        <ErrorMessage style={{ marginTop: 16 }}>
           {deleteMutation.data.error}
-        </p>
+        </ErrorMessage>
       )}
     </div>
   );

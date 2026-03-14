@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getProfile, updateProfile } from "@/lib/actions/profile";
 import type { Profile } from "@/lib/types";
-import { FieldGroup, inputStyle, buttonPrimaryStyle } from "@/components/ui";
+import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage } from "@/components/ui";
 
 export default function SettingsPage() {
   const { data: result, isLoading } = useQuery({
@@ -15,32 +15,11 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div>
-        <div
-          style={{
-            height: 40,
-            width: 200,
-            background: "rgba(13, 13, 11, 0.06)",
-            marginBottom: 48,
-          }}
-        />
+        <div className="skeleton" style={{ height: 40, width: 200, marginBottom: 48 }} />
         {[...Array(4)].map((_, i) => (
           <div key={i} style={{ marginBottom: 16 }}>
-            <div
-              style={{
-                height: 10,
-                width: 80,
-                background: "rgba(13, 13, 11, 0.06)",
-                marginBottom: 8,
-              }}
-            />
-            <div
-              style={{
-                height: 36,
-                width: "100%",
-                maxWidth: 600,
-                background: "rgba(13, 13, 11, 0.04)",
-              }}
-            />
+            <div className="skeleton" style={{ height: 10, width: 80, marginBottom: 8 }} />
+            <div className="skeleton" style={{ height: 36, width: "100%", maxWidth: 600 }} />
           </div>
         ))}
       </div>
@@ -62,18 +41,7 @@ export default function SettingsPage() {
         >
           Instellingen
         </h1>
-        <div
-          style={{
-            padding: "12px 16px",
-            border: "none",
-            borderLeft: "2px solid var(--foreground)",
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-          }}
-        >
-          {result.error}
-        </div>
+        <ErrorMessage>{result.error}</ErrorMessage>
       </div>
     );
   }
@@ -139,35 +107,15 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
       </h1>
 
       {mutation.data?.error && (
-        <div
-          style={{
-            padding: "12px 16px",
-            border: "none",
-            borderLeft: "2px solid var(--foreground)",
-            marginBottom: 24,
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-          }}
-        >
+        <ErrorMessage style={{ marginBottom: 24 }}>
           {mutation.data.error}
-        </div>
+        </ErrorMessage>
       )}
 
       {success && (
-        <div
-          style={{
-            padding: "12px 16px",
-            border: "none",
-            borderLeft: "2px solid var(--foreground)",
-            marginBottom: 24,
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-          }}
-        >
+        <ErrorMessage style={{ marginBottom: 24 }}>
           Instellingen opgeslagen.
-        </div>
+        </ErrorMessage>
       )}
 
       <div style={{ maxWidth: 600 }}>
@@ -303,14 +251,12 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             borderTop: "var(--border-rule)",
           }}
         >
-          <button
-            type="button"
+          <ButtonPrimary
             onClick={handleSave}
             disabled={mutation.isPending}
-            style={buttonPrimaryStyle}
           >
             {mutation.isPending ? "Opslaan..." : "Opslaan"}
-          </button>
+          </ButtonPrimary>
         </div>
       </div>
     </div>

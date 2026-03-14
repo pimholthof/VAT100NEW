@@ -2,6 +2,7 @@
 
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import type { ActionResult, Client, ClientInput } from "@/lib/types";
+import { clientSchema, validate } from "@/lib/validation";
 
 export async function getClients(): Promise<ActionResult<Client[]>> {
   const supabase = await createSupabaseClient();
@@ -53,7 +54,8 @@ export async function createNewClient(
 
   if (!user) return { error: "Niet ingelogd." };
 
-  if (!input.name.trim()) return { error: "Bedrijfsnaam is verplicht." };
+  const v = validate(clientSchema, input);
+  if (v.error) return { error: v.error };
 
   const { data, error } = await supabase
     .from("clients")
@@ -86,7 +88,8 @@ export async function updateClient(
 
   if (!user) return { error: "Niet ingelogd." };
 
-  if (!input.name.trim()) return { error: "Bedrijfsnaam is verplicht." };
+  const v = validate(clientSchema, input);
+  if (v.error) return { error: v.error };
 
   const { data, error } = await supabase
     .from("clients")
