@@ -4,11 +4,18 @@
 VAT100 is a bookkeeping/invoicing app for Dutch creative freelancers. Next.js 15, React 19, Tailwind CSS 4, Supabase, Zustand, TanStack Query.
 
 ## Design system
-- **Aesthetic:** Bauhaus 2.0 / Teenage Engineering — strict monochrome, zero border-radius, 1–2px borders, 8px grid
-- **Fonts:** Barlow (body: 300/400/500) + Barlow Condensed (display: 900)
+- **Aesthetic:** Editorial brutalism — gedrukt materiaal gevoel, typografisch gedreven, extreme whitespace
+- **Fonts:** Barlow (body: 300/400/500) + Barlow Condensed (display: 900) + JetBrains Mono (data/numbers: 300/400)
+- **Font usage:**
+  - --font-display: titels, logo, grote cijfers in stat cards
+  - --font-body: lopende tekst, namen, adressen, navigatie
+  - --font-mono: bedragen, datums, factuurnummers, KVK/BTW/IBAN, tabeldata
+- **Labels:** 9px, uppercase, letter-spacing 0.08em, font-weight 500 — voor alle micro-labels (tabelkoppen, form labels, stat card labels, nav items)
 - **Colors:** `--foreground: #0D0D0B`, `--background: #FAFAF8` — no greys, only opacity
 - **Border-radius:** 0px everywhere (enforced globally in CSS)
-- **All tokens** are in `styles/globals.css` as CSS custom properties
+- **Borders:** altijd 0.5px, altijd rgba — nooit solid kleuren
+- **Buttons:** twee stijlen — "primary" (solid bg) en "ghost" (transparent + border) — beide uppercase label stijl
+- **All tokens** in `styles/globals.css` as CSS custom properties
 
 ## Critical rules
 - `npm run build` must pass after every change

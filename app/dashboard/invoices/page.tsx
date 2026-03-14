@@ -53,7 +53,7 @@ export default function InvoicesPage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 48,
+          marginBottom: 64,
         }}
       >
         <h1
@@ -62,7 +62,7 @@ export default function InvoicesPage() {
             fontSize: "var(--text-display-lg)",
             fontWeight: 900,
             letterSpacing: "var(--tracking-display)",
-            lineHeight: 1,
+            lineHeight: 0.9,
             margin: 0,
           }}
         >
@@ -72,15 +72,17 @@ export default function InvoicesPage() {
           href="/dashboard/invoices/new"
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
+            fontSize: "var(--text-label)",
             fontWeight: 500,
-            letterSpacing: "0.05em",
-            padding: "12px 20px",
-            border: "none",
-            background: "var(--foreground)",
-            color: "var(--background)",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            padding: "12px 24px",
+            border: "0.5px solid var(--foreground)",
+            background: "transparent",
+            color: "var(--foreground)",
             textDecoration: "none",
             display: "inline-block",
+            transition: "all 0.2s ease",
           }}
         >
           + Nieuwe factuur
@@ -98,20 +100,13 @@ export default function InvoicesPage() {
           ))}
         </div>
       ) : invoices.length === 0 ? (
-        <div
-          style={{
-            border: "none",
-            borderTop: "var(--border-rule)",
-            borderBottom: "var(--border-rule)",
-            padding: 48,
-            textAlign: "center",
-          }}
-        >
+        <div style={{ paddingTop: 48 }}>
           <p
             style={{
               fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-lg)",
+              fontSize: "13px",
               fontWeight: 300,
+              opacity: 0.3,
               margin: "0 0 16px",
             }}
           >
@@ -122,8 +117,10 @@ export default function InvoicesPage() {
             style={{
               fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-body-md)",
-              fontWeight: 500,
+              fontWeight: 400,
               color: "var(--foreground)",
+              textDecoration: "none",
+              opacity: 0.6,
             }}
           >
             Maak je eerste factuur
@@ -134,17 +131,10 @@ export default function InvoicesPage() {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
           }}
         >
           <thead>
-            <tr
-              style={{
-                borderBottom: "1px solid var(--foreground)",
-                textAlign: "left",
-              }}
-            >
+            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Nummer</Th>
               <Th>Klant</Th>
               <Th>Datum</Th>
@@ -155,23 +145,27 @@ export default function InvoicesPage() {
           </thead>
           <tbody>
             {invoices.map((invoice: InvoiceWithClient) => (
-              <tr
-                key={invoice.id}
-                style={{ borderBottom: "var(--border)" }}
-              >
+              <tr key={invoice.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
                 <Td>
                   <Link
                     href={`/dashboard/invoices/${invoice.id}`}
                     style={{
+                      fontFamily: "var(--font-mono), monospace",
+                      fontSize: "var(--text-mono-md)",
                       color: "var(--foreground)",
-                      fontWeight: 500,
+                      fontWeight: 400,
+                      textDecoration: "none",
                     }}
                   >
                     {invoice.invoice_number}
                   </Link>
                 </Td>
                 <Td>{invoice.client?.name ?? "—"}</Td>
-                <Td>{formatDate(invoice.issue_date)}</Td>
+                <Td>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                    {formatDate(invoice.issue_date)}
+                  </span>
+                </Td>
                 <Td>
                   <select
                     value={invoice.status}
@@ -185,7 +179,7 @@ export default function InvoicesPage() {
                       width: 130,
                       padding: "6px 0",
                       border: "none",
-                      borderBottom: "var(--border-input)",
+                      borderBottom: "0.5px solid rgba(13,13,11,0.12)",
                       background: "transparent",
                       color: "var(--foreground)",
                       fontFamily: "var(--font-body), sans-serif",
@@ -205,18 +199,22 @@ export default function InvoicesPage() {
                     <option value="overdue">Verlopen</option>
                   </select>
                 </Td>
-                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(invoice.total_inc_vat)}
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(invoice.total_inc_vat)}
+                  </span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <Link
                       href={`/dashboard/invoices/${invoice.id}/preview`}
                       style={{
-                        fontSize: "var(--text-body-xs)",
+                        fontSize: "var(--text-label)",
                         fontWeight: 500,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
                         color: "var(--foreground)",
-                        letterSpacing: "0.02em",
+                        textDecoration: "none",
                       }}
                     >
                       Bekijk
@@ -229,14 +227,15 @@ export default function InvoicesPage() {
                           }
                         }}
                         style={{
-                          fontSize: "var(--text-body-xs)",
+                          fontSize: "var(--text-label)",
                           fontWeight: 500,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
                           color: "var(--foreground)",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          letterSpacing: "0.02em",
-                          opacity: 0.6,
+                          opacity: 0.4,
                         }}
                       >
                         Verwijder
@@ -252,4 +251,3 @@ export default function InvoicesPage() {
     </div>
   );
 }
-

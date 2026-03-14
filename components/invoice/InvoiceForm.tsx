@@ -85,7 +85,6 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     if (invoiceId) {
       await updateInvoice(invoiceId, s.toInput("draft"));
     } else {
-      // For new invoices, don't auto-create — only auto-save existing ones
       return;
     }
     useInvoiceStore.getState().markSaved();
@@ -161,7 +160,6 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       setNewClientCity("");
       setNewClientPostalCode("");
       setShowNewClient(false);
-      // Refresh clients list
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     }
   };
@@ -200,21 +198,21 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       {showNewClient && (
         <div
           style={{
-            border: "none",
-            borderTop: "var(--border-rule)",
-            borderBottom: "var(--border-rule)",
-            padding: 20,
+            borderTop: "0.5px solid rgba(13,13,11,0.08)",
+            borderBottom: "0.5px solid rgba(13,13,11,0.08)",
+            padding: "20px 0",
             marginBottom: 24,
-            background: "var(--background)",
           }}
         >
           <p
             style={{
               fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-sm)",
+              fontSize: "var(--text-label)",
               fontWeight: 500,
-              letterSpacing: "0.02em",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
               margin: "0 0 16px",
+              opacity: 0.4,
             }}
           >
             Nieuwe klant aanmaken
@@ -281,7 +279,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             <ButtonSecondary
               type="button"
               onClick={() => setShowNewClient(false)}
-              className="opacity-60"
+              style={{ opacity: 0.4 }}
             >
               Annuleer
             </ButtonSecondary>
@@ -296,7 +294,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             type="text"
             value={invoiceNumber}
             onChange={(e) => setInvoiceNumber(e.target.value)}
-            style={inputStyle}
+            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
           />
         </FieldGroup>
         <FieldGroup label="Factuurdatum">
@@ -304,7 +302,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             type="date"
             value={issueDate}
             onChange={(e) => setIssueDate(e.target.value)}
-            style={inputStyle}
+            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
           />
         </FieldGroup>
         <FieldGroup label="Vervaldatum">
@@ -312,7 +310,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            style={inputStyle}
+            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
           />
         </FieldGroup>
       </div>
@@ -348,7 +346,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         <ButtonSecondary
           type="button"
           onClick={addLine}
-          className="mt-2"
+          style={{ marginTop: 8 }}
         >
           + Regel toevoegen
         </ButtonSecondary>
@@ -375,13 +373,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           </select>
         </FieldGroup>
 
-        <div
-          style={{
-            textAlign: "right",
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-          }}
-        >
+        <div style={{ textAlign: "right" }}>
           <TotalRow label="Subtotaal" value={totals.subtotal} />
           <TotalRow
             label={`BTW (${vatRate}%)`}
@@ -406,7 +398,12 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           placeholder="Bijv. betalingsvoorwaarden, referentie..."
-          style={{ ...inputStyle, resize: "vertical" }}
+          style={{
+            ...inputStyle,
+            border: "0.5px solid rgba(13,13,11,0.12)",
+            padding: 12,
+            resize: "vertical",
+          }}
         />
       </FieldGroup>
 
@@ -417,7 +414,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           gap: 12,
           marginTop: 32,
           paddingTop: 24,
-          borderTop: "var(--border-rule)",
+          borderTop: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
         <ButtonSecondary onClick={() => handleSave(false)} disabled={saving}>
@@ -431,10 +428,10 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       {lastSavedAt && (
         <p
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-xs)",
+            fontFamily: "var(--font-mono), monospace",
+            fontSize: "var(--text-mono-sm)",
             fontWeight: 300,
-            opacity: 0.5,
+            opacity: 0.35,
             marginTop: 12,
           }}
         >
@@ -452,9 +449,11 @@ function LabelCell({ children }: { children?: React.ReactNode }) {
     <span
       style={{
         fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-body-sm)",
+        fontSize: "var(--text-label)",
         fontWeight: 500,
-        letterSpacing: "0.02em",
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        opacity: 0.4,
       }}
     >
       {children}
@@ -478,11 +477,26 @@ function TotalRow({
         justifyContent: "space-between",
         gap: 32,
         padding: "4px 0",
-        fontWeight: bold ? 500 : 300,
       }}
     >
-      <span>{label}</span>
-      <span style={{ fontVariantNumeric: "tabular-nums" }}>
+      <span
+        style={{
+          fontFamily: "var(--font-body), sans-serif",
+          fontSize: "11px",
+          fontWeight: 300,
+          opacity: bold ? 1 : 0.4,
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          fontFamily: "var(--font-mono), monospace",
+          fontSize: bold ? "14px" : "12px",
+          fontWeight: bold ? 500 : 400,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
         {new Intl.NumberFormat("nl-NL", {
           style: "currency",
           currency: "EUR",
@@ -497,8 +511,10 @@ function TotalRow({
 const quickLabelStyle: React.CSSProperties = {
   display: "block",
   fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-sm)",
+  fontSize: "var(--text-label)",
   fontWeight: 500,
-  letterSpacing: "0.02em",
-  marginBottom: 4,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  marginBottom: 8,
+  opacity: 0.4,
 };

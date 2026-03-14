@@ -37,7 +37,15 @@ export function DashboardNav({
         {/* Logo */}
         <Link
           href="/dashboard"
-          className="font-display text-[18px] font-black tracking-[0.02em] no-underline text-foreground leading-none"
+          style={{
+            fontFamily: "var(--font-display), sans-serif",
+            fontSize: "14px",
+            fontWeight: 900,
+            letterSpacing: "0.15em",
+            textDecoration: "none",
+            color: "var(--foreground)",
+            lineHeight: 1,
+          }}
         >
           VAT100
         </Link>
@@ -53,9 +61,17 @@ export function DashboardNav({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`font-body text-[12px] font-normal tracking-[0.02em] no-underline text-foreground transition-opacity duration-150 ${
-                  isActive ? "opacity-100" : "opacity-40"
-                }`}
+                style={{
+                  fontFamily: "var(--font-body), sans-serif",
+                  fontSize: "var(--text-label)",
+                  fontWeight: 500,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  textDecoration: "none",
+                  color: "var(--foreground)",
+                  opacity: isActive ? 1 : 0.25,
+                  transition: "opacity 0.15s ease",
+                }}
               >
                 {item.label}
               </Link>
@@ -66,14 +82,35 @@ export function DashboardNav({
         {/* Right section: user + logout */}
         <div className="dashboard-nav-right">
           {studioName && (
-            <span className="font-body text-[9px] font-normal tracking-[0.05em] opacity-40">
+            <span
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-label)",
+                fontWeight: 500,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                opacity: 0.2,
+              }}
+            >
               {studioName}
             </span>
           )}
           <button
             type="button"
             onClick={handleLogout}
-            className="font-body text-[9px] font-normal tracking-[0.02em] bg-transparent border-0 text-foreground opacity-40 cursor-pointer p-0"
+            style={{
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-label)",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              background: "transparent",
+              border: "none",
+              color: "var(--foreground)",
+              opacity: 0.2,
+              cursor: "pointer",
+              padding: 0,
+            }}
           >
             Uitloggen
           </button>
@@ -102,9 +139,18 @@ export function DashboardNav({
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`block font-body text-[12px] font-normal tracking-[0.02em] no-underline text-foreground py-2.5 ${
-                  isActive ? "opacity-100" : "opacity-40"
-                }`}
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-body), sans-serif",
+                  fontSize: "var(--text-label)",
+                  fontWeight: 500,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  textDecoration: "none",
+                  color: "var(--foreground)",
+                  padding: "10px 0",
+                  opacity: isActive ? 1 : 0.25,
+                }}
               >
                 {item.label}
               </Link>
@@ -113,7 +159,20 @@ export function DashboardNav({
           <button
             type="button"
             onClick={handleLogout}
-            className="font-body text-[9px] font-normal tracking-[0.02em] bg-transparent border-0 text-foreground opacity-40 cursor-pointer py-2.5 px-0 mt-2"
+            style={{
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-label)",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              background: "transparent",
+              border: "none",
+              color: "var(--foreground)",
+              opacity: 0.2,
+              cursor: "pointer",
+              padding: "10px 0",
+              marginTop: 8,
+            }}
           >
             Uitloggen
           </button>

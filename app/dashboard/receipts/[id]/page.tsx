@@ -67,7 +67,7 @@ export default function ReceiptDetailPage() {
         <p
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
+            fontSize: "13px",
             fontWeight: 300,
           }}
         >
@@ -78,8 +78,9 @@ export default function ReceiptDetailPage() {
           style={{
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
-            fontWeight: 500,
+            fontWeight: 400,
             color: "var(--foreground)",
+            textDecoration: "none",
           }}
         >
           Terug naar bonnen
@@ -110,15 +111,15 @@ export default function ReceiptDetailPage() {
       {receipt.ai_processed && (
         <p
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-xs)",
+            fontFamily: "var(--font-mono), monospace",
+            fontSize: "var(--text-mono-sm)",
             fontWeight: 400,
-            opacity: 0.5,
-            marginTop: -24,
+            opacity: 0.4,
+            marginTop: -48,
             marginBottom: 32,
           }}
         >
-          AI verwerkt ✓
+          AI verwerkt
         </p>
       )}
 
@@ -141,7 +142,7 @@ export default function ReceiptDetailPage() {
                 style={{
                   maxWidth: 300,
                   objectFit: "contain" as const,
-                  border: "var(--border-rule)",
+                  border: "0.5px solid rgba(13,13,11,0.15)",
                 }}
               />
             </div>
@@ -152,7 +153,6 @@ export default function ReceiptDetailPage() {
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: 0,
-              border: "none",
               marginBottom: 32,
             }}
           >
@@ -207,4 +207,3 @@ export default function ReceiptDetailPage() {
     </div>
   );
 }
-

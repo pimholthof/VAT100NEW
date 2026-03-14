@@ -150,7 +150,7 @@ export default function ClientDetailPage() {
         <p
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
+            fontSize: "13px",
             fontWeight: 300,
           }}
         >
@@ -161,8 +161,9 @@ export default function ClientDetailPage() {
           style={{
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
-            fontWeight: 500,
+            fontWeight: 400,
             color: "var(--foreground)",
+            textDecoration: "none",
           }}
         >
           Terug naar klanten
@@ -194,10 +195,9 @@ export default function ClientDetailPage() {
       {editing ? (
         <div
           style={{
-            border: "none",
-            borderTop: "var(--border-rule)",
-            borderBottom: "var(--border-rule)",
-            padding: 24,
+            borderTop: "0.5px solid rgba(13,13,11,0.08)",
+            borderBottom: "0.5px solid rgba(13,13,11,0.08)",
+            padding: "24px 0",
             marginBottom: 32,
           }}
         >
@@ -261,7 +261,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={kvkNumber}
                 onChange={(e) => setKvkNumber(e.target.value)}
-                style={inputStyle}
+                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
               />
             </FieldGroup>
             <FieldGroup label="BTW-nummer">
@@ -269,12 +269,12 @@ export default function ClientDetailPage() {
                 type="text"
                 value={btwNumber}
                 onChange={(e) => setBtwNumber(e.target.value)}
-                style={inputStyle}
+                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
               />
             </FieldGroup>
           </div>
           <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-            <ButtonSecondary onClick={() => setEditing(false)}>
+            <ButtonSecondary onClick={() => setEditing(false)} style={{ opacity: 0.4 }}>
               Annuleer
             </ButtonSecondary>
             <ButtonPrimary onClick={handleSave} disabled={saving}>
@@ -288,7 +288,6 @@ export default function ClientDetailPage() {
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: 0,
-            border: "none",
             marginBottom: 32,
           }}
         >
@@ -311,25 +310,31 @@ export default function ClientDetailPage() {
       {stats && (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 16,
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
             marginBottom: 48,
           }}
-          className="stat-cards-grid"
         >
-          <StatCard
-            label="Totaal gefactureerd"
-            value={formatCurrency(stats.totalInvoiced)}
-          />
-          <StatCard
-            label="Betaald"
-            value={formatCurrency(stats.totalPaid)}
-          />
-          <StatCard
-            label="Openstaand"
-            value={formatCurrency(stats.totalOutstanding)}
-          />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 16,
+            }}
+            className="stat-cards-grid"
+          >
+            <StatCard
+              label="Totaal gefactureerd"
+              value={formatCurrency(stats.totalInvoiced)}
+            />
+            <StatCard
+              label="Betaald"
+              value={formatCurrency(stats.totalPaid)}
+            />
+            <StatCard
+              label="Openstaand"
+              value={formatCurrency(stats.totalOutstanding)}
+            />
+          </div>
         </div>
       )}
 
@@ -337,9 +342,10 @@ export default function ClientDetailPage() {
       <h2
         style={{
           fontFamily: "var(--font-display), sans-serif",
-          fontSize: "1.25rem",
+          fontSize: "var(--text-display-sm)",
           fontWeight: 900,
-          letterSpacing: "var(--tracking-display)",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
           lineHeight: 1,
           margin: "0 0 16px",
         }}
@@ -351,9 +357,10 @@ export default function ClientDetailPage() {
         <p
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
+            fontSize: "13px",
             fontWeight: 300,
-            opacity: 0.5,
+            opacity: 0.3,
+            paddingTop: 48,
           }}
         >
           Nog geen facturen voor deze klant.
@@ -363,17 +370,10 @@ export default function ClientDetailPage() {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
           }}
         >
           <thead>
-            <tr
-              style={{
-                borderBottom: "1px solid var(--foreground)",
-                textAlign: "left",
-              }}
-            >
+            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Nummer</Th>
               <Th>Datum</Th>
               <Th>Status</Th>
@@ -383,50 +383,53 @@ export default function ClientDetailPage() {
           </thead>
           <tbody>
             {invoices.map((inv) => (
-              <tr key={inv.id} style={{ borderBottom: "var(--border)" }}>
+              <tr key={inv.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
                 <Td>
                   <Link
                     href={`/dashboard/invoices/${inv.id}`}
                     style={{
+                      fontFamily: "var(--font-mono), monospace",
+                      fontSize: "var(--text-mono-md)",
                       color: "var(--foreground)",
-                      fontWeight: 500,
+                      fontWeight: 400,
+                      textDecoration: "none",
                     }}
                   >
                     {inv.invoice_number}
                   </Link>
                 </Td>
-                <Td>{formatDate(inv.issue_date)}</Td>
+                <Td>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                    {formatDate(inv.issue_date)}
+                  </span>
+                </Td>
                 <Td>
                   <span
                     style={{
-                      fontSize: "10px",
+                      fontSize: "var(--text-label)",
                       fontWeight: 500,
-                      letterSpacing: "0.02em",
-                      padding: "4px 0",
-                      border: "none",
-                      borderBottom: "var(--border-rule)",
-                      display: "inline-block",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
                     }}
                   >
                     {statusLabels[inv.status] ?? inv.status}
                   </span>
                 </Td>
-                <Td
-                  style={{
-                    textAlign: "right",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {formatCurrency(inv.total_inc_vat)}
+                <Td style={{ textAlign: "right" }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(inv.total_inc_vat)}
+                  </span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
                   <Link
                     href={`/dashboard/invoices/${inv.id}/preview`}
                     style={{
-                      fontSize: "var(--text-body-xs)",
+                      fontSize: "var(--text-label)",
                       fontWeight: 500,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
                       color: "var(--foreground)",
-                      letterSpacing: "0.05em",
+                      textDecoration: "none",
                     }}
                   >
                     Bekijk
@@ -440,4 +443,3 @@ export default function ClientDetailPage() {
     </div>
   );
 }
-

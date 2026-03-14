@@ -46,7 +46,7 @@ export default function ReceiptsPage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 48,
+          marginBottom: 64,
         }}
       >
         <h1
@@ -55,7 +55,7 @@ export default function ReceiptsPage() {
             fontSize: "var(--text-display-lg)",
             fontWeight: 900,
             letterSpacing: "var(--tracking-display)",
-            lineHeight: 1,
+            lineHeight: 0.9,
             margin: 0,
           }}
         >
@@ -65,15 +65,17 @@ export default function ReceiptsPage() {
           href="/dashboard/receipts/new"
           style={{
             fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
+            fontSize: "var(--text-label)",
             fontWeight: 500,
-            letterSpacing: "0.05em",
-            padding: "12px 20px",
-            border: "none",
-            background: "var(--foreground)",
-            color: "var(--background)",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            padding: "12px 24px",
+            border: "0.5px solid var(--foreground)",
+            background: "transparent",
+            color: "var(--foreground)",
             textDecoration: "none",
             display: "inline-block",
+            transition: "all 0.2s ease",
           }}
         >
           + Nieuwe bon
@@ -87,20 +89,13 @@ export default function ReceiptsPage() {
           bodyWidths={[10, 50, 70, 60, 50, 40, 40, 30]}
         />
       ) : receipts.length === 0 ? (
-        <div
-          style={{
-            border: "none",
-            borderTop: "var(--border-rule)",
-            borderBottom: "var(--border-rule)",
-            padding: 48,
-            textAlign: "center",
-          }}
-        >
+        <div style={{ paddingTop: 48 }}>
           <p
             style={{
               fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-lg)",
+              fontSize: "13px",
               fontWeight: 300,
+              opacity: 0.3,
               margin: "0 0 16px",
             }}
           >
@@ -111,8 +106,10 @@ export default function ReceiptsPage() {
             style={{
               fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-body-md)",
-              fontWeight: 500,
+              fontWeight: 400,
               color: "var(--foreground)",
+              textDecoration: "none",
+              opacity: 0.6,
             }}
           >
             Voeg je eerste bon toe
@@ -123,17 +120,10 @@ export default function ReceiptsPage() {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
           }}
         >
           <thead>
-            <tr
-              style={{
-                borderBottom: "1px solid var(--foreground)",
-                textAlign: "left",
-              }}
-            >
+            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th style={{ width: 24 }}></Th>
               <Th>Datum</Th>
               <Th>Leverancier</Th>
@@ -151,69 +141,65 @@ export default function ReceiptsPage() {
                 : null;
 
               return (
-                <tr
-                  key={receipt.id}
-                  style={{ borderBottom: "var(--border)" }}
-                >
+                <tr key={receipt.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
                   <Td style={{ width: 24, textAlign: "center", opacity: 0.4 }}>
                     {receipt.storage_path ? "📷" : ""}
                   </Td>
                   <Td>
-                    {receipt.receipt_date
-                      ? formatDate(receipt.receipt_date)
-                      : "—"}
+                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                      {receipt.receipt_date ? formatDate(receipt.receipt_date) : "—"}
+                    </span>
                   </Td>
                   <Td>{receipt.vendor_name ?? "—"}</Td>
                   <Td>
                     {kostensoort ? kostensoort.label : receipt.category ?? "—"}
                   </Td>
-                  <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                    {receipt.amount_ex_vat != null
-                      ? formatCurrency(receipt.amount_ex_vat)
-                      : "—"}
+                  <Td style={{ textAlign: "right" }}>
+                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                      {receipt.amount_ex_vat != null ? formatCurrency(receipt.amount_ex_vat) : "—"}
+                    </span>
                   </Td>
-                  <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                    {receipt.vat_amount != null
-                      ? formatCurrency(receipt.vat_amount)
-                      : "—"}
+                  <Td style={{ textAlign: "right" }}>
+                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                      {receipt.vat_amount != null ? formatCurrency(receipt.vat_amount) : "—"}
+                    </span>
                   </Td>
-                  <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                    {receipt.amount_inc_vat != null
-                      ? formatCurrency(receipt.amount_inc_vat)
-                      : "—"}
+                  <Td style={{ textAlign: "right" }}>
+                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                      {receipt.amount_inc_vat != null ? formatCurrency(receipt.amount_inc_vat) : "—"}
+                    </span>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
                     <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                       <Link
                         href={`/dashboard/receipts/${receipt.id}`}
                         style={{
-                          fontSize: "var(--text-body-xs)",
+                          fontSize: "var(--text-label)",
                           fontWeight: 500,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
                           color: "var(--foreground)",
-                          letterSpacing: "0.02em",
+                          textDecoration: "none",
                         }}
                       >
                         Bekijk
                       </Link>
                       <button
                         onClick={() => {
-                          if (
-                            confirm(
-                              "Weet je zeker dat je deze bon wilt verwijderen?"
-                            )
-                          ) {
+                          if (confirm("Weet je zeker dat je deze bon wilt verwijderen?")) {
                             deleteMutation.mutate(receipt.id);
                           }
                         }}
                         style={{
-                          fontSize: "var(--text-body-xs)",
+                          fontSize: "var(--text-label)",
                           fontWeight: 500,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
                           color: "var(--foreground)",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          letterSpacing: "0.02em",
-                          opacity: 0.6,
+                          opacity: 0.4,
                         }}
                       >
                         Verwijder
@@ -229,4 +215,3 @@ export default function ReceiptsPage() {
     </div>
   );
 }
-

@@ -9,8 +9,17 @@ export function Th({
 }) {
   return (
     <th
-      className="font-medium text-[11px] tracking-[0.02em] py-3 px-2"
-      style={style}
+      style={{
+        fontFamily: "var(--font-body), sans-serif",
+        fontSize: "var(--text-label)",
+        fontWeight: 500,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        opacity: 0.3,
+        padding: "14px 0",
+        textAlign: "left",
+        ...style,
+      }}
     >
       {children}
     </th>
@@ -26,8 +35,11 @@ export function Td({
 }) {
   return (
     <td
-      className="py-3 px-2 font-light"
-      style={style}
+      style={{
+        padding: "14px 0",
+        fontWeight: 300,
+        ...style,
+      }}
     >
       {children}
     </td>

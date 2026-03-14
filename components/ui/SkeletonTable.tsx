@@ -18,8 +18,8 @@ export function SkeletonTable({
           display: "grid",
           gridTemplateColumns: columns,
           gap: 12,
-          padding: "10px 12px",
-          borderBottom: "1px solid var(--foreground)",
+          padding: "14px 0",
+          borderBottom: "0.5px solid rgba(13, 13, 11, 0.15)",
         }}
       >
         {headerWidths.map((w, i) => (
@@ -37,8 +37,8 @@ export function SkeletonTable({
             display: "grid",
             gridTemplateColumns: columns,
             gap: 12,
-            padding: "12px 12px",
-            borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
+            padding: "14px 0",
+            borderBottom: "0.5px solid rgba(13, 13, 11, 0.06)",
           }}
         >
           {bodyWidths.map((w, i) => (

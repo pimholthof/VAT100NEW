@@ -151,7 +151,7 @@ export function ClientForm({ client }: ClientFormProps) {
             value={kvkNumber}
             onChange={(e) => setKvkNumber(e.target.value)}
             placeholder="12345678"
-            style={inputStyle}
+            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
           />
         </FieldGroup>
         <FieldGroup label="BTW-nummer">
@@ -160,7 +160,7 @@ export function ClientForm({ client }: ClientFormProps) {
             value={btwNumber}
             onChange={(e) => setBtwNumber(e.target.value)}
             placeholder="NL123456789B01"
-            style={inputStyle}
+            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
           />
         </FieldGroup>
       </div>
@@ -171,7 +171,7 @@ export function ClientForm({ client }: ClientFormProps) {
           gap: 12,
           marginTop: 32,
           paddingTop: 24,
-          borderTop: "var(--border-rule)",
+          borderTop: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
         <ButtonSecondary onClick={() => router.back()}>
@@ -184,4 +184,3 @@ export function ClientForm({ client }: ClientFormProps) {
     </div>
   );
 }
-
