@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ─── */
+:root {
+  /* Baseline unit */
+  --u: 8px;
+
+  /* Grid */
+  --col: 12;
+
+  /* Colors — pure black & white, no greys */
+  --color-black: #0D0D0B;
+  --color-white: #FAFAF8;
+
+  /* Foreground / Background (light mode defaults) */
+  --foreground: var(--color-black);
+  --background: var(--color-white);
+
+  /* Borders */
+  --border-light: 0.5px solid rgba(13, 13, 11, 0.12);
+  --border-dark: 0.5px solid rgba(255, 255, 255, 0.10);
+  --border: var(--border-light);
+
+  /* Display font sizes */
+  --text-display-xl: 9rem;
+  --text-display-lg: 4rem;
+  --text-display-md: 2rem;
+
+  /* Body font sizes */
+  --text-body-lg: 13px;
+  --text-body-md: 12px;
+  --text-body-sm: 11px;
+  --text-body-xs: 9px;
+
+  /* Letter spacing */
+  --tracking-display: 0.02em;
+  --tracking-caps: 0.25em;
+
+  /* Border radius — zero everywhere */
+  --radius: 0px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: var(--color-white);
+    --background: var(--color-black);
+    --border: var(--border-dark);
+  }
+}
+
+/* ─── Tailwind theme integration ─── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-black: var(--color-black);
+  --color-white: var(--color-white);
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Barlow", "Arial", "Helvetica", sans-serif;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+}
+
+/* ─── Base ─── */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-body-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
