@@ -10,6 +10,7 @@ const navItems = [
   { href: "/dashboard/clients", label: "Klanten" },
   { href: "/dashboard/invoices", label: "Facturen" },
   { href: "/dashboard/receipts", label: "Bonnen" },
+  { href: "/dashboard/bank", label: "Bank" },
   { href: "/dashboard/tax", label: "Belasting" },
   { href: "/dashboard/settings", label: "Instellingen" },
 ];
