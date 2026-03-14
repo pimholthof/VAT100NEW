@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInvoiceStore } from "@/lib/store/invoice";
-import { getInvoice, updateInvoiceStatus } from "@/lib/actions/invoices";
+import {
+  getInvoice,
+  updateInvoiceStatus,
+  sendInvoice,
+} from "@/lib/actions/invoices";
 import { InvoiceForm } from "@/components/invoice/InvoiceForm";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
 
@@ -45,6 +49,7 @@ export default function EditInvoicePage() {
   const loadInvoice = useInvoiceStore((s) => s.loadInvoice);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoice", params.id],
@@ -84,6 +89,21 @@ export default function EditInvoicePage() {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
     }
     setStatusUpdating(false);
+  };
+
+  const handleSendEmail = async () => {
+    setEmailSending(true);
+    setStatusMsg(null);
+    const res = await sendInvoice(params.id);
+    if (res.error) {
+      setStatusMsg(res.error);
+    } else {
+      setStatusMsg(
+        `Factuur verstuurd naar ${result?.data?.client?.email}.`
+      );
+      queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
+    }
+    setEmailSending(false);
   };
 
   if (isLoading) {
@@ -197,6 +217,17 @@ export default function EditInvoicePage() {
               Terug naar concept
             </button>
           )}
+          {(currentStatus === "sent" || currentStatus === "paid") &&
+            result?.data?.client?.email && (
+              <button
+                type="button"
+                onClick={handleSendEmail}
+                disabled={emailSending}
+                style={buttonPrimaryStyle}
+              >
+                {emailSending ? "Verzenden..." : "Verstuur per e-mail"}
+              </button>
+            )}
         </div>
       </div>
       {statusMsg && (
