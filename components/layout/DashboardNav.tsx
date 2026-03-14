@@ -11,6 +11,7 @@ const navItems = [
   { href: "/dashboard/invoices", label: "Facturen" },
   { href: "/dashboard/receipts", label: "Bonnen" },
   { href: "/dashboard/tax", label: "Belasting" },
+  { href: "/dashboard/settings", label: "Instellingen" },
 ];
 
 export function DashboardNav({
