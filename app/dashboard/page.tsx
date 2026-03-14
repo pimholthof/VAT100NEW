@@ -64,7 +64,7 @@ export default function DashboardPage() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 16,
+          gap: 24,
           marginBottom: 48,
         }}
         className="stat-cards-grid"
@@ -146,8 +146,9 @@ function StatCard({
   return (
     <div
       style={{
-        border: "1px solid var(--foreground)",
-        padding: 24,
+        border: "none",
+        borderTop: "var(--border-rule)",
+        padding: "24px 0",
       }}
     >
       <p
@@ -197,8 +198,9 @@ function SkeletonCard() {
   return (
     <div
       style={{
-        border: "1px solid var(--foreground)",
-        padding: 24,
+        border: "none",
+        borderTop: "var(--border-rule)",
+        padding: "24px 0",
         opacity: 0.12,
       }}
     >

@@ -100,7 +100,9 @@ export default function InvoicesPage() {
       ) : invoices.length === 0 ? (
         <div
           style={{
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderTop: "var(--border-rule)",
+            borderBottom: "var(--border-rule)",
             padding: 48,
             textAlign: "center",
           }}
@@ -181,9 +183,10 @@ export default function InvoicesPage() {
                     }
                     style={{
                       width: 130,
-                      padding: "10px 12px",
-                      border: "1px solid var(--foreground)",
-                      background: "var(--background)",
+                      padding: "6px 0",
+                      border: "none",
+                      borderBottom: "var(--border-input)",
+                      background: "transparent",
                       color: "var(--foreground)",
                       fontFamily: "var(--font-body), sans-serif",
                       fontSize: "var(--text-body-md)",

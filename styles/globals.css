@@ -21,6 +21,11 @@
   --border-dark: 0.5px solid rgba(255, 255, 255, 0.10);
   --border: var(--border-light);
 
+  /* Refined borders */
+  --border-rule: 0.5px solid rgba(13, 13, 11, 0.15);
+  --border-input: 1px solid rgba(13, 13, 11, 0.2);
+  --border-input-focus: 1px solid rgba(13, 13, 11, 0.5);
+
   /* Display font sizes */
   --text-display-xl: 9rem;
   --text-display-lg: 4rem;
@@ -45,6 +50,9 @@
     --foreground: var(--color-white);
     --background: var(--color-black);
     --border: var(--border-dark);
+    --border-rule: 0.5px solid rgba(255, 255, 255, 0.15);
+    --border-input: 1px solid rgba(255, 255, 255, 0.2);
+    --border-input-focus: 1px solid rgba(255, 255, 255, 0.5);
   }
 }
 
@@ -83,6 +91,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─── Global transitions ─── */
+input, select, textarea {
+  transition: border-color 0.2s ease;
+}
+
+button {
+  transition: opacity 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+tbody tr {
+  transition: background 0.15s ease;
+}
+
+tbody tr:hover {
+  background: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+}
+
 /* ─── Dashboard Shell ─── */
 .dashboard-shell {
   display: flex;
@@ -97,7 +131,7 @@ body {
   width: 240px;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--foreground);
+  border-right: var(--border-rule);
   background: var(--background);
   z-index: 1000;
 }

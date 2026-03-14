@@ -78,7 +78,8 @@ export function InvoiceLineRow({
         style={{
           ...cellInputStyle,
           background: "transparent",
-          border: "1px solid transparent",
+          border: "none",
+          borderBottom: "1px solid transparent",
           display: "flex",
           alignItems: "center",
           fontVariantNumeric: "tabular-nums",
@@ -128,9 +129,10 @@ export function InvoiceLineRow({
 
 const cellInputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "8px 10px",
-  border: "1px solid var(--foreground)",
-  background: "var(--background)",
+  padding: "8px 2px",
+  border: "none",
+  borderBottom: "var(--border-input)",
+  background: "transparent",
   color: "var(--foreground)",
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-sm)",

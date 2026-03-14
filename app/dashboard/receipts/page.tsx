@@ -84,7 +84,9 @@ export default function ReceiptsPage() {
       ) : receipts.length === 0 ? (
         <div
           style={{
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderTop: "var(--border-rule)",
+            borderBottom: "var(--border-rule)",
             padding: 48,
             textAlign: "center",
           }}
