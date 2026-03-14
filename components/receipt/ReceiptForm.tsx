@@ -89,7 +89,8 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
         <div
           style={{
             padding: "12px 16px",
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderLeft: "2px solid var(--foreground)",
             marginBottom: 24,
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
@@ -164,7 +165,9 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           fontWeight: 400,
           margin: "0 0 24px",
           padding: "12px 16px",
-          border: "1px solid var(--foreground)",
+          border: "none",
+          borderTop: "var(--border-rule)",
+          borderBottom: "var(--border-rule)",
         }}
       >
         BTW: {formatCurrency(computedVat)} | Incl. BTW: {formatCurrency(computedIncVat)}
@@ -176,7 +179,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           gap: 12,
           marginTop: 32,
           paddingTop: 24,
-          borderTop: "1px solid var(--foreground)",
+          borderTop: "var(--border-rule)",
         }}
       >
         <button
@@ -228,9 +231,10 @@ function FieldGroup({
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "10px 12px",
-  border: "1px solid var(--foreground)",
-  background: "var(--background)",
+  padding: "10px 2px",
+  border: "none",
+  borderBottom: "var(--border-input)",
+  background: "transparent",
   color: "var(--foreground)",
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
@@ -258,7 +262,7 @@ const buttonSecondaryStyle: React.CSSProperties = {
   letterSpacing: "var(--tracking-caps)",
   textTransform: "uppercase",
   padding: "10px 16px",
-  border: "1px solid var(--foreground)",
+  border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",
   color: "var(--foreground)",
   cursor: "pointer",

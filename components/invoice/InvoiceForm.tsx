@@ -144,7 +144,8 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         <div
           style={{
             padding: "12px 16px",
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderLeft: "2px solid var(--foreground)",
             marginBottom: 24,
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
@@ -184,7 +185,9 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       {showNewClient && (
         <div
           style={{
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderTop: "var(--border-rule)",
+            borderBottom: "var(--border-rule)",
             padding: 20,
             marginBottom: 24,
             background: "var(--background)",
@@ -376,7 +379,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           />
           <div
             style={{
-              borderTop: "1px solid var(--foreground)",
+              borderTop: "0.5px solid var(--foreground)",
               paddingTop: 8,
               marginTop: 8,
             }}
@@ -404,7 +407,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           gap: 12,
           marginTop: 32,
           paddingTop: 24,
-          borderTop: "1px solid var(--foreground)",
+          borderTop: "var(--border-rule)",
         }}
       >
         <button
@@ -521,9 +524,10 @@ function TotalRow({
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "10px 12px",
-  border: "1px solid var(--foreground)",
-  background: "var(--background)",
+  padding: "10px 2px",
+  border: "none",
+  borderBottom: "var(--border-input)",
+  background: "transparent",
   color: "var(--foreground)",
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
@@ -551,7 +555,7 @@ const buttonSecondaryStyle: React.CSSProperties = {
   letterSpacing: "var(--tracking-caps)",
   textTransform: "uppercase",
   padding: "10px 16px",
-  border: "1px solid var(--foreground)",
+  border: "1px solid rgba(13, 13, 11, 0.2)",
   background: "transparent",
   color: "var(--foreground)",
   cursor: "pointer",

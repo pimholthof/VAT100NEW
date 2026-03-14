@@ -84,9 +84,10 @@ export default function ClientsPage() {
           style={{
             width: "100%",
             maxWidth: 400,
-            padding: "10px 12px",
-            border: "1px solid var(--foreground)",
-            background: "var(--background)",
+            padding: "10px 2px",
+            border: "none",
+            borderBottom: "var(--border-input)",
+            background: "transparent",
             color: "var(--foreground)",
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
@@ -109,7 +110,9 @@ export default function ClientsPage() {
       ) : filtered.length === 0 ? (
         <div
           style={{
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderTop: "var(--border-rule)",
+            borderBottom: "var(--border-rule)",
             padding: 48,
             textAlign: "center",
           }}
@@ -243,7 +246,8 @@ export default function ClientsPage() {
             fontWeight: 400,
             marginTop: 16,
             padding: "12px 16px",
-            border: "1px solid var(--foreground)",
+            border: "none",
+            borderLeft: "2px solid var(--foreground)",
           }}
         >
           {deleteMutation.data.error}
