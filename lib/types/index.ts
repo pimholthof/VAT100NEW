@@ -106,6 +106,31 @@ export interface ClientInput {
   btw_number: string | null;
 }
 
+// ─── Receipt types ───
+
+export interface Receipt {
+  id: string;
+  user_id: string;
+  vendor_name: string | null;
+  amount_ex_vat: number | null;
+  vat_amount: number | null;
+  amount_inc_vat: number | null;
+  vat_rate: number | null;
+  category: string | null;
+  receipt_date: string | null;
+  storage_path: string | null;
+  ai_processed: boolean;
+  created_at: string;
+}
+
+export interface ReceiptInput {
+  vendor_name: string | null;
+  amount_ex_vat: number | null;
+  vat_rate: number | null;
+  category: string | null;
+  receipt_date: string | null;
+}
+
 // ─── Action result types ───
 
 export interface ActionResult<T = undefined> {
