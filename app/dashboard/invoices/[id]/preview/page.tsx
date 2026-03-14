@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoiceHTML } from "@/components/invoice/InvoiceHTML";
 
@@ -30,19 +31,34 @@ export default async function InvoicePreviewPage({
           marginBottom: "24px",
         }}
       >
-        <a
-          href="/dashboard"
-          style={{
-            fontSize: "12px",
-            fontFamily: '"Barlow", sans-serif',
-            fontWeight: 400,
-            color: "#0D0D0B",
-            textDecoration: "none",
-            letterSpacing: "0.02em",
-          }}
-        >
-          &larr; Terug
-        </a>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <Link
+            href="/dashboard/invoices"
+            style={{
+              fontSize: "12px",
+              fontFamily: '"Barlow", sans-serif',
+              fontWeight: 400,
+              color: "#0D0D0B",
+              textDecoration: "none",
+              letterSpacing: "0.02em",
+            }}
+          >
+            &larr; Overzicht
+          </Link>
+          <Link
+            href={`/dashboard/invoices/${id}`}
+            style={{
+              fontSize: "12px",
+              fontFamily: '"Barlow", sans-serif',
+              fontWeight: 400,
+              color: "#0D0D0B",
+              textDecoration: "none",
+              letterSpacing: "0.02em",
+            }}
+          >
+            Bewerken
+          </Link>
+        </div>
         <a
           href={`/api/invoice/${id}/pdf`}
           style={{

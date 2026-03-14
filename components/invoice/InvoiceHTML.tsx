@@ -171,7 +171,7 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
           </span>
         </div>
         <div style={totalsRow}>
-          <span style={totalsLabel}>BTW 21%</span>
+          <span style={totalsLabel}>BTW {invoice.vat_rate ?? 21}%</span>
           <span style={totalsValue}>
             {formatCurrency(invoice.vat_amount)}
           </span>

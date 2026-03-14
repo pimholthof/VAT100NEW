@@ -426,7 +426,7 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
             </Text>
           </View>
           <View style={s.totalsRow}>
-            <Text style={s.totalsLabel}>BTW 21%</Text>
+            <Text style={s.totalsLabel}>BTW {invoice.vat_rate ?? 21}%</Text>
             <Text style={s.totalsValue}>
               {formatCurrency(invoice.vat_amount)}
             </Text>
