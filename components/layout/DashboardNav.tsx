@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { logout } from "@/app/(auth)/actions";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 
 const navItems = [
@@ -16,14 +16,20 @@ const navItems = [
 ];
 
 export function DashboardNav({
-  userName,
   studioName,
 }: {
   userName: string;
   studioName?: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   return (
     <header className="dashboard-nav">
@@ -31,15 +37,7 @@ export function DashboardNav({
         {/* Logo */}
         <Link
           href="/dashboard"
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "18px",
-            fontWeight: 900,
-            letterSpacing: "var(--tracking-display)",
-            textDecoration: "none",
-            color: "var(--foreground)",
-            lineHeight: 1,
-          }}
+          className="font-display text-[18px] font-black tracking-[0.02em] no-underline text-foreground leading-none"
         >
           VAT100
         </Link>
@@ -55,16 +53,9 @@ export function DashboardNav({
               <Link
                 key={item.href}
                 href={item.href}
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-body-md)",
-                  fontWeight: 400,
-                  letterSpacing: "0.02em",
-                  textDecoration: "none",
-                  color: "var(--foreground)",
-                  opacity: isActive ? 1 : 0.4,
-                  transition: "opacity 0.15s ease",
-                }}
+                className={`font-body text-[12px] font-normal tracking-[0.02em] no-underline text-foreground transition-opacity duration-150 ${
+                  isActive ? "opacity-100" : "opacity-40"
+                }`}
               >
                 {item.label}
               </Link>
@@ -75,37 +66,17 @@ export function DashboardNav({
         {/* Right section: user + logout */}
         <div className="dashboard-nav-right">
           {studioName && (
-            <span
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-xs)",
-                fontWeight: 400,
-                letterSpacing: "0.05em",
-                opacity: 0.4,
-              }}
-            >
+            <span className="font-body text-[9px] font-normal tracking-[0.05em] opacity-40">
               {studioName}
             </span>
           )}
-          <form action={logout}>
-            <button
-              type="submit"
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-xs)",
-                fontWeight: 400,
-                letterSpacing: "0.02em",
-                background: "none",
-                border: "none",
-                color: "var(--foreground)",
-                opacity: 0.4,
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              Uitloggen
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="font-body text-[9px] font-normal tracking-[0.02em] bg-transparent border-0 text-foreground opacity-40 cursor-pointer p-0"
+          >
+            Uitloggen
+          </button>
         </div>
 
         {/* Mobile hamburger */}
@@ -114,7 +85,7 @@ export function DashboardNav({
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >
-          {mobileOpen ? "✕" : "☰"}
+          {mobileOpen ? "\u2715" : "\u2630"}
         </button>
       </div>
 
@@ -131,41 +102,21 @@ export function DashboardNav({
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                style={{
-                  display: "block",
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-body-md)",
-                  fontWeight: 400,
-                  letterSpacing: "0.02em",
-                  textDecoration: "none",
-                  color: "var(--foreground)",
-                  opacity: isActive ? 1 : 0.4,
-                  padding: "10px 0",
-                }}
+                className={`block font-body text-[12px] font-normal tracking-[0.02em] no-underline text-foreground py-2.5 ${
+                  isActive ? "opacity-100" : "opacity-40"
+                }`}
               >
                 {item.label}
               </Link>
             );
           })}
-          <form action={logout} style={{ marginTop: 8 }}>
-            <button
-              type="submit"
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-xs)",
-                fontWeight: 400,
-                letterSpacing: "0.02em",
-                background: "none",
-                border: "none",
-                color: "var(--foreground)",
-                opacity: 0.4,
-                cursor: "pointer",
-                padding: "10px 0",
-              }}
-            >
-              Uitloggen
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="font-body text-[9px] font-normal tracking-[0.02em] bg-transparent border-0 text-foreground opacity-40 cursor-pointer py-2.5 px-0 mt-2"
+          >
+            Uitloggen
+          </button>
         </nav>
       )}
     </header>

@@ -1,25 +1,6 @@
 import React from "react";
 import Link from "next/link";
 
-const backLinkStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-sm)",
-  fontWeight: 500,
-  letterSpacing: "0.02em",
-  color: "var(--foreground)",
-  opacity: 0.6,
-  textDecoration: "none",
-};
-
-const titleStyle: React.CSSProperties = {
-  fontFamily: "var(--font-display), sans-serif",
-  fontSize: "var(--text-display-lg)",
-  fontWeight: 900,
-  letterSpacing: "var(--tracking-display)",
-  lineHeight: 1,
-  margin: 0,
-};
-
 export function PageHeader({
   title,
   backHref,
@@ -33,25 +14,26 @@ export function PageHeader({
   action?: React.ReactNode;
   titleSize?: "md" | "lg";
 }) {
-  const fontSize =
-    titleSize === "md" ? "var(--text-display-md)" : "var(--text-display-lg)";
+  const titleClass =
+    titleSize === "md"
+      ? "font-display text-[2rem] font-black tracking-[0.02em] leading-none m-0"
+      : "font-display text-[4rem] font-black tracking-[0.02em] leading-none m-0";
 
   return (
-    <div style={{ marginBottom: 32 }}>
+    <div className="mb-8">
       {backHref && backLabel && (
-        <Link href={backHref} style={backLinkStyle}>
-          ← {backLabel}
+        <Link
+          href={backHref}
+          className="font-body text-[11px] font-medium tracking-[0.02em] text-foreground opacity-60 no-underline"
+        >
+          &larr; {backLabel}
         </Link>
       )}
       <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: backHref ? 16 : 0,
-        }}
+        className="flex justify-between items-center"
+        style={{ marginTop: backHref ? 16 : 0 }}
       >
-        <h1 style={{ ...titleStyle, fontSize }}>{title}</h1>
+        <h1 className={titleClass}>{title}</h1>
         {action}
       </div>
     </div>

@@ -88,15 +88,15 @@ export default function InvoicesPage() {
       </div>
 
       {isLoading ? (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
-            fontWeight: 300,
-          }}
-        >
-          Laden...
-        </p>
+        <div>
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{ width: "100%", height: 40, marginBottom: 1 }}
+            />
+          ))}
+        </div>
       ) : invoices.length === 0 ? (
         <div
           style={{

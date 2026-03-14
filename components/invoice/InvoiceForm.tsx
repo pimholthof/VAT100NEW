@@ -18,8 +18,6 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
-  buttonPrimaryStyle,
-  buttonSecondaryStyle,
 } from "@/components/ui";
 
 interface InvoiceFormProps {
@@ -189,13 +187,12 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               </option>
             ))}
           </select>
-          <button
+          <ButtonSecondary
             type="button"
             onClick={() => setShowNewClient(!showNewClient)}
-            style={buttonSecondaryStyle}
           >
             {showNewClient ? "Annuleer" : "+ Nieuw"}
-          </button>
+          </ButtonSecondary>
         </div>
       </FieldGroup>
 
@@ -275,20 +272,19 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-            <button
+            <ButtonPrimary
               type="button"
               onClick={handleCreateQuickClient}
-              style={buttonPrimaryStyle}
             >
               Klant aanmaken
-            </button>
-            <button
+            </ButtonPrimary>
+            <ButtonSecondary
               type="button"
               onClick={() => setShowNewClient(false)}
-              style={{ ...buttonSecondaryStyle, opacity: 0.6 }}
+              className="opacity-60"
             >
               Annuleer
-            </button>
+            </ButtonSecondary>
           </div>
         </div>
       )}
@@ -349,16 +345,13 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             onMove={moveLine}
           />
         ))}
-        <button
+        <ButtonSecondary
           type="button"
           onClick={addLine}
-          style={{
-            ...buttonSecondaryStyle,
-            marginTop: 8,
-          }}
+          className="mt-2"
         >
           + Regel toevoegen
-        </button>
+        </ButtonSecondary>
       </div>
 
       {/* VAT rate selector + totals */}

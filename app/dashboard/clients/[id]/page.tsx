@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getClient,
@@ -17,7 +17,6 @@ import {
   FieldGroup,
   Th,
   Td,
-  Input,
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
@@ -49,7 +48,6 @@ function formatDate(dateStr: string): string {
 
 export default function ClientDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const id = params.id as string;
 
@@ -134,15 +132,15 @@ export default function ClientDetailPage() {
 
   if (clientLoading) {
     return (
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-lg)",
-          fontWeight: 300,
-        }}
-      >
-        Laden...
-      </p>
+      <div style={{ padding: "64px 0" }}>
+        <div className="skeleton" style={{ width: 200, height: 32, marginBottom: 32 }} />
+        {[...Array(4)].map((_, i) => (
+          <div key={i} style={{ marginBottom: 20 }}>
+            <div className="skeleton" style={{ width: 80, height: 9, marginBottom: 8 }} />
+            <div className="skeleton" style={{ width: "100%", height: 36 }} />
+          </div>
+        ))}
+      </div>
     );
   }
 

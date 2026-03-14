@@ -10,21 +10,13 @@ export function FieldGroup({
   variant?: "default" | "caps";
 }) {
   const isCapital = variant === "caps";
+  const labelClass = isCapital
+    ? "block font-body text-[9px] font-medium tracking-[0.25em] uppercase mb-1.5"
+    : "block font-body text-[10px] font-medium tracking-[0.02em] mb-1.5";
+
   return (
-    <div style={{ marginBottom: 16 }}>
-      <label
-        style={{
-          display: "block",
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: isCapital ? "9px" : "10px",
-          fontWeight: 500,
-          letterSpacing: isCapital ? "0.25em" : "0.02em",
-          textTransform: isCapital ? "uppercase" : undefined,
-          marginBottom: 6,
-        }}
-      >
-        {label}
-      </label>
+    <div className="mb-4">
+      <label className={labelClass}>{label}</label>
       {children}
     </div>
   );

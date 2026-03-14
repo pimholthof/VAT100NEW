@@ -2,6 +2,7 @@
 
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import type { ActionResult, Profile } from "@/lib/types";
+import { profileSchema, validate } from "@/lib/validation";
 
 export async function getProfile(): Promise<ActionResult<Profile>> {
   const supabase = await createSupabaseClient();
@@ -31,6 +32,9 @@ export async function updateProfile(
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Niet ingelogd." };
+
+  const v = validate(profileSchema, input);
+  if (v.error) return { error: v.error };
 
   const { data, error } = await supabase
     .from("profiles")

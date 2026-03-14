@@ -11,6 +11,7 @@ import type {
   InvoiceStatus,
   InvoiceWithDetails,
 } from "@/lib/types";
+import { invoiceSchema, validate } from "@/lib/validation";
 
 export type InvoiceWithClient = Invoice & {
   client: { name: string } | null;
@@ -60,6 +61,9 @@ export async function createInvoice(
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Niet ingelogd." };
+
+  const v = validate(invoiceSchema, input);
+  if (v.error) return { error: v.error };
 
   const totals = calculateTotals(input.lines, input.vat_rate);
 
@@ -146,6 +150,9 @@ export async function updateInvoice(
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Niet ingelogd." };
+
+  const v = validate(invoiceSchema, input);
+  if (v.error) return { error: v.error };
 
   const totals = calculateTotals(input.lines, input.vat_rate);
 

@@ -130,15 +130,15 @@ export default function EditInvoicePage() {
 
   if (isLoading) {
     return (
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-lg)",
-          fontWeight: 300,
-        }}
-      >
-        Laden...
-      </p>
+      <div style={{ padding: "64px 0" }}>
+        <div className="skeleton" style={{ width: 200, height: 32, marginBottom: 32 }} />
+        {[...Array(4)].map((_, i) => (
+          <div key={i} style={{ marginBottom: 20 }}>
+            <div className="skeleton" style={{ width: 80, height: 9, marginBottom: 8 }} />
+            <div className="skeleton" style={{ width: "100%", height: 36 }} />
+          </div>
+        ))}
+      </div>
     );
   }
 

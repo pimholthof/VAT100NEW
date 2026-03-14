@@ -2,12 +2,7 @@ export { Th, Td } from "./Table";
 export { StatCard, SkeletonCard } from "./StatCard";
 export { DetailCell } from "./DetailCell";
 export { FieldGroup } from "./FieldGroup";
-export {
-  ButtonPrimary,
-  ButtonSecondary,
-  buttonPrimaryStyle,
-  buttonSecondaryStyle,
-} from "./Button";
+export { ButtonPrimary, ButtonSecondary } from "./Button";
 export {
   Input,
   Select,

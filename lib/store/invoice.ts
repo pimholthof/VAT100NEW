@@ -2,7 +2,6 @@ import { create } from "zustand";
 import type {
   InvoiceInput,
   InvoiceLineInput,
-  InvoiceUnit,
   VatRate,
 } from "@/lib/types";
 

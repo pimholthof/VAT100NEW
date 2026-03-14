@@ -22,15 +22,19 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.container}>
-        <h1 style={styles.title}>Welkom</h1>
-        <p style={styles.subtitle}>Vul je bedrijfsgegevens aan</p>
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-[600px]">
+        <h1 className="font-display text-[4rem] font-black tracking-[0.02em] leading-none m-0">
+          Welkom
+        </h1>
+        <p className="font-body text-[13px] font-light mt-3 mb-14">
+          Vul je bedrijfsgegevens aan
+        </p>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.row}>
-            <div style={styles.field}>
-              <label htmlFor="kvk_number" style={styles.label}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="kvk_number" className="font-body text-[10px] font-normal tracking-[0.02em]">
                 KVK-nummer
               </label>
               <input
@@ -41,12 +45,12 @@ export default function OnboardingPage() {
                 pattern="[0-9]{8}"
                 title="8 cijfers"
                 autoComplete="off"
-                style={styles.input}
+                className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none w-full box-border"
               />
             </div>
 
-            <div style={styles.field}>
-              <label htmlFor="btw_number" style={styles.label}>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="btw_number" className="font-body text-[10px] font-normal tracking-[0.02em]">
                 BTW-nummer
               </label>
               <input
@@ -56,13 +60,13 @@ export default function OnboardingPage() {
                 required
                 placeholder="NL000000000B01"
                 autoComplete="off"
-                style={styles.input}
+                className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none w-full box-border"
               />
             </div>
           </div>
 
-          <div style={styles.field}>
-            <label htmlFor="address" style={styles.label}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="address" className="font-body text-[10px] font-normal tracking-[0.02em]">
               Adres
             </label>
             <input
@@ -71,13 +75,13 @@ export default function OnboardingPage() {
               type="text"
               required
               autoComplete="street-address"
-              style={styles.input}
+              className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none"
             />
           </div>
 
-          <div style={styles.row}>
-            <div style={styles.field}>
-              <label htmlFor="postal_code" style={styles.label}>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="postal_code" className="font-body text-[10px] font-normal tracking-[0.02em]">
                 Postcode
               </label>
               <input
@@ -88,12 +92,12 @@ export default function OnboardingPage() {
                 pattern="[0-9]{4}\s?[A-Za-z]{2}"
                 title="bijv. 1234 AB"
                 autoComplete="postal-code"
-                style={styles.input}
+                className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none w-full box-border"
               />
             </div>
 
-            <div style={styles.field}>
-              <label htmlFor="city" style={styles.label}>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="city" className="font-body text-[10px] font-normal tracking-[0.02em]">
                 Plaats
               </label>
               <input
@@ -102,13 +106,13 @@ export default function OnboardingPage() {
                 type="text"
                 required
                 autoComplete="address-level2"
-                style={styles.input}
+                className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none w-full box-border"
               />
             </div>
           </div>
 
-          <div style={styles.field}>
-            <label htmlFor="iban" style={styles.label}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="iban" className="font-body text-[10px] font-normal tracking-[0.02em]">
               IBAN
             </label>
             <input
@@ -118,12 +122,12 @@ export default function OnboardingPage() {
               required
               placeholder="NL00BANK0000000000"
               autoComplete="off"
-              style={styles.input}
+              className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none"
             />
           </div>
 
-          <div style={styles.field}>
-            <label htmlFor="bic" style={styles.label}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="bic" className="font-body text-[10px] font-normal tracking-[0.02em]">
               BIC
             </label>
             <input
@@ -131,13 +135,21 @@ export default function OnboardingPage() {
               name="bic"
               type="text"
               autoComplete="off"
-              style={styles.input}
+              className="font-body text-[13px] font-light py-3 px-0.5 border-0 border-b border-b-foreground/20 bg-transparent text-foreground outline-none"
             />
           </div>
 
-          {error && <p style={styles.error}>{error}</p>}
+          {error && (
+            <p className="font-body text-[11px] font-normal text-foreground m-0 py-3 px-4 border-0 border-l-2 border-l-foreground">
+              {error}
+            </p>
+          )}
 
-          <button type="submit" disabled={pending} style={styles.button}>
+          <button
+            type="submit"
+            disabled={pending}
+            className="font-body text-[13px] font-medium tracking-[0.05em] py-3.5 px-4 border-0 bg-foreground text-background cursor-pointer w-full"
+          >
             {pending ? "Bezig..." : "Opslaan & doorgaan"}
           </button>
         </form>
@@ -145,87 +157,3 @@ export default function OnboardingPage() {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  wrapper: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "24px",
-  },
-  container: {
-    width: "100%",
-    maxWidth: 600,
-  },
-  title: {
-    fontFamily: "var(--font-display), sans-serif",
-    fontSize: "var(--text-display-lg)",
-    fontWeight: 900,
-    letterSpacing: "var(--tracking-display)",
-    lineHeight: 1,
-    margin: 0,
-  },
-  subtitle: {
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "var(--text-body-lg)",
-    fontWeight: 300,
-    margin: "12px 0 56px",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 24,
-  },
-  row: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 16,
-  },
-  field: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-  },
-  label: {
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "10px",
-    fontWeight: 400,
-    letterSpacing: "0.02em",
-  },
-  input: {
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "var(--text-body-lg)",
-    fontWeight: 300,
-    padding: "12px 2px",
-    border: "none",
-    borderBottom: "var(--border-input)",
-    background: "transparent",
-    color: "var(--foreground)",
-    outline: "none",
-    width: "100%",
-    boxSizing: "border-box" as const,
-  },
-  error: {
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "var(--text-body-sm)",
-    fontWeight: 400,
-    color: "var(--foreground)",
-    margin: 0,
-    padding: "12px 16px",
-    border: "none",
-    borderLeft: "2px solid var(--foreground)",
-  },
-  button: {
-    fontFamily: "var(--font-body), sans-serif",
-    fontSize: "var(--text-body-lg)",
-    fontWeight: 500,
-    letterSpacing: "0.05em",
-    padding: "14px 16px",
-    border: "none",
-    background: "var(--foreground)",
-    color: "var(--background)",
-    cursor: "pointer",
-    width: "100%",
-  },
-};

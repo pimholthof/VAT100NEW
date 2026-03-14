@@ -15,32 +15,11 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div>
-        <div
-          style={{
-            height: 40,
-            width: 200,
-            background: "rgba(13, 13, 11, 0.06)",
-            marginBottom: 48,
-          }}
-        />
+        <div className="skeleton" style={{ height: 40, width: 200, marginBottom: 48 }} />
         {[...Array(4)].map((_, i) => (
           <div key={i} style={{ marginBottom: 16 }}>
-            <div
-              style={{
-                height: 10,
-                width: 80,
-                background: "rgba(13, 13, 11, 0.06)",
-                marginBottom: 8,
-              }}
-            />
-            <div
-              style={{
-                height: 36,
-                width: "100%",
-                maxWidth: 600,
-                background: "rgba(13, 13, 11, 0.04)",
-              }}
-            />
+            <div className="skeleton" style={{ height: 10, width: 80, marginBottom: 8 }} />
+            <div className="skeleton" style={{ height: 36, width: "100%", maxWidth: 600 }} />
           </div>
         ))}
       </div>
