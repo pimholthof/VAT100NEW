@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { sendInvoiceEmail } from "@/lib/email/send-invoice";
+import { sendReminderEmail } from "@/lib/email/send-reminder";
+import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import type {
   ActionResult,
   Invoice,
@@ -318,6 +320,42 @@ export async function generateShareToken(
 
   if (error) return { error: error.message };
   return { error: null, data: token };
+}
+
+export async function sendReminder(invoiceId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  // Verify ownership and status
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("status, client_id")
+    .eq("id", invoiceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!invoice) return { error: "Factuur niet gevonden." };
+
+  if (invoice.status !== "sent" && invoice.status !== "overdue") {
+    return { error: "Herinneringen kunnen alleen worden verstuurd voor verzonden of verlopen facturen." };
+  }
+
+  const { data: client } = await supabase
+    .from("clients")
+    .select("email")
+    .eq("id", invoice.client_id)
+    .single();
+
+  if (!client?.email) {
+    return { error: "Klant heeft geen e-mailadres." };
+  }
+
+  const data = await fetchInvoiceData(invoiceId);
+  return sendReminderEmail(data);
 }
 
 export async function sendInvoice(id: string): Promise<ActionResult> {
