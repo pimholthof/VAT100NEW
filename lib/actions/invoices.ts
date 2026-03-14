@@ -5,6 +5,7 @@ import type {
   ActionResult,
   Invoice,
   InvoiceInput,
+  InvoiceStatus,
   InvoiceWithDetails,
 } from "@/lib/types";
 
@@ -165,6 +166,27 @@ export async function updateInvoice(
     if (linesError) return { error: linesError.message };
   }
 
+  return { error: null };
+}
+
+export async function updateInvoiceStatus(
+  id: string,
+  status: InvoiceStatus
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  const { error } = await supabase
+    .from("invoices")
+    .update({ status })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
   return { error: null };
 }
 

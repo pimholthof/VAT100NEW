@@ -1,16 +1,52 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInvoiceStore } from "@/lib/store/invoice";
-import { getInvoice } from "@/lib/actions/invoices";
+import { getInvoice, updateInvoiceStatus } from "@/lib/actions/invoices";
 import { InvoiceForm } from "@/components/invoice/InvoiceForm";
-import type { VatRate } from "@/lib/types";
+import type { InvoiceStatus, VatRate } from "@/lib/types";
+
+const statusLabels: Record<string, string> = {
+  draft: "Concept",
+  sent: "Verzonden",
+  paid: "Betaald",
+  overdue: "Verlopen",
+};
+
+const buttonPrimaryStyle: React.CSSProperties = {
+  fontFamily: "var(--font-body), sans-serif",
+  fontSize: "var(--text-body-lg)",
+  fontWeight: 500,
+  letterSpacing: "var(--tracking-caps)",
+  textTransform: "uppercase",
+  padding: "12px 20px",
+  border: "none",
+  background: "var(--foreground)",
+  color: "var(--background)",
+  cursor: "pointer",
+};
+
+const buttonSecondaryStyle: React.CSSProperties = {
+  fontFamily: "var(--font-body), sans-serif",
+  fontSize: "var(--text-body-md)",
+  fontWeight: 500,
+  letterSpacing: "var(--tracking-caps)",
+  textTransform: "uppercase",
+  padding: "10px 16px",
+  border: "1px solid var(--foreground)",
+  background: "transparent",
+  color: "var(--foreground)",
+  cursor: "pointer",
+};
 
 export default function EditInvoicePage() {
   const params = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const loadInvoice = useInvoiceStore((s) => s.loadInvoice);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoice", params.id],
@@ -37,6 +73,20 @@ export default function EditInvoicePage() {
       });
     }
   }, [result?.data, loadInvoice]);
+
+  const handleStatusChange = async (newStatus: InvoiceStatus) => {
+    setStatusUpdating(true);
+    setStatusMsg(null);
+    const res = await updateInvoiceStatus(params.id, newStatus);
+    if (res.error) {
+      setStatusMsg(res.error);
+    } else {
+      setStatusMsg(`Status gewijzigd naar ${statusLabels[newStatus]}.`);
+      queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    }
+    setStatusUpdating(false);
+  };
 
   if (isLoading) {
     return (
@@ -66,6 +116,8 @@ export default function EditInvoicePage() {
     );
   }
 
+  const currentStatus = result?.data?.status;
+
   return (
     <div>
       <h1
@@ -80,7 +132,91 @@ export default function EditInvoicePage() {
       >
         Factuur {result?.data?.invoice_number}
       </h1>
-      <InvoiceForm invoiceId={params.id} />
+
+      {/* Status bar */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          border: "1px solid var(--foreground)",
+          padding: "16px 20px",
+          marginBottom: 8,
+        }}
+      >
+        <span
+          style={{
+            fontSize: "var(--text-body-xs)",
+            fontWeight: 500,
+            letterSpacing: "var(--tracking-caps)",
+            textTransform: "uppercase",
+            padding: "4px 8px",
+            border: "1px solid var(--foreground)",
+            display: "inline-block",
+          }}
+        >
+          {statusLabels[currentStatus ?? ""] ?? currentStatus}
+        </span>
+        <div style={{ display: "flex", gap: 8 }}>
+          {currentStatus === "draft" && (
+            <button
+              type="button"
+              onClick={() => handleStatusChange("sent")}
+              disabled={statusUpdating}
+              style={buttonPrimaryStyle}
+            >
+              Markeer als verzonden
+            </button>
+          )}
+          {currentStatus === "sent" && (
+            <>
+              <button
+                type="button"
+                onClick={() => handleStatusChange("paid")}
+                disabled={statusUpdating}
+                style={buttonPrimaryStyle}
+              >
+                Markeer als betaald
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStatusChange("overdue")}
+                disabled={statusUpdating}
+                style={buttonSecondaryStyle}
+              >
+                Markeer als verlopen
+              </button>
+            </>
+          )}
+          {(currentStatus === "paid" || currentStatus === "overdue") && (
+            <button
+              type="button"
+              onClick={() => handleStatusChange("draft")}
+              disabled={statusUpdating}
+              style={buttonSecondaryStyle}
+            >
+              Terug naar concept
+            </button>
+          )}
+        </div>
+      </div>
+      {statusMsg && (
+        <div
+          style={{
+            padding: "12px 16px",
+            border: "1px solid var(--foreground)",
+            marginBottom: 24,
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-md)",
+            fontWeight: 400,
+          }}
+        >
+          {statusMsg}
+        </div>
+      )}
+      <div style={{ marginTop: 24 }}>
+        <InvoiceForm invoiceId={params.id} />
+      </div>
     </div>
   );
 }

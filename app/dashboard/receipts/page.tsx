@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getInvoices, deleteInvoice, updateInvoiceStatus } from "@/lib/actions/invoices";
-import type { Invoice, InvoiceStatus } from "@/lib/types";
+import { getReceipts, deleteReceipt } from "@/lib/actions/receipts";
+import type { Receipt } from "@/lib/types";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
@@ -20,30 +20,22 @@ function formatDate(dateStr: string): string {
   });
 }
 
-export default function InvoicesPage() {
+export default function ReceiptsPage() {
   const queryClient = useQueryClient();
 
   const { data: result, isLoading } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: () => getInvoices(),
+    queryKey: ["receipts"],
+    queryFn: () => getReceipts(),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteInvoice(id),
+    mutationFn: (id: string) => deleteReceipt(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["receipts"] });
     },
   });
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: InvoiceStatus }) =>
-      updateInvoiceStatus(id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-    },
-  });
-
-  const invoices = result?.data ?? [];
+  const receipts = result?.data ?? [];
 
   return (
     <div>
@@ -65,10 +57,10 @@ export default function InvoicesPage() {
             margin: 0,
           }}
         >
-          Facturen
+          Bonnen
         </h1>
         <Link
-          href="/dashboard/invoices/new"
+          href="/dashboard/receipts/new"
           style={{
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-lg)",
@@ -83,21 +75,13 @@ export default function InvoicesPage() {
             display: "inline-block",
           }}
         >
-          + Nieuwe factuur
+          + Nieuwe bon
         </Link>
       </div>
 
       {isLoading ? (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
-            fontWeight: 300,
-          }}
-        >
-          Laden...
-        </p>
-      ) : invoices.length === 0 ? (
+        <SkeletonTable />
+      ) : receipts.length === 0 ? (
         <div
           style={{
             border: "1px solid var(--foreground)",
@@ -113,10 +97,10 @@ export default function InvoicesPage() {
               margin: "0 0 16px",
             }}
           >
-            Nog geen facturen aangemaakt.
+            Nog geen bonnen ingevoerd.
           </p>
           <Link
-            href="/dashboard/invoices/new"
+            href="/dashboard/receipts/new"
             style={{
               fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-body-md)",
@@ -124,7 +108,7 @@ export default function InvoicesPage() {
               color: "var(--foreground)",
             }}
           >
-            Maak je eerste factuur
+            Voeg je eerste bon toe
           </Link>
         </div>
       ) : (
@@ -143,72 +127,47 @@ export default function InvoicesPage() {
                 textAlign: "left",
               }}
             >
-              <Th>Nummer</Th>
-              <Th>Klant</Th>
               <Th>Datum</Th>
-              <Th>Status</Th>
-              <Th style={{ textAlign: "right" }}>Totaal</Th>
+              <Th>Leverancier</Th>
+              <Th>Categorie</Th>
+              <Th style={{ textAlign: "right" }}>Excl. BTW</Th>
+              <Th style={{ textAlign: "right" }}>BTW</Th>
+              <Th style={{ textAlign: "right" }}>Incl. BTW</Th>
               <Th style={{ textAlign: "right" }}>Acties</Th>
             </tr>
           </thead>
           <tbody>
-            {invoices.map((invoice: Invoice & { client?: { name: string } }) => (
+            {receipts.map((receipt: Receipt) => (
               <tr
-                key={invoice.id}
+                key={receipt.id}
                 style={{ borderBottom: "var(--border)" }}
               >
                 <Td>
-                  <Link
-                    href={`/dashboard/invoices/${invoice.id}`}
-                    style={{
-                      color: "var(--foreground)",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {invoice.invoice_number}
-                  </Link>
+                  {receipt.receipt_date
+                    ? formatDate(receipt.receipt_date)
+                    : "—"}
                 </Td>
-                <Td>{(invoice as Invoice & { client?: { name: string } }).client?.name ?? "—"}</Td>
-                <Td>{formatDate(invoice.issue_date)}</Td>
-                <Td>
-                  <select
-                    value={invoice.status}
-                    onChange={(e) =>
-                      statusMutation.mutate({
-                        id: invoice.id,
-                        status: e.target.value as InvoiceStatus,
-                      })
-                    }
-                    style={{
-                      width: 130,
-                      padding: "10px 12px",
-                      border: "1px solid var(--foreground)",
-                      background: "var(--background)",
-                      color: "var(--foreground)",
-                      fontFamily: "var(--font-body), sans-serif",
-                      fontSize: "var(--text-body-md)",
-                      fontWeight: 300,
-                      outline: "none",
-                      opacity:
-                        statusMutation.isPending &&
-                        statusMutation.variables?.id === invoice.id
-                          ? 0.5
-                          : 1,
-                    }}
-                  >
-                    <option value="draft">Concept</option>
-                    <option value="sent">Verzonden</option>
-                    <option value="paid">Betaald</option>
-                    <option value="overdue">Verlopen</option>
-                  </select>
+                <Td>{receipt.vendor_name ?? "—"}</Td>
+                <Td>{receipt.category ?? "—"}</Td>
+                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                  {receipt.amount_ex_vat != null
+                    ? formatCurrency(receipt.amount_ex_vat)
+                    : "—"}
                 </Td>
                 <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                  {formatCurrency(invoice.total_inc_vat)}
+                  {receipt.vat_amount != null
+                    ? formatCurrency(receipt.vat_amount)
+                    : "—"}
+                </Td>
+                <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                  {receipt.amount_inc_vat != null
+                    ? formatCurrency(receipt.amount_inc_vat)
+                    : "—"}
                 </Td>
                 <Td style={{ textAlign: "right" }}>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <Link
-                      href={`/dashboard/invoices/${invoice.id}/preview`}
+                      href={`/dashboard/receipts/${receipt.id}`}
                       style={{
                         fontSize: "var(--text-body-xs)",
                         fontWeight: 500,
@@ -219,28 +178,30 @@ export default function InvoicesPage() {
                     >
                       Bekijk
                     </Link>
-                    {invoice.status === "draft" && (
-                      <button
-                        onClick={() => {
-                          if (confirm("Weet je zeker dat je deze factuur wilt verwijderen?")) {
-                            deleteMutation.mutate(invoice.id);
-                          }
-                        }}
-                        style={{
-                          fontSize: "var(--text-body-xs)",
-                          fontWeight: 500,
-                          color: "var(--foreground)",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          textTransform: "uppercase",
-                          letterSpacing: "var(--tracking-caps)",
-                          opacity: 0.6,
-                        }}
-                      >
-                        Verwijder
-                      </button>
-                    )}
+                    <button
+                      onClick={() => {
+                        if (
+                          confirm(
+                            "Weet je zeker dat je deze bon wilt verwijderen?"
+                          )
+                        ) {
+                          deleteMutation.mutate(receipt.id);
+                        }
+                      }}
+                      style={{
+                        fontSize: "var(--text-body-xs)",
+                        fontWeight: 500,
+                        color: "var(--foreground)",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        textTransform: "uppercase",
+                        letterSpacing: "var(--tracking-caps)",
+                        opacity: 0.6,
+                      }}
+                    >
+                      Verwijder
+                    </button>
                   </div>
                 </Td>
               </tr>
@@ -292,5 +253,41 @@ function Td({
     >
       {children}
     </td>
+  );
+}
+
+function SkeletonTable() {
+  return (
+    <div style={{ opacity: 0.12 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr 1fr 80px",
+          gap: 12,
+          padding: "10px 12px",
+          borderBottom: "1px solid var(--foreground)",
+        }}
+      >
+        {[60, 80, 70, 60, 50, 50, 40].map((w, i) => (
+          <div key={i} className="skeleton" style={{ width: `${w}%`, height: 9 }} />
+        ))}
+      </div>
+      {Array.from({ length: 5 }).map((_, row) => (
+        <div
+          key={row}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr 1fr 80px",
+            gap: 12,
+            padding: "12px 12px",
+            borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
+          }}
+        >
+          {[50, 70, 60, 50, 40, 40, 30].map((w, i) => (
+            <div key={i} className="skeleton" style={{ width: `${w}%`, height: 13 }} />
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
