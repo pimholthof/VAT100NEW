@@ -54,7 +54,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const markSaved = useInvoiceStore((s) => s.markSaved);
   const toInput = useInvoiceStore((s) => s.toInput);
 
-  const { data: clientsResult } = useQuery({
+  const { data: clientsResult, isLoading: clientsLoading, isError: clientsError } = useQuery({
     queryKey: ["clients"],
     queryFn: () => getClients(),
   });
@@ -148,7 +148,9 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             onChange={(e) => setClientId(e.target.value)}
             style={inputStyle}
           >
-            <option value="">— Selecteer klant —</option>
+            <option value="">
+              {clientsLoading ? "Laden..." : clientsError ? "Fout bij ophalen" : "— Selecteer klant —"}
+            </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}

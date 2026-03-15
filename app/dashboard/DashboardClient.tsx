@@ -28,6 +28,8 @@ import { QuickReceiptUpload } from "@/components/dashboard/QuickReceiptUpload";
 import { FinancialInsights } from "@/components/dashboard/FinancialInsights";
 import { CashflowChart } from "@/components/dashboard/CashflowChart";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { SetupChecklist } from "@/components/dashboard/SetupChecklist";
+import { VatDeadlineBanner } from "@/components/dashboard/VatDeadlineBanner";
 
 function getCurrentMonth(): string {
   return new Date().toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
@@ -54,6 +56,9 @@ export default function DashboardClient({
 
   return (
     <div>
+      {/* ── Smart Onboarding ── */}
+      <SetupChecklist />
+
       {/* ── Masthead ── */}
       <div
         className="editorial-divider"
@@ -121,6 +126,10 @@ export default function DashboardClient({
 
       {/* ── Cashflow Chart ── */}
       {cashflow && <CashflowChart cashflow={cashflow} />}
+
+      {/* ── BTW Deadline ── */}
+      {vatDeadline && <VatDeadlineBanner deadline={vatDeadline} />}
+
       {/* ── Stat Strip ── */}
       <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
         <div

@@ -397,3 +397,41 @@ function calculateSafeToSpend(
     safeToSpend: Math.max(0, safeToSpend),
   };
 }
+
+// ── Setup Progress (Onboarding Checklist) ──
+
+export interface SetupProgress {
+  hasProfile: boolean;
+  hasClient: boolean;
+  hasInvoice: boolean;
+  hasReceipt: boolean;
+  hasBankConnection: boolean;
+}
+
+export async function getSetupProgress(): Promise<ActionResult<SetupProgress>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Niet ingelogd." };
+
+  const [profileRes, clientRes, invoiceRes, receiptRes, bankRes] = await Promise.all([
+    supabase.from("profiles").select("studio_name").eq("id", user.id).single(),
+    supabase.from("clients").select("id").eq("user_id", user.id).limit(1),
+    supabase.from("invoices").select("id").eq("user_id", user.id).limit(1),
+    supabase.from("receipts").select("id").eq("user_id", user.id).limit(1),
+    supabase.from("bank_connections").select("id").eq("user_id", user.id).limit(1),
+  ]);
+
+  return {
+    error: null,
+    data: {
+      hasProfile: !!(profileRes.data?.studio_name),
+      hasClient: (clientRes.data?.length ?? 0) > 0,
+      hasInvoice: (invoiceRes.data?.length ?? 0) > 0,
+      hasReceipt: (receiptRes.data?.length ?? 0) > 0,
+      hasBankConnection: (bankRes.data?.length ?? 0) > 0,
+    },
+  };
+}
