@@ -45,20 +45,11 @@ export default function ReceiptsPage() {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 64,
+          alignItems: "flex-end",
+          marginBottom: 80,
         }}
       >
-        <h1
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-lg)",
-            fontWeight: 900,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 0.9,
-            margin: 0,
-          }}
-        >
+        <h1 className="display-title">
           Bonnen
         </h1>
         <Link
@@ -67,15 +58,15 @@ export default function ReceiptsPage() {
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-label)",
             fontWeight: 500,
-            letterSpacing: "0.08em",
+            letterSpacing: "0.10em",
             textTransform: "uppercase",
-            padding: "12px 24px",
-            border: "0.5px solid var(--foreground)",
+            padding: "14px 28px",
+            border: "0.5px solid rgba(13,13,11,0.25)",
             background: "transparent",
             color: "var(--foreground)",
             textDecoration: "none",
             display: "inline-block",
-            transition: "all 0.2s ease",
+            transition: "opacity 0.2s ease",
           }}
         >
           + Nieuwe bon
@@ -89,39 +80,20 @@ export default function ReceiptsPage() {
           bodyWidths={[10, 50, 70, 60, 50, 40, 40, 30]}
         />
       ) : receipts.length === 0 ? (
-        <div style={{ paddingTop: 48 }}>
-          <p
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "13px",
-              fontWeight: 300,
-              opacity: 0.3,
-              margin: "0 0 16px",
-            }}
-          >
-            Nog geen bonnen ingevoerd.
+        <div style={{ paddingTop: "var(--space-block)" }}>
+          <p className="empty-state">
+            Nog geen bonnen
           </p>
           <Link
             href="/dashboard/receipts/new"
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-md)",
-              fontWeight: 400,
-              color: "var(--foreground)",
-              textDecoration: "none",
-              opacity: 0.6,
-            }}
+            className="table-action"
+            style={{ opacity: 0.4 }}
           >
             Voeg je eerste bon toe
           </Link>
         </div>
       ) : (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-          }}
-        >
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th style={{ width: 24 }}></Th>
@@ -146,41 +118,34 @@ export default function ReceiptsPage() {
                     {receipt.storage_path ? "📷" : ""}
                   </Td>
                   <Td>
-                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                    <span className="mono-amount">
                       {receipt.receipt_date ? formatDate(receipt.receipt_date) : "—"}
                     </span>
                   </Td>
-                  <Td>{receipt.vendor_name ?? "—"}</Td>
+                  <Td style={{ fontWeight: 400 }}>{receipt.vendor_name ?? "—"}</Td>
                   <Td>
                     {kostensoort ? kostensoort.label : receipt.category ?? "—"}
                   </Td>
                   <Td style={{ textAlign: "right" }}>
-                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    <span className="mono-amount">
                       {receipt.amount_ex_vat != null ? formatCurrency(receipt.amount_ex_vat) : "—"}
                     </span>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
-                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    <span className="mono-amount">
                       {receipt.vat_amount != null ? formatCurrency(receipt.vat_amount) : "—"}
                     </span>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
-                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    <span className="mono-amount">
                       {receipt.amount_inc_vat != null ? formatCurrency(receipt.amount_inc_vat) : "—"}
                     </span>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
-                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                       <Link
                         href={`/dashboard/receipts/${receipt.id}`}
-                        style={{
-                          fontSize: "var(--text-label)",
-                          fontWeight: 500,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          color: "var(--foreground)",
-                          textDecoration: "none",
-                        }}
+                        className="table-action"
                       >
                         Bekijk
                       </Link>
@@ -190,16 +155,13 @@ export default function ReceiptsPage() {
                             deleteMutation.mutate(receipt.id);
                           }
                         }}
+                        className="table-action"
                         style={{
-                          fontSize: "var(--text-label)",
-                          fontWeight: 500,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          color: "var(--foreground)",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          opacity: 0.4,
+                          opacity: 0.3,
+                          padding: 0,
                         }}
                       >
                         Verwijder

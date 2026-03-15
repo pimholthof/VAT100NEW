@@ -23,46 +23,73 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ width: "100%", maxWidth: 400 }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        gridTemplateColumns: "1fr",
+        alignItems: "center",
+        justifyItems: "center",
+        padding: 24,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Giant background logo watermark */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: -40,
+          left: -20,
+          fontFamily: "var(--font-display), sans-serif",
+          fontSize: "min(14rem, 28vw)",
+          fontWeight: 900,
+          letterSpacing: "var(--tracking-display)",
+          lineHeight: 0.85,
+          color: "var(--foreground)",
+          opacity: 0.04,
+          pointerEvents: "none",
+          userSelect: "none",
+          whiteSpace: "nowrap",
+        }}
+      >
+        VAT100
+      </div>
+
+      <div style={{ width: "100%", maxWidth: 340, position: "relative", zIndex: 1 }}>
+        {/* Logo */}
         <h1
           style={{
             fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-xl)",
+            fontSize: "var(--text-display-hero)",
             fontWeight: 900,
             letterSpacing: "var(--tracking-display)",
             lineHeight: 0.85,
             margin: 0,
           }}
         >
-          VAT100
+          VAT
+          <br />
+          100
         </h1>
+
+        {/* Tagline */}
         <p
+          className="label"
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "13px",
-            fontWeight: 300,
-            opacity: 0.4,
-            marginTop: 16,
-            marginBottom: 56,
+            marginTop: 24,
+            marginBottom: 72,
+            letterSpacing: "var(--tracking-caps)",
+            opacity: 0.25,
           }}
         >
-          Inloggen
+          Boekhouding voor creatieven
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label
-              htmlFor="email"
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-label)",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                opacity: 0.4,
-              }}
-            >
+            <label htmlFor="email" className="label">
               E-mailadres
             </label>
             <input
@@ -75,7 +102,7 @@ export default function LoginPage() {
                 fontFamily: "var(--font-mono), monospace",
                 fontSize: "13px",
                 fontWeight: 300,
-                padding: "12px 0",
+                padding: "14px 0",
                 border: "none",
                 borderBottom: "0.5px solid rgba(13,13,11,0.12)",
                 background: "transparent",
@@ -86,17 +113,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label
-              htmlFor="password"
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-label)",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                opacity: 0.4,
-              }}
-            >
+            <label htmlFor="password" className="label">
               Wachtwoord
             </label>
             <input
@@ -110,7 +127,7 @@ export default function LoginPage() {
                 fontFamily: "var(--font-body), sans-serif",
                 fontSize: "13px",
                 fontWeight: 300,
-                padding: "12px 0",
+                padding: "14px 0",
                 border: "none",
                 borderBottom: "0.5px solid rgba(13,13,11,0.12)",
                 background: "transparent",
@@ -138,16 +155,17 @@ export default function LoginPage() {
             disabled={pending}
             style={{
               fontFamily: "var(--font-body), sans-serif",
-              fontSize: "10px",
+              fontSize: "var(--text-label)",
               fontWeight: 500,
-              letterSpacing: "0.08em",
+              letterSpacing: "0.12em",
               textTransform: "uppercase",
-              padding: 18,
+              padding: 24,
               border: "none",
               background: "var(--foreground)",
               color: "var(--background)",
               cursor: "pointer",
               width: "100%",
+              transition: "opacity 0.15s ease",
             }}
           >
             {pending ? "Bezig..." : "Inloggen"}
@@ -155,14 +173,10 @@ export default function LoginPage() {
         </form>
 
         <p
+          className="label"
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-label)",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            opacity: 0.3,
-            marginTop: 32,
+            marginTop: 40,
+            opacity: 0.2,
           }}
         >
           Nog geen account?{" "}
@@ -173,6 +187,8 @@ export default function LoginPage() {
               color: "var(--foreground)",
               textDecoration: "none",
               opacity: 1,
+              borderBottom: "0.5px solid rgba(13,13,11,0.3)",
+              paddingBottom: 1,
             }}
           >
             Registreer

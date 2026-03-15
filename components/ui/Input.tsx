@@ -2,7 +2,7 @@ import React from "react";
 
 const baseInputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "12px 0",
+  padding: "14px 0",
   border: "none",
   borderBottom: "0.5px solid rgba(13,13,11,0.12)",
   background: "transparent",
@@ -18,14 +18,14 @@ export const inputStyle: React.CSSProperties = { ...baseInputStyle };
 
 export const selectStyle: React.CSSProperties = {
   ...baseInputStyle,
-  padding: "4px 0",
+  padding: "6px 0",
   cursor: "pointer",
 };
 
 export const textareaStyle: React.CSSProperties = {
   ...baseInputStyle,
   border: "0.5px solid rgba(13,13,11,0.12)",
-  padding: 12,
+  padding: 14,
   resize: "vertical",
 };
 

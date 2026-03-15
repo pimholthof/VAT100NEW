@@ -23,18 +23,9 @@ export default function TaxPage() {
 
   return (
     <div>
-      {/* Section 1: Title */}
-      <div style={{ marginBottom: 64 }}>
-        <h1
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-lg)",
-            fontWeight: 900,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 0.9,
-            margin: 0,
-          }}
-        >
+      {/* Title */}
+      <div style={{ marginBottom: 80 }}>
+        <h1 className="display-title">
           Belasting
         </h1>
         <p
@@ -42,48 +33,51 @@ export default function TaxPage() {
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-lg)",
             fontWeight: 300,
-            margin: "12px 0 0",
+            margin: "16px 0 0",
+            opacity: 0.5,
           }}
         >
           BTW-overzicht per kwartaal
         </p>
       </div>
 
-      {/* Section 2: Stat cards for current quarter */}
-      {isLoading ? (
-        <div
-          style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
-            marginBottom: 48,
-          }}
-        >
-          <div
+      {/* Hero: Netto BTW dit kwartaal */}
+      {!isLoading && current && (
+        <div style={{ marginBottom: "var(--space-section)" }}>
+          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+            {current.netVat >= 0 ? "Te betalen dit kwartaal" : "Te vorderen dit kwartaal"}
+          </p>
+          <p
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 24,
+              fontFamily: "var(--font-display), sans-serif",
+              fontSize: "var(--text-display-xl)",
+              fontWeight: 900,
+              lineHeight: 0.85,
+              letterSpacing: "var(--tracking-display)",
+              margin: 0,
             }}
+          >
+            {formatCurrency(Math.abs(current.netVat))}
+          </p>
+        </div>
+      )}
+
+      {/* Stat cards */}
+      {isLoading ? (
+        <div className="editorial-divider" style={{ marginBottom: "var(--space-block)" }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-element)" }}
             className="stat-cards-grid"
           >
-            <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
           </div>
         </div>
       ) : current ? (
-        <div
-          style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
-            marginBottom: 48,
-          }}
-        >
+        <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 24,
-            }}
+            style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-element)" }}
             className="stat-cards-grid"
           >
             <StatCard
@@ -95,10 +89,6 @@ export default function TaxPage() {
               value={formatCurrency(current.inputVat)}
             />
             <StatCard
-              label={current.netVat >= 0 ? "Te betalen" : "Te vorderen"}
-              value={formatCurrency(Math.abs(current.netVat))}
-            />
-            <StatCard
               label="Aantal facturen"
               value={String(current.invoiceCount)}
             />
@@ -106,24 +96,20 @@ export default function TaxPage() {
         </div>
       ) : null}
 
-      {/* Section 3: Quarterly table */}
+      {/* Quarterly table */}
+      <h2 className="section-header" style={{ margin: "0 0 16px" }}>
+        Kwartaaloverzicht
+      </h2>
+
       {isLoading ? (
-        <div style={{ marginBottom: 48 }}>
-          <SkeletonTable
-            columns="1fr 1fr 1fr 1fr 1fr 1fr"
-            rows={4}
-            headerWidths={[60, 80, 70, 70, 60, 50]}
-            bodyWidths={[50, 70, 60, 60, 50, 40]}
-          />
-        </div>
+        <SkeletonTable
+          columns="1fr 1fr 1fr 1fr 1fr 1fr"
+          rows={4}
+          headerWidths={[60, 80, 70, 70, 60, 50]}
+          bodyWidths={[50, 70, 60, 60, 50, 40]}
+        />
       ) : quarters.length > 0 ? (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: 48,
-          }}
-        >
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Kwartaal</Th>
@@ -138,39 +124,22 @@ export default function TaxPage() {
             {quarters.map((q: QuarterStats) => (
               <tr key={q.quarter} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
                 <Td style={{ fontWeight: 400 }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
-                    {q.quarter}
-                  </span>
+                  <span className="mono-amount">{q.quarter}</span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCurrency(q.revenueExVat)}
-                  </span>
+                  <span className="mono-amount">{formatCurrency(q.revenueExVat)}</span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCurrency(q.outputVat)}
-                  </span>
+                  <span className="mono-amount">{formatCurrency(q.outputVat)}</span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCurrency(q.inputVat)}
-                  </span>
+                  <span className="mono-amount">{formatCurrency(q.inputVat)}</span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCurrency(q.netVat)}
-                  </span>
+                  <span className="mono-amount">{formatCurrency(q.netVat)}</span>
                 </Td>
                 <Td>
-                  <span
-                    style={{
-                      fontSize: "var(--text-label)",
-                      fontWeight: 500,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                    }}
-                  >
+                  <span className="label" style={{ opacity: 1 }}>
                     {q.netVat >= 0 ? "Te betalen" : "Te vorderen"}
                   </span>
                 </Td>
@@ -179,28 +148,20 @@ export default function TaxPage() {
           </tbody>
         </table>
       ) : (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "13px",
-            fontWeight: 300,
-            opacity: 0.3,
-            marginBottom: 48,
-            paddingTop: 48,
-          }}
-        >
-          Nog geen gegevens beschikbaar.
+        <p className="empty-state">
+          Nog geen gegevens
         </p>
       )}
 
-      {/* Section 4: Disclaimer */}
+      {/* Disclaimer */}
       <div
         style={{
-          padding: 16,
+          padding: 20,
           background: "rgba(13,13,11,0.02)",
           fontFamily: "var(--font-mono), monospace",
           fontSize: "11px",
           fontWeight: 400,
+          lineHeight: 1.6,
         }}
       >
         Dit overzicht is indicatief. Dien je BTW-aangifte in via het portaal van

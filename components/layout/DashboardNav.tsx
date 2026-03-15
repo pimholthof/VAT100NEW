@@ -39,9 +39,9 @@ export function DashboardNav({
           href="/dashboard"
           style={{
             fontFamily: "var(--font-display), sans-serif",
-            fontSize: "14px",
+            fontSize: "18px",
             fontWeight: 900,
-            letterSpacing: "0.15em",
+            letterSpacing: "0.20em",
             textDecoration: "none",
             color: "var(--foreground)",
             lineHeight: 1,
@@ -65,12 +65,16 @@ export function DashboardNav({
                   fontFamily: "var(--font-body), sans-serif",
                   fontSize: "var(--text-label)",
                   fontWeight: 500,
-                  letterSpacing: "0.08em",
+                  letterSpacing: "var(--tracking-label)",
                   textTransform: "uppercase",
                   textDecoration: "none",
                   color: "var(--foreground)",
-                  opacity: isActive ? 1 : 0.25,
+                  opacity: isActive ? 1 : 0.2,
                   transition: "opacity 0.15s ease",
+                  paddingBottom: 2,
+                  borderBottom: isActive
+                    ? "1.5px solid var(--foreground)"
+                    : "1.5px solid transparent",
                 }}
               >
                 {item.label}
@@ -79,7 +83,7 @@ export function DashboardNav({
           })}
         </nav>
 
-        {/* Right section: user + logout */}
+        {/* Right section: studio + logout */}
         <div className="dashboard-nav-right">
           {studioName && (
             <span
@@ -87,9 +91,9 @@ export function DashboardNav({
                 fontFamily: "var(--font-body), sans-serif",
                 fontSize: "var(--text-label)",
                 fontWeight: 500,
-                letterSpacing: "0.08em",
+                letterSpacing: "var(--tracking-label)",
                 textTransform: "uppercase",
-                opacity: 0.2,
+                opacity: 0.25,
               }}
             >
               {studioName}
@@ -102,7 +106,7 @@ export function DashboardNav({
               fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-label)",
               fontWeight: 500,
-              letterSpacing: "0.08em",
+              letterSpacing: "var(--tracking-label)",
               textTransform: "uppercase",
               background: "transparent",
               border: "none",
@@ -144,12 +148,12 @@ export function DashboardNav({
                   fontFamily: "var(--font-body), sans-serif",
                   fontSize: "var(--text-label)",
                   fontWeight: 500,
-                  letterSpacing: "0.08em",
+                  letterSpacing: "var(--tracking-label)",
                   textTransform: "uppercase",
                   textDecoration: "none",
                   color: "var(--foreground)",
                   padding: "10px 0",
-                  opacity: isActive ? 1 : 0.25,
+                  opacity: isActive ? 1 : 0.2,
                 }}
               >
                 {item.label}
@@ -163,7 +167,7 @@ export function DashboardNav({
               fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-label)",
               fontWeight: 500,
-              letterSpacing: "0.08em",
+              letterSpacing: "var(--tracking-label)",
               textTransform: "uppercase",
               background: "transparent",
               border: "none",

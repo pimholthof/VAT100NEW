@@ -26,11 +26,12 @@
   --border-input: 0.5px solid rgba(13, 13, 11, 0.12);
   --border-input-focus: 0.5px solid rgba(13, 13, 11, 0.5);
 
-  /* Display font sizes */
-  --text-display-xl: 10rem;
-  --text-display-lg: 4rem;
+  /* Display font sizes — extreme typographic scale */
+  --text-display-hero: 12rem;
+  --text-display-xl: 6rem;
+  --text-display-lg: 3.5rem;
   --text-display-md: 2rem;
-  --text-display-sm: 1.125rem;
+  --text-display-sm: 1rem;
 
   /* Body font sizes */
   --text-body-lg: 13px;
@@ -39,6 +40,7 @@
   --text-body-xs: 9px;
 
   /* Monospace font sizes */
+  --text-mono-lg: 2rem;
   --text-mono-md: 12px;
   --text-mono-sm: 11px;
 
@@ -47,7 +49,14 @@
 
   /* Letter spacing */
   --tracking-display: 0.02em;
+  --tracking-label: 0.08em;
   --tracking-caps: 0.25em;
+
+  /* Spacing — dramatic whitespace */
+  --space-hero: 120px;
+  --space-section: 96px;
+  --space-block: 48px;
+  --space-element: 24px;
 
   /* Border radius — zero everywhere */
   --radius: 0px;
@@ -135,6 +144,95 @@ tbody tr:hover {
   min-height: 100vh;
 }
 
+/* ─── Reusable Typography Classes ─── */
+.label {
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+.label-strong {
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.display-hero {
+  font-family: var(--font-display), sans-serif;
+  font-size: var(--text-display-hero);
+  font-weight: 900;
+  letter-spacing: var(--tracking-display);
+  line-height: 0.85;
+  margin: 0;
+}
+
+.display-title {
+  font-family: var(--font-display), sans-serif;
+  font-size: var(--text-display-lg);
+  font-weight: 900;
+  letter-spacing: var(--tracking-display);
+  line-height: 0.9;
+  margin: 0;
+}
+
+.section-header {
+  font-family: var(--font-display), sans-serif;
+  font-size: var(--text-display-sm);
+  font-weight: 900;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  line-height: 1;
+  margin: 0;
+}
+
+.mono-amount {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-mono-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.mono-amount-lg {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--text-mono-lg);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.editorial-divider {
+  border-top: 0.5px solid rgba(13, 13, 11, 0.15);
+}
+
+.table-action {
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.table-action:hover {
+  opacity: 0.5;
+}
+
+.empty-state {
+  font-family: var(--font-display), sans-serif;
+  font-size: var(--text-display-md);
+  font-weight: 900;
+  line-height: 1;
+  opacity: 0.08;
+  padding: var(--space-block) 0;
+}
+
 /* ─── Top Navigation ─── */
 .dashboard-nav {
   position: sticky;
@@ -142,20 +240,20 @@ tbody tr:hover {
   z-index: 1000;
   background: var(--background);
   border-bottom: 0.5px solid rgba(13, 13, 11, 0.08);
-  padding: 0 64px;
+  padding: 0 80px;
 }
 
 .dashboard-nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
+  height: 72px;
 }
 
 .dashboard-nav-links {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 36px;
 }
 
 .dashboard-nav-links a:hover {
@@ -165,7 +263,7 @@ tbody tr:hover {
 .dashboard-nav-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .dashboard-nav-hamburger {
@@ -187,8 +285,8 @@ tbody tr:hover {
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 72px 64px;
-  max-width: 1024px;
+  padding: 80px 80px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.3s ease;
@@ -265,6 +363,14 @@ tbody tr:hover {
 
   .dashboard-content {
     padding: 40px 24px;
+  }
+
+  .display-hero {
+    font-size: 5rem;
+  }
+
+  .display-title {
+    font-size: 2.5rem;
   }
 
   .stat-cards-grid {
