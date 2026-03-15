@@ -24,6 +24,8 @@ import {
 import { formatCurrency, formatDate } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/constants/status";
 import { ActionFeed } from "@/components/dashboard/ActionFeed";
+import { QuickReceiptUpload } from "@/components/dashboard/QuickReceiptUpload";
+import { FinancialInsights } from "@/components/dashboard/FinancialInsights";
 
 function getCurrentMonth(): string {
   return new Date().toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
@@ -106,8 +108,16 @@ export default function DashboardClient({
         </div>
       ) : null}
 
+      {/* ── Quick Receipt Upload ── */}
+      {!isLoading && <QuickReceiptUpload />}
+
       {/* ── Action Feed (Inbox Zero) ── */}
       {!isLoading && <ActionFeed />}
+
+      {/* ── Financial Intelligence Panel ── */}
+      {cashflow && safeToSpend && (
+        <FinancialInsights cashflow={cashflow} safeToSpend={safeToSpend} />
+      )}
 
       {/* ── Stat Strip ── */}
       <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>

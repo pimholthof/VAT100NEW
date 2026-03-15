@@ -1,0 +1,212 @@
+"use client";
+
+import { useRef, useState, useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/lib/actions/receipts";
+
+/**
+ * QuickReceiptUpload — A drag-and-drop "snap & go" receipt uploader
+ * for the dashboard. Drop a photo → AI extracts data → receipt is created.
+ */
+export function QuickReceiptUpload() {
+  const queryClient = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [status, setStatus] = useState<"idle" | "uploading" | "scanning" | "done" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const processMutation = useMutation({
+    mutationFn: async (file: File) => {
+      setStatus("uploading");
+      setMessage("Bestand uploaden...");
+
+      // 1. Create a placeholder receipt
+      const receiptResult = await createReceipt({
+        vendor_name: null,
+        amount_ex_vat: 0,
+        vat_rate: 21,
+        category: "Overig",
+        cost_code: null,
+        receipt_date: new Date().toISOString().split("T")[0],
+      });
+
+      if (receiptResult.error || !receiptResult.data) {
+        throw new Error(receiptResult.error ?? "Kon bon niet aanmaken.");
+      }
+
+      const receiptId = receiptResult.data.id;
+
+      // 2. Upload the image
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadResult = await uploadReceiptImage(receiptId, formData);
+      if (uploadResult.error) {
+        throw new Error(uploadResult.error);
+      }
+
+      // 3. Scan with AI
+      setStatus("scanning");
+      setMessage("AI analyseert bon...");
+      const scanResult = await scanReceiptWithAI(receiptId);
+
+      if (scanResult.error) {
+        // Receipt is still saved, just not AI-enriched
+        setStatus("done");
+        setMessage("Bon opgeslagen (AI-scan mislukt).");
+        return;
+      }
+
+      // 4. Update receipt with AI data
+      if (scanResult.data) {
+        const { updateReceipt } = await import("@/lib/actions/receipts");
+        await updateReceipt(receiptId, {
+          vendor_name: scanResult.data.vendor_name ?? null,
+          amount_ex_vat: scanResult.data.amount_ex_vat ?? null,
+          vat_rate: scanResult.data.vat_rate ?? null,
+          category: null,
+          cost_code: scanResult.data.cost_code ?? null,
+          receipt_date: scanResult.data.receipt_date ?? null,
+        });
+
+        const { markReceiptAiProcessed } = await import("@/lib/actions/receipts");
+        await markReceiptAiProcessed(receiptId);
+      }
+
+      setStatus("done");
+      setMessage(
+        scanResult.data?.vendor_name
+          ? `✓ ${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
+          : "✓ Bon opgeslagen en verwerkt."
+      );
+    },
+    onError: (err) => {
+      setStatus("error");
+      setMessage(err instanceof Error ? err.message : "Onbekende fout.");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["action-feed"] });
+      // Auto-reset after 4 seconds
+      setTimeout(() => {
+        setStatus("idle");
+        setMessage("");
+      }, 4000);
+    },
+  });
+
+  const handleFile = useCallback(
+    (file: File) => {
+      if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+        setStatus("error");
+        setMessage("Alleen afbeeldingen en PDF's zijn toegestaan.");
+        return;
+      }
+      processMutation.mutate(file);
+    },
+    [processMutation]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    },
+    [handleFile]
+  );
+
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragging(true);
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={handleDrop}
+      onClick={() => status === "idle" && fileRef.current?.click()}
+      style={{
+        border: isDragging
+          ? "2px solid var(--foreground)"
+          : "1px dashed rgba(13,13,11,0.2)",
+        padding: 24,
+        textAlign: "center",
+        cursor: status === "idle" ? "pointer" : "default",
+        transition: "all 0.2s ease",
+        background: isDragging ? "rgba(13,13,11,0.02)" : "transparent",
+        marginBottom: "var(--space-section)",
+      }}
+    >
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*,.pdf"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFile(file);
+          e.target.value = "";
+        }}
+      />
+
+      {status === "idle" && (
+        <>
+          <p
+            style={{
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-body-md)",
+              fontWeight: 500,
+              margin: "0 0 4px",
+            }}
+          >
+            + Drop bon hier of klik om te uploaden
+          </p>
+          <p className="label" style={{ opacity: 0.5, margin: 0 }}>
+            AI analyseert automatisch
+          </p>
+        </>
+      )}
+
+      {(status === "uploading" || status === "scanning") && (
+        <p
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-md)",
+            fontWeight: 400,
+            margin: 0,
+            opacity: 0.7,
+          }}
+        >
+          {message}
+        </p>
+      )}
+
+      {status === "done" && (
+        <p
+          style={{
+            fontFamily: "var(--font-mono), monospace",
+            fontSize: "var(--text-mono-md)",
+            fontWeight: 400,
+            margin: 0,
+          }}
+        >
+          {message}
+        </p>
+      )}
+
+      {status === "error" && (
+        <p
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-md)",
+            fontWeight: 400,
+            margin: 0,
+            opacity: 0.7,
+          }}
+        >
+          ⚠ {message}
+        </p>
+      )}
+    </div>
+  );
+}
