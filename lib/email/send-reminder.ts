@@ -5,7 +5,13 @@ import { InvoicePDF } from "@/components/invoice/InvoicePDF";
 import type { InvoiceData } from "@/lib/types";
 import { formatCurrency, formatDateLong } from "@/lib/format";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend() {
+  if (!_resend) {
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
+}
 
 export async function sendReminderEmail(
   data: InvoiceData
@@ -77,7 +83,7 @@ export async function sendReminderEmail(
 </body>
 </html>`.trim();
 
-  const { error: sendError } = await resend.emails.send({
+  const { error: sendError } = await getResend().emails.send({
     from: process.env.EMAIL_FROM!,
     to: client.email,
     subject: `Herinnering: Factuur ${invoice.invoice_number} — ${senderName}`,

@@ -308,45 +308,43 @@ tbody tr:hover {
   50% { opacity: 0.2; }
 }
 
-/* ─── Stat Cards Responsive ─── */
+/* ── Tablet (≤1024px) ── */
 @media (max-width: 1024px) {
   .stat-cards-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
-}
 
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(13, 13, 11, 0.1);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(13, 13, 11, 0.2);
-}
-
-/* ─── Print ─── */
-@media print {
-  .dashboard-nav {
-    display: none;
-  }
   .dashboard-content {
-    padding: 0;
-    max-width: 100%;
+    padding: 60px 40px;
+  }
+
+  :root {
+    --text-display-hero: 8rem;
+    --text-display-xl: 4rem;
+    --text-display-lg: 2.5rem;
+    --space-hero: 80px;
+    --space-section: 64px;
   }
 }
 
-/* ─── Mobile ─── */
+/* ── Mobile (≤768px) ── */
 @media (max-width: 768px) {
+  :root {
+    --text-display-hero: 4rem;
+    --text-display-xl: 3rem;
+    --text-display-lg: 2rem;
+    --text-display-md: 1.5rem;
+    --space-hero: 48px;
+    --space-section: 40px;
+    --space-block: 32px;
+  }
+
   .dashboard-nav {
-    padding: 0 24px;
+    padding: 0 16px;
+  }
+
+  .dashboard-nav-inner {
+    height: 56px;
   }
 
   .dashboard-nav-links {
@@ -362,15 +360,15 @@ tbody tr:hover {
   }
 
   .dashboard-content {
-    padding: 40px 24px;
+    padding: 24px 16px;
   }
 
   .display-hero {
-    font-size: 5rem;
+    font-size: 3rem;
   }
 
   .display-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
 
   .stat-cards-grid {
@@ -385,4 +383,18 @@ tbody tr:hover {
   .vat-deadline-banner > div {
     text-align: center !important;
   }
+
+  /* Tables: horizontal scroll on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  thead, tbody, tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
 }
+

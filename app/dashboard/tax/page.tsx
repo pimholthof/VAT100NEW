@@ -67,6 +67,7 @@ export default function TaxPage() {
 
       {/* ── Jaar Prognose ── */}
       <div
+        className="stat-cards-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr 1fr",
@@ -99,6 +100,7 @@ export default function TaxPage() {
           Jouw aftrekposten
         </h2>
         <div
+          className="stat-cards-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",

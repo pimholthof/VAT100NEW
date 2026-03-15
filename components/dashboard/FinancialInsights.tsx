@@ -50,6 +50,7 @@ export function FinancialInsights({ cashflow, safeToSpend }: FinancialInsightsPr
       </h2>
 
       <div
+        className="stat-cards-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr 1fr 1fr",
