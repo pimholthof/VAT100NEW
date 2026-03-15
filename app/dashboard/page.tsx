@@ -32,17 +32,12 @@ export default function DashboardPage() {
     queryFn: () => getDashboardData(),
   });
 
-  const stats = dashboardResult?.data?.stats;
-  const invoices = dashboardResult?.data?.recentInvoices;
-  const upcomingInvoices = dashboardResult?.data?.upcomingInvoices;
-  const cashflow = dashboardResult?.data?.cashflow;
-  const vatDeadline = dashboardResult?.data?.vatDeadline;
-
-  const statsLoading = isLoading;
-  const invoicesLoading = isLoading;
-  const upcomingLoading = isLoading;
-  const cashflowLoading = isLoading;
-  const vatDeadlineLoading = isLoading;
+  const data = dashboardResult?.data;
+  const stats = data?.stats;
+  const invoices = data?.recentInvoices;
+  const upcomingInvoices = data?.upcomingInvoices;
+  const cashflow = data?.cashflow;
+  const vatDeadline = data?.vatDeadline;
 
   return (
     <div>
@@ -66,7 +61,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Hero Revenue ── */}
-      {statsLoading ? (
+      {isLoading ? (
         <div style={{ marginBottom: "var(--space-hero)" }}>
           <div className="skeleton" style={{ width: "40%", height: 9, marginBottom: 20, opacity: 0.08 }} />
           <div className="skeleton" style={{ width: "60%", height: 80, opacity: 0.06 }} />
@@ -101,7 +96,7 @@ export default function DashboardPage() {
           }}
           className="stat-cards-grid"
         >
-          {statsLoading ? (
+          {isLoading ? (
             <>
               <SkeletonCard />
               <SkeletonCard />
@@ -128,7 +123,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── BTW-deadline banner ── */}
-      {vatDeadlineLoading ? (
+      {isLoading ? (
         <div
           className="editorial-divider"
           style={{
@@ -205,7 +200,7 @@ export default function DashboardPage() {
       ) : null}
 
       {/* ── Cashflow ── */}
-      {cashflowLoading ? (
+      {isLoading ? (
         <div style={{ marginBottom: "var(--space-section)" }}>
           <div className="skeleton" style={{ width: "30%", height: 14, marginBottom: 24, opacity: 0.08 }} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "var(--space-element)", opacity: 0.08 }}>
@@ -248,7 +243,7 @@ export default function DashboardPage() {
         Openstaande facturen
       </h2>
 
-      {upcomingLoading ? (
+      {isLoading ? (
         <SkeletonTable />
       ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
         <UpcomingInvoiceTable invoices={upcomingInvoices} />
@@ -266,7 +261,7 @@ export default function DashboardPage() {
         Laatste facturen
       </h2>
 
-      {invoicesLoading ? (
+      {isLoading ? (
         <SkeletonTable />
       ) : invoices && invoices.length > 0 ? (
         <InvoiceTable invoices={invoices} />

@@ -1,10 +1,5 @@
-import { Skeleton, TableSkeleton } from "@/components/ui/Skeleton";
+import ListLoading from "@/components/ui/ListLoading";
 
 export default function TaxLoading() {
-  return (
-    <div style={{ padding: "64px 0" }}>
-      <Skeleton width={140} height={32} style={{ marginBottom: 32 }} />
-      <TableSkeleton rows={5} />
-    </div>
-  );
+  return <ListLoading rows={5} />;
 }
