@@ -8,7 +8,8 @@ import type { ActionResult, ActionFeedItem } from "@/lib/types";
  */
 export async function getActionFeedItems(): Promise<ActionResult<ActionFeedItem[]>> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return { error: "Niet ingelogd." };
 
   const { data, error } = await supabase
@@ -31,7 +32,8 @@ export async function resolveActionItem(
   category?: string
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return { error: "Niet ingelogd." };
 
   const { error } = await supabase
@@ -68,7 +70,8 @@ export async function resolveActionItem(
  */
 export async function ignoreActionItem(itemId: string): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return { error: "Niet ingelogd." };
 
   const { error } = await supabase

@@ -6,9 +6,8 @@ import { receiptSchema, validate } from "@/lib/validation";
 
 export async function getReceipts(): Promise<ActionResult<Receipt[]>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -26,9 +25,8 @@ export async function getReceipt(
   id: string
 ): Promise<ActionResult<Receipt>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -48,9 +46,8 @@ export async function createReceipt(
   input: ReceiptInput
 ): Promise<ActionResult<Receipt>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -88,9 +85,8 @@ export async function updateReceipt(
   input: ReceiptInput
 ): Promise<ActionResult<Receipt>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -125,9 +121,8 @@ export async function updateReceipt(
 
 export async function deleteReceipt(id: string): Promise<ActionResult> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -146,9 +141,8 @@ export async function uploadReceiptImage(
   formData: FormData
 ): Promise<ActionResult<string>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -186,9 +180,8 @@ export async function getReceiptImageUrl(
   storagePath: string
 ): Promise<ActionResult<string>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -204,9 +197,8 @@ export async function scanReceiptWithAI(
   receiptId: string
 ): Promise<ActionResult<Partial<ReceiptInput & { cost_code: number; confidence: number }>>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -293,9 +285,8 @@ export async function markReceiptAiProcessed(
   id: string
 ): Promise<ActionResult> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 

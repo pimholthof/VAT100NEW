@@ -7,9 +7,8 @@ import { KOSTENSOORTEN } from "@/lib/constants/costs";
 
 export async function getBankConnections(): Promise<ActionResult<BankConnection[]>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -29,9 +28,8 @@ export async function getBankTransactions(filters?: {
   category?: string;
 }): Promise<ActionResult<BankTransaction[]>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -62,9 +60,8 @@ export async function categorizeTransaction(
   category: string
 ): Promise<ActionResult> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -83,9 +80,8 @@ export async function linkTransactionToInvoice(
   invoiceId: string
 ): Promise<ActionResult> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -104,9 +100,8 @@ export async function linkTransactionToReceipt(
   receiptId: string
 ): Promise<ActionResult> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -126,9 +121,8 @@ export async function initiateBankConnection(
   institutionId: string
 ): Promise<ActionResult<{ redirectUrl: string }>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -161,9 +155,8 @@ export async function completeBankConnection(
   requisitionId: string
 ): Promise<ActionResult> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -192,9 +185,8 @@ export async function syncTransactions(
   connectionId: string
 ): Promise<ActionResult<number>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -228,9 +220,8 @@ export async function deleteBankConnection(
   id: string
 ): Promise<ActionResult> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -253,9 +244,8 @@ export async function autoCategorizeTransactions(
   transactionIds: string[]
 ): Promise<ActionResult<Record<string, string>>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -383,9 +373,8 @@ export async function learnFromCorrection(
   newCategory: string
 ): Promise<ActionResult> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 

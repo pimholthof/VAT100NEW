@@ -75,9 +75,8 @@ export interface DashboardData {
 
 export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -410,9 +409,8 @@ export interface SetupProgress {
 
 export async function getSetupProgress(): Promise<ActionResult<SetupProgress>> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 

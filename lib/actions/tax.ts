@@ -23,9 +23,8 @@ function getQuarterKey(dateStr: string): string {
 
 export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 

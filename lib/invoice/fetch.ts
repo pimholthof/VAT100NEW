@@ -6,9 +6,8 @@ export async function fetchInvoiceData(
 ): Promise<ActionResult<InvoiceData>> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return { error: "Niet ingelogd" };
 
   const { data: invoice, error: invoiceError } = await supabase

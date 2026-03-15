@@ -37,9 +37,8 @@ function calculateTotals(
 
 export async function generateInvoiceNumber(): Promise<ActionResult<string>> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -56,9 +55,8 @@ export async function createInvoice(
   input: InvoiceInput
 ): Promise<ActionResult<string>> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -145,9 +143,8 @@ export async function updateInvoice(
   input: InvoiceInput
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -207,9 +204,8 @@ export async function updateInvoiceStatus(
   status: InvoiceStatus
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -225,9 +221,8 @@ export async function updateInvoiceStatus(
 
 export async function deleteInvoice(id: string): Promise<ActionResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -257,9 +252,8 @@ export async function deleteInvoice(id: string): Promise<ActionResult> {
 
 export async function getInvoices(): Promise<ActionResult<InvoiceWithClient[]>> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -277,9 +271,8 @@ export async function getInvoice(
   id: string
 ): Promise<ActionResult<InvoiceWithDetails>> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -305,9 +298,8 @@ export async function generateShareToken(
   invoiceId: string
 ): Promise<ActionResult<string>> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -340,9 +332,8 @@ export async function generateShareToken(
 
 export async function sendReminder(invoiceId: string): Promise<ActionResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -374,9 +365,8 @@ export async function sendReminder(invoiceId: string): Promise<ActionResult> {
 
 export async function sendInvoice(id: string): Promise<ActionResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 

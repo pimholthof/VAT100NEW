@@ -6,9 +6,8 @@ import { profileSchema, validate } from "@/lib/validation";
 
 export async function getProfile(): Promise<ActionResult<Profile>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
@@ -27,9 +26,8 @@ export async function updateProfile(
   input: Partial<Profile>
 ): Promise<ActionResult<Profile>> {
   const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { error: "Niet ingelogd." };
 
