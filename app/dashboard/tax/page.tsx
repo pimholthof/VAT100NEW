@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getBtwOverview } from "@/lib/actions/tax";
+import { getDashboardData } from "@/lib/actions/dashboard";
 import type { QuarterStats } from "@/lib/actions/tax";
 import { StatCard, SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
@@ -12,8 +13,37 @@ export default function TaxPage() {
     queryFn: () => getBtwOverview(),
   });
 
+  const { data: dashResult } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: () => getDashboardData(),
+  });
+
   const quarters = result?.data ?? [];
   const current = quarters.length > 0 ? quarters[0] : null;
+  const safeToSpend = dashResult?.data?.safeToSpend;
+  const vatDeadline = dashResult?.data?.vatDeadline;
+
+  // Year-end IB projection (same logic as FinancialInsights)
+  const now = new Date();
+  const monthsElapsed = now.getMonth() + 1;
+  const yearRevenueExVat = quarters
+    .filter((q) => q.quarter.includes(String(now.getFullYear())))
+    .reduce((sum, q) => sum + q.revenueExVat, 0);
+  const annualizedRevenue = (yearRevenueExVat / monthsElapsed) * 12;
+  const zelfstandigenaftrek = 5030;
+  const mkbVrijstelling = annualizedRevenue * 0.14;
+  const taxableProfit = Math.max(0, annualizedRevenue - zelfstandigenaftrek - mkbVrijstelling);
+  let estimatedIB = 0;
+  if (taxableProfit <= 75518) {
+    estimatedIB = taxableProfit * 0.3693;
+  } else {
+    estimatedIB = 75518 * 0.3693 + (taxableProfit - 75518) * 0.4950;
+  }
+
+  // Total year BTW
+  const yearBtw = quarters
+    .filter((q) => q.quarter.includes(String(now.getFullYear())))
+    .reduce((sum, q) => sum + q.netVat, 0);
 
   return (
     <div>
@@ -31,9 +61,117 @@ export default function TaxPage() {
             opacity: 0.5,
           }}
         >
-          BTW-overzicht per kwartaal
+          Alles over je BTW en inkomstenbelasting
         </p>
       </div>
+
+      {/* ── Jaar Prognose ── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: 1,
+          background: "rgba(13,13,11,0.08)",
+          border: "1px solid rgba(13,13,11,0.08)",
+          marginBottom: "var(--space-section)",
+        }}
+      >
+        <YearCard
+          label={`Geschatte IB ${now.getFullYear()}`}
+          value={formatCurrency(Math.round(estimatedIB))}
+          sublabel={`Belastbaar: ${formatCurrency(Math.round(taxableProfit))}`}
+        />
+        <YearCard
+          label={`BTW totaal ${now.getFullYear()}`}
+          value={formatCurrency(Math.round(yearBtw))}
+          sublabel={`${quarters.filter((q) => q.quarter.includes(String(now.getFullYear()))).length} kwartalen`}
+        />
+        <YearCard
+          label="Totale belastingdruk"
+          value={formatCurrency(Math.round(estimatedIB + Math.max(0, yearBtw)))}
+          sublabel={safeToSpend ? `Safe-to-Spend: ${formatCurrency(safeToSpend.safeToSpend)}` : ""}
+        />
+      </div>
+
+      {/* ── ZZP Aftrekposten ── */}
+      <div style={{ marginBottom: "var(--space-section)" }}>
+        <h2 className="section-header" style={{ margin: "0 0 16px" }}>
+          Jouw aftrekposten
+        </h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: 24,
+          }}
+        >
+          <DeductionItem
+            label="Zelfstandigenaftrek"
+            value={formatCurrency(zelfstandigenaftrek)}
+            note="1.225+ uur per jaar"
+          />
+          <DeductionItem
+            label="MKB-winstvrijstelling"
+            value={formatCurrency(Math.round(mkbVrijstelling))}
+            note="14% van de winst"
+          />
+          <DeductionItem
+            label="Aftrekbare BTW (YTD)"
+            value={formatCurrency(
+              quarters
+                .filter((q) => q.quarter.includes(String(now.getFullYear())))
+                .reduce((sum, q) => sum + q.inputVat, 0)
+            )}
+            note="Via bonnetjes"
+          />
+        </div>
+      </div>
+
+      {/* ── BTW Deadline ── */}
+      {vatDeadline && (
+        <div
+          style={{
+            padding: 20,
+            border: "1px solid rgba(13,13,11,0.08)",
+            marginBottom: "var(--space-section)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <p className="label" style={{ opacity: 0.5, margin: "0 0 4px" }}>
+              Volgende BTW-aangifte
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--font-body), sans-serif",
+                fontSize: "var(--text-body-lg)",
+                fontWeight: 500,
+                margin: 0,
+              }}
+            >
+              {vatDeadline.quarter} — {vatDeadline.deadline}
+            </p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p
+              style={{
+                fontFamily: "var(--font-display), sans-serif",
+                fontSize: "var(--text-display-md)",
+                fontWeight: 700,
+                letterSpacing: "var(--tracking-display)",
+                margin: "0 0 4px",
+              }}
+            >
+              {vatDeadline.daysRemaining}d
+            </p>
+            <p className="label" style={{ opacity: 0.5, margin: 0 }}>
+              {formatCurrency(vatDeadline.estimatedAmount)}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Hero: Netto BTW dit kwartaal */}
       {!isLoading && current && (
@@ -160,7 +298,88 @@ export default function TaxPage() {
       >
         Dit overzicht is indicatief. Dien je BTW-aangifte in via het portaal van
         de Belastingdienst. Bewaar je facturen en bonnen minimaal 7 jaar.
+        Inkomstenbelastingschatting is gebaseerd op 36,93% schijf 1 en 49,50% schijf 2 (2024).
+        Zelfstandigenaftrek (€5.030) en MKB-winstvrijstelling (14%) zijn meegenomen.
       </div>
+    </div>
+  );
+}
+
+function YearCard({
+  label,
+  value,
+  sublabel,
+}: {
+  label: string;
+  value: string;
+  sublabel: string;
+}) {
+  return (
+    <div style={{ background: "var(--background)", padding: 20 }}>
+      <p className="label" style={{ margin: "0 0 8px", opacity: 0.55 }}>
+        {label}
+      </p>
+      <p
+        style={{
+          fontFamily: "var(--font-display), sans-serif",
+          fontSize: "var(--text-display-sm)",
+          fontWeight: 700,
+          letterSpacing: "var(--tracking-display)",
+          margin: "0 0 4px",
+        }}
+      >
+        {value}
+      </p>
+      <p
+        style={{
+          fontFamily: "var(--font-body), sans-serif",
+          fontSize: "var(--text-body-xs)",
+          fontWeight: 300,
+          opacity: 0.45,
+          margin: 0,
+        }}
+      >
+        {sublabel}
+      </p>
+    </div>
+  );
+}
+
+function DeductionItem({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: string;
+  note: string;
+}) {
+  return (
+    <div>
+      <p className="label" style={{ margin: "0 0 4px", opacity: 0.55 }}>
+        {label}
+      </p>
+      <p
+        style={{
+          fontFamily: "var(--font-mono), monospace",
+          fontSize: "var(--text-mono-md)",
+          fontWeight: 400,
+          margin: "0 0 2px",
+        }}
+      >
+        {value}
+      </p>
+      <p
+        style={{
+          fontFamily: "var(--font-body), sans-serif",
+          fontSize: "var(--text-body-xs)",
+          fontWeight: 300,
+          opacity: 0.4,
+          margin: 0,
+        }}
+      >
+        {note}
+      </p>
     </div>
   );
 }

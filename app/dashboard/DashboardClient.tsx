@@ -26,6 +26,7 @@ import { STATUS_LABELS } from "@/lib/constants/status";
 import { ActionFeed } from "@/components/dashboard/ActionFeed";
 import { QuickReceiptUpload } from "@/components/dashboard/QuickReceiptUpload";
 import { FinancialInsights } from "@/components/dashboard/FinancialInsights";
+import { CashflowChart } from "@/components/dashboard/CashflowChart";
 
 function getCurrentMonth(): string {
   return new Date().toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
@@ -119,6 +120,8 @@ export default function DashboardClient({
         <FinancialInsights cashflow={cashflow} safeToSpend={safeToSpend} />
       )}
 
+      {/* ── Cashflow Chart ── */}
+      {cashflow && <CashflowChart cashflow={cashflow} />}
       {/* ── Stat Strip ── */}
       <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
         <div
