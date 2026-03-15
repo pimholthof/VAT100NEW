@@ -297,15 +297,95 @@ tbody tr:hover {
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Skeleton Loaders ─── */
-.skeleton {
-  background: var(--foreground);
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
+/* ── Stagger animation for dashboard sections ── */
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.08; }
-  50% { opacity: 0.2; }
+.dashboard-content > * {
+  animation: slideUp 0.4s ease both;
+}
+
+.dashboard-content > *:nth-child(1) { animation-delay: 0s; }
+.dashboard-content > *:nth-child(2) { animation-delay: 0.06s; }
+.dashboard-content > *:nth-child(3) { animation-delay: 0.12s; }
+.dashboard-content > *:nth-child(4) { animation-delay: 0.18s; }
+.dashboard-content > *:nth-child(5) { animation-delay: 0.24s; }
+.dashboard-content > *:nth-child(6) { animation-delay: 0.30s; }
+.dashboard-content > *:nth-child(7) { animation-delay: 0.36s; }
+.dashboard-content > *:nth-child(8) { animation-delay: 0.42s; }
+.dashboard-content > *:nth-child(9) { animation-delay: 0.48s; }
+.dashboard-content > *:nth-child(10) { animation-delay: 0.54s; }
+
+/* ── Stat Card hover lift ── */
+.stat-cards-grid > div {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-cards-grid > div:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 13, 11, 0.06);
+}
+
+/* ── Action Feed item animation ── */
+@keyframes feedSlideIn {
+  0% { opacity: 0; transform: translateX(-12px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Smooth number pulse (for value changes) ── */
+@keyframes numberPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* ─── Skeleton Loaders ─── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(13, 13, 11, 0.06) 0%,
+    rgba(13, 13, 11, 0.12) 40%,
+    rgba(13, 13, 11, 0.06) 80%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Upload zone pulse ── */
+@keyframes uploadPulse {
+  0%, 100% { border-color: rgba(13, 13, 11, 0.2); }
+  50% { border-color: rgba(13, 13, 11, 0.5); }
+}
+
+.upload-processing {
+  animation: uploadPulse 1.5s ease-in-out infinite;
+}
+
+/* ── Nav link underline animation ── */
+.dashboard-nav-links a {
+  position: relative;
+}
+
+.dashboard-nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--foreground);
+  transition: width 0.2s ease;
+}
+
+.dashboard-nav-links a:hover::after {
+  width: 100%;
 }
 
 /* ── Tablet (≤1024px) ── */

@@ -27,6 +27,7 @@ import { ActionFeed } from "@/components/dashboard/ActionFeed";
 import { QuickReceiptUpload } from "@/components/dashboard/QuickReceiptUpload";
 import { FinancialInsights } from "@/components/dashboard/FinancialInsights";
 import { CashflowChart } from "@/components/dashboard/CashflowChart";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 
 function getCurrentMonth(): string {
   return new Date().toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
@@ -83,18 +84,16 @@ export default function DashboardClient({
           <p className="label" style={{ margin: "0 0 16px", opacity: 0.6 }}>
             Safe-to-Spend
           </p>
-          <p
-            style={{
-              fontFamily: "var(--font-display), sans-serif",
-              fontSize: "var(--text-display-xl)",
-              fontWeight: 700,
-              lineHeight: 0.85,
-              letterSpacing: "var(--tracking-display)",
-              margin: 0,
-            }}
-          >
-            {formatCurrency(safeToSpend.safeToSpend)}
-          </p>
+            <AnimatedNumber
+              value={safeToSpend.safeToSpend}
+              style={{
+                fontFamily: "var(--font-display), sans-serif",
+                fontSize: "var(--text-display-xl)",
+                fontWeight: 700,
+                lineHeight: 0.85,
+                letterSpacing: "var(--tracking-display)",
+              }}
+            />
           <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
             <span className="label" style={{ opacity: 0.4, textTransform: "none", letterSpacing: "normal" }}>
               Saldo: {formatCurrency(safeToSpend.currentBalance)}

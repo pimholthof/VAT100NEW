@@ -118,6 +118,7 @@ export function QuickReceiptUpload() {
 
   return (
     <div
+      className={status === "uploading" || status === "scanning" ? "upload-processing" : ""}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);

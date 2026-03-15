@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatCurrency } from "@/lib/format";
 import {
@@ -77,10 +77,11 @@ export function ActionFeed() {
         Acties ({actions.length})
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {actions.map((action) => (
+        {actions.map((action, index) => (
           <ActionCard
             key={action.id}
             action={action}
+            index={index}
             onResolve={() => resolveMutation.mutate(action.id)}
             onIgnore={() => ignoreMutation.mutate(action.id)}
             isPending={resolveMutation.isPending || ignoreMutation.isPending}
@@ -93,11 +94,13 @@ export function ActionFeed() {
 
 function ActionCard({
   action,
+  index,
   onResolve,
   onIgnore,
   isPending,
 }: {
   action: ActionFeedItem;
+  index: number;
   onResolve: () => void;
   onIgnore: () => void;
   isPending: boolean;
@@ -125,8 +128,18 @@ function ActionCard({
         justifyContent: "space-between",
         alignItems: "center",
         background: "var(--background)",
-        transition: "opacity 0.2s ease",
+        transition: "opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease",
         opacity: isPending ? 0.5 : 1,
+        animation: `feedSlideIn 0.3s ease ${index * 0.06}s both`,
+        cursor: "default",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateX(4px)";
+        e.currentTarget.style.boxShadow = "0 2px 8px rgba(13,13,11,0.04)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "";
+        e.currentTarget.style.boxShadow = "";
       }}
     >
       <div>
