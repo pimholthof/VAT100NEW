@@ -49,16 +49,16 @@ Drie families. Drie rollen. Geen uitzonderingen.
 
 ### De families
 
-**Barlow Condensed 900** — het display-lettertype.
+**Space Grotesk 700** — het display-lettertype.
 Titels, het logo, grote cijfers in statistiekkaarten. Gecondenseerd en zwaar, vult de breedte, dwingt aandacht af. Zoals "VAT100" bovenaan de factuur: 120px hoog, onmogelijk te missen.
 
 ```
 CSS-variabele:  --font-display
-Gewicht:        900 (alleen)
+Gewicht:        700 (alleen)
 Toepassing:     titels, logo, hero-cijfers, section headers, lege staten
 ```
 
-**Barlow 300 / 400 / 500** — het tekstlettertype.
+**Inter 300 / 400 / 500** — het tekstlettertype.
 Namen, adressen, navigatie, formuliertekst. Rustig, leesbaar, onopvallend. Het draagt informatie zonder aandacht op te eisen.
 
 ```
@@ -308,7 +308,7 @@ Gap:             var(--space-element)
 Wanneer er geen data is, spreekt de typografie zacht:
 
 ```
-Font:            var(--font-display), 2rem, gewicht 900
+Font:            var(--font-display), 2rem, gewicht 700
 Opacity:         0.08
 Padding:         var(--space-block) 0
 ```
@@ -380,7 +380,7 @@ Dit is geen suggestie. Dit zijn absolute regels.
 | Kleuraccenten              | Hiërarchie door gewicht en transparantie           |
 | Dark mode                  | Papier is licht. Altijd                            |
 | Emoji in UI                | Typografie, geen pictogrammen                      |
-| Font-weight 200/600/700/800| Alleen 300, 400, 500, 900                          |
+| Font-weight 200/600/800/900  | Alleen 300, 400, 500, 700                          |
 | Grijstinten als hex        | Gebruik rgba van de voorgrondkleur                 |
 | `solid` borderkleur        | Altijd rgba met opacity                            |
 | Afgeronde afbeeldingen     | `border-radius: 0 !important` geldt overal         |

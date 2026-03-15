@@ -68,7 +68,7 @@ export default function RegisterPage() {
           left: -20,
           fontFamily: "var(--font-display), sans-serif",
           fontSize: "min(14rem, 28vw)",
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: "var(--tracking-display)",
           lineHeight: 0.85,
           color: "var(--foreground)",
@@ -86,7 +86,7 @@ export default function RegisterPage() {
           style={{
             fontFamily: "var(--font-display), sans-serif",
             fontSize: "var(--text-display-xl)",
-            fontWeight: 900,
+            fontWeight: 700,
             letterSpacing: "var(--tracking-display)",
             lineHeight: 0.85,
             margin: 0,

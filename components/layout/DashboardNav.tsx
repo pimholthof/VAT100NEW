@@ -40,7 +40,7 @@ export function DashboardNav({
           style={{
             fontFamily: "var(--font-display), sans-serif",
             fontSize: "18px",
-            fontWeight: 900,
+            fontWeight: 700,
             letterSpacing: "0.20em",
             textDecoration: "none",
             color: "var(--foreground)",

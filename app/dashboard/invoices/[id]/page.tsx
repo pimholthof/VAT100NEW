@@ -152,7 +152,7 @@ export default function EditInvoicePage() {
         style={{
           fontFamily: "var(--font-display), sans-serif",
           fontSize: "var(--text-display-lg)",
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: "var(--tracking-display)",
           lineHeight: 0.9,
           margin: "0 0 32px",

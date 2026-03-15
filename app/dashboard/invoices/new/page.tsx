@@ -17,7 +17,7 @@ export default function NewInvoicePage() {
         style={{
           fontFamily: "var(--font-display), sans-serif",
           fontSize: "var(--text-display-md)",
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: "var(--tracking-display)",
           lineHeight: 1,
           margin: "0 0 32px",

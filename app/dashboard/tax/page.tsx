@@ -45,7 +45,7 @@ export default function TaxPage() {
             style={{
               fontFamily: "var(--font-display), sans-serif",
               fontSize: "var(--text-display-xl)",
-              fontWeight: 900,
+              fontWeight: 700,
               lineHeight: 0.85,
               letterSpacing: "var(--tracking-display)",
               margin: 0,

@@ -323,7 +323,7 @@ export default function ClientDetailPage() {
         style={{
           fontFamily: "var(--font-display), sans-serif",
           fontSize: "var(--text-display-sm)",
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           lineHeight: 1,

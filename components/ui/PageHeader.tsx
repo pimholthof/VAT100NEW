@@ -42,7 +42,7 @@ export function PageHeader({
           style={titleSize === "md" ? {
             fontFamily: "var(--font-display), sans-serif",
             fontSize: "var(--text-display-md)",
-            fontWeight: 900,
+            fontWeight: 700,
             letterSpacing: "var(--tracking-display)",
             lineHeight: 0.9,
             margin: 0,

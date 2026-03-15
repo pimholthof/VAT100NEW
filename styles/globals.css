@@ -70,8 +70,8 @@
   --color-foreground: var(--foreground);
   --color-black: var(--color-black);
   --color-white: var(--color-white);
-  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --font-body: "Barlow", "Arial", "Helvetica", sans-serif;
+  --font-display: "Space Grotesk", "Arial Narrow", sans-serif;
+  --font-body: "Inter", "Arial", "Helvetica", sans-serif;
   --font-mono: "JetBrains Mono", "Courier New", monospace;
   --radius-sm: 0px;
   --radius-md: 0px;
@@ -104,7 +104,7 @@ body {
 
 /* ─── Selection ─── */
 ::selection {
-  background: rgba(13, 13, 11, 0.08);
+  background: rgba(13, 13, 11, 0.12);
 }
 
 /* ─── Global transitions ─── */
@@ -130,11 +130,11 @@ button:disabled {
 }
 
 tbody tr {
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 tbody tr:hover {
-  background: rgba(13, 13, 11, 0.012);
+  background: rgba(13, 13, 11, 0.03);
 }
 
 /* ─── Dashboard Shell ─── */
@@ -151,7 +151,7 @@ tbody tr:hover {
   font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.4;
+  opacity: 0.6;
 }
 
 .label-strong {
@@ -160,13 +160,13 @@ tbody tr:hover {
   font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 .display-hero {
   font-family: var(--font-display), sans-serif;
   font-size: var(--text-display-hero);
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: var(--tracking-display);
   line-height: 0.85;
   margin: 0;
@@ -175,7 +175,7 @@ tbody tr:hover {
 .display-title {
   font-family: var(--font-display), sans-serif;
   font-size: var(--text-display-lg);
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: var(--tracking-display);
   line-height: 0.9;
   margin: 0;
@@ -184,8 +184,8 @@ tbody tr:hover {
 .section-header {
   font-family: var(--font-display), sans-serif;
   font-size: var(--text-display-sm);
-  font-weight: 900;
-  letter-spacing: var(--tracking-label);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
   text-transform: uppercase;
   line-height: 1;
   margin: 0;
@@ -227,7 +227,7 @@ tbody tr:hover {
 .empty-state {
   font-family: var(--font-display), sans-serif;
   font-size: var(--text-display-md);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   opacity: 0.08;
   padding: var(--space-block) 0;
@@ -257,7 +257,7 @@ tbody tr:hover {
 }
 
 .dashboard-nav-links a:hover {
-  opacity: 0.6 !important;
+  opacity: 0.8 !important;
 }
 
 .dashboard-nav-right {
@@ -293,7 +293,7 @@ tbody tr:hover {
 }
 
 @keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(4px); }
+  0% { opacity: 0; transform: translateY(8px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 

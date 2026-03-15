@@ -31,7 +31,7 @@ Font.register({
 Font.register({
   family: "Barlow Condensed",
   src: "https://fonts.gstatic.com/s/barlowcondensed/v12/HTxxL3I-JCGChYJ8VI-L6OO_au7B46r2z3bWuYMBYQ.ttf",
-  fontWeight: 900,
+  fontWeight: 700,
 });
 
 // ─── Design tokens ───
@@ -118,7 +118,7 @@ const s = StyleSheet.create({
   },
   vat100Mark: {
     fontFamily: "Barlow Condensed",
-    fontWeight: 900,
+    fontWeight: 700,
     fontSize: 120,
     lineHeight: 0.85,
     letterSpacing: 0.02 * 120,

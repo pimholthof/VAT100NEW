@@ -223,7 +223,7 @@ const header: React.CSSProperties = {
 
 const vat100Mark: React.CSSProperties = {
   fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif',
-  fontWeight: 900,
+  fontWeight: 700,
   fontSize: "120px",
   lineHeight: "0.85",
   letterSpacing: "0.02em",

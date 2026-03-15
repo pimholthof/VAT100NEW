@@ -34,7 +34,7 @@ export function StatCard({
             fontWeight: 300,
             marginTop: 8,
             marginBottom: 0,
-            opacity: 0.3,
+            opacity: 0.5,
           }}
         >
           {sub}
