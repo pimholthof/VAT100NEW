@@ -10,27 +10,18 @@ export function StatCard({
   sub?: string;
 }) {
   return (
-    <div style={{ padding: "32px 0" }}>
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-label)",
-          fontWeight: 500,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          margin: "0 0 8px",
-          opacity: 0.4,
-        }}
-      >
+    <div style={{ padding: "36px 0 28px" }}>
+      <p className="label" style={{ margin: "0 0 12px" }}>
         {label}
       </p>
       <p
         style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "3rem",
-          fontWeight: 900,
-          lineHeight: 0.9,
+          fontFamily: "var(--font-mono), monospace",
+          fontSize: "var(--text-mono-lg)",
+          fontWeight: 300,
+          lineHeight: 1,
           margin: 0,
+          fontVariantNumeric: "tabular-nums",
         }}
       >
         {value}
@@ -41,9 +32,9 @@ export function StatCard({
             fontFamily: "var(--font-mono), monospace",
             fontSize: "var(--text-mono-sm)",
             fontWeight: 300,
-            marginTop: 6,
+            marginTop: 8,
             marginBottom: 0,
-            opacity: 0.35,
+            opacity: 0.3,
           }}
         >
           {sub}
@@ -55,9 +46,9 @@ export function StatCard({
 
 export function SkeletonCard() {
   return (
-    <div style={{ padding: "32px 0", opacity: 0.12 }}>
-      <div className="skeleton" style={{ width: "60%", height: 9, marginBottom: 12 }} />
-      <div className="skeleton" style={{ width: "80%", height: 36 }} />
+    <div style={{ padding: "36px 0 28px", opacity: 0.12 }}>
+      <div className="skeleton" style={{ width: "60%", height: 9, marginBottom: 16 }} />
+      <div className="skeleton" style={{ width: "80%", height: 28 }} />
     </div>
   );
 }

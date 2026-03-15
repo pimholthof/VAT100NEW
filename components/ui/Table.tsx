@@ -9,15 +9,11 @@ export function Th({
 }) {
   return (
     <th
+      className="label"
       style={{
-        fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-label)",
-        fontWeight: 500,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        opacity: 0.3,
-        padding: "14px 0",
+        padding: "16px 0",
         textAlign: "left",
+        opacity: 0.3,
         ...style,
       }}
     >
@@ -36,7 +32,7 @@ export function Td({
   return (
     <td
       style={{
-        padding: "14px 0",
+        padding: "16px 0",
         fontWeight: 300,
         ...style,
       }}

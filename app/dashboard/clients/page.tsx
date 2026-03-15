@@ -38,20 +38,11 @@ export default function ClientsPage() {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 64,
+          alignItems: "flex-end",
+          marginBottom: 80,
         }}
       >
-        <h1
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-lg)",
-            fontWeight: 900,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 0.9,
-            margin: 0,
-          }}
-        >
+        <h1 className="display-title">
           Klanten
         </h1>
         <Link
@@ -60,15 +51,15 @@ export default function ClientsPage() {
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-label)",
             fontWeight: 500,
-            letterSpacing: "0.08em",
+            letterSpacing: "0.10em",
             textTransform: "uppercase",
-            padding: "12px 24px",
-            border: "0.5px solid var(--foreground)",
+            padding: "14px 28px",
+            border: "0.5px solid rgba(13,13,11,0.25)",
             background: "transparent",
             color: "var(--foreground)",
             textDecoration: "none",
             display: "inline-block",
-            transition: "all 0.2s ease",
+            transition: "opacity 0.2s ease",
           }}
         >
           + Nieuwe klant
@@ -76,7 +67,7 @@ export default function ClientsPage() {
       </div>
 
       {/* Search */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 32 }}>
         <input
           type="text"
           value={search}
@@ -85,7 +76,7 @@ export default function ClientsPage() {
           style={{
             width: "100%",
             maxWidth: 400,
-            padding: "12px 0",
+            padding: "14px 0",
             border: "none",
             borderBottom: "0.5px solid rgba(13,13,11,0.15)",
             background: "transparent",
@@ -104,48 +95,27 @@ export default function ClientsPage() {
             <div
               key={i}
               className="skeleton"
-              style={{ width: "100%", height: 40, marginBottom: 1 }}
+              style={{ width: "100%", height: 48, marginBottom: 1 }}
             />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ paddingTop: 48 }}>
-          <p
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "13px",
-              fontWeight: 300,
-              opacity: 0.3,
-              margin: "0 0 16px",
-            }}
-          >
-            {search.trim()
-              ? "Geen klanten gevonden."
-              : "Nog geen klanten aangemaakt."}
+        <div style={{ paddingTop: "var(--space-block)" }}>
+          <p className="empty-state">
+            {search.trim() ? "Geen klanten gevonden" : "Nog geen klanten"}
           </p>
           {!search.trim() && (
             <Link
               href="/dashboard/clients/new"
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-md)",
-                fontWeight: 400,
-                color: "var(--foreground)",
-                textDecoration: "none",
-                opacity: 0.6,
-              }}
+              className="table-action"
+              style={{ opacity: 0.4 }}
             >
               Voeg je eerste klant toe
             </Link>
           )}
         </div>
       ) : (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-          }}
-        >
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Bedrijfsnaam</Th>
@@ -174,17 +144,10 @@ export default function ClientsPage() {
                 <Td>{client.email ?? "—"}</Td>
                 <Td>{client.city ?? "—"}</Td>
                 <Td style={{ textAlign: "right" }}>
-                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                  <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                     <Link
                       href={`/dashboard/clients/${client.id}`}
-                      style={{
-                        fontSize: "var(--text-label)",
-                        fontWeight: 500,
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        color: "var(--foreground)",
-                        textDecoration: "none",
-                      }}
+                      className="table-action"
                     >
                       Bekijk
                     </Link>
@@ -194,16 +157,13 @@ export default function ClientsPage() {
                           deleteMutation.mutate(client.id);
                         }
                       }}
+                      className="table-action"
                       style={{
-                        fontSize: "var(--text-label)",
-                        fontWeight: 500,
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        color: "var(--foreground)",
                         background: "none",
                         border: "none",
                         cursor: "pointer",
-                        opacity: 0.4,
+                        opacity: 0.3,
+                        padding: 0,
                       }}
                     >
                       Verwijder

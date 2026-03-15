@@ -34,24 +34,16 @@ export default function InvoicesPage() {
 
   return (
     <div>
+      {/* Page header */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 64,
+          alignItems: "flex-end",
+          marginBottom: 80,
         }}
       >
-        <h1
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-lg)",
-            fontWeight: 900,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 0.9,
-            margin: 0,
-          }}
-        >
+        <h1 className="display-title">
           Facturen
         </h1>
         <Link
@@ -60,15 +52,15 @@ export default function InvoicesPage() {
             fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-label)",
             fontWeight: 500,
-            letterSpacing: "0.08em",
+            letterSpacing: "0.10em",
             textTransform: "uppercase",
-            padding: "12px 24px",
-            border: "0.5px solid var(--foreground)",
+            padding: "14px 28px",
+            border: "0.5px solid rgba(13,13,11,0.25)",
             background: "transparent",
             color: "var(--foreground)",
             textDecoration: "none",
             display: "inline-block",
-            transition: "all 0.2s ease",
+            transition: "opacity 0.2s ease",
           }}
         >
           + Nieuwe factuur
@@ -81,44 +73,25 @@ export default function InvoicesPage() {
             <div
               key={i}
               className="skeleton"
-              style={{ width: "100%", height: 40, marginBottom: 1 }}
+              style={{ width: "100%", height: 48, marginBottom: 1 }}
             />
           ))}
         </div>
       ) : invoices.length === 0 ? (
-        <div style={{ paddingTop: 48 }}>
-          <p
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "13px",
-              fontWeight: 300,
-              opacity: 0.3,
-              margin: "0 0 16px",
-            }}
-          >
-            Nog geen facturen aangemaakt.
+        <div style={{ paddingTop: "var(--space-block)" }}>
+          <p className="empty-state">
+            Nog geen facturen
           </p>
           <Link
             href="/dashboard/invoices/new"
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-md)",
-              fontWeight: 400,
-              color: "var(--foreground)",
-              textDecoration: "none",
-              opacity: 0.6,
-            }}
+            className="table-action"
+            style={{ opacity: 0.4 }}
           >
             Maak je eerste factuur
           </Link>
         </div>
       ) : (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-          }}
-        >
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Nummer</Th>
@@ -146,9 +119,9 @@ export default function InvoicesPage() {
                     {invoice.invoice_number}
                   </Link>
                 </Td>
-                <Td>{invoice.client?.name ?? "—"}</Td>
+                <Td style={{ fontWeight: 400 }}>{invoice.client?.name ?? "—"}</Td>
                 <Td>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                  <span className="mono-amount">
                     {formatDate(invoice.issue_date)}
                   </span>
                 </Td>
@@ -186,22 +159,15 @@ export default function InvoicesPage() {
                   </select>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                  <span className="mono-amount">
                     {formatCurrency(invoice.total_inc_vat)}
                   </span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                  <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                     <Link
                       href={`/dashboard/invoices/${invoice.id}/preview`}
-                      style={{
-                        fontSize: "var(--text-label)",
-                        fontWeight: 500,
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        color: "var(--foreground)",
-                        textDecoration: "none",
-                      }}
+                      className="table-action"
                     >
                       Bekijk
                     </Link>
@@ -212,16 +178,13 @@ export default function InvoicesPage() {
                             deleteMutation.mutate(invoice.id);
                           }
                         }}
+                        className="table-action"
                         style={{
-                          fontSize: "var(--text-label)",
-                          fontWeight: 500,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          color: "var(--foreground)",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          opacity: 0.4,
+                          opacity: 0.3,
+                          padding: 0,
                         }}
                       >
                         Verwijder

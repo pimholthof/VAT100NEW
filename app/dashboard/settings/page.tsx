@@ -15,10 +15,10 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div>
-        <div className="skeleton" style={{ height: 40, width: 200, marginBottom: 48 }} />
+        <div className="skeleton" style={{ height: 48, width: 260, marginBottom: 80 }} />
         {[...Array(4)].map((_, i) => (
-          <div key={i} style={{ marginBottom: 16 }}>
-            <div className="skeleton" style={{ height: 9, width: 80, marginBottom: 8 }} />
+          <div key={i} style={{ marginBottom: 20 }}>
+            <div className="skeleton" style={{ height: 9, width: 80, marginBottom: 10 }} />
             <div className="skeleton" style={{ height: 36, width: "100%", maxWidth: 480 }} />
           </div>
         ))}
@@ -29,16 +29,7 @@ export default function SettingsPage() {
   if (result?.error) {
     return (
       <div>
-        <h1
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-lg)",
-            fontWeight: 900,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 0.9,
-            margin: "0 0 64px",
-          }}
-        >
+        <h1 className="display-title" style={{ margin: "0 0 80px" }}>
           Instellingen
         </h1>
         <ErrorMessage>{result.error}</ErrorMessage>
@@ -93,16 +84,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
 
   return (
     <div>
-      <h1
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-lg)",
-          fontWeight: 900,
-          letterSpacing: "var(--tracking-display)",
-          lineHeight: 0.9,
-          margin: "0 0 64px",
-        }}
-      >
+      <h1 className="display-title" style={{ margin: "0 0 80px" }}>
         Instellingen
       </h1>
 
@@ -120,134 +102,123 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
 
       <div style={{ maxWidth: 480 }}>
         {/* Persoonlijk */}
-        <SectionTitle>Persoonlijk</SectionTitle>
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+            Persoonlijk
+          </p>
 
-        <FieldGroup label="Volledige naam">
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Je volledige naam"
-            style={inputStyle}
-          />
-        </FieldGroup>
+          <FieldGroup label="Volledige naam">
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Je volledige naam"
+              style={inputStyle}
+            />
+          </FieldGroup>
 
-        <FieldGroup label="Studionaam">
-          <input
-            type="text"
-            value={studioName}
-            onChange={(e) => setStudioName(e.target.value)}
-            placeholder="Naam van je studio of bedrijf"
-            style={inputStyle}
-          />
-        </FieldGroup>
+          <FieldGroup label="Studionaam">
+            <input
+              type="text"
+              value={studioName}
+              onChange={(e) => setStudioName(e.target.value)}
+              placeholder="Naam van je studio of bedrijf"
+              style={inputStyle}
+            />
+          </FieldGroup>
+        </div>
 
         {/* Bedrijfsgegevens */}
-        <div
-          style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
-            marginTop: 32,
-            paddingTop: 32,
-          }}
-        >
-          <SectionTitle>Bedrijfsgegevens</SectionTitle>
-        </div>
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+            Bedrijfsgegevens
+          </p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 16,
-          }}
-        >
-          <FieldGroup label="KVK-nummer">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <FieldGroup label="KVK-nummer">
+              <input
+                type="text"
+                value={kvkNumber}
+                onChange={(e) => setKvkNumber(e.target.value)}
+                placeholder="12345678"
+                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+              />
+            </FieldGroup>
+            <FieldGroup label="BTW-nummer">
+              <input
+                type="text"
+                value={btwNumber}
+                onChange={(e) => setBtwNumber(e.target.value)}
+                placeholder="NL123456789B01"
+                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+              />
+            </FieldGroup>
+          </div>
+
+          <FieldGroup label="Adres">
             <input
               type="text"
-              value={kvkNumber}
-              onChange={(e) => setKvkNumber(e.target.value)}
-              placeholder="12345678"
-              style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
-            />
-          </FieldGroup>
-          <FieldGroup label="BTW-nummer">
-            <input
-              type="text"
-              value={btwNumber}
-              onChange={(e) => setBtwNumber(e.target.value)}
-              placeholder="NL123456789B01"
-              style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
-            />
-          </FieldGroup>
-        </div>
-
-        <FieldGroup label="Adres">
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Straatnaam en huisnummer"
-            style={inputStyle}
-          />
-        </FieldGroup>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 2fr",
-            gap: 16,
-          }}
-        >
-          <FieldGroup label="Postcode">
-            <input
-              type="text"
-              value={postalCode}
-              onChange={(e) => setPostalCode(e.target.value)}
-              placeholder="1234 AB"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Straatnaam en huisnummer"
               style={inputStyle}
             />
           </FieldGroup>
-          <FieldGroup label="Stad">
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Stad"
-              style={inputStyle}
-            />
-          </FieldGroup>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 16 }}>
+            <FieldGroup label="Postcode">
+              <input
+                type="text"
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                placeholder="1234 AB"
+                style={inputStyle}
+              />
+            </FieldGroup>
+            <FieldGroup label="Stad">
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Stad"
+                style={inputStyle}
+              />
+            </FieldGroup>
+          </div>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 16,
-          }}
-        >
-          <FieldGroup label="IBAN">
-            <input
-              type="text"
-              value={iban}
-              onChange={(e) => setIban(e.target.value)}
-              placeholder="NL00BANK0123456789"
-              style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
-            />
-          </FieldGroup>
-          <FieldGroup label="BIC">
-            <input
-              type="text"
-              value={bic}
-              onChange={(e) => setBic(e.target.value)}
-              placeholder="BANKNL2A"
-              style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
-            />
-          </FieldGroup>
+        {/* Bankgegevens */}
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+            Bankgegevens
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <FieldGroup label="IBAN">
+              <input
+                type="text"
+                value={iban}
+                onChange={(e) => setIban(e.target.value)}
+                placeholder="NL00BANK0123456789"
+                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+              />
+            </FieldGroup>
+            <FieldGroup label="BIC">
+              <input
+                type="text"
+                value={bic}
+                onChange={(e) => setBic(e.target.value)}
+                placeholder="BANKNL2A"
+                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+              />
+            </FieldGroup>
+          </div>
         </div>
 
+        {/* Save */}
         <div
           style={{
-            marginTop: 32,
-            paddingTop: 24,
+            paddingTop: 28,
             borderTop: "0.5px solid rgba(13,13,11,0.15)",
           }}
         >
@@ -260,24 +231,5 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2
-      style={{
-        fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-label)",
-        fontWeight: 500,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        opacity: 0.4,
-        lineHeight: 1,
-        margin: "0 0 32px",
-      }}
-    >
-      {children}
-    </h2>
   );
 }

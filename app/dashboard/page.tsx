@@ -22,6 +22,10 @@ import {
 import { formatCurrency, formatDate } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/constants/status";
 
+function getCurrentMonth(): string {
+  return new Date().toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
+}
+
 export default function DashboardPage() {
   const { data: dashboardResult, isLoading } = useQuery({
     queryKey: ["dashboard"],
@@ -42,31 +46,58 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-lg)",
-          fontWeight: 900,
-          letterSpacing: "var(--tracking-display)",
-          lineHeight: 0.9,
-          margin: "0 0 64px",
-        }}
-      >
-        Dashboard
-      </h1>
-
-      {/* Stat cards */}
+      {/* ── Masthead ── */}
       <div
+        className="editorial-divider"
         style={{
-          borderTop: "0.5px solid rgba(13,13,11,0.15)",
-          marginBottom: 72,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingBottom: 16,
+          marginBottom: 48,
         }}
       >
+        <span className="label" style={{ opacity: 0.3 }}>
+          Overzicht
+        </span>
+        <span className="label" style={{ opacity: 0.2 }}>
+          {getCurrentMonth().toUpperCase()}
+        </span>
+      </div>
+
+      {/* ── Hero Revenue ── */}
+      {statsLoading ? (
+        <div style={{ marginBottom: "var(--space-hero)" }}>
+          <div className="skeleton" style={{ width: "40%", height: 9, marginBottom: 20, opacity: 0.08 }} />
+          <div className="skeleton" style={{ width: "60%", height: 80, opacity: 0.06 }} />
+        </div>
+      ) : stats ? (
+        <div style={{ marginBottom: "var(--space-hero)" }}>
+          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+            Omzet {getCurrentMonth()}
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-display), sans-serif",
+              fontSize: "var(--text-display-xl)",
+              fontWeight: 900,
+              lineHeight: 0.85,
+              letterSpacing: "var(--tracking-display)",
+              margin: 0,
+            }}
+          >
+            {formatCurrency(stats.revenueThisMonth)}
+          </p>
+        </div>
+      ) : null}
+
+      {/* ── Stat Strip ── */}
+      <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 24,
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "var(--space-element)",
           }}
           className="stat-cards-grid"
         >
@@ -75,14 +106,9 @@ export default function DashboardPage() {
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
-              <SkeletonCard />
             </>
           ) : stats ? (
             <>
-              <StatCard
-                label="Omzet deze maand"
-                value={formatCurrency(stats.revenueThisMonth)}
-              />
               <StatCard
                 label="Open facturen"
                 value={String(stats.openInvoiceCount)}
@@ -101,46 +127,35 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* BTW-deadline banner */}
+      {/* ── BTW-deadline banner ── */}
       {vatDeadlineLoading ? (
         <div
+          className="editorial-divider"
           style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
             borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-            padding: "24px 0",
-            marginBottom: 48,
+            padding: "32px 0",
+            marginBottom: "var(--space-section)",
             opacity: 0.12,
           }}
         >
-          <div className="skeleton" style={{ width: "40%", height: 32 }} />
+          <div className="skeleton" style={{ width: "40%", height: 40 }} />
         </div>
       ) : vatDeadline ? (
         <div
-          className="vat-deadline-banner"
+          className="vat-deadline-banner editorial-divider"
           style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
             borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-            padding: "24px 0",
-            marginBottom: 48,
+            padding: "32px 0",
+            marginBottom: "var(--space-section)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 24,
+            gap: "var(--space-element)",
           }}
         >
           <div>
-            <p
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-label)",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                margin: "0 0 8px",
-                opacity: 0.4,
-              }}
-            >
-              BTW-AANGIFTE {vatDeadline.quarter}
+            <p className="label" style={{ margin: "0 0 10px", opacity: 0.3 }}>
+              BTW-aangifte {vatDeadline.quarter}
             </p>
             <p
               style={{
@@ -157,51 +172,30 @@ export default function DashboardPage() {
             <p
               style={{
                 fontFamily: "var(--font-display), sans-serif",
-                fontSize: "3rem",
+                fontSize: "var(--text-display-lg)",
                 fontWeight: 900,
                 lineHeight: 0.9,
                 margin: 0,
               }}
             >
-              {vatDeadline.daysRemaining} dagen
+              {vatDeadline.daysRemaining}
             </p>
-            {vatDeadline.daysRemaining < 14 && (
-              <p
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-label)",
-                  fontWeight: 500,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  margin: "8px 0 0",
-                  opacity: 0.4,
-                }}
-              >
-                Deadline nadert
-              </p>
-            )}
+            <p className="label" style={{ margin: "10px 0 0", opacity: 0.3 }}>
+              {vatDeadline.daysRemaining < 14 ? "Dagen — deadline nadert" : "Dagen"}
+            </p>
           </div>
           <div style={{ textAlign: "right" }}>
-            <p
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-label)",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                margin: "0 0 8px",
-                opacity: 0.4,
-              }}
-            >
-              GESCHAT BEDRAG
+            <p className="label" style={{ margin: "0 0 10px", opacity: 0.3 }}>
+              Geschat bedrag
             </p>
             <p
               style={{
-                fontFamily: "var(--font-display), sans-serif",
-                fontSize: "3rem",
-                fontWeight: 900,
-                lineHeight: 0.9,
+                fontFamily: "var(--font-mono), monospace",
+                fontSize: "var(--text-mono-lg)",
+                fontWeight: 300,
+                lineHeight: 1,
                 margin: 0,
+                fontVariantNumeric: "tabular-nums",
               }}
             >
               {formatCurrency(vatDeadline.estimatedAmount)}
@@ -210,42 +204,28 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {/* Cashflow section */}
+      {/* ── Cashflow ── */}
       {cashflowLoading ? (
-        <div style={{ marginBottom: 48 }}>
-          <div className="skeleton" style={{ width: "30%", height: 20, marginBottom: 16, opacity: 0.12 }} />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24, opacity: 0.12 }}>
+        <div style={{ marginBottom: "var(--space-section)" }}>
+          <div className="skeleton" style={{ width: "30%", height: 14, marginBottom: 24, opacity: 0.08 }} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "var(--space-element)", opacity: 0.08 }}>
             <SkeletonCard />
             <SkeletonCard />
           </div>
         </div>
       ) : cashflow ? (
-        <div style={{ marginBottom: 72 }}>
-          <h2
-            style={{
-              fontFamily: "var(--font-display), sans-serif",
-              fontSize: "var(--text-display-sm)",
-              fontWeight: 900,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              lineHeight: 1,
-              margin: "0 0 16px",
-            }}
-          >
+        <div style={{ marginBottom: "var(--space-section)" }}>
+          <h2 className="section-header" style={{ margin: "0 0 16px" }}>
             Cashflow
           </h2>
 
-          <div
-            style={{
-              borderTop: "0.5px solid rgba(13,13,11,0.15)",
-            }}
-          >
+          <div className="editorial-divider">
             <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(2, 1fr)",
-                gap: 24,
-                marginBottom: 24,
+                gap: "var(--space-element)",
+                marginBottom: "var(--space-element)",
               }}
             >
               <StatCard
@@ -263,18 +243,8 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {/* Upcoming due invoices */}
-      <h2
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-sm)",
-          fontWeight: 900,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          lineHeight: 1,
-          margin: "0 0 16px",
-        }}
-      >
+      {/* ── Upcoming due invoices ── */}
+      <h2 className="section-header" style={{ margin: "0 0 16px" }}>
         Openstaande facturen
       </h2>
 
@@ -283,31 +253,15 @@ export default function DashboardPage() {
       ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
         <UpcomingInvoiceTable invoices={upcomingInvoices} />
       ) : (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "13px",
-            fontWeight: 300,
-            opacity: 0.3,
-            marginBottom: 48,
-            paddingTop: 48,
-          }}
-        >
-          Geen openstaande facturen.
+        <p className="empty-state">
+          Geen openstaande facturen
         </p>
       )}
 
-      {/* Recent invoices table */}
+      {/* ── Recent invoices ── */}
       <h2
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-sm)",
-          fontWeight: 900,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          lineHeight: 1,
-          margin: "72px 0 16px",
-        }}
+        className="section-header"
+        style={{ margin: "var(--space-section) 0 16px" }}
       >
         Laatste facturen
       </h2>
@@ -317,16 +271,8 @@ export default function DashboardPage() {
       ) : invoices && invoices.length > 0 ? (
         <InvoiceTable invoices={invoices} />
       ) : (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "13px",
-            fontWeight: 300,
-            opacity: 0.3,
-            paddingTop: 48,
-          }}
-        >
-          Nog geen facturen aangemaakt.
+        <p className="empty-state">
+          Nog geen facturen aangemaakt
         </p>
       )}
     </div>
@@ -338,13 +284,7 @@ export default function DashboardPage() {
 function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
   return (
     <div style={{ overflowX: "auto" }}>
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          borderSpacing: 0,
-        }}
-      >
+      <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: 0 }}>
         <thead>
           <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)" }}>
             <Th>Status</Th>
@@ -358,41 +298,23 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
           {invoices.map((inv) => (
             <tr key={inv.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
               <Td>
-                <span
-                  style={{
-                    fontSize: "var(--text-label)",
-                    fontWeight: 500,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <span className="label" style={{ opacity: 1 }}>
                   {STATUS_LABELS[inv.status] ?? inv.status}
                 </span>
               </Td>
-              <Td>{inv.client_name}</Td>
+              <Td style={{ fontWeight: 400 }}>{inv.client_name}</Td>
               <Td>
-                <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                <span className="mono-amount">
                   {formatDate(inv.issue_date)}
                 </span>
               </Td>
               <Td style={{ textAlign: "right" }}>
-                <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                <span className="mono-amount">
                   {formatCurrency(inv.total_inc_vat)}
                 </span>
               </Td>
               <Td>
-                <Link
-                  href={`/dashboard/invoices/${inv.id}`}
-                  style={{
-                    fontFamily: "var(--font-body), sans-serif",
-                    fontSize: "var(--text-label)",
-                    fontWeight: 500,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "var(--foreground)",
-                    textDecoration: "none",
-                  }}
-                >
+                <Link href={`/dashboard/invoices/${inv.id}`} className="table-action">
                   Bekijk
                 </Link>
               </Td>
@@ -423,16 +345,10 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
   };
 
   return (
-    <div style={{ marginBottom: 48 }}>
+    <div style={{ marginBottom: "var(--space-block)" }}>
       {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
       <div style={{ overflowX: "auto" }}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            borderSpacing: 0,
-          }}
-        >
+        <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: 0 }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)" }}>
               <Th>Klant</Th>
@@ -452,6 +368,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                       borderLeft: isOverdue
                         ? "2px solid var(--foreground)"
                         : "2px solid transparent",
+                      fontWeight: 400,
                     }}
                   >
                     {inv.client_name}
@@ -471,19 +388,12 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                     </Link>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
-                    <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                    <span className="mono-amount">
                       {formatCurrency(inv.total_inc_vat)}
                     </span>
                   </Td>
                   <Td>
-                    <span
-                      style={{
-                        fontSize: "var(--text-label)",
-                        fontWeight: 500,
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                      }}
-                    >
+                    <span className="label" style={{ opacity: 1 }}>
                       {isOverdue
                         ? `${inv.days_overdue}d verlopen`
                         : inv.days_overdue === 0
@@ -502,15 +412,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                           : "Stuur herinnering"}
                       </ButtonSecondary>
                     ) : (
-                      <span
-                        style={{
-                          fontSize: "var(--text-label)",
-                          fontWeight: 500,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          opacity: 0.3,
-                        }}
-                      >
+                      <span className="label" style={{ opacity: 0.3 }}>
                         Geen e-mail
                       </span>
                     )}
@@ -536,13 +438,7 @@ function formatMonth(key: string): string {
 function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
   return (
     <div style={{ overflowX: "auto" }}>
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          borderSpacing: 0,
-        }}
-      >
+      <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: 0 }}>
         <thead>
           <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)" }}>
             <Th style={{ textAlign: "left" }}>Maand</Th>
@@ -557,23 +453,17 @@ function CashflowTable({ cashflow }: { cashflow: CashflowSummary }) {
             const net = Math.round((rev.amount - expense) * 100) / 100;
             return (
               <tr key={rev.month} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                <Td style={{ textAlign: "left" }}>
+                <Td style={{ textAlign: "left", fontWeight: 400 }}>
                   {formatMonth(rev.month)}
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCurrency(rev.amount)}
-                  </span>
+                  <span className="mono-amount">{formatCurrency(rev.amount)}</span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCurrency(expense)}
-                  </span>
+                  <span className="mono-amount">{formatCurrency(expense)}</span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCurrency(net)}
-                  </span>
+                  <span className="mono-amount">{formatCurrency(net)}</span>
                 </Td>
               </tr>
             );

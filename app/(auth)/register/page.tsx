@@ -4,20 +4,11 @@ import { register } from "../actions";
 import Link from "next/link";
 import { useState } from "react";
 
-const labelStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-label)",
-  fontWeight: 500,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  opacity: 0.4,
-};
-
 const textInputStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "13px",
   fontWeight: 300,
-  padding: "12px 0",
+  padding: "14px 0",
   border: "none",
   borderBottom: "0.5px solid rgba(13,13,11,0.12)",
   background: "transparent",
@@ -57,8 +48,40 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ width: "100%", maxWidth: 400 }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        alignItems: "center",
+        justifyItems: "center",
+        padding: 24,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Background watermark */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: -40,
+          left: -20,
+          fontFamily: "var(--font-display), sans-serif",
+          fontSize: "min(14rem, 28vw)",
+          fontWeight: 900,
+          letterSpacing: "var(--tracking-display)",
+          lineHeight: 0.85,
+          color: "var(--foreground)",
+          opacity: 0.04,
+          pointerEvents: "none",
+          userSelect: "none",
+          whiteSpace: "nowrap",
+        }}
+      >
+        VAT100
+      </div>
+
+      <div style={{ width: "100%", maxWidth: 340, position: "relative", zIndex: 1 }}>
         <h1
           style={{
             fontFamily: "var(--font-display), sans-serif",
@@ -69,44 +92,43 @@ export default function RegisterPage() {
             margin: 0,
           }}
         >
-          VAT100
+          Registreren
         </h1>
         <p
+          className="label"
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "13px",
-            fontWeight: 300,
-            opacity: 0.4,
-            marginTop: 16,
-            marginBottom: 56,
+            marginTop: 24,
+            marginBottom: 72,
+            letterSpacing: "var(--tracking-caps)",
+            opacity: 0.25,
           }}
         >
-          Account aanmaken
+          Word lid van VAT100
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 36 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="full_name" style={labelStyle}>Volledige naam</label>
+            <label htmlFor="full_name" className="label">Volledige naam</label>
             <input id="full_name" name="full_name" type="text" required autoComplete="name" style={textInputStyle} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="studio_name" style={labelStyle}>Studionaam</label>
+            <label htmlFor="studio_name" className="label">Studionaam</label>
             <input id="studio_name" name="studio_name" type="text" required placeholder="bijv. Maya Kowalski Studio" autoComplete="organization" style={textInputStyle} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="email" style={labelStyle}>E-mailadres</label>
+            <label htmlFor="email" className="label">E-mailadres</label>
             <input id="email" name="email" type="email" required autoComplete="email" style={{ ...textInputStyle, fontFamily: "var(--font-mono), monospace" }} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="password" style={labelStyle}>Wachtwoord</label>
+            <label htmlFor="password" className="label">Wachtwoord</label>
             <input id="password" name="password" type="password" required minLength={6} autoComplete="new-password" style={textInputStyle} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="confirm_password" style={labelStyle}>Wachtwoord bevestigen</label>
+            <label htmlFor="confirm_password" className="label">Wachtwoord bevestigen</label>
             <input id="confirm_password" name="confirm_password" type="password" required minLength={6} autoComplete="new-password" style={textInputStyle} />
           </div>
 
@@ -128,16 +150,17 @@ export default function RegisterPage() {
             disabled={pending}
             style={{
               fontFamily: "var(--font-body), sans-serif",
-              fontSize: "10px",
+              fontSize: "var(--text-label)",
               fontWeight: 500,
-              letterSpacing: "0.08em",
+              letterSpacing: "0.12em",
               textTransform: "uppercase",
-              padding: 18,
+              padding: 24,
               border: "none",
               background: "var(--foreground)",
               color: "var(--background)",
               cursor: "pointer",
               width: "100%",
+              transition: "opacity 0.15s ease",
             }}
           >
             {pending ? "Bezig..." : "Registreren"}
@@ -145,14 +168,10 @@ export default function RegisterPage() {
         </form>
 
         <p
+          className="label"
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-label)",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            opacity: 0.3,
-            marginTop: 32,
+            marginTop: 40,
+            opacity: 0.2,
           }}
         >
           Al een account?{" "}
@@ -163,6 +182,8 @@ export default function RegisterPage() {
               color: "var(--foreground)",
               textDecoration: "none",
               opacity: 1,
+              borderBottom: "0.5px solid rgba(13,13,11,0.3)",
+              paddingBottom: 1,
             }}
           >
             Inloggen
