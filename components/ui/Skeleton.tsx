@@ -19,7 +19,7 @@ export function Skeleton({
 
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <div>
+    <div role="status" aria-label="Laden...">
       {[...Array(rows)].map((_, i) => (
         <div
           key={i}

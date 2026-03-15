@@ -5,23 +5,9 @@ import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoicePDF } from "@/components/invoice/InvoicePDF";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
+import { formatCurrency, formatDateLong } from "@/lib/format";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 export async function sendInvoiceEmail(
   invoiceId: string
@@ -70,11 +56,11 @@ export async function sendInvoiceEmail(
         </tr>
         <tr>
           <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Factuurdatum</td>
-          <td style="padding:12px 0;font-size:14px;text-align:right;border-top:1px solid #F0F0F0;">${formatDate(invoice.issue_date)}</td>
+          <td style="padding:12px 0;font-size:14px;text-align:right;border-top:1px solid #F0F0F0;">${formatDateLong(invoice.issue_date)}</td>
         </tr>
         ${invoice.due_date ? `<tr>
           <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Vervaldatum</td>
-          <td style="padding:12px 0;font-size:14px;text-align:right;border-top:1px solid #F0F0F0;">${formatDate(invoice.due_date)}</td>
+          <td style="padding:12px 0;font-size:14px;text-align:right;border-top:1px solid #F0F0F0;">${formatDateLong(invoice.due_date)}</td>
         </tr>` : ""}
         <tr>
           <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Totaal incl. BTW</td>

@@ -4,7 +4,7 @@ import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import type { ActionResult, Client, ClientInput } from "@/lib/types";
 import { clientSchema, validate } from "@/lib/validation";
 
-export async function getClients(): Promise<ActionResult<Client[]>> {
+export async function getClients(search?: string): Promise<ActionResult<Client[]>> {
   const supabase = await createSupabaseClient();
   const {
     data: { user },
@@ -12,11 +12,18 @@ export async function getClients(): Promise<ActionResult<Client[]>> {
 
   if (!user) return { error: "Niet ingelogd." };
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("clients")
     .select("*")
     .eq("user_id", user.id)
     .order("name", { ascending: true });
+
+  if (search && search.trim()) {
+    const term = `%${search.trim()}%`;
+    query = query.or(`name.ilike.${term},contact_name.ilike.${term},email.ilike.${term}`);
+  }
+
+  const { data, error } = await query;
 
   if (error) return { error: error.message };
   return { error: null, data: data ?? [] };

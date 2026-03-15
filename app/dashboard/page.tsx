@@ -19,28 +19,8 @@ import {
   ErrorMessage,
   ButtonSecondary,
 } from "@/components/ui";
-
-const statusLabels: Record<string, string> = {
-  draft: "Concept",
-  sent: "Verzonden",
-  paid: "Betaald",
-  overdue: "Verlopen",
-};
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
+import { formatCurrency, formatDate } from "@/lib/format";
+import { STATUS_LABELS } from "@/lib/constants/status";
 
 export default function DashboardPage() {
   const { data: dashboardResult, isLoading } = useQuery({
@@ -386,7 +366,7 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
                     textTransform: "uppercase",
                   }}
                 >
-                  {statusLabels[inv.status] ?? inv.status}
+                  {STATUS_LABELS[inv.status] ?? inv.status}
                 </span>
               </Td>
               <Td>{inv.client_name}</Td>

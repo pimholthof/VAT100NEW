@@ -9,6 +9,8 @@ export function ErrorMessage({
 }) {
   return (
     <div
+      role="alert"
+      aria-live="polite"
       style={{
         padding: 16,
         marginBottom: 16,

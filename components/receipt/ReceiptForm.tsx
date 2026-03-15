@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   createReceipt,
@@ -23,15 +23,11 @@ import {
   ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
+import { formatCurrency } from "@/lib/format";
+import { ReceiptUpload } from "./ReceiptUpload";
+import { ReceiptProcessing } from "./ReceiptProcessing";
 
 type Step = "upload" | "processing" | "form";
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
 
 interface ReceiptFormProps {
   receipt?: Receipt;
@@ -40,12 +36,10 @@ interface ReceiptFormProps {
 
 export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const initialStep: Step = receipt ? "form" : "upload";
   const [step, setStep] = useState<Step>(initialStep);
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -75,8 +69,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     receipt?.vat_rate != null ? String(receipt.vat_rate) : "21"
   );
 
-  const [dragOver, setDragOver] = useState(false);
-
   const parsedAmount = parseFloat(amountExVat) || 0;
   const parsedVatRate = parseFloat(vatRate) || 0;
   const computedVat = Math.round(parsedAmount * (parsedVatRate / 100) * 100) / 100;
@@ -104,7 +96,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
       return;
     }
 
-    setSelectedFile(file);
     setUploadError(null);
 
     const reader = new FileReader();
@@ -230,150 +221,23 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFileSelect(file);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => setDragOver(false);
-
   const groepen = getGroepen();
 
   // ─── STEP 1: UPLOAD ───
   if (step === "upload") {
     return (
-      <div style={{ maxWidth: 600 }}>
-        {uploadError && <ErrorMessage style={{ marginBottom: 24 }}>{uploadError}</ErrorMessage>}
-
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          style={{
-            border: dragOver
-              ? "0.5px dashed rgba(13,13,11,0.4)"
-              : "0.5px dashed rgba(13,13,11,0.2)",
-            padding: 40,
-            textAlign: "center" as const,
-            cursor: "pointer",
-            minHeight: 120,
-            display: "flex",
-            flexDirection: "column" as const,
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 12,
-          }}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            style={{ display: "none" }}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileSelect(file);
-            }}
-          />
-
-          {uploading ? (
-            <p style={uploadTextStyle}>Uploaden...</p>
-          ) : selectedFile && filePreview ? (
-            <>
-              <img
-                src={filePreview}
-                alt="Preview"
-                style={{ maxWidth: 200, maxHeight: 150, objectFit: "contain" as const }}
-              />
-              <p style={{ ...uploadTextStyle, fontSize: "var(--text-label)" }}>
-                {selectedFile.name}
-              </p>
-            </>
-          ) : (
-            <p style={uploadTextStyle}>
-              Sleep een foto van je bon hierheen of klik om te uploaden
-            </p>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setStep("form")}
-          style={{
-            display: "block",
-            marginTop: 16,
-            background: "none",
-            border: "none",
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-label)",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase" as const,
-            color: "var(--foreground)",
-            opacity: 0.3,
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
-          Handmatig invoeren
-        </button>
-      </div>
+      <ReceiptUpload
+        onFileSelected={handleFileSelect}
+        onSkip={() => setStep("form")}
+        uploading={uploading}
+        uploadError={uploadError}
+      />
     );
   }
 
   // ─── STEP 2: PROCESSING ───
   if (step === "processing") {
-    return (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "250px 1fr",
-          gap: 32,
-          maxWidth: 800,
-        }}
-      >
-        <div>
-          {(imageUrl || filePreview) && (
-            <img
-              src={imageUrl || filePreview || ""}
-              alt="Bon preview"
-              style={{
-                width: "100%",
-                maxHeight: 400,
-                objectFit: "contain" as const,
-                border: "0.5px solid rgba(13,13,11,0.15)",
-              }}
-            />
-          )}
-        </div>
-
-        <div>
-          <p
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-md)",
-              fontWeight: 300,
-              margin: "0 0 24px",
-            }}
-          >
-            Bon wordt herkend...
-          </p>
-          <SkeletonField />
-          <SkeletonField />
-          <SkeletonField />
-          <SkeletonField />
-          <SkeletonField />
-        </div>
-      </div>
-    );
+    return <ReceiptProcessing imageUrl={imageUrl} filePreview={filePreview} />;
   }
 
   // ─── STEP 3: FORM ───
@@ -553,25 +417,3 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     </div>
   );
 }
-
-
-function SkeletonField() {
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <div
-        className="skeleton"
-        style={{ width: "30%", height: 9, marginBottom: 8 }}
-      />
-      <div className="skeleton" style={{ width: "100%", height: 32 }} />
-    </div>
-  );
-}
-
-const uploadTextStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-body-md)",
-  fontWeight: 300,
-  margin: 0,
-  color: "var(--foreground)",
-  opacity: 0.3,
-};

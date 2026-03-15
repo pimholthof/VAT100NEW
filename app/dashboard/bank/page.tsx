@@ -15,26 +15,12 @@ import {
 } from "@/lib/actions/banking";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 const TRANSACTION_CATEGORIES = [
   "Omzet",
   ...KOSTENSOORTEN.map((k) => k.label),
 ];
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
 
 function getMonthOptions(): { value: string; label: string }[] {
   const options: { value: string; label: string }[] = [];
