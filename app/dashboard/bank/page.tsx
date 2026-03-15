@@ -61,17 +61,17 @@ export default function BankPage() {
   const queryClient = useQueryClient();
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0].value);
-  const { from, to } = useMemo(() => getMonthRange(selectedMonth), [selectedMonth]);
-
   const { data: connectionsResult, isLoading: connectionsLoading } = useQuery({
     queryKey: ["bank-connections"],
     queryFn: () => getBankConnections(),
   });
 
   const { data: transactionsResult, isLoading: transactionsLoading } = useQuery({
-    queryKey: ["bank-transactions", from, to],
-    queryFn: () => getBankTransactions({ from, to }),
+    queryKey: ["bank-transactions", selectedMonth], // Simplified to fetch all for month or all time, adjust to your backend
+    queryFn: () => getBankTransactions({ from: getMonthRange(selectedMonth).from, to: getMonthRange(selectedMonth).to }),
   });
+
+  const [activeTab, setActiveTab] = useState<"todo" | "auto">("todo");
 
   const categorizeMutation = useMutation({
     mutationFn: async ({ id, category }: { id: string; category: string }) => {
@@ -146,7 +146,16 @@ export default function BankPage() {
     () => transactions.filter((tx) => !tx.category),
     [transactions]
   );
+  
+  const categorizedTransactions = useMemo(
+    () => transactions.filter((tx) => tx.category),
+    [transactions]
+  );
+  
   const uncategorizedCount = uncategorizedTransactions.length;
+  const categorizedCount = categorizedTransactions.length;
+  
+  const displayTransactions = activeTab === "todo" ? uncategorizedTransactions : categorizedTransactions;
 
   const totals = useMemo(() => {
     let income = 0;
@@ -460,9 +469,47 @@ export default function BankPage() {
           </div>
         )}
 
+        {/* Tabs for To-Do vs Auto-Processed */}
+        <div style={{ display: "flex", gap: "24px", marginBottom: "24px", borderBottom: "1px solid rgba(13,13,11,0.12)" }}>
+           <button
+             onClick={() => setActiveTab("todo")}
+             style={{
+               background: "none",
+               border: "none",
+               borderBottom: activeTab === "todo" ? "2px solid var(--foreground)" : "2px solid transparent",
+               padding: "0 0 8px 0",
+               fontFamily: "var(--font-body), sans-serif",
+               fontSize: "var(--text-body-lg)",
+               fontWeight: activeTab === "todo" ? 500 : 300,
+               color: "var(--foreground)",
+               opacity: activeTab === "todo" ? 1 : 0.5,
+               cursor: "pointer",
+             }}
+           >
+             Actie vereist ({uncategorizedCount})
+           </button>
+           <button
+             onClick={() => setActiveTab("auto")}
+             style={{
+               background: "none",
+               border: "none",
+               borderBottom: activeTab === "auto" ? "2px solid var(--foreground)" : "2px solid transparent",
+               padding: "0 0 8px 0",
+               fontFamily: "var(--font-body), sans-serif",
+               fontSize: "var(--text-body-lg)",
+               fontWeight: activeTab === "auto" ? 500 : 300,
+               color: "var(--foreground)",
+               opacity: activeTab === "auto" ? 1 : 0.5,
+               cursor: "pointer",
+             }}
+           >
+             Verwerkt ({categorizedCount})
+           </button>
+        </div>
+
         {transactionsLoading ? (
           <SkeletonTable />
-        ) : transactions.length === 0 ? (
+        ) : displayTransactions.length === 0 ? (
           <div
             style={{
               border: "none",
@@ -480,7 +527,7 @@ export default function BankPage() {
                 margin: 0,
               }}
             >
-              Geen transacties in deze periode.
+              Inbox Zero. Geen transacties meer in deze lijst.
             </p>
           </div>
         ) : (
@@ -502,12 +549,12 @@ export default function BankPage() {
                 <Th>Datum</Th>
                 <Th>Omschrijving</Th>
                 <Th>Tegenpartij</Th>
-                <Th>Categorie</Th>
+                <Th>Categorie (Swipe/Selecteer)</Th>
                 <Th style={{ textAlign: "right" }}>Bedrag</Th>
               </tr>
             </thead>
             <tbody>
-              {transactions.map((tx: BankTransaction) => (
+              {displayTransactions.map((tx: BankTransaction) => (
                 <tr
                   key={tx.id}
                   style={{

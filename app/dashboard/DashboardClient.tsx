@@ -23,6 +23,7 @@ import {
 } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/constants/status";
+import { ActionFeed } from "@/components/dashboard/ActionFeed";
 
 function getCurrentMonth(): string {
   return new Date().toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
@@ -46,6 +47,12 @@ export default function DashboardClient({
   const cashflow = data?.cashflow;
   const vatDeadline = data?.vatDeadline;
 
+  // Mock "Safe-to-Spend" calculation for Sprint 1
+  // Real logic will come from backend in Sprint 2
+  const currentBalance = stats ? stats.revenueThisMonth * 1.5 : 0; // Fake bank balance
+  const estimatedTax = stats ? stats.vatToPay + (stats.revenueThisMonth * 0.2) : 0; // VAT + basic income tax assumption
+  const safeToSpend = currentBalance - estimatedTax;
+
   return (
     <div>
       {/* ── Masthead ── */}
@@ -67,7 +74,7 @@ export default function DashboardClient({
         </span>
       </div>
 
-      {/* ── Hero Revenue ── */}
+      {/* ── Hero Safe-to-Spend ── */}
       {isLoading ? (
         <div style={{ marginBottom: "var(--space-hero)" }}>
           <div className="skeleton" style={{ width: "40%", height: 9, marginBottom: 20, opacity: 0.08 }} />
@@ -76,7 +83,7 @@ export default function DashboardClient({
       ) : stats ? (
         <div style={{ marginBottom: "var(--space-hero)" }}>
           <p className="label" style={{ margin: "0 0 16px", opacity: 0.6 }}>
-            Omzet {getCurrentMonth()}
+            Safe-to-Spend
           </p>
           <p
             style={{
@@ -88,10 +95,16 @@ export default function DashboardClient({
               margin: 0,
             }}
           >
-            {formatCurrency(stats.revenueThisMonth)}
+            {formatCurrency(safeToSpend > 0 ? safeToSpend : 0)}
+          </p>
+          <p className="label" style={{ margin: "16px 0 0", opacity: 0.5, textTransform: "none", letterSpacing: "normal" }}>
+            Huidig saldo minus gereserveerde BTW en inkomstenbelasting.
           </p>
         </div>
       ) : null}
+
+      {/* ── Action Feed (Inbox Zero) ── */}
+      {!isLoading && <ActionFeed />}
 
       {/* ── Stat Strip ── */}
       <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
