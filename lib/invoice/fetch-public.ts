@@ -1,9 +1,9 @@
 import { createServiceClient } from "@/lib/supabase/service";
-import type { InvoiceData } from "@/lib/types";
+import type { ActionResult, InvoiceData } from "@/lib/types";
 
 export async function fetchInvoiceByToken(
   token: string
-): Promise<InvoiceData> {
+): Promise<ActionResult<InvoiceData>> {
   const supabase = createServiceClient();
 
   const { data: invoice, error: invoiceError } = await supabase
@@ -12,7 +12,7 @@ export async function fetchInvoiceByToken(
     .eq("share_token", token)
     .single();
 
-  if (invoiceError || !invoice) throw new Error("Factuur niet gevonden");
+  if (invoiceError || !invoice) return { error: "Factuur niet gevonden" };
 
   const [linesResult, clientResult, profileResult] = await Promise.all([
     supabase
@@ -25,14 +25,17 @@ export async function fetchInvoiceByToken(
   ]);
 
   if (clientResult.error || !clientResult.data)
-    throw new Error("Klant niet gevonden");
+    return { error: "Klant niet gevonden" };
   if (profileResult.error || !profileResult.data)
-    throw new Error("Profiel niet gevonden");
+    return { error: "Profiel niet gevonden" };
 
   return {
-    invoice,
-    lines: linesResult.data ?? [],
-    client: clientResult.data,
-    profile: profileResult.data,
+    error: null,
+    data: {
+      invoice,
+      lines: linesResult.data ?? [],
+      client: clientResult.data,
+      profile: profileResult.data,
+    },
   };
 }

@@ -1,16 +1,15 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth, createClient } from "@/lib/supabase/server";
 import type { ActionResult, ActionFeedItem } from "@/lib/types";
 
 /**
  * Fetch all pending action items for the current user (the "Inbox").
  */
 export async function getActionFeedItems(): Promise<ActionResult<ActionFeedItem[]>> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("action_feed")
@@ -31,10 +30,9 @@ export async function resolveActionItem(
   itemId: string,
   category?: string
 ): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("action_feed")
@@ -69,10 +67,9 @@ export async function resolveActionItem(
  * Ignore an action item (user decided this is irrelevant).
  */
 export async function ignoreActionItem(itemId: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("action_feed")

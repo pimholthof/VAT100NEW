@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { InvoiceLineInput, InvoiceUnit } from "@/lib/types";
 
 interface InvoiceLineRowProps {
@@ -17,7 +18,7 @@ const units: { value: InvoiceUnit; label: string }[] = [
   { value: "stuks", label: "Stuks" },
 ];
 
-export function InvoiceLineRow({
+export const InvoiceLineRow = memo(function InvoiceLineRow({
   line,
   index,
   totalLines,
@@ -130,7 +131,7 @@ export function InvoiceLineRow({
       </div>
     </div>
   );
-}
+});
 
 const cellInputStyle: React.CSSProperties = {
   width: "100%",

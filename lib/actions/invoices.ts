@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/server";
 import { sendInvoiceEmail } from "@/lib/email/send-invoice";
 import { sendReminderEmail } from "@/lib/email/send-reminder";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
@@ -12,35 +12,16 @@ import type {
   InvoiceWithDetails,
 } from "@/lib/types";
 import { invoiceSchema, validate } from "@/lib/validation";
+import { calculateLineTotals } from "@/lib/format";
 
 export type InvoiceWithClient = Invoice & {
   client: { name: string } | null;
 };
 
-function calculateTotals(
-  lines: { quantity: number; rate: number }[],
-  vatRate: number
-) {
-  const subtotal = lines.reduce(
-    (sum, line) => sum + line.quantity * line.rate,
-    0
-  );
-  const roundedSubtotal = Math.round(subtotal * 100) / 100;
-  const vatAmount = Math.round(roundedSubtotal * (vatRate / 100) * 100) / 100;
-  const total = Math.round((roundedSubtotal + vatAmount) * 100) / 100;
-  return {
-    subtotal_ex_vat: roundedSubtotal,
-    vat_amount: vatAmount,
-    total_inc_vat: total,
-  };
-}
-
 export async function generateInvoiceNumber(): Promise<ActionResult<string>> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase.rpc("generate_invoice_number", {
     p_user_id: user.id,
@@ -54,16 +35,19 @@ export async function generateInvoiceNumber(): Promise<ActionResult<string>> {
 export async function createInvoice(
   input: InvoiceInput
 ): Promise<ActionResult<string>> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
 
-  const totals = calculateTotals(input.lines, input.vat_rate);
+  const vat = calculateLineTotals(input.lines, input.vat_rate);
+  const totals = {
+    subtotal_ex_vat: vat.subtotalExVat,
+    vat_amount: vat.vatAmount,
+    total_inc_vat: vat.totalIncVat,
+  };
 
   // Retry loop: if a unique constraint violation occurs on invoice_number
   // (e.g. two tabs submitting simultaneously), regenerate the number and retry.
@@ -142,16 +126,19 @@ export async function updateInvoice(
   id: string,
   input: InvoiceInput
 ): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
 
-  const totals = calculateTotals(input.lines, input.vat_rate);
+  const vat = calculateLineTotals(input.lines, input.vat_rate);
+  const totals = {
+    subtotal_ex_vat: vat.subtotalExVat,
+    vat_amount: vat.vatAmount,
+    total_inc_vat: vat.totalIncVat,
+  };
 
   const { error: invoiceError } = await supabase
     .from("invoices")
@@ -203,11 +190,9 @@ export async function updateInvoiceStatus(
   id: string,
   status: InvoiceStatus
 ): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("invoices")
@@ -220,11 +205,9 @@ export async function updateInvoiceStatus(
 }
 
 export async function deleteInvoice(id: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Only allow deleting drafts
   const { data: invoice } = await supabase
@@ -251,11 +234,9 @@ export async function deleteInvoice(id: string): Promise<ActionResult> {
 }
 
 export async function getInvoices(): Promise<ActionResult<InvoiceWithClient[]>> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("invoices")
@@ -270,11 +251,9 @@ export async function getInvoices(): Promise<ActionResult<InvoiceWithClient[]>> 
 export async function getInvoice(
   id: string
 ): Promise<ActionResult<InvoiceWithDetails>> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("invoices")
@@ -297,11 +276,9 @@ export async function getInvoice(
 export async function generateShareToken(
   invoiceId: string
 ): Promise<ActionResult<string>> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Verify ownership
   const { data: invoice } = await supabase
@@ -331,11 +308,9 @@ export async function generateShareToken(
 }
 
 export async function sendReminder(invoiceId: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Verify ownership, status, and client email in one query
   const { data: invoice } = await supabase
@@ -364,11 +339,9 @@ export async function sendReminder(invoiceId: string): Promise<ActionResult> {
 }
 
 export async function sendInvoice(id: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Verify ownership, status, and client email in one query
   const { data: invoice } = await supabase

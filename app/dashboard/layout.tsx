@@ -23,7 +23,6 @@ export default async function DashboardLayout({
   return (
     <div className="dashboard-shell">
       <DashboardNav
-        userName={user.user_metadata?.full_name || user.email || ""}
         studioName={profile?.studio_name ?? undefined}
       />
       <main className="dashboard-content">{children}</main>

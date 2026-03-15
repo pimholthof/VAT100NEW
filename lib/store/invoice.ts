@@ -4,6 +4,7 @@ import type {
   InvoiceLineInput,
   VatRate,
 } from "@/lib/types";
+import { calculateLineTotals } from "@/lib/format";
 
 function createEmptyLine(): InvoiceLineInput {
   return {
@@ -15,10 +16,6 @@ function createEmptyLine(): InvoiceLineInput {
   };
 }
 
-function calcLineAmount(line: InvoiceLineInput): number {
-  return Math.round(line.quantity * line.rate * 100) / 100;
-}
-
 interface InvoiceTotals {
   subtotal: number;
   vatAmount: number;
@@ -26,13 +23,11 @@ interface InvoiceTotals {
 }
 
 function calcTotals(lines: InvoiceLineInput[], vatRate: VatRate): InvoiceTotals {
-  const subtotal = lines.reduce((sum, l) => sum + calcLineAmount(l), 0);
-  const rounded = Math.round(subtotal * 100) / 100;
-  const vatAmount = Math.round(rounded * (vatRate / 100) * 100) / 100;
+  const vat = calculateLineTotals(lines, vatRate);
   return {
-    subtotal: rounded,
-    vatAmount,
-    total: Math.round((rounded + vatAmount) * 100) / 100,
+    subtotal: vat.subtotalExVat,
+    vatAmount: vat.vatAmount,
+    total: vat.totalIncVat,
   };
 }
 

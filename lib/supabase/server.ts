@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { User } from "@supabase/supabase-js";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -25,4 +26,25 @@ export async function createClient() {
       },
     }
   );
+}
+
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
+type AuthResult = { error: null; supabase: SupabaseServer; user: User } | { error: string; supabase: null; user: null };
+
+/**
+ * Authenticates the current user. Returns the Supabase client and user,
+ * or an error string if not logged in.
+ *
+ * Usage:
+ *   const auth = await requireAuth();
+ *   if (auth.error) return { error: auth.error };
+ *   const { supabase, user } = auth;
+ */
+export async function requireAuth(): Promise<AuthResult> {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+
+  if (!user) return { error: "Niet ingelogd.", supabase: null, user: null };
+  return { error: null, supabase, user };
 }

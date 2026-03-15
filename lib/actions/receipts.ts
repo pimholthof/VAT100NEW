@@ -1,15 +1,15 @@
 "use server";
 
-import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { z } from "zod";
+import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, Receipt, ReceiptInput } from "@/lib/types";
 import { receiptSchema, validate } from "@/lib/validation";
+import { calculateVat } from "@/lib/format";
 
 export async function getReceipts(): Promise<ActionResult<Receipt[]>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("receipts")
@@ -24,11 +24,9 @@ export async function getReceipts(): Promise<ActionResult<Receipt[]>> {
 export async function getReceipt(
   id: string
 ): Promise<ActionResult<Receipt>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("receipts")
@@ -45,19 +43,18 @@ export async function getReceipt(
 export async function createReceipt(
   input: ReceiptInput
 ): Promise<ActionResult<Receipt>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const v = validate(receiptSchema, input);
   if (v.error) return { error: v.error };
 
-  const amountExVat = input.amount_ex_vat ?? 0;
+  const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
+  const amountExVat = vat.subtotalExVat;
   const vatRate = input.vat_rate ?? 21;
-  const vatAmount = Math.round(amountExVat * (vatRate / 100) * 100) / 100;
-  const amountIncVat = Math.round((amountExVat + vatAmount) * 100) / 100;
+  const vatAmount = vat.vatAmount;
+  const amountIncVat = vat.totalIncVat;
 
   const { data, error } = await supabase
     .from("receipts")
@@ -84,19 +81,18 @@ export async function updateReceipt(
   id: string,
   input: ReceiptInput
 ): Promise<ActionResult<Receipt>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const v = validate(receiptSchema, input);
   if (v.error) return { error: v.error };
 
-  const amountExVat = input.amount_ex_vat ?? 0;
+  const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
+  const amountExVat = vat.subtotalExVat;
   const vatRate = input.vat_rate ?? 21;
-  const vatAmount = Math.round(amountExVat * (vatRate / 100) * 100) / 100;
-  const amountIncVat = Math.round((amountExVat + vatAmount) * 100) / 100;
+  const vatAmount = vat.vatAmount;
+  const amountIncVat = vat.totalIncVat;
 
   const { data, error } = await supabase
     .from("receipts")
@@ -120,11 +116,9 @@ export async function updateReceipt(
 }
 
 export async function deleteReceipt(id: string): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("receipts")
@@ -140,11 +134,9 @@ export async function uploadReceiptImage(
   receiptId: string,
   formData: FormData
 ): Promise<ActionResult<string>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const file = formData.get("file") as File | null;
   if (!file) return { error: "Geen bestand geselecteerd." };
@@ -157,7 +149,10 @@ export async function uploadReceiptImage(
     return { error: "Bestand is te groot (max 10MB)." };
   }
 
-  const storagePath = `${user.id}/${receiptId}/${file.name}`;
+  // Sanitize filename: extract extension, use UUID to prevent path traversal
+  const ext = (file.name.split(".").pop() ?? "jpg").replace(/[^a-zA-Z0-9]/g, "");
+  const safeFilename = `${crypto.randomUUID()}.${ext}`;
+  const storagePath = `${user.id}/${receiptId}/${safeFilename}`;
 
   const { error: uploadError } = await supabase.storage
     .from("receipts")
@@ -179,11 +174,9 @@ export async function uploadReceiptImage(
 export async function getReceiptImageUrl(
   storagePath: string
 ): Promise<ActionResult<string>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase } = auth;
 
   const { data, error } = await supabase.storage
     .from("receipts")
@@ -195,12 +188,10 @@ export async function getReceiptImageUrl(
 
 export async function scanReceiptWithAI(
   receiptId: string
-): Promise<ActionResult<Partial<ReceiptInput & { cost_code: number; confidence: number }>>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+): Promise<ActionResult<Partial<ReceiptInput & { cost_code: number | null; confidence: number }>>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Get receipt to find storage_path
   const { data: receipt, error: receiptError } = await supabase
@@ -273,8 +264,20 @@ Als een veld niet leesbaar is, gebruik null.`;
       return { error: "Geen tekst in AI-antwoord." };
     }
 
-    const parsed = JSON.parse(textContent.text);
-    return { error: null, data: parsed };
+    const raw = JSON.parse(textContent.text);
+    const aiReceiptSchema = z.object({
+      vendor_name: z.string().nullable().optional(),
+      receipt_date: z.string().nullable().optional(),
+      amount_ex_vat: z.number().nullable().optional(),
+      vat_rate: z.number().nullable().optional(),
+      cost_code: z.number().nullable().optional(),
+      confidence: z.number().min(0).max(1).optional(),
+    });
+    const validated = aiReceiptSchema.safeParse(raw);
+    if (!validated.success) {
+      return { error: "AI-antwoord heeft een onverwacht formaat." };
+    }
+    return { error: null, data: validated.data };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Onbekende fout bij AI-analyse.";
     return { error: message };
@@ -284,11 +287,9 @@ Als een veld niet leesbaar is, gebruik null.`;
 export async function markReceiptAiProcessed(
   id: string
 ): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("receipts")
