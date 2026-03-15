@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 interface ReceiptProcessingProps {
   imageUrl: string | null;
   filePreview: string | null;
@@ -32,16 +34,18 @@ export function ReceiptProcessing({
     >
       <div>
         {(imageUrl || filePreview) && (
-          <img
-            src={imageUrl || filePreview || ""}
-            alt="Bon preview"
-            style={{
-              width: "100%",
-              maxHeight: 400,
-              objectFit: "contain" as const,
-              border: "0.5px solid rgba(13,13,11,0.15)",
-            }}
-          />
+          <div style={{ position: "relative", width: "100%", height: 400 }}>
+            <Image
+              src={imageUrl || filePreview || ""}
+              alt="Bon preview"
+              fill
+              style={{
+                objectFit: "contain",
+                border: "0.5px solid rgba(13,13,11,0.15)",
+              }}
+              unoptimized
+            />
+          </div>
         )}
       </div>
 

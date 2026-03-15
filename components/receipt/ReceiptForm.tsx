@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   createReceipt,
   updateReceipt,
@@ -257,16 +258,16 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
       }
     >
       {showImageColumn && (
-        <div style={{ position: "sticky" as const, top: 80, alignSelf: "start" }}>
-          <img
+        <div style={{ position: "sticky", top: 80, alignSelf: "start", width: "100%", height: 400 }}>
+          <Image
             src={imageUrl || filePreview || ""}
             alt="Bon"
+            fill
             style={{
-              width: "100%",
-              maxHeight: 400,
-              objectFit: "contain" as const,
+              objectFit: "contain",
               border: "0.5px solid rgba(13,13,11,0.15)",
             }}
+            unoptimized
           />
         </div>
       )}

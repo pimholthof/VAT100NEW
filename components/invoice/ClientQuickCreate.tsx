@@ -5,7 +5,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createNewClient } from "@/lib/actions/clients";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import {
-  FieldGroup,
   inputStyle,
   ButtonPrimary,
   ButtonSecondary,

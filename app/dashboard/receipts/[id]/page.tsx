@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getReceipt, getReceiptImageUrl } from "@/lib/actions/receipts";
@@ -121,17 +122,18 @@ export default function ReceiptDetailPage() {
       ) : (
         <>
           {imageUrl && (
-            <div style={{ marginBottom: 32 }}>
-              <img
-                src={imageUrl}
-                alt="Bon afbeelding"
-                style={{
-                  maxWidth: 300,
-                  objectFit: "contain" as const,
-                  border: "0.5px solid rgba(13,13,11,0.15)",
-                }}
-              />
-            </div>
+              <div style={{ position: "relative", width: "100%", maxWidth: 300, height: 400, marginBottom: 32 }}>
+                <Image
+                  src={imageUrl}
+                  alt="Bon afbeelding"
+                  fill
+                  style={{
+                    objectFit: "contain",
+                    border: "0.5px solid rgba(13,13,11,0.15)",
+                  }}
+                  unoptimized // Omdat de URL van Supabase Storage komt
+                />
+              </div>
           )}
 
           <div

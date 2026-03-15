@@ -3,6 +3,8 @@
 import { useState, useRef } from "react";
 import { ErrorMessage } from "@/components/ui";
 
+import Image from "next/image";
+
 const uploadTextStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
@@ -99,15 +101,17 @@ export function ReceiptUpload({
           <p style={uploadTextStyle}>Uploaden...</p>
         ) : selectedFile && filePreview ? (
           <>
-            <img
-              src={filePreview}
-              alt="Preview"
-              style={{
-                maxWidth: 200,
-                maxHeight: 150,
-                objectFit: "contain" as const,
-              }}
-            />
+            <div style={{ position: "relative", width: 200, height: 150 }}>
+              <Image
+                src={filePreview}
+                alt="Preview"
+                fill
+                style={{
+                  objectFit: "contain",
+                }}
+                unoptimized
+              />
+            </div>
             <p
               style={{
                 ...uploadTextStyle,

@@ -257,13 +257,6 @@ const value: React.CSSProperties = {
   color: COLOR,
 };
 
-const invoiceNumber: React.CSSProperties = {
-  fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif',
-  fontWeight: 900,
-  fontSize: "28px",
-  color: COLOR,
-  lineHeight: "1",
-};
 
 const partiesRow: React.CSSProperties = {
   display: "flex",
