@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getClients, deleteClient } from "@/lib/actions/clients";
 import type { Client } from "@/lib/types";
@@ -10,10 +10,17 @@ import { Th, Td, ErrorMessage } from "@/components/ui";
 export default function ClientsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Debounce search to avoid excessive server calls
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const { data: result, isLoading } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => getClients(),
+    queryKey: ["clients", debouncedSearch],
+    queryFn: () => getClients(debouncedSearch || undefined),
   });
 
   const deleteMutation = useMutation({
@@ -23,15 +30,7 @@ export default function ClientsPage() {
     },
   });
 
-  const clients = result?.data ?? [];
-  const filtered = search.trim()
-    ? clients.filter(
-        (c) =>
-          c.name.toLowerCase().includes(search.toLowerCase()) ||
-          c.contact_name?.toLowerCase().includes(search.toLowerCase()) ||
-          c.email?.toLowerCase().includes(search.toLowerCase())
-      )
-    : clients;
+  const filtered = result?.data ?? [];
 
   return (
     <div>

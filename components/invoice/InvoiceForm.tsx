@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import {
   createInvoice,
   updateInvoice,
   generateInvoiceNumber,
 } from "@/lib/actions/invoices";
-import { getClients, createQuickClient } from "@/lib/actions/clients";
+import { getClients } from "@/lib/actions/clients";
 import { InvoiceLineRow } from "./InvoiceLineRow";
+import { ClientQuickCreate } from "./ClientQuickCreate";
 import type { VatRate } from "@/lib/types";
 import {
   FieldGroup,
@@ -29,14 +30,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showNewClient, setShowNewClient] = useState(false);
-  const [newClientName, setNewClientName] = useState("");
-  const [newClientEmail, setNewClientEmail] = useState("");
-  const [newClientAddress, setNewClientAddress] = useState("");
-  const [newClientCity, setNewClientCity] = useState("");
-  const [newClientPostalCode, setNewClientPostalCode] = useState("");
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const queryClient = useQueryClient();
 
   const clientId = useInvoiceStore((s) => s.clientId);
   const setClientId = useInvoiceStore((s) => s.setClientId);
@@ -140,30 +134,6 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     setSaving(false);
   };
 
-  const handleCreateQuickClient = async () => {
-    if (!newClientName.trim()) return;
-    const result = await createQuickClient({
-      name: newClientName.trim(),
-      contact_name: null,
-      email: newClientEmail.trim() || null,
-      address: newClientAddress.trim() || null,
-      city: newClientCity.trim() || null,
-      postal_code: newClientPostalCode.trim() || null,
-      kvk_number: null,
-      btw_number: null,
-    });
-    if (result.data) {
-      setClientId(result.data.id);
-      setNewClientName("");
-      setNewClientEmail("");
-      setNewClientAddress("");
-      setNewClientCity("");
-      setNewClientPostalCode("");
-      setShowNewClient(false);
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-    }
-  };
-
   return (
     <div style={{ maxWidth: 800 }}>
       {error && (
@@ -196,95 +166,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* Slide-in new client panel */}
       {showNewClient && (
-        <div
-          style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.08)",
-            borderBottom: "0.5px solid rgba(13,13,11,0.08)",
-            padding: "20px 0",
-            marginBottom: 24,
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-label)",
-              fontWeight: 500,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              margin: "0 0 16px",
-              opacity: 0.4,
-            }}
-          >
-            Nieuwe klant aanmaken
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div style={{ gridColumn: "1 / -1" }}>
-              <label style={quickLabelStyle}>Bedrijfsnaam *</label>
-              <input
-                type="text"
-                value={newClientName}
-                onChange={(e) => setNewClientName(e.target.value)}
-                placeholder="Bedrijfsnaam"
-                style={inputStyle}
-              />
-            </div>
-            <div style={{ gridColumn: "1 / -1" }}>
-              <label style={quickLabelStyle}>E-mailadres</label>
-              <input
-                type="email"
-                value={newClientEmail}
-                onChange={(e) => setNewClientEmail(e.target.value)}
-                placeholder="email@voorbeeld.nl"
-                style={inputStyle}
-              />
-            </div>
-            <div style={{ gridColumn: "1 / -1" }}>
-              <label style={quickLabelStyle}>Adres</label>
-              <input
-                type="text"
-                value={newClientAddress}
-                onChange={(e) => setNewClientAddress(e.target.value)}
-                placeholder="Straatnaam en huisnummer"
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={quickLabelStyle}>Postcode</label>
-              <input
-                type="text"
-                value={newClientPostalCode}
-                onChange={(e) => setNewClientPostalCode(e.target.value)}
-                placeholder="1234 AB"
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={quickLabelStyle}>Stad</label>
-              <input
-                type="text"
-                value={newClientCity}
-                onChange={(e) => setNewClientCity(e.target.value)}
-                placeholder="Stad"
-                style={inputStyle}
-              />
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-            <ButtonPrimary
-              type="button"
-              onClick={handleCreateQuickClient}
-            >
-              Klant aanmaken
-            </ButtonPrimary>
-            <ButtonSecondary
-              type="button"
-              onClick={() => setShowNewClient(false)}
-              style={{ opacity: 0.4 }}
-            >
-              Annuleer
-            </ButtonSecondary>
-          </div>
-        </div>
+        <ClientQuickCreate onClose={() => setShowNewClient(false)} />
       )}
 
       {/* Invoice number + dates */}
@@ -506,15 +388,3 @@ function TotalRow({
   );
 }
 
-// ─── Shared styles ───
-
-const quickLabelStyle: React.CSSProperties = {
-  display: "block",
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "var(--text-label)",
-  fontWeight: 500,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  marginBottom: 8,
-  opacity: 0.4,
-};

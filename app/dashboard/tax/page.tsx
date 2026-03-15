@@ -4,13 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getBtwOverview } from "@/lib/actions/tax";
 import type { QuarterStats } from "@/lib/actions/tax";
 import { StatCard, SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
+import { formatCurrency } from "@/lib/format";
 
 export default function TaxPage() {
   const { data: result, isLoading } = useQuery({

@@ -29,20 +29,31 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
 
   if (!user) return { error: "Niet ingelogd." };
 
-  const { data: invoices, error: invError } = await supabase
-    .from("invoices")
-    .select("issue_date, subtotal_ex_vat, vat_amount, status")
-    .eq("user_id", user.id)
-    .in("status", ["sent", "paid"]);
+  // Limit to last 2 years (8 quarters max)
+  const twoYearsAgo = new Date();
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+  const startDate = `${twoYearsAgo.getFullYear()}-01-01`;
 
-  if (invError) return { error: invError.message };
+  // Run both queries in parallel
+  const [invoicesResult, receiptsResult] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select("issue_date, subtotal_ex_vat, vat_amount, status")
+      .eq("user_id", user.id)
+      .in("status", ["sent", "paid"])
+      .gte("issue_date", startDate),
+    supabase
+      .from("receipts")
+      .select("receipt_date, vat_amount")
+      .eq("user_id", user.id)
+      .gte("receipt_date", startDate),
+  ]);
 
-  const { data: receipts, error: recError } = await supabase
-    .from("receipts")
-    .select("receipt_date, vat_amount")
-    .eq("user_id", user.id);
+  if (invoicesResult.error) return { error: invoicesResult.error.message };
+  if (receiptsResult.error) return { error: receiptsResult.error.message };
 
-  if (recError) return { error: recError.message };
+  const invoices = invoicesResult.data;
+  const receipts = receiptsResult.data;
 
   const quarters = new Map<string, QuarterStats>();
 

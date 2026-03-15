@@ -8,21 +8,7 @@ import { getReceipt, getReceiptImageUrl } from "@/lib/actions/receipts";
 import { getKostensoortByCode } from "@/lib/constants/costs";
 import { ReceiptForm } from "@/components/receipt/ReceiptForm";
 import { DetailCell, ButtonSecondary, PageHeader } from "@/components/ui";
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
+import { formatCurrency, formatDate } from "@/lib/format";
 
 export default function ReceiptDetailPage() {
   const params = useParams();

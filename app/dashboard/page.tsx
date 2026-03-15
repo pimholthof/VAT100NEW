@@ -19,28 +19,8 @@ import {
   ErrorMessage,
   ButtonSecondary,
 } from "@/components/ui";
-
-const statusLabels: Record<string, string> = {
-  draft: "Concept",
-  sent: "Verzonden",
-  paid: "Betaald",
-  overdue: "Verlopen",
-};
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
+import { formatCurrency, formatDate } from "@/lib/format";
+import { STATUS_LABELS } from "@/lib/constants/status";
 
 function getCurrentMonth(): string {
   return new Date().toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
@@ -319,7 +299,7 @@ function InvoiceTable({ invoices }: { invoices: RecentInvoice[] }) {
             <tr key={inv.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
               <Td>
                 <span className="label" style={{ opacity: 1 }}>
-                  {statusLabels[inv.status] ?? inv.status}
+                  {STATUS_LABELS[inv.status] ?? inv.status}
                 </span>
               </Td>
               <Td style={{ fontWeight: 400 }}>{inv.client_name}</Td>

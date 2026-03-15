@@ -285,21 +285,29 @@ export async function autoCategorizeTransactions(
   const results: Record<string, string> = {};
   const needsAI: typeof transactions = [];
 
+  const ruleMatched: { id: string; category: string; is_income: boolean }[] = [];
+
   for (const tx of transactions) {
     const key = (tx.counterpart_name ?? "").toLowerCase();
     const rule = rulesMap.get(key);
     if (rule && key) {
-      // Apply existing rule directly
-      await supabase
-        .from("bank_transactions")
-        .update({ category: rule.category, is_income: rule.is_income })
-        .eq("id", tx.id)
-        .eq("user_id", user.id);
+      ruleMatched.push({ id: tx.id, category: rule.category, is_income: rule.is_income });
       results[tx.id] = rule.category;
     } else {
       needsAI.push(tx);
     }
   }
+
+  // Batch update rule-matched transactions
+  await Promise.all(
+    ruleMatched.map((item) =>
+      supabase
+        .from("bank_transactions")
+        .update({ category: item.category, is_income: item.is_income })
+        .eq("id", item.id)
+        .eq("user_id", user.id)
+    )
+  );
 
   if (needsAI.length === 0) {
     return { error: null, data: results };
@@ -347,16 +355,18 @@ Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income}]`,
       const parsed: { id: string; category: string; is_income: boolean }[] =
         JSON.parse(jsonMatch[0]);
 
-      // Update each transaction
-      for (const item of parsed) {
-        if (!AI_CATEGORIES.includes(item.category)) continue;
-
-        await supabase
-          .from("bank_transactions")
-          .update({ category: item.category, is_income: item.is_income })
-          .eq("id", item.id)
-          .eq("user_id", user.id);
-
+      // Batch update AI-categorized transactions
+      const validItems = parsed.filter((item) => AI_CATEGORIES.includes(item.category));
+      await Promise.all(
+        validItems.map((item) =>
+          supabase
+            .from("bank_transactions")
+            .update({ category: item.category, is_income: item.is_income })
+            .eq("id", item.id)
+            .eq("user_id", user.id)
+        )
+      );
+      for (const item of validItems) {
         results[item.id] = item.category;
       }
     } catch {
