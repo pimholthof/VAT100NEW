@@ -15,6 +15,7 @@ import {
 } from "@/lib/actions/banking";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
+import { Th, Td, SkeletonTable } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 const TRANSACTION_CATEGORIES = [
@@ -621,48 +622,6 @@ function SummaryItem({ label, amount }: { label: string; amount: number }) {
   );
 }
 
-function Th({
-  children,
-  style,
-}: {
-  children?: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <th
-      style={{
-        fontWeight: 500,
-        fontSize: "var(--text-body-sm)",
-        letterSpacing: "0.02em",
-        padding: "12px 8px",
-        ...style,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({
-  children,
-  style,
-}: {
-  children?: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <td
-      style={{
-        padding: "12px 8px",
-        fontWeight: 300,
-        ...style,
-      }}
-    >
-      {children}
-    </td>
-  );
-}
-
 function SkeletonBlock() {
   return (
     <div style={{ opacity: 0.12 }}>
@@ -674,42 +633,6 @@ function SkeletonBlock() {
       >
         <div className="skeleton" style={{ width: "40%", height: 14 }} />
       </div>
-    </div>
-  );
-}
-
-function SkeletonTable() {
-  return (
-    <div style={{ opacity: 0.12 }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr",
-          gap: 12,
-          padding: "10px 12px",
-          borderBottom: "1px solid var(--foreground)",
-        }}
-      >
-        {[60, 80, 70, 60, 50].map((w, i) => (
-          <div key={i} className="skeleton" style={{ width: `${w}%`, height: 9 }} />
-        ))}
-      </div>
-      {Array.from({ length: 5 }).map((_, row) => (
-        <div
-          key={row}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr",
-            gap: 12,
-            padding: "12px 12px",
-            borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
-          }}
-        >
-          {[50, 70, 60, 50, 40].map((w, i) => (
-            <div key={i} className="skeleton" style={{ width: `${w}%`, height: 13 }} />
-          ))}
-        </div>
-      ))}
     </div>
   );
 }

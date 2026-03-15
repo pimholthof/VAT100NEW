@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { createQuickClient } from "@/lib/actions/clients";
+import { createNewClient } from "@/lib/actions/clients";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import {
   FieldGroup,
@@ -38,7 +38,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
 
   const handleCreate = async () => {
     if (!name.trim()) return;
-    const result = await createQuickClient({
+    const result = await createNewClient({
       name: name.trim(),
       contact_name: null,
       email: email.trim() || null,

@@ -6,7 +6,6 @@ export function FieldGroup({
 }: {
   label: string;
   children: React.ReactNode;
-  variant?: "default" | "caps";
 }) {
   return (
     <div style={{ marginBottom: 16 }}>

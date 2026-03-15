@@ -222,10 +222,3 @@ export async function getClientInvoices(
   if (error) return { error: error.message };
   return { error: null, data: data ?? [] };
 }
-
-// Quick client creation from invoice form (backwards compatible)
-export async function createQuickClient(
-  input: ClientInput
-): Promise<ActionResult<Client>> {
-  return createNewClient(input);
-}

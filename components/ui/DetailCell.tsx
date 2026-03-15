@@ -6,7 +6,6 @@ export function DetailCell({
 }: {
   label: string;
   value: string | null;
-  labelWeight?: number;
 }) {
   return (
     <div style={{ padding: "24px 0", borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
