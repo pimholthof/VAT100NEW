@@ -283,32 +283,18 @@ export async function getInvoice(
 
   if (!user) return { error: "Niet ingelogd." };
 
-  const { data: invoice, error: invoiceError } = await supabase
+  const { data, error } = await supabase
     .from("invoices")
-    .select("*")
+    .select("*, lines:invoice_lines(*), client:clients(*)")
     .eq("id", id)
     .eq("user_id", user.id)
+    .order("sort_order", { referencedTable: "invoice_lines", ascending: true })
     .single();
 
-  if (invoiceError) return { error: invoiceError.message };
-  if (!invoice) return { error: "Factuur niet gevonden." };
+  if (error) return { error: error.message };
+  if (!data) return { error: "Factuur niet gevonden." };
 
-  const { data: lines, error: linesError } = await supabase
-    .from("invoice_lines")
-    .select("*")
-    .eq("invoice_id", id)
-    .order("sort_order", { ascending: true });
-
-  if (linesError) return { error: linesError.message };
-
-  const { data: client, error: clientError } = await supabase
-    .from("clients")
-    .select("*")
-    .eq("id", invoice.client_id)
-    .single();
-
-  if (clientError) return { error: clientError.message };
-
+  const { lines, client, ...invoice } = data as unknown as InvoiceWithDetails;
   return {
     error: null,
     data: { ...invoice, lines: lines ?? [], client },
@@ -360,10 +346,10 @@ export async function sendReminder(invoiceId: string): Promise<ActionResult> {
 
   if (!user) return { error: "Niet ingelogd." };
 
-  // Verify ownership and status
+  // Verify ownership, status, and client email in one query
   const { data: invoice } = await supabase
     .from("invoices")
-    .select("status, client_id")
+    .select("status, client:clients(email)")
     .eq("id", invoiceId)
     .eq("user_id", user.id)
     .single();
@@ -374,12 +360,7 @@ export async function sendReminder(invoiceId: string): Promise<ActionResult> {
     return { error: "Herinneringen kunnen alleen worden verstuurd voor verzonden of verlopen facturen." };
   }
 
-  const { data: client } = await supabase
-    .from("clients")
-    .select("email")
-    .eq("id", invoice.client_id)
-    .single();
-
+  const client = invoice.client as unknown as { email: string | null } | null;
   if (!client?.email) {
     return { error: "Klant heeft geen e-mailadres." };
   }
@@ -399,10 +380,10 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
 
   if (!user) return { error: "Niet ingelogd." };
 
-  // Verify ownership
+  // Verify ownership, status, and client email in one query
   const { data: invoice } = await supabase
     .from("invoices")
-    .select("status, client_id")
+    .select("status, client:clients(email)")
     .eq("id", id)
     .eq("user_id", user.id)
     .single();
@@ -413,12 +394,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
     return { error: "Conceptfacturen kunnen niet worden verzonden." };
   }
 
-  const { data: client } = await supabase
-    .from("clients")
-    .select("email")
-    .eq("id", invoice.client_id)
-    .single();
-
+  const client = invoice.client as unknown as { email: string | null } | null;
   if (!client?.email) {
     return { error: "Klant heeft geen e-mailadres." };
   }

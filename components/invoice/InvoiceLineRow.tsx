@@ -100,6 +100,7 @@ export function InvoiceLineRow({
           disabled={index === 0}
           style={iconBtnStyle}
           title="Omhoog"
+          aria-label="Regel omhoog verplaatsen"
         >
           &#8593;
         </button>
@@ -109,6 +110,7 @@ export function InvoiceLineRow({
           disabled={index === totalLines - 1}
           style={iconBtnStyle}
           title="Omlaag"
+          aria-label="Regel omlaag verplaatsen"
         >
           &#8595;
         </button>
@@ -121,6 +123,7 @@ export function InvoiceLineRow({
             opacity: totalLines <= 1 ? 0.15 : 0.3,
           }}
           title="Verwijder"
+          aria-label="Regel verwijderen"
         >
           &#10005;
         </button>

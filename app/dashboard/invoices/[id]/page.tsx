@@ -18,13 +18,7 @@ import {
   ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
-
-const statusLabels: Record<string, string> = {
-  draft: "Concept",
-  sent: "Verzonden",
-  paid: "Betaald",
-  overdue: "Verlopen",
-};
+import { STATUS_LABELS } from "@/lib/constants/status";
 
 export default function EditInvoicePage() {
   const params = useParams<{ id: string }>();
@@ -73,7 +67,7 @@ export default function EditInvoicePage() {
     if (res.error) {
       setStatusMsg(res.error);
     } else {
-      setStatusMsg(`Status gewijzigd naar ${statusLabels[newStatus]}.`);
+      setStatusMsg(`Status gewijzigd naar ${STATUS_LABELS[newStatus]}.`);
       queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
     }
@@ -190,7 +184,7 @@ export default function EditInvoicePage() {
             textTransform: "uppercase",
           }}
         >
-          {statusLabels[currentStatus ?? ""] ?? currentStatus}
+          {STATUS_LABELS[currentStatus ?? ""] ?? currentStatus}
         </span>
         <div style={{ display: "flex", gap: 8 }}>
           {currentStatus === "draft" && (

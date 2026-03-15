@@ -199,6 +199,15 @@ tbody tr:hover {
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── Label utility ─── */
+.label {
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* ─── Skeleton Loaders ─── */
 .skeleton {
   background: var(--foreground);

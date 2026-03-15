@@ -54,26 +54,44 @@ export async function getDashboardStats(): Promise<ActionResult<DashboardStats>>
     .toISOString()
     .split("T")[0];
 
-  // Revenue this month: sum of paid invoices this month
-  const { data: paidInvoices } = await supabase
-    .from("invoices")
-    .select("total_inc_vat")
-    .eq("user_id", user.id)
-    .eq("status", "paid")
-    .gte("issue_date", monthStart)
-    .lte("issue_date", monthEnd);
+  // Run all stats queries in parallel
+  const [
+    { data: paidInvoices },
+    { data: openInvoices },
+    { data: vatInvoices },
+    { count: receiptsCount },
+  ] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select("total_inc_vat")
+      .eq("user_id", user.id)
+      .eq("status", "paid")
+      .gte("issue_date", monthStart)
+      .lte("issue_date", monthEnd),
+    supabase
+      .from("invoices")
+      .select("total_inc_vat")
+      .eq("user_id", user.id)
+      .in("status", ["sent", "overdue"]),
+    supabase
+      .from("invoices")
+      .select("vat_amount")
+      .eq("user_id", user.id)
+      .in("status", ["sent", "paid"])
+      .gte("issue_date", monthStart)
+      .lte("issue_date", monthEnd),
+    supabase
+      .from("receipts")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("receipt_date", monthStart)
+      .lte("receipt_date", monthEnd),
+  ]);
 
   const revenueThisMonth = (paidInvoices ?? []).reduce(
     (sum, inv) => sum + (inv.total_inc_vat ?? 0),
     0
   );
-
-  // Open invoices (sent + overdue)
-  const { data: openInvoices } = await supabase
-    .from("invoices")
-    .select("total_inc_vat")
-    .eq("user_id", user.id)
-    .in("status", ["sent", "overdue"]);
 
   const openInvoiceCount = openInvoices?.length ?? 0;
   const openInvoiceAmount = (openInvoices ?? []).reduce(
@@ -81,27 +99,12 @@ export async function getDashboardStats(): Promise<ActionResult<DashboardStats>>
     0
   );
 
-  // VAT to pay: sum of vat_amount on all invoices this month (sent + paid)
-  const { data: vatInvoices } = await supabase
-    .from("invoices")
-    .select("vat_amount")
-    .eq("user_id", user.id)
-    .in("status", ["sent", "paid"])
-    .gte("issue_date", monthStart)
-    .lte("issue_date", monthEnd);
-
   const vatToPay = (vatInvoices ?? []).reduce(
     (sum, inv) => sum + (inv.vat_amount ?? 0),
     0
   );
 
-  // Receipts processed this month
-  const { count: receiptsThisMonth } = await supabase
-    .from("receipts")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .gte("receipt_date", monthStart)
-    .lte("receipt_date", monthEnd);
+  const receiptsThisMonth = receiptsCount ?? 0;
 
   return {
     error: null,
@@ -110,7 +113,7 @@ export async function getDashboardStats(): Promise<ActionResult<DashboardStats>>
       openInvoiceCount,
       openInvoiceAmount,
       vatToPay,
-      receiptsThisMonth: receiptsThisMonth ?? 0,
+      receiptsThisMonth,
     },
   };
 }
@@ -296,25 +299,24 @@ export async function getVatDeadline(): Promise<ActionResult<VatDeadline>> {
 
   const quarter = `Q${currentQ} ${currentYear}`;
 
-  // Output VAT from invoices
-  const { data: invoices } = await supabase
-    .from("invoices")
-    .select("vat_amount")
-    .eq("user_id", user.id)
-    .in("status", ["sent", "paid"])
-    .gte("issue_date", qStartStr)
-    .lte("issue_date", qEndStr);
+  // Run output and input VAT queries in parallel
+  const [{ data: invoices }, { data: receipts }] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select("vat_amount")
+      .eq("user_id", user.id)
+      .in("status", ["sent", "paid"])
+      .gte("issue_date", qStartStr)
+      .lte("issue_date", qEndStr),
+    supabase
+      .from("receipts")
+      .select("vat_amount")
+      .eq("user_id", user.id)
+      .gte("receipt_date", qStartStr)
+      .lte("receipt_date", qEndStr),
+  ]);
 
   const outputVat = (invoices ?? []).reduce((sum, inv) => sum + (Number(inv.vat_amount) || 0), 0);
-
-  // Input VAT from receipts
-  const { data: receipts } = await supabase
-    .from("receipts")
-    .select("vat_amount")
-    .eq("user_id", user.id)
-    .gte("receipt_date", qStartStr)
-    .lte("receipt_date", qEndStr);
-
   const inputVat = (receipts ?? []).reduce((sum, rec) => sum + (Number(rec.vat_amount) || 0), 0);
 
   const estimatedAmount = Math.round((outputVat - inputVat) * 100) / 100;
