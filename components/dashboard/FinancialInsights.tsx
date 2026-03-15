@@ -53,7 +53,7 @@ export function FinancialInsights({ cashflow, safeToSpend }: FinancialInsightsPr
         className="stat-cards-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr 1fr",
+          gridTemplateColumns: "2fr 1fr 1fr 1fr",
           gap: 1,
           background: "rgba(13,13,11,0.08)",
           border: "1px solid rgba(13,13,11,0.08)",
@@ -66,9 +66,9 @@ export function FinancialInsights({ cashflow, safeToSpend }: FinancialInsightsPr
           sublabel="Laatste 6 maanden"
         />
 
-        {/* Runway */}
+        {/* Bereik */}
         <InsightCard
-          label="Runway"
+          label="Bereik"
           value={runway === Infinity ? "∞" : `${runway} mnd`}
           sublabel="Bij huidig tempo"
           highlight={runway < 3}

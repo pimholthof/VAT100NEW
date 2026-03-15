@@ -48,24 +48,29 @@ export function ActionFeed() {
       <div
         className="editorial-divider"
         style={{
-          padding: "32px 0",
-          textAlign: "center",
+          padding: "48px 0",
           marginBottom: "var(--space-section)",
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          borderTop: "2px solid var(--foreground)",
+          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
         <p
           style={{
             fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-md)",
+            fontSize: "var(--text-display-lg)",
             fontWeight: 700,
             letterSpacing: "var(--tracking-display)",
-            margin: "0 0 8px",
+            margin: 0,
+            textTransform: "uppercase",
           }}
         >
-          Inbox Zero
+          Helemaal bij
         </p>
-        <p className="label" style={{ opacity: 0.6, margin: 0 }}>
-          Je administratie is volledig up-to-date.
+        <p className="label" style={{ opacity: 0.45, margin: 0 }}>
+          Je administratie is volledig bijgewerkt.
         </p>
       </div>
     );

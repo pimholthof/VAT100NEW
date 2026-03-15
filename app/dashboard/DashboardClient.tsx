@@ -61,16 +61,24 @@ export default function DashboardClient({
 
       {/* ── Masthead ── */}
       <div
-        className="editorial-divider"
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           paddingBottom: 16,
           marginBottom: 48,
+          borderBottom: "2px solid var(--foreground)",
         }}
       >
-        <span className="label" style={{ opacity: 0.5 }}>
+        <span
+          style={{
+            fontFamily: "var(--font-display), sans-serif",
+            fontSize: "var(--text-display-sm)",
+            fontWeight: 700,
+            letterSpacing: "var(--tracking-display)",
+            textTransform: "uppercase",
+          }}
+        >
           Overzicht
         </span>
         <span className="label" style={{ opacity: 0.4 }}>
@@ -78,17 +86,26 @@ export default function DashboardClient({
         </span>
       </div>
 
-      {/* ── Hero Safe-to-Spend ── */}
+      {/* ── Hero Vrij Besteedbaar ── */}
       {isLoading ? (
         <div style={{ marginBottom: "var(--space-hero)" }}>
           <div className="skeleton" style={{ width: "40%", height: 9, marginBottom: 20, opacity: 0.08 }} />
           <div className="skeleton" style={{ width: "60%", height: 80, opacity: 0.06 }} />
         </div>
       ) : safeToSpend ? (
-        <div style={{ marginBottom: "var(--space-hero)" }}>
-          <p className="label" style={{ margin: "0 0 16px", opacity: 0.6 }}>
-            Safe-to-Spend
-          </p>
+        <div
+          style={{
+            marginBottom: "var(--space-hero)",
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            gap: 32,
+            alignItems: "end",
+          }}
+        >
+          <div>
+            <p className="label" style={{ margin: "0 0 16px", opacity: 0.6 }}>
+              Vrij besteedbaar
+            </p>
             <AnimatedNumber
               value={safeToSpend.safeToSpend}
               style={{
@@ -99,7 +116,17 @@ export default function DashboardClient({
                 letterSpacing: "var(--tracking-display)",
               }}
             />
-          <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+              alignItems: "flex-end",
+              borderLeft: "0.5px solid rgba(13,13,11,0.12)",
+              paddingLeft: 32,
+            }}
+          >
             <span className="label" style={{ opacity: 0.4, textTransform: "none", letterSpacing: "normal" }}>
               Saldo: {formatCurrency(safeToSpend.currentBalance)}
             </span>
@@ -135,8 +162,10 @@ export default function DashboardClient({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "var(--space-element)",
+            gridTemplateColumns: "2fr 1fr 1fr",
+            gap: 1,
+            background: "rgba(13,13,11,0.08)",
+            border: "1px solid rgba(13,13,11,0.08)",
           }}
           className="stat-cards-grid"
         >
@@ -254,8 +283,23 @@ export default function DashboardClient({
         </div>
       ) : cashflow ? (
         <div style={{ marginBottom: "var(--space-section)" }}>
-          <h2 className="section-header" style={{ margin: "0 0 16px" }}>
+          <h2
+            className="section-header"
+            style={{
+              margin: "0 0 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+            }}
+          >
             Cashflow
+            <span
+              style={{
+                flex: 1,
+                height: "0.5px",
+                background: "rgba(13,13,11,0.15)",
+              }}
+            />
           </h2>
 
           <div className="editorial-divider">
@@ -283,8 +327,23 @@ export default function DashboardClient({
       ) : null}
 
       {/* ── Upcoming due invoices ── */}
-      <h2 className="section-header" style={{ margin: "0 0 16px" }}>
+      <h2
+        className="section-header"
+        style={{
+          margin: "0 0 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+        }}
+      >
         Openstaande facturen
+        <span
+          style={{
+            flex: 1,
+            height: "0.5px",
+            background: "rgba(13,13,11,0.15)",
+          }}
+        />
       </h2>
 
       {isLoading ? (
@@ -300,9 +359,21 @@ export default function DashboardClient({
       {/* ── Recent invoices ── */}
       <h2
         className="section-header"
-        style={{ margin: "var(--space-section) 0 16px" }}
+        style={{
+          margin: "var(--space-section) 0 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+        }}
       >
         Laatste facturen
+        <span
+          style={{
+            flex: 1,
+            height: "0.5px",
+            background: "rgba(13,13,11,0.15)",
+          }}
+        />
       </h2>
 
       {isLoading ? (

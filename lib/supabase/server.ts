@@ -42,9 +42,8 @@ type AuthResult = { error: null; supabase: SupabaseServer; user: User } | { erro
  */
 export async function requireAuth(): Promise<AuthResult> {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (!user) return { error: "Niet ingelogd.", supabase: null, user: null };
+  if (error || !user) return { error: "Niet ingelogd.", supabase: null, user: null };
   return { error: null, supabase, user };
 }
