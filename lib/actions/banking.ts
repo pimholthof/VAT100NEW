@@ -1,16 +1,15 @@
 "use server";
 
+import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 
 export async function getBankConnections(): Promise<ActionResult<BankConnection[]>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("bank_connections")
@@ -27,11 +26,9 @@ export async function getBankTransactions(filters?: {
   to?: string;
   category?: string;
 }): Promise<ActionResult<BankTransaction[]>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   let query = supabase
     .from("bank_transactions")
@@ -59,11 +56,9 @@ export async function categorizeTransaction(
   id: string,
   category: string
 ): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("bank_transactions")
@@ -79,11 +74,9 @@ export async function linkTransactionToInvoice(
   transactionId: string,
   invoiceId: string
 ): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("bank_transactions")
@@ -99,11 +92,9 @@ export async function linkTransactionToReceipt(
   transactionId: string,
   receiptId: string
 ): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("bank_transactions")
@@ -120,11 +111,9 @@ export async function linkTransactionToReceipt(
 export async function initiateBankConnection(
   institutionId: string
 ): Promise<ActionResult<{ redirectUrl: string }>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Placeholder: create a pending connection record
   const { data, error } = await supabase
@@ -154,11 +143,9 @@ export async function initiateBankConnection(
 export async function completeBankConnection(
   requisitionId: string
 ): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // TODO: GoCardless API — Fetch requisition status, get account details
   // const requisition = await gocardless.getRequisition(requisitionId);
@@ -184,11 +171,9 @@ export async function completeBankConnection(
 export async function syncTransactions(
   connectionId: string
 ): Promise<ActionResult<number>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Verify the connection belongs to this user
   const { data: connection, error: connError } = await supabase
@@ -219,11 +204,9 @@ export async function syncTransactions(
 export async function deleteBankConnection(
   id: string
 ): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("bank_connections")
@@ -243,11 +226,9 @@ const AI_CATEGORIES = [
 export async function autoCategorizeTransactions(
   transactionIds: string[]
 ): Promise<ActionResult<Record<string, string>>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Fetch the transactions
   const { data: transactions, error: fetchError } = await supabase
@@ -267,8 +248,9 @@ export async function autoCategorizeTransactions(
     .select("counterpart_pattern, category, is_income")
     .eq("user_id", user.id);
 
-  const rulesMap = new Map(
-    (rules ?? []).map((r) => [r.counterpart_pattern.toLowerCase(), r])
+  type CatRule = { counterpart_pattern: string; category: string; is_income: boolean };
+  const rulesMap = new Map<string, CatRule>(
+    (rules ?? []).map((r: CatRule) => [r.counterpart_pattern.toLowerCase(), r])
   );
 
   // Separate transactions that match existing rules from those needing AI
@@ -342,8 +324,16 @@ Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income}]`,
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) continue;
 
-      const parsed: { id: string; category: string; is_income: boolean }[] =
-        JSON.parse(jsonMatch[0]);
+      const aiCategorySchema = z.array(
+        z.object({
+          id: z.string(),
+          category: z.string(),
+          is_income: z.boolean(),
+        })
+      );
+      const parseResult = aiCategorySchema.safeParse(JSON.parse(jsonMatch[0]));
+      if (!parseResult.success) continue;
+      const parsed = parseResult.data;
 
       // Batch update AI-categorized transactions
       const validItems = parsed.filter((item) => AI_CATEGORIES.includes(item.category));
@@ -372,11 +362,9 @@ export async function learnFromCorrection(
   transactionId: string,
   newCategory: string
 ): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Fetch the transaction to get counterpart_name
   const { data: tx, error: fetchError } = await supabase

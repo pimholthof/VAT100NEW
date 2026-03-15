@@ -1,15 +1,13 @@
 "use server";
 
-import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, Client, ClientInput } from "@/lib/types";
 import { clientSchema, validate } from "@/lib/validation";
 
 export async function getClients(search?: string): Promise<ActionResult<Client[]>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   let query = supabase
     .from("clients")
@@ -31,11 +29,9 @@ export async function getClients(search?: string): Promise<ActionResult<Client[]
 export async function getClient(
   id: string
 ): Promise<ActionResult<Client>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("clients")
@@ -52,11 +48,9 @@ export async function getClient(
 export async function createNewClient(
   input: ClientInput
 ): Promise<ActionResult<Client>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const v = validate(clientSchema, input);
   if (v.error) return { error: v.error };
@@ -85,11 +79,9 @@ export async function updateClient(
   id: string,
   input: ClientInput
 ): Promise<ActionResult<Client>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const v = validate(clientSchema, input);
   if (v.error) return { error: v.error };
@@ -116,11 +108,9 @@ export async function updateClient(
 }
 
 export async function deleteClient(id: string): Promise<ActionResult> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Check if client has invoices
   const { count } = await supabase
@@ -152,11 +142,9 @@ export async function getClientStats(
     totalOutstanding: number;
   }>
 > {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data: invoices, error } = await supabase
     .from("invoices")
@@ -199,11 +187,9 @@ export async function getClientInvoices(
   issue_date: string;
   total_inc_vat: number;
 }>>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("invoices")

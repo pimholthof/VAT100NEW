@@ -14,7 +14,7 @@ export async function GET(
   if (result.error || !result.data) {
     return NextResponse.json(
       { error: result.error ?? "Er is een fout opgetreden" },
-      { status: 401 }
+      { status: 404 }
     );
   }
 

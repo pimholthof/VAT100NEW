@@ -18,7 +18,6 @@ const navItems = [
 export function DashboardNav({
   studioName,
 }: {
-  userName: string;
   studioName?: string;
 }) {
   const pathname = usePathname();

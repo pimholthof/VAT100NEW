@@ -31,32 +31,30 @@ export function AnimatedNumber({
     const diff = end - start;
 
     if (Math.abs(diff) < 0.01) {
-      setDisplayValue(end);
       previousValue.current = end;
-      return;
+      // Defer state update to avoid synchronous setState in effect
+      const id = requestAnimationFrame(() => setDisplayValue(end));
+      return () => cancelAnimationFrame(id);
     }
 
     const startTime = performance.now();
 
-    function animate(now: number) {
+    function step(now: number) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-
-      // Ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       const current = start + diff * eased;
 
       setDisplayValue(current);
 
       if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(step);
       } else {
-        setDisplayValue(end);
         previousValue.current = end;
       }
     }
 
-    animationRef.current = requestAnimationFrame(animate);
+    animationRef.current = requestAnimationFrame(step);
 
     return () => {
       cancelAnimationFrame(animationRef.current);

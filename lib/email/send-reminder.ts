@@ -3,7 +3,8 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { InvoicePDF } from "@/components/invoice/InvoicePDF";
 import type { InvoiceData } from "@/lib/types";
-import { formatCurrency, formatDateLong } from "@/lib/format";
+import { escapeHtml } from "@/lib/format";
+import { buildInvoiceEmailHtml } from "./template";
 
 let _resend: Resend | null = null;
 function getResend() {
@@ -22,7 +23,7 @@ export async function sendReminderEmail(
     return { error: "Klant heeft geen e-mailadres." };
   }
 
-  const senderName = profile.studio_name || profile.full_name;
+  const senderName = escapeHtml(profile.studio_name || profile.full_name);
 
   // Generate PDF buffer
   const element = createElement(InvoicePDF, { data });
@@ -31,62 +32,30 @@ export async function sendReminderEmail(
   );
 
   const filename = `factuur-${invoice.invoice_number}.pdf`;
+  const invoiceNum = escapeHtml(invoice.invoice_number);
 
-  const htmlBody = `
-<!DOCTYPE html>
-<html lang="nl">
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:#0D0D0B;background:#ffffff;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <tr><td>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 24px;">
-        Beste ${client.contact_name || client.name},
-      </p>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 24px;">
-        Graag herinneren wij u aan de openstaande factuur <strong>${invoice.invoice_number}</strong>.
-      </p>
-      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border-top:1px solid #E0E0E0;border-bottom:1px solid #E0E0E0;">
-        <tr>
-          <td style="padding:12px 0;font-size:14px;color:#666;">Factuurnummer</td>
-          <td style="padding:12px 0;font-size:14px;text-align:right;">${invoice.invoice_number}</td>
-        </tr>
-        <tr>
-          <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Factuurdatum</td>
-          <td style="padding:12px 0;font-size:14px;text-align:right;border-top:1px solid #F0F0F0;">${formatDateLong(invoice.issue_date)}</td>
-        </tr>
-        ${invoice.due_date ? `<tr>
-          <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Vervaldatum</td>
-          <td style="padding:12px 0;font-size:14px;text-align:right;border-top:1px solid #F0F0F0;">${formatDateLong(invoice.due_date)}</td>
-        </tr>` : ""}
-        <tr>
-          <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Openstaand bedrag</td>
-          <td style="padding:12px 0;font-size:16px;font-weight:bold;text-align:right;border-top:1px solid #F0F0F0;">${formatCurrency(invoice.total_inc_vat)}</td>
-        </tr>
-      </table>
-      ${profile.iban ? `<p style="font-size:14px;line-height:1.6;margin:0 0 24px;color:#666;">
+  // Build IBAN block if available
+  const ibanHtml = profile.iban
+    ? `<p style="font-size:14px;line-height:1.6;margin:0 0 24px;color:#666;">
         U kunt het bedrag overmaken naar:<br>
-        <strong>IBAN:</strong> ${profile.iban}${profile.bic ? `<br><strong>BIC:</strong> ${profile.bic}` : ""}<br>
+        <strong>IBAN:</strong> ${escapeHtml(profile.iban)}${profile.bic ? `<br><strong>BIC:</strong> ${escapeHtml(profile.bic)}` : ""}<br>
         <strong>t.n.v.:</strong> ${senderName}<br>
-        <strong>o.v.v.:</strong> Factuur ${invoice.invoice_number}
-      </p>` : ""}
-      <p style="font-size:16px;line-height:1.6;margin:0 0 24px;">
-        Mocht u deze factuur reeds betaald hebben, dan kunt u deze herinnering als niet verzonden beschouwen.
-      </p>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 32px;">
-        Zie bijlage voor de volledige factuur.
-      </p>
-      <p style="font-size:14px;line-height:1.6;margin:0;color:#666;">
-        Met vriendelijke groet,<br>${senderName}
-      </p>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
+        <strong>o.v.v.:</strong> Factuur ${invoiceNum}
+      </p>`
+    : undefined;
+
+  const htmlBody = buildInvoiceEmailHtml(data, {
+    introParagraph: `Graag herinneren wij u aan de openstaande factuur <strong>${invoiceNum}</strong>.`,
+    amountLabel: "Openstaand bedrag",
+    extraHtml: ibanHtml,
+    closingText:
+      "Mocht u deze factuur reeds betaald hebben, dan kunt u deze herinnering als niet verzonden beschouwen.",
+  });
 
   const { error: sendError } = await getResend().emails.send({
     from: process.env.EMAIL_FROM!,
     to: client.email,
-    subject: `Herinnering: Factuur ${invoice.invoice_number} — ${senderName}`,
+    subject: `Herinnering: Factuur ${invoice.invoice_number} — ${profile.studio_name || profile.full_name}`,
     html: htmlBody,
     attachments: [
       {

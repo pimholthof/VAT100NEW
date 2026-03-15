@@ -5,7 +5,8 @@ import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoicePDF } from "@/components/invoice/InvoicePDF";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
-import { formatCurrency, formatDateLong } from "@/lib/format";
+import { escapeHtml } from "@/lib/format";
+import { buildInvoiceEmailHtml } from "./template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -33,55 +34,19 @@ export async function sendInvoiceEmail(
     element as unknown as Parameters<typeof renderToBuffer>[0]
   );
 
-  const senderName = profile.studio_name || profile.full_name;
+  const senderName = escapeHtml(profile.studio_name || profile.full_name);
+  const invoiceNum = escapeHtml(invoice.invoice_number);
   const filename = `factuur-${invoice.invoice_number}.pdf`;
 
-  const htmlBody = `
-<!DOCTYPE html>
-<html lang="nl">
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:#0D0D0B;background:#ffffff;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <tr><td>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 24px;">
-        Beste ${client.contact_name || client.name},
-      </p>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 24px;">
-        Hierbij ontvangt u factuur <strong>${invoice.invoice_number}</strong> van ${senderName}.
-      </p>
-      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border-top:1px solid #E0E0E0;border-bottom:1px solid #E0E0E0;">
-        <tr>
-          <td style="padding:12px 0;font-size:14px;color:#666;">Factuurnummer</td>
-          <td style="padding:12px 0;font-size:14px;text-align:right;">${invoice.invoice_number}</td>
-        </tr>
-        <tr>
-          <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Factuurdatum</td>
-          <td style="padding:12px 0;font-size:14px;text-align:right;border-top:1px solid #F0F0F0;">${formatDateLong(invoice.issue_date)}</td>
-        </tr>
-        ${invoice.due_date ? `<tr>
-          <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Vervaldatum</td>
-          <td style="padding:12px 0;font-size:14px;text-align:right;border-top:1px solid #F0F0F0;">${formatDateLong(invoice.due_date)}</td>
-        </tr>` : ""}
-        <tr>
-          <td style="padding:12px 0;font-size:14px;color:#666;border-top:1px solid #F0F0F0;">Totaal incl. BTW</td>
-          <td style="padding:12px 0;font-size:16px;font-weight:bold;text-align:right;border-top:1px solid #F0F0F0;">${formatCurrency(invoice.total_inc_vat)}</td>
-        </tr>
-      </table>
-      <p style="font-size:16px;line-height:1.6;margin:0 0 32px;">
-        Zie bijlage voor de volledige factuur.
-      </p>
-      <p style="font-size:14px;line-height:1.6;margin:0;color:#666;">
-        Met vriendelijke groet,<br>${senderName}
-      </p>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
+  const htmlBody = buildInvoiceEmailHtml(data, {
+    introParagraph: `Hierbij ontvangt u factuur <strong>${invoiceNum}</strong> van ${senderName}.`,
+    amountLabel: "Totaal incl. BTW",
+  });
 
   const { error: sendError } = await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to: client.email,
-    subject: `Factuur ${invoice.invoice_number} — ${senderName}`,
+    subject: `Factuur ${invoice.invoice_number} — ${profile.studio_name || profile.full_name}`,
     html: htmlBody,
     attachments: [
       {

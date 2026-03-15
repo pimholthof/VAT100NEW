@@ -1,15 +1,13 @@
 "use server";
 
-import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, Profile } from "@/lib/types";
 import { profileSchema, validate } from "@/lib/validation";
 
 export async function getProfile(): Promise<ActionResult<Profile>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { data, error } = await supabase
     .from("profiles")
@@ -25,11 +23,9 @@ export async function getProfile(): Promise<ActionResult<Profile>> {
 export async function updateProfile(
   input: Partial<Profile>
 ): Promise<ActionResult<Profile>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const v = validate(profileSchema, input);
   if (v.error) return { error: v.error };

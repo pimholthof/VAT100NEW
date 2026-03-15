@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 
 export interface QuarterStats {
@@ -22,11 +22,9 @@ function getQuarterKey(dateStr: string): string {
 }
 
 export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
-  const supabase = await createSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   // Limit to last 2 years (8 quarters max)
   const twoYearsAgo = new Date();
@@ -98,15 +96,8 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
     q.netVat = Math.round((q.outputVat - q.inputVat) * 100) / 100;
   }
 
-  // Sort newest first, max 8
-  const sorted = Array.from(quarters.values()).sort((a, b) => {
-    const [aq, ay] = a.quarter.split(" ");
-    const [bq, by] = b.quarter.split(" ");
-    if (ay !== by) return Number(by) - Number(ay);
-    return Number(bq.replace("Q", "")) - Number(aq.replace("Q", "")) > 0 ? 1 : -1;
-  });
-
-  // Fix sort: newest first means higher year first, then higher Q first
+  // Sort newest first (higher year first, then higher Q first), max 8
+  const sorted = Array.from(quarters.values());
   sorted.sort((a, b) => {
     const ay = Number(a.quarter.split(" ")[1]);
     const by = Number(b.quarter.split(" ")[1]);

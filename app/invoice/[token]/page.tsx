@@ -9,10 +9,8 @@ export default async function PublicInvoicePage({
 }) {
   const { token } = await params;
 
-  let data;
-  try {
-    data = await fetchInvoiceByToken(token);
-  } catch {
+  const result = await fetchInvoiceByToken(token);
+  if (result.error || !result.data) {
     notFound();
   }
 
@@ -25,7 +23,7 @@ export default async function PublicInvoicePage({
           Download PDF
         </a>
       </div>
-      <InvoiceHTML data={data} />
+      <InvoiceHTML data={result.data} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
 
 export interface DashboardStats {
@@ -74,11 +74,9 @@ export interface DashboardData {
 }
 
 export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const now = new Date();
   const userId = user.id;
@@ -408,11 +406,9 @@ export interface SetupProgress {
 }
 
 export async function getSetupProgress(): Promise<ActionResult<SetupProgress>> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
-
-  if (!user) return { error: "Niet ingelogd." };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const [profileRes, clientRes, invoiceRes, receiptRes, bankRes] = await Promise.all([
     supabase.from("profiles").select("studio_name").eq("id", user.id).single(),
