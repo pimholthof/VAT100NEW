@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { ActionResult } from "@/lib/types";
+import type { ActionResult, SafeToSpendData } from "@/lib/types";
 
 export interface DashboardStats {
   revenueThisMonth: number;
@@ -70,6 +70,7 @@ export interface DashboardData {
   upcomingInvoices: UpcomingInvoice[];
   cashflow: CashflowSummary;
   vatDeadline: VatDeadline;
+  safeToSpend: SafeToSpendData;
 }
 
 export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
@@ -118,6 +119,8 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     { data: cashflowReceipts },
     { data: vatQuarterInvoices },
     { data: vatQuarterReceipts },
+    { data: bankBalanceData },
+    { data: yearRevenueData },
   ] = await Promise.all([
     // Stats: paid invoices this month
     supabase
@@ -193,6 +196,18 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       .eq("user_id", userId)
       .gte("receipt_date", qStart)
       .lte("receipt_date", qEnd),
+    // Safe-to-Spend: all bank transaction amounts (to compute balance)
+    supabase
+      .from("bank_transactions")
+      .select("amount")
+      .eq("user_id", userId),
+    // Safe-to-Spend: total revenue this year for income tax estimate
+    supabase
+      .from("invoices")
+      .select("total_inc_vat, vat_amount")
+      .eq("user_id", userId)
+      .eq("status", "paid")
+      .gte("issue_date", `${now.getFullYear()}-01-01`),
   ]);
 
   if (recentError) return { error: recentError.message };
@@ -339,6 +354,46 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         daysRemaining,
         estimatedAmount: Math.round((outputVat - inputVat) * 100) / 100,
       },
+      safeToSpend: calculateSafeToSpend(
+        bankBalanceData ?? [],
+        yearRevenueData ?? [],
+        outputVat,
+        inputVat
+      ),
     },
+  };
+}
+
+// ── Safe-to-Spend Calculator (Agent 3: Tax Forecaster) ──
+function calculateSafeToSpend(
+  bankTransactions: Array<{ amount: number }>,
+  yearRevenue: Array<{ total_inc_vat: number; vat_amount: number }>,
+  outputVat: number,
+  inputVat: number
+): SafeToSpendData {
+  // Current bank balance = sum of all transactions
+  const currentBalance = bankTransactions.reduce(
+    (sum, tx) => sum + (Number(tx.amount) || 0), 0
+  );
+
+  // Estimated VAT to pay this quarter
+  const estimatedVat = Math.max(0, Math.round((outputVat - inputVat) * 100) / 100);
+
+  // Estimated income tax: ~37% of net profit (revenue minus VAT = ex-VAT revenue)
+  // This is a simplified Dutch IB estimate for ZZP'ers
+  const totalRevenueExVat = yearRevenue.reduce(
+    (sum, inv) => sum + ((Number(inv.total_inc_vat) || 0) - (Number(inv.vat_amount) || 0)), 0
+  );
+  const estimatedIncomeTax = Math.max(0, Math.round(totalRevenueExVat * 0.37 * 100) / 100);
+
+  const reservedTotal = estimatedVat + estimatedIncomeTax;
+  const safeToSpend = Math.round((currentBalance - reservedTotal) * 100) / 100;
+
+  return {
+    currentBalance: Math.round(currentBalance * 100) / 100,
+    estimatedVat,
+    estimatedIncomeTax,
+    reservedTotal: Math.round(reservedTotal * 100) / 100,
+    safeToSpend: Math.max(0, safeToSpend),
   };
 }

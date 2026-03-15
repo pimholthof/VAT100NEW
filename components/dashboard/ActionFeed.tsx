@@ -1,41 +1,47 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatCurrency } from "@/lib/format";
-
-type ActionItem = {
-  id: string;
-  type: "match_suggestion" | "missing_receipt";
-  title: string;
-  description: string;
-  amount?: number;
-};
-
-// Dummy data for Sprint 1
-const DUMMY_ACTIONS: ActionItem[] = [
-  {
-    id: "act_1",
-    type: "missing_receipt",
-    title: "Ontbrekend bonnetje",
-    description: "Afschrijving van Shell Nederland op 14 maart.",
-    amount: 45.0,
-  },
-  {
-    id: "act_2",
-    type: "match_suggestion",
-    title: "Mogelijke match",
-    description: "Is deze afschrijving voor factuur #2024-001?",
-    amount: 1250.0,
-  },
-];
+import {
+  getActionFeedItems,
+  resolveActionItem,
+  ignoreActionItem,
+} from "@/lib/actions/action-feed";
+import type { ActionFeedItem } from "@/lib/types";
 
 export function ActionFeed() {
-  const [actions, setActions] = useState<ActionItem[]>(DUMMY_ACTIONS);
+  const queryClient = useQueryClient();
 
-  const handleAction = (id: string) => {
-    // In Sprint 2, this will call a server action
-    setActions((prev) => prev.filter((a) => a.id !== id));
-  };
+  const { data: result, isLoading } = useQuery({
+    queryKey: ["action-feed"],
+    queryFn: () => getActionFeedItems(),
+  });
+
+  const actions = result?.data ?? [];
+
+  const resolveMutation = useMutation({
+    mutationFn: (id: string) => resolveActionItem(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["action-feed"] });
+    },
+  });
+
+  const ignoreMutation = useMutation({
+    mutationFn: (id: string) => ignoreActionItem(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["action-feed"] });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div style={{ marginBottom: "var(--space-section)" }}>
+        <div className="skeleton" style={{ width: "30%", height: 14, marginBottom: 16, opacity: 0.08 }} />
+        <div className="skeleton" style={{ width: "100%", height: 60, opacity: 0.04 }} />
+      </div>
+    );
+  }
 
   if (actions.length === 0) {
     return (
@@ -72,91 +78,135 @@ export function ActionFeed() {
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {actions.map((action) => (
-          <div
+          <ActionCard
             key={action.id}
+            action={action}
+            onResolve={() => resolveMutation.mutate(action.id)}
+            onIgnore={() => ignoreMutation.mutate(action.id)}
+            isPending={resolveMutation.isPending || ignoreMutation.isPending}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ActionCard({
+  action,
+  onResolve,
+  onIgnore,
+  isPending,
+}: {
+  action: ActionFeedItem;
+  onResolve: () => void;
+  onIgnore: () => void;
+  isPending: boolean;
+}) {
+  const typeLabel: Record<string, string> = {
+    missing_receipt: "Bonnetje",
+    match_suggestion: "Match",
+    tax_alert: "Belasting",
+    uncategorized: "Categoriseer",
+  };
+
+  const actionLabel: Record<string, string> = {
+    missing_receipt: "Upload",
+    match_suggestion: "Bevestig",
+    tax_alert: "Bekijk",
+    uncategorized: "Categoriseer",
+  };
+
+  return (
+    <div
+      style={{
+        padding: 16,
+        border: "1px solid rgba(13,13,11,0.12)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        background: "var(--background)",
+        transition: "opacity 0.2s ease",
+        opacity: isPending ? 0.5 : 1,
+      }}
+    >
+      <div>
+        <p className="label" style={{ opacity: 0.8, margin: "0 0 4px" }}>
+          {typeLabel[action.type] ?? action.type}
+          {action.ai_confidence != null && (
+            <span style={{ opacity: 0.5, marginLeft: 8 }}>
+              {Math.round(action.ai_confidence * 100)}% zeker
+            </span>
+          )}
+        </p>
+        <p
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-md)",
+            fontWeight: 500,
+            margin: "0 0 4px",
+          }}
+        >
+          {action.title}
+        </p>
+        <p
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-sm)",
+            color: "rgba(13,13,11,0.6)",
+            margin: 0,
+          }}
+        >
+          {action.description}
+        </p>
+      </div>
+      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
+        {action.amount != null && (
+          <span
             style={{
-              padding: 16,
-              border: "1px solid rgba(13,13,11,0.12)",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              background: "var(--background)",
+              fontFamily: "var(--font-mono), monospace",
+              fontSize: "var(--text-mono-md)",
             }}
           >
-            <div>
-              <p className="label" style={{ opacity: 0.8, margin: "0 0 4px" }}>
-                {action.type === "missing_receipt" ? "Bonnetje" : "Match"}
-              </p>
-              <p
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-body-md)",
-                  fontWeight: 500,
-                  margin: "0 0 4px",
-                }}
-              >
-                {action.title}
-              </p>
-              <p
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-body-sm)",
-                  color: "rgba(13,13,11,0.6)",
-                  margin: 0,
-                }}
-              >
-                {action.description}
-              </p>
-            </div>
-            <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
-              {action.amount && (
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono), monospace",
-                    fontSize: "var(--text-mono-md)",
-                  }}
-                >
-                  {formatCurrency(action.amount)}
-                </span>
-              )}
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() => handleAction(action.id)}
-                  style={{
-                    background: "rgba(13,13,11,0.06)",
-                    border: "none",
-                    padding: "6px 12px",
-                    fontFamily: "var(--font-body), sans-serif",
-                    fontSize: "var(--text-label)",
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    letterSpacing: "var(--tracking-label)",
-                    cursor: "pointer",
-                  }}
-                >
-                  Negeer
-                </button>
-                <button
-                  onClick={() => handleAction(action.id)}
-                  style={{
-                    background: "var(--foreground)",
-                    color: "var(--background)",
-                    border: "none",
-                    padding: "6px 12px",
-                    fontFamily: "var(--font-body), sans-serif",
-                    fontSize: "var(--text-label)",
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    letterSpacing: "var(--tracking-label)",
-                    cursor: "pointer",
-                  }}
-                >
-                  {action.type === "missing_receipt" ? "Upload" : "Bevestig"}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+            {formatCurrency(action.amount)}
+          </span>
+        )}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={onIgnore}
+            disabled={isPending}
+            style={{
+              background: "rgba(13,13,11,0.06)",
+              border: "none",
+              padding: "6px 12px",
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-label)",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "var(--tracking-label)",
+              cursor: "pointer",
+            }}
+          >
+            Negeer
+          </button>
+          <button
+            onClick={onResolve}
+            disabled={isPending}
+            style={{
+              background: "var(--foreground)",
+              color: "var(--background)",
+              border: "none",
+              padding: "6px 12px",
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-label)",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "var(--tracking-label)",
+              cursor: "pointer",
+            }}
+          >
+            {actionLabel[action.type] ?? "OK"}
+          </button>
+        </div>
       </div>
     </div>
   );

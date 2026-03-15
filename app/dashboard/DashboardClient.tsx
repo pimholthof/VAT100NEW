@@ -46,12 +46,7 @@ export default function DashboardClient({
   const upcomingInvoices = data?.upcomingInvoices;
   const cashflow = data?.cashflow;
   const vatDeadline = data?.vatDeadline;
-
-  // Mock "Safe-to-Spend" calculation for Sprint 1
-  // Real logic will come from backend in Sprint 2
-  const currentBalance = stats ? stats.revenueThisMonth * 1.5 : 0; // Fake bank balance
-  const estimatedTax = stats ? stats.vatToPay + (stats.revenueThisMonth * 0.2) : 0; // VAT + basic income tax assumption
-  const safeToSpend = currentBalance - estimatedTax;
+  const safeToSpend = data?.safeToSpend;
 
   return (
     <div>
@@ -80,7 +75,7 @@ export default function DashboardClient({
           <div className="skeleton" style={{ width: "40%", height: 9, marginBottom: 20, opacity: 0.08 }} />
           <div className="skeleton" style={{ width: "60%", height: 80, opacity: 0.06 }} />
         </div>
-      ) : stats ? (
+      ) : safeToSpend ? (
         <div style={{ marginBottom: "var(--space-hero)" }}>
           <p className="label" style={{ margin: "0 0 16px", opacity: 0.6 }}>
             Safe-to-Spend
@@ -95,11 +90,19 @@ export default function DashboardClient({
               margin: 0,
             }}
           >
-            {formatCurrency(safeToSpend > 0 ? safeToSpend : 0)}
+            {formatCurrency(safeToSpend.safeToSpend)}
           </p>
-          <p className="label" style={{ margin: "16px 0 0", opacity: 0.5, textTransform: "none", letterSpacing: "normal" }}>
-            Huidig saldo minus gereserveerde BTW en inkomstenbelasting.
-          </p>
+          <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
+            <span className="label" style={{ opacity: 0.4, textTransform: "none", letterSpacing: "normal" }}>
+              Saldo: {formatCurrency(safeToSpend.currentBalance)}
+            </span>
+            <span className="label" style={{ opacity: 0.4, textTransform: "none", letterSpacing: "normal" }}>
+              BTW reserve: {formatCurrency(safeToSpend.estimatedVat)}
+            </span>
+            <span className="label" style={{ opacity: 0.4, textTransform: "none", letterSpacing: "normal" }}>
+              IB reserve: {formatCurrency(safeToSpend.estimatedIncomeTax)}
+            </span>
+          </div>
         </div>
       ) : null}
 

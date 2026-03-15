@@ -174,3 +174,34 @@ export interface ActionResult<T = undefined> {
   error: string | null;
   data?: T;
 }
+
+// ─── Action Feed types (AI Agent System) ───
+
+export type ActionFeedType = "missing_receipt" | "match_suggestion" | "tax_alert" | "uncategorized";
+export type ActionFeedStatus = "pending" | "resolved" | "ignored";
+
+export interface ActionFeedItem {
+  id: string;
+  user_id: string;
+  type: ActionFeedType;
+  status: ActionFeedStatus;
+  title: string;
+  description: string;
+  amount: number | null;
+  related_transaction_id: string | null;
+  related_receipt_id: string | null;
+  suggested_category: string | null;
+  ai_confidence: number | null;
+  created_at: string;
+  resolved_at: string | null;
+}
+
+// ─── Safe-to-Spend types ───
+
+export interface SafeToSpendData {
+  currentBalance: number;
+  estimatedVat: number;
+  estimatedIncomeTax: number;
+  reservedTotal: number;
+  safeToSpend: number;
+}
