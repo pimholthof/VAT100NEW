@@ -70,9 +70,9 @@
   --color-foreground: var(--foreground);
   --color-black: var(--color-black);
   --color-white: var(--color-white);
-  --font-display: "Space Grotesk", "Arial Narrow", sans-serif;
-  --font-body: "Inter", "Arial", "Helvetica", sans-serif;
-  --font-mono: "JetBrains Mono", "Courier New", monospace;
+  --font-display: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "Inter", sans-serif;
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;

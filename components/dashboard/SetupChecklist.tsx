@@ -23,11 +23,11 @@ export function SetupChecklist() {
   if (completed >= total) return null;
 
   const checklist: { key: keyof typeof steps; label: string; href: string }[] = [
-    { key: "hasProfile", label: "Bedrijfsgegevens invullen", href: "/dashboard/settings" },
-    { key: "hasClient", label: "Eerste klant toevoegen", href: "/dashboard/clients/new" },
-    { key: "hasInvoice", label: "Eerste factuur sturen", href: "/dashboard/invoices/new" },
-    { key: "hasReceipt", label: "Eerste bon uploaden", href: "/dashboard/receipts/new" },
-    { key: "hasBankConnection", label: "Bankrekening koppelen", href: "/dashboard/bank" },
+    { key: "hasProfile", label: "Bedrijfsgegevens completeren", href: "/dashboard/settings" },
+    { key: "hasClient", label: "Klantdossier aanmaken", href: "/dashboard/clients/new" },
+    { key: "hasInvoice", label: "Factuur genereren", href: "/dashboard/invoices/new" },
+    { key: "hasReceipt", label: "Document aanleveren", href: "/dashboard/receipts/new" },
+    { key: "hasBankConnection", label: "Bankverbinding instellen", href: "/dashboard/bank" },
   ];
 
   return (
@@ -40,7 +40,7 @@ export function SetupChecklist() {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <h2 className="section-header" style={{ margin: 0 }}>
-          Aan de slag
+          Configuratie
         </h2>
         <span
           style={{

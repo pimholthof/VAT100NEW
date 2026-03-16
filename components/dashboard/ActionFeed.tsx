@@ -69,8 +69,8 @@ export function ActionFeed() {
         >
           Helemaal bij
         </p>
-        <p className="label" style={{ opacity: 0.45, margin: 0 }}>
-          Je administratie is volledig bijgewerkt.
+        <p className="label" style={{ opacity: 0.6, margin: 0 }}>
+          Administratie actueel. Geen actie vereist.
         </p>
       </div>
     );
@@ -121,17 +121,17 @@ function ActionCard({
   );
 
   const typeLabel: Record<string, string> = {
-    missing_receipt: "Bonnetje",
+    missing_receipt: "Document",
     match_suggestion: "Match",
     tax_alert: "Belasting",
-    uncategorized: "Categoriseer",
+    uncategorized: "Rubriceer",
   };
 
   const actionLabel: Record<string, string> = {
-    missing_receipt: "Upload",
-    match_suggestion: "Bevestig",
-    tax_alert: "Bekijk",
-    uncategorized: "Categoriseer",
+    missing_receipt: "Aanleveren",
+    match_suggestion: "Accorderen",
+    tax_alert: "Bekijken",
+    uncategorized: "Rubriceren",
   };
 
   return (

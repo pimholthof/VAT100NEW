@@ -18,7 +18,7 @@ export function QuickReceiptUpload() {
   const processMutation = useMutation({
     mutationFn: async (file: File) => {
       setStatus("uploading");
-      setMessage("Bestand uploaden...");
+      setMessage("Upload initialiseren...");
 
       // 1. Create a placeholder receipt
       const receiptResult = await createReceipt({
@@ -46,13 +46,13 @@ export function QuickReceiptUpload() {
 
       // 3. Scan with AI
       setStatus("scanning");
-      setMessage("AI analyseert bon...");
+      setMessage("AI-extractie actief...");
       const scanResult = await scanReceiptWithAI(receiptId);
 
       if (scanResult.error) {
         // Receipt is still saved, just not AI-enriched
         setStatus("done");
-        setMessage("Bon opgeslagen (AI-scan mislukt).");
+        setMessage("Geregistreerd (AI-extractie onvoltooid).");
         return;
       }
 
@@ -72,12 +72,12 @@ export function QuickReceiptUpload() {
         await markReceiptAiProcessed(receiptId);
       }
 
-      setStatus("done");
-      setMessage(
-        scanResult.data?.vendor_name
-          ? `✓ ${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
-          : "✓ Bon opgeslagen en verwerkt."
-      );
+    setStatus("done");
+    setMessage(
+      scanResult.data?.vendor_name
+        ? `✓ ${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
+        : "✓ Document geregistreerd."
+    );
     },
     onError: (err) => {
       setStatus("error");
@@ -98,7 +98,7 @@ export function QuickReceiptUpload() {
     (file: File) => {
       if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
         setStatus("error");
-        setMessage("Alleen afbeeldingen en PDF's zijn toegestaan.");
+        setMessage("Uitsluitend afbeeldingen en PDF-bestanden toegestaan.");
         return;
       }
       processMutation.mutate(file);
@@ -160,10 +160,10 @@ export function QuickReceiptUpload() {
               margin: "0 0 4px",
             }}
           >
-            + Drop bon hier of klik om te uploaden
+            Document selecteren of slepen
           </p>
           <p className="label" style={{ opacity: 0.5, margin: 0 }}>
-            Foto of PDF — wordt direct verwerkt
+            Foto of PDF — AI-verwerking
           </p>
         </>
       )}
