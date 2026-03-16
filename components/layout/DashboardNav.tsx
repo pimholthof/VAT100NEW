@@ -68,7 +68,7 @@ export function DashboardNav({
                   textTransform: "uppercase",
                   textDecoration: "none",
                   color: "var(--foreground)",
-                  opacity: isActive ? 1 : 0.2,
+                  opacity: isActive ? 1 : 0.4,
                   transition: "opacity 0.15s ease",
                   paddingBottom: 2,
                   borderBottom: isActive
@@ -92,7 +92,7 @@ export function DashboardNav({
                 fontWeight: 500,
                 letterSpacing: "var(--tracking-label)",
                 textTransform: "uppercase",
-                opacity: 0.25,
+                opacity: 0.4,
               }}
             >
               {studioName}
@@ -110,7 +110,7 @@ export function DashboardNav({
               background: "transparent",
               border: "none",
               color: "var(--foreground)",
-              opacity: 0.2,
+              opacity: 0.4,
               cursor: "pointer",
               padding: 0,
             }}
@@ -152,7 +152,7 @@ export function DashboardNav({
                   textDecoration: "none",
                   color: "var(--foreground)",
                   padding: "10px 0",
-                  opacity: isActive ? 1 : 0.2,
+                  opacity: isActive ? 1 : 0.4,
                 }}
               >
                 {item.label}
@@ -171,7 +171,7 @@ export function DashboardNav({
               background: "transparent",
               border: "none",
               color: "var(--foreground)",
-              opacity: 0.2,
+              opacity: 0.4,
               cursor: "pointer",
               padding: "10px 0",
               marginTop: 8,

@@ -5,7 +5,7 @@ import type { VatDeadline } from "@/lib/actions/dashboard";
 
 /**
  * VatDeadlineBanner — Shows a prominent countdown to the next BTW deadline.
- * Turns urgent (red accent) when fewer than 14 days remaining.
+ * Uses opacity for urgency when fewer than 14 days remaining.
  */
 export function VatDeadlineBanner({ deadline }: { deadline: VatDeadline }) {
   const isUrgent = deadline.daysRemaining <= 14;
@@ -15,15 +15,13 @@ export function VatDeadlineBanner({ deadline }: { deadline: VatDeadline }) {
       className="vat-deadline-banner"
       style={{
         padding: 20,
-        border: isUrgent
-          ? "1px solid rgba(180,60,60,0.2)"
-          : "1px solid rgba(13,13,11,0.08)",
-        background: isUrgent ? "rgba(180,60,60,0.02)" : "transparent",
+        border: "0.5px solid rgba(13,13,11,0.12)",
+        background: "transparent",
         marginBottom: "var(--space-section)",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        transition: "all 0.3s ease",
+        transition: "opacity 0.15s ease",
       }}
     >
       <div>
@@ -49,7 +47,8 @@ export function VatDeadlineBanner({ deadline }: { deadline: VatDeadline }) {
             fontWeight: 700,
             letterSpacing: "var(--tracking-display)",
             margin: "0 0 2px",
-            color: isUrgent ? "#b43c3c" : "var(--foreground)",
+            color: "var(--foreground)",
+            opacity: isUrgent ? 1 : 0.8,
           }}
         >
           {deadline.daysRemaining}d

@@ -65,7 +65,7 @@ export default function DashboardClient({
           alignItems: "center",
           paddingBottom: 16,
           marginBottom: 48,
-          borderBottom: "2px solid var(--foreground)",
+          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
         <span
@@ -101,7 +101,7 @@ export default function DashboardClient({
           }}
         >
           <div>
-            <p className="label" style={{ margin: "0 0 16px", opacity: 0.6 }}>
+            <p className="label" style={{ margin: "0 0 16px", opacity: 0.4 }}>
               Vrij besteedbaar
             </p>
             <AnimatedNumber
@@ -157,8 +157,8 @@ export default function DashboardClient({
             display: "grid",
             gridTemplateColumns: "2fr 1fr 1fr",
             gap: 1,
-            background: "rgba(13,13,11,0.08)",
-            border: "1px solid rgba(13,13,11,0.08)",
+            background: "rgba(13,13,11,0.06)",
+            border: "0.5px solid rgba(13,13,11,0.08)",
           }}
           className="stat-cards-grid"
         >
