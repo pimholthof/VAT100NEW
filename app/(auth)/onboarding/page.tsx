@@ -61,7 +61,7 @@ export default function OnboardingPage() {
             marginTop: 24,
             marginBottom: 72,
             letterSpacing: "var(--tracking-caps)",
-            opacity: 0.25,
+            opacity: 0.4,
           }}
         >
           Vul je bedrijfsgegevens aan
@@ -145,7 +145,7 @@ export default function OnboardingPage() {
               fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-label)",
               fontWeight: 500,
-              letterSpacing: "0.12em",
+              letterSpacing: "0.10em",
               textTransform: "uppercase",
               padding: 24,
               border: "none",

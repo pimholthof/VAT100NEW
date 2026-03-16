@@ -42,7 +42,7 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
           gap: 8,
           alignItems: "end",
           height: 160,
-          borderBottom: "1px solid rgba(13,13,11,0.1)",
+          borderBottom: "0.5px solid rgba(13,13,11,0.12)",
           paddingBottom: 8,
         }}
       >

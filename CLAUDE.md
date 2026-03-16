@@ -5,7 +5,7 @@ VAT100 is a bookkeeping/invoicing app for Dutch creative freelancers. Next.js 15
 
 ## Design system
 - **Aesthetic:** Editorial brutalism — gedrukt materiaal gevoel, typografisch gedreven, extreme whitespace
-- **Fonts:** Barlow (body: 300/400/500) + Barlow Condensed (display: 900) + JetBrains Mono (data/numbers: 300/400)
+- **Fonts:** Inter (body: 300/400/500) + Space Grotesk (display: 700) + JetBrains Mono (data/numbers: 300/400)
 - **Font usage:**
   - --font-display: titels, logo, grote cijfers in stat cards
   - --font-body: lopende tekst, namen, adressen, navigatie

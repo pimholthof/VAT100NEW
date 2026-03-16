@@ -81,7 +81,7 @@ export default function LoginPage() {
             marginTop: 24,
             marginBottom: 72,
             letterSpacing: "var(--tracking-caps)",
-            opacity: 0.25,
+            opacity: 0.4,
           }}
         >
           Boekhouding voor creatieven
@@ -157,7 +157,7 @@ export default function LoginPage() {
               fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-label)",
               fontWeight: 500,
-              letterSpacing: "0.12em",
+              letterSpacing: "0.10em",
               textTransform: "uppercase",
               padding: 24,
               border: "none",
@@ -176,7 +176,7 @@ export default function LoginPage() {
           className="label"
           style={{
             marginTop: 40,
-            opacity: 0.2,
+            opacity: 0.4,
           }}
         >
           Nog geen account?{" "}

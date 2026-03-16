@@ -70,9 +70,9 @@
   --color-foreground: var(--foreground);
   --color-black: var(--color-black);
   --color-white: var(--color-white);
-  --font-display: "Inter", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
-  --font-mono: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;
@@ -134,7 +134,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background: rgba(13, 13, 11, 0.03);
+  background: rgba(13, 13, 11, 0.012);
 }
 
 /* ─── Dashboard Shell ─── */
@@ -151,7 +151,7 @@ tbody tr:hover {
   font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 .label-strong {
@@ -160,7 +160,7 @@ tbody tr:hover {
   font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 .display-hero {
@@ -318,14 +318,13 @@ tbody tr:hover {
 .dashboard-content > *:nth-child(9) { animation-delay: 0.48s; }
 .dashboard-content > *:nth-child(10) { animation-delay: 0.54s; }
 
-/* ── Stat Card hover lift ── */
+/* ── Stat Card hover ── */
 .stat-cards-grid > div {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .stat-cards-grid > div:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(13, 13, 11, 0.06);
+  opacity: 0.85;
 }
 
 /* ── Action Feed item animation ── */
@@ -343,19 +342,13 @@ tbody tr:hover {
 
 /* ─── Skeleton Loaders ─── */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(13, 13, 11, 0.06) 0%,
-    rgba(13, 13, 11, 0.12) 40%,
-    rgba(13, 13, 11, 0.06) 80%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  background: rgba(13, 13, 11, 0.08);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.2; }
 }
 
 /* ── Upload zone pulse ── */
@@ -420,7 +413,7 @@ tbody tr:hover {
   }
 
   .dashboard-nav {
-    padding: 0 16px;
+    padding: 0 24px;
   }
 
   .dashboard-nav-inner {
@@ -440,7 +433,7 @@ tbody tr:hover {
   }
 
   .dashboard-content {
-    padding: 24px 16px;
+    padding: 24px;
   }
 
   .display-hero {

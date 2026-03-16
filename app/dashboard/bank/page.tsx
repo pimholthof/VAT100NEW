@@ -325,7 +325,7 @@ export default function BankPage() {
                       fontWeight: 500,
                       letterSpacing: "0.02em",
                       background: "none",
-                      border: "1px solid rgba(13, 13, 11, 0.2)",
+                      border: "0.5px solid rgba(13, 13, 11, 0.25)",
                       color: "var(--foreground)",
                       padding: "6px 12px",
                       cursor: "pointer",
@@ -367,7 +367,7 @@ export default function BankPage() {
                   fontWeight: 500,
                   letterSpacing: "0.05em",
                   padding: "10px 16px",
-                  border: "1px solid rgba(13, 13, 11, 0.2)",
+                  border: "0.5px solid rgba(13, 13, 11, 0.25)",
                   background: "transparent",
                   color: "var(--foreground)",
                   cursor: "pointer",
@@ -410,7 +410,7 @@ export default function BankPage() {
               width: "auto",
               minWidth: 160,
               borderBottom: "none",
-              border: "1px solid rgba(13, 13, 11, 0.2)",
+              border: "0.5px solid rgba(13, 13, 11, 0.25)",
               padding: "8px 12px",
             }}
           >
@@ -470,7 +470,7 @@ export default function BankPage() {
         )}
 
         {/* Tabs for To-Do vs Auto-Processed */}
-        <div style={{ display: "flex", gap: "24px", marginBottom: "24px", borderBottom: "1px solid rgba(13,13,11,0.12)" }}>
+        <div style={{ display: "flex", gap: "24px", marginBottom: "24px", borderBottom: "0.5px solid rgba(13,13,11,0.12)" }}>
            <button
              onClick={() => setActiveTab("todo")}
              style={{
@@ -542,7 +542,7 @@ export default function BankPage() {
             <thead>
               <tr
                 style={{
-                  borderBottom: "1px solid var(--foreground)",
+                  borderBottom: "0.5px solid rgba(13,13,11,0.15)",
                   textAlign: "left",
                 }}
               >
@@ -607,7 +607,7 @@ export default function BankPage() {
       {!isLoading && transactions.length > 0 && (
         <div
           style={{
-            borderTop: "1px solid var(--foreground)",
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
             paddingTop: 24,
           }}
         >

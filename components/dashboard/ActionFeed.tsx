@@ -53,7 +53,7 @@ export function ActionFeed() {
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
-          borderTop: "2px solid var(--foreground)",
+          borderTop: "0.5px solid rgba(13,13,11,0.15)",
           borderBottom: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
@@ -69,7 +69,7 @@ export function ActionFeed() {
         >
           Helemaal bij
         </p>
-        <p className="label" style={{ opacity: 0.6, margin: 0 }}>
+        <p className="label" style={{ opacity: 0.4, margin: 0 }}>
           Administratie actueel. Geen actie vereist.
         </p>
       </div>
@@ -138,12 +138,12 @@ function ActionCard({
     <div
       style={{
         padding: 16,
-        border: "1px solid rgba(13,13,11,0.12)",
+        border: "0.5px solid rgba(13,13,11,0.12)",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
         background: "var(--background)",
-        transition: "opacity 0.3s ease, transform 0.3s ease, box-shadow 0.2s ease",
+        transition: "opacity 0.3s ease, transform 0.3s ease",
         opacity: exiting ? 0 : isPending ? 0.5 : 1,
         transform: exiting ? "translateY(-8px)" : undefined,
         animation: exiting ? "none" : `feedSlideIn 0.3s ease ${index * 0.06}s both`,
@@ -153,18 +153,16 @@ function ActionCard({
       onMouseEnter={(e) => {
         if (!exiting) {
           e.currentTarget.style.transform = "translateX(4px)";
-          e.currentTarget.style.boxShadow = "0 2px 8px rgba(13,13,11,0.04)";
         }
       }}
       onMouseLeave={(e) => {
         if (!exiting) {
           e.currentTarget.style.transform = "";
-          e.currentTarget.style.boxShadow = "";
         }
       }}
     >
       <div>
-        <p className="label" style={{ opacity: 0.8, margin: "0 0 4px" }}>
+        <p className="label" style={{ opacity: 0.6, margin: "0 0 4px" }}>
           {typeLabel[action.type] ?? action.type}
           {action.ai_confidence != null && (
             <span style={{ opacity: 0.5, marginLeft: 8 }}>

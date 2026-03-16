@@ -73,7 +73,7 @@ export default function TaxPage() {
           gridTemplateColumns: "1fr 1fr 1fr",
           gap: 1,
           background: "rgba(13,13,11,0.08)",
-          border: "1px solid rgba(13,13,11,0.08)",
+          border: "0.5px solid rgba(13,13,11,0.08)",
           marginBottom: "var(--space-section)",
         }}
       >
@@ -134,7 +134,7 @@ export default function TaxPage() {
         <div
           style={{
             padding: 20,
-            border: "1px solid rgba(13,13,11,0.08)",
+            border: "0.5px solid rgba(13,13,11,0.08)",
             marginBottom: "var(--space-section)",
             display: "flex",
             justifyContent: "space-between",
