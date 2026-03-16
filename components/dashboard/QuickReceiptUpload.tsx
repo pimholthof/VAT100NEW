@@ -163,7 +163,7 @@ export function QuickReceiptUpload() {
             + Drop bon hier of klik om te uploaden
           </p>
           <p className="label" style={{ opacity: 0.5, margin: 0 }}>
-            AI analyseert automatisch
+            Foto of PDF — wordt direct verwerkt
           </p>
         </>
       )}

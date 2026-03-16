@@ -1,6 +1,6 @@
 "use client";
 
-
+import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatCurrency } from "@/lib/format";
 import {
@@ -48,24 +48,29 @@ export function ActionFeed() {
       <div
         className="editorial-divider"
         style={{
-          padding: "32px 0",
-          textAlign: "center",
+          padding: "48px 0",
           marginBottom: "var(--space-section)",
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          borderTop: "2px solid var(--foreground)",
+          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
         <p
           style={{
             fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-md)",
+            fontSize: "var(--text-display-lg)",
             fontWeight: 700,
             letterSpacing: "var(--tracking-display)",
-            margin: "0 0 8px",
+            margin: 0,
+            textTransform: "uppercase",
           }}
         >
-          Inbox Zero
+          Helemaal bij
         </p>
-        <p className="label" style={{ opacity: 0.6, margin: 0 }}>
-          Je administratie is volledig up-to-date.
+        <p className="label" style={{ opacity: 0.45, margin: 0 }}>
+          Je administratie is volledig bijgewerkt.
         </p>
       </div>
     );
@@ -105,6 +110,16 @@ function ActionCard({
   onIgnore: () => void;
   isPending: boolean;
 }) {
+  const [exiting, setExiting] = useState(false);
+
+  const handleExit = useCallback(
+    (callback: () => void) => {
+      setExiting(true);
+      setTimeout(callback, 300);
+    },
+    [],
+  );
+
   const typeLabel: Record<string, string> = {
     missing_receipt: "Bonnetje",
     match_suggestion: "Match",
@@ -128,18 +143,24 @@ function ActionCard({
         justifyContent: "space-between",
         alignItems: "center",
         background: "var(--background)",
-        transition: "opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease",
-        opacity: isPending ? 0.5 : 1,
-        animation: `feedSlideIn 0.3s ease ${index * 0.06}s both`,
+        transition: "opacity 0.3s ease, transform 0.3s ease, box-shadow 0.2s ease",
+        opacity: exiting ? 0 : isPending ? 0.5 : 1,
+        transform: exiting ? "translateY(-8px)" : undefined,
+        animation: exiting ? "none" : `feedSlideIn 0.3s ease ${index * 0.06}s both`,
         cursor: "default",
+        pointerEvents: exiting ? "none" : undefined,
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateX(4px)";
-        e.currentTarget.style.boxShadow = "0 2px 8px rgba(13,13,11,0.04)";
+        if (!exiting) {
+          e.currentTarget.style.transform = "translateX(4px)";
+          e.currentTarget.style.boxShadow = "0 2px 8px rgba(13,13,11,0.04)";
+        }
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "";
-        e.currentTarget.style.boxShadow = "";
+        if (!exiting) {
+          e.currentTarget.style.transform = "";
+          e.currentTarget.style.boxShadow = "";
+        }
       }}
     >
       <div>
@@ -185,8 +206,8 @@ function ActionCard({
         )}
         <div style={{ display: "flex", gap: 8 }}>
           <button
-            onClick={onIgnore}
-            disabled={isPending}
+            onClick={() => handleExit(onIgnore)}
+            disabled={isPending || exiting}
             style={{
               background: "rgba(13,13,11,0.06)",
               border: "none",
@@ -202,8 +223,8 @@ function ActionCard({
             Negeer
           </button>
           <button
-            onClick={onResolve}
-            disabled={isPending}
+            onClick={() => handleExit(onResolve)}
+            disabled={isPending || exiting}
             style={{
               background: "var(--foreground)",
               color: "var(--background)",
