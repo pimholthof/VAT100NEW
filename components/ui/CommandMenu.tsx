@@ -72,13 +72,14 @@ export function CommandMenu() {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.4)",
+        backgroundColor: "rgba(255, 255, 255, 0.4)",
         zIndex: 9999,
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "center",
         paddingTop: "15vh",
-        backdropFilter: "blur(4px)",
+        backdropFilter: "blur(40px)",
+        WebkitBackdropFilter: "blur(40px)",
       }}
       onClick={() => setOpen(false)}
     >
@@ -87,11 +88,11 @@ export function CommandMenu() {
         style={{
           width: "100%",
           maxWidth: 640,
-          background: "var(--background)",
-          border: "0.5px solid rgba(13,13,11,0.15)",
+          background: "rgba(255, 255, 255, 0.95)",
+          border: "var(--border)",
           borderRadius: 0,
           overflow: "hidden",
-          boxShadow: "0 24px 48px -12px rgba(0,0,0,0.25)",
+          boxShadow: "0 32px 64px -12px rgba(0,0,0,0.1)",
         }}
       >
         <Command
@@ -99,7 +100,7 @@ export function CommandMenu() {
           label="Globale commando's"
           shouldFilter={!chatMode} 
         >
-          <div style={{ display: 'flex', alignItems: 'center', borderBottom: "0.5px solid rgba(13,13,11,0.1)" }}>
+          <div style={{ display: 'flex', alignItems: 'center', borderBottom: "var(--border-rule)" }}>
             {chatMode && (
               <button 
                 onClick={() => setChatMode(false)}
@@ -256,7 +257,7 @@ export function CommandMenu() {
           font-weight: 500;
           text-transform: uppercase;
           letter-spacing: var(--tracking-label);
-          color: rgba(13,13,11,0.4);
+          color: rgba(0,0,0,0.3);
         }
         .cmdk-item {
           padding: 12px 24px;
@@ -268,7 +269,7 @@ export function CommandMenu() {
         }
         .cmdk-item[data-selected="true"],
         .cmdk-item:hover {
-          background: rgba(13,13,11,0.06);
+          background: rgba(0,0,0,0.03);
           color: var(--foreground);
         }
       `}} />

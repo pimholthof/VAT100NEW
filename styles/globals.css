@@ -5,24 +5,24 @@
   /* Baseline unit */
   --u: 8px;
 
-  /* Colors — Deep Obsidian & Pure White */
-  --color-black: #0A0A0A;
+  /* Colors — Luminous White & Obsidian Ink */
+  --color-black: #000000;
   --color-white: #FFFFFF;
   --color-accent: #6366F1; /* Electric Indigo */
 
-  /* Foreground / Background */
-  --foreground: var(--color-white);
-  --background: var(--color-black);
+  /* Foreground / Background — FORCE LIGHT MODE */
+  --foreground: var(--color-black);
+  --background: var(--color-white);
 
-  /* Borders — Subtler, more premium */
-  --border-light: 0.5px solid rgba(255, 255, 255, 0.08);
-  --border-dark: 0.5px solid rgba(255, 255, 255, 0.12);
+  /* Borders — Luminous structure */
+  --border-light: 0.5px solid rgba(0, 0, 0, 0.05);
+  --border-dark: 0.5px solid rgba(0, 0, 0, 0.1);
   --border: var(--border-light);
 
   /* Refined components */
-  --border-rule: 0.5px solid rgba(255, 255, 255, 0.06);
-  --border-input: 0.5px solid rgba(255, 255, 255, 0.1);
-  --border-input-focus: 0.5px solid var(--color-accent);
+  --border-rule: 0.5px solid rgba(0, 0, 0, 0.04);
+  --border-input: 0.5px solid rgba(0, 0, 0, 0.08);
+  --border-input-focus: 0.5px solid var(--color-black);
 
   /* Typography Scale — Tight and sharp */
   --text-display-hero: clamp(4rem, 12vw, 10rem);
@@ -93,7 +93,8 @@ body {
 
 /* ─── Selection ─── */
 ::selection {
-  background: rgba(13, 13, 11, 0.12);
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--color-black);
 }
 
 /* ─── Global transitions ─── */
@@ -102,28 +103,28 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: rgba(13, 13, 11, 0.5) !important;
+  border-color: var(--color-black) !important;
 }
 
 button {
-  transition: opacity 0.15s ease;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 button:hover:not(:disabled) {
-  opacity: 0.85;
+  opacity: 0.7;
 }
 
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.2;
   cursor: default;
 }
 
 tbody tr {
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 tbody tr:hover {
-  background: rgba(13, 13, 11, 0.012);
+  background: rgba(0, 0, 0, 0.01);
 }
 
 /* ─── Dashboard Shell ─── */
@@ -134,11 +135,11 @@ tbody tr:hover {
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
 }
@@ -231,6 +232,29 @@ tbody tr:hover {
   100% { background-position: -200% 0%; }
 }
 
+/* ─── Deviant / Experimental Classes ─── */
+.vertical-label {
+  writing-mode: vertical-rl;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  opacity: 0.3;
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%) rotate(180deg);
+  pointer-events: none;
+}
+
+.tilted-canvas {
+  transform: perspective(1000px) rotateX(1deg) rotateY(-0.5deg);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tilted-canvas:hover {
+  transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+}
+
 /* ─── Reusable Typography Classes ─── */
 .label {
   font-family: var(--font-geist), sans-serif;
@@ -238,7 +262,7 @@ tbody tr:hover {
   font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.4;
+  opacity: 0.3; /* Even more ghost-like */
 }
 
 .label-strong {
@@ -247,7 +271,7 @@ tbody tr:hover {
   font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .display-hero {

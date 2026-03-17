@@ -14,12 +14,12 @@ import { InvoiceLineRow } from "./InvoiceLineRow";
 import { ClientQuickCreate } from "./ClientQuickCreate";
 import type { VatRate } from "@/lib/types";
 import {
-  FieldGroup,
   inputStyle,
-  ButtonPrimary,
-  ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
+import { motion } from "framer-motion";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { playSound } from "@/lib/utils/sound";
 
 interface InvoiceFormProps {
   invoiceId?: string;
@@ -139,21 +139,40 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   };
 
   return (
-    <div style={{ maxWidth: 800 }}>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      style={{ maxWidth: 900, margin: "0 auto" }}
+    >
       {error && (
-        <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
+        <ErrorMessage style={{ marginBottom: 40 }}>{error}</ErrorMessage>
       )}
 
-      {/* Client selector */}
-      <FieldGroup label="Klant">
-        <div style={{ display: "flex", gap: 8 }}>
+      {/* ── Recipient: Large and focused ── */}
+      <div style={{ marginBottom: 80 }}>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>RECIPIENT</p>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
           <select
             value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-            style={inputStyle}
+            onChange={(e) => {
+              setClientId(e.target.value);
+              playSound("tink");
+            }}
+            style={{ 
+              ...inputStyle, 
+              fontSize: "2.5rem", 
+              fontWeight: 400, 
+              letterSpacing: "-0.04em",
+              border: "none",
+              padding: 0,
+              width: "auto",
+              minWidth: 300,
+              background: "transparent"
+            }}
           >
             <option value="">
-              {clientsLoading ? "Laden..." : hasClientError ? clientErrorMessage : "— Selecteer klant —"}
+              {clientsLoading ? "Loading..." : hasClientError ? clientErrorMessage : "Select Client"}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
@@ -161,172 +180,190 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               </option>
             ))}
           </select>
-          <ButtonSecondary
+          <button
             type="button"
-            onClick={() => setShowNewClient(!showNewClient)}
+            onClick={() => {
+              setShowNewClient(!showNewClient);
+              playSound("glass-ping");
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 10,
+              textTransform: "uppercase",
+              letterSpacing: "0.2em",
+              opacity: 0.3
+            }}
           >
-            {showNewClient ? "Annuleer" : "+ Nieuw"}
-          </ButtonSecondary>
+            {showNewClient ? "[-] CLOSE" : "[+] NEW"}
+          </button>
         </div>
-      </FieldGroup>
+        {showNewClient && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            style={{ overflow: "hidden", marginTop: 24 }}
+          >
+            <ClientQuickCreate onClose={() => setShowNewClient(false)} />
+          </motion.div>
+        )}
+      </div>
 
-      {/* Slide-in new client panel */}
-      {showNewClient && (
-        <ClientQuickCreate onClose={() => setShowNewClient(false)} />
-      )}
+      {/* ── The Sum: Invoicing as Expression ── */}
+      <div style={{ marginBottom: 80 }}>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>EXPRESSION</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {lines.map((line, index) => (
+            <InvoiceLineRow
+              key={line.id}
+              line={line}
+              index={index}
+              totalLines={lines.length}
+              onUpdate={updateLine}
+              onRemove={removeLine}
+              onMove={moveLine}
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              addLine();
+              playSound("tink");
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 10,
+              textAlign: "left",
+              padding: "12px 0",
+              opacity: 0.2,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase"
+            }}
+          >
+            + ADD LINE
+          </button>
+        </div>
+      </div>
 
-      {/* Invoice number + dates */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
-        <FieldGroup label="Factuurnummer">
+      {/* ── Metadata: Precision lines ── */}
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "1fr 1fr 1fr", 
+        gap: 60, 
+        padding: "40px 0",
+        borderTop: "var(--border-rule)",
+        borderBottom: "var(--border-rule)",
+        marginBottom: 80
+      }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <p className="label">REF</p>
           <input
             type="text"
             value={invoiceNumber}
             onChange={(e) => setInvoiceNumber(e.target.value)}
-            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+            style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
           />
-        </FieldGroup>
-        <FieldGroup label="Factuurdatum">
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <p className="label">DATE</p>
           <input
             type="date"
             value={issueDate}
             onChange={(e) => setIssueDate(e.target.value)}
-            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+            style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
           />
-        </FieldGroup>
-        <FieldGroup label="Vervaldatum">
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
-          />
-        </FieldGroup>
-      </div>
-
-      {/* Invoice lines */}
-      <div style={{ marginBottom: 24 }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 80px 90px 100px 100px 60px",
-            gap: 8,
-            marginBottom: 8,
-          }}
-        >
-          <LabelCell>Omschrijving</LabelCell>
-          <LabelCell>Aantal</LabelCell>
-          <LabelCell>Eenheid</LabelCell>
-          <LabelCell>Tarief</LabelCell>
-          <LabelCell>Bedrag</LabelCell>
-          <LabelCell />
         </div>
-        {lines.map((line, index) => (
-          <InvoiceLineRow
-            key={line.id}
-            line={line}
-            index={index}
-            totalLines={lines.length}
-            onUpdate={updateLine}
-            onRemove={removeLine}
-            onMove={moveLine}
-          />
-        ))}
-        <ButtonSecondary
-          type="button"
-          onClick={addLine}
-          style={{ marginTop: 8 }}
-        >
-          + Regel toevoegen
-        </ButtonSecondary>
-      </div>
-
-      {/* VAT rate selector + totals */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 24,
-        }}
-      >
-        <FieldGroup label="BTW-tarief">
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <p className="label">TAX ({vatRate}%)</p>
           <select
             value={vatRate}
             onChange={(e) => setVatRate(Number(e.target.value) as VatRate)}
-            style={{ ...inputStyle, width: 120 }}
+            style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
           >
-            <option value={21}>21%</option>
-            <option value={9}>9%</option>
-            <option value={0}>0%</option>
+            <option value={21}>High (21%)</option>
+            <option value={9}>Low (9%)</option>
+            <option value={0}>Zero (0%)</option>
           </select>
-        </FieldGroup>
-
-        <div style={{ textAlign: "right" }}>
-          <TotalRow label="Subtotaal" value={totals.subtotal} />
-          <TotalRow
-            label={`BTW (${vatRate}%)`}
-            value={totals.vatAmount}
-          />
-          <div
-            style={{
-              borderTop: "0.5px solid var(--foreground)",
-              paddingTop: 8,
-              marginTop: 8,
-            }}
-          >
-            <TotalRow label="Totaal" value={totals.total} bold />
-          </div>
         </div>
       </div>
 
-      {/* Notes */}
-      <FieldGroup label="Notities (optioneel)">
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          placeholder="Bijv. betalingsvoorwaarden, referentie..."
-          style={{
-            ...inputStyle,
-            border: "0.5px solid rgba(13,13,11,0.12)",
-            padding: 12,
-            resize: "vertical",
-          }}
-        />
-      </FieldGroup>
+      {/* ── The Monolith: Total ── */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 100 }}>
+        <div>
+          <p className="label" style={{ opacity: 0.1, marginBottom: 8 }}>GRAND TOTAL</p>
+          <AnimatedNumber 
+            value={totals.total} 
+            isCurrency={true}
+            style={{
+              fontSize: "6rem",
+              fontWeight: 400,
+              lineHeight: 0.8,
+              letterSpacing: "-0.06em",
+              color: "var(--foreground)"
+            }}
+          />
+        </div>
+        <div style={{ textAlign: "right", opacity: 0.4 }}>
+          <p className="mono-amount" style={{ fontSize: 11, marginBottom: 4 }}>Sub: {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totals.subtotal)}</p>
+          <p className="mono-amount" style={{ fontSize: 11 }}>Tax: {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totals.vatAmount)}</p>
+        </div>
+      </div>
 
-      {/* Actions */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          marginTop: 32,
-          paddingTop: 24,
-          borderTop: "0.5px solid rgba(13,13,11,0.15)",
-        }}
-      >
-        <ButtonSecondary onClick={() => handleSave(false)} disabled={saving}>
-          {saving ? "Opslaan..." : "Opslaan als concept"}
-        </ButtonSecondary>
-        <ButtonPrimary onClick={() => handleSave(true)} disabled={saving}>
-          {saving ? "Opslaan..." : "Opslaan en preview"}
-        </ButtonPrimary>
+      {/* ── Actions: The VanMoof Unlock ── */}
+      <div style={{ display: "flex", gap: 24 }}>
+        <button
+          onClick={() => {
+            handleSave(false);
+            playSound("glass-ping");
+          }}
+          disabled={saving}
+          style={{
+            flex: 1,
+            padding: "24px",
+            background: "rgba(0,0,0,0.03)",
+            border: "var(--border-rule)",
+            fontSize: 11,
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "0.2em",
+            cursor: "pointer"
+          }}
+        >
+          {saving ? "..." : "Save Draft"}
+        </button>
+        <button
+          onClick={() => {
+            handleSave(true);
+            playSound("glass-ping");
+          }}
+          disabled={saving}
+          style={{
+            flex: 2,
+            padding: "24px",
+            background: "var(--foreground)",
+            color: "var(--background)",
+            border: "none",
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.2em",
+            cursor: "pointer",
+            boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
+          }}
+        >
+          {saving ? "..." : "Issue & Preview"}
+        </button>
       </div>
 
       {lastSavedAt && (
-        <p
-          style={{
-            fontFamily: "var(--font-mono), monospace",
-            fontSize: "var(--text-mono-sm)",
-            fontWeight: 300,
-            opacity: 0.35,
-            marginTop: 12,
-          }}
-        >
-          Laatst opgeslagen: {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
+        <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, marginTop: 40, textAlign: "center" }}>
+          PROTOCOL Sync / {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
         </p>
       )}
-    </div>
+    </motion.div>
   );
 }
 

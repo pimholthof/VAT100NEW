@@ -8,32 +8,6 @@ import {
 } from "@react-pdf/renderer";
 import type { InvoiceData } from "@/lib/types";
 
-// ─── Font registration ───
-
-Font.register({
-  family: "Barlow",
-  fonts: [
-    {
-      src: "https://fonts.gstatic.com/s/barlow/v12/7cHpv4kjgoGqM7E_DMs5ynghnQ.ttf",
-      fontWeight: 300,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/barlow/v12/7cHpv4kjgoGqM7E_A8s5ynghnQ.ttf",
-      fontWeight: 400,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/barlow/v12/7cHpv4kjgoGqM7E_cco5ynghnQ.ttf",
-      fontWeight: 500,
-    },
-  ],
-});
-
-Font.register({
-  family: "Barlow Condensed",
-  src: "https://fonts.gstatic.com/s/barlowcondensed/v12/HTxxL3I-JCGChYJ8VI-L6OO_au7B46r2z3bWuYMBYQ.ttf",
-  fontWeight: 700,
-});
-
 // ─── Design tokens ───
 
 const COLOR = "#0D0D0B";
@@ -49,7 +23,7 @@ const LABEL: {
   fontSize: 10,
   letterSpacing: 0.02 * 10,
   color: "rgba(13,13,11,0.5)",
-  fontFamily: "Barlow",
+  fontFamily: "Helvetica",
   fontWeight: 400,
 };
 
@@ -60,7 +34,7 @@ const VALUE: {
   color: string;
 } = {
   fontSize: 12,
-  fontFamily: "Barlow",
+  fontFamily: "Helvetica",
   fontWeight: 300,
   color: COLOR,
 };
@@ -106,7 +80,7 @@ const s = StyleSheet.create({
     paddingBottom: MARGIN,
     paddingLeft: MARGIN,
     paddingRight: MARGIN,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 300,
     color: COLOR,
     backgroundColor: "#FFFFFF",
@@ -117,7 +91,7 @@ const s = StyleSheet.create({
     marginBottom: 24,
   },
   vat100Mark: {
-    fontFamily: "Barlow Condensed",
+    fontFamily: "Courier",
     fontWeight: 700,
     fontSize: 120,
     lineHeight: 0.85,
@@ -160,14 +134,14 @@ const s = StyleSheet.create({
   },
   partyName: {
     fontSize: 12,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 500,
     color: COLOR,
     marginBottom: 2,
   },
   partyDetail: {
     fontSize: 12,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 300,
     color: "rgba(13,13,11,0.5)",
   },
@@ -192,7 +166,7 @@ const s = StyleSheet.create({
   },
   tableCell: {
     fontSize: 12,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 300,
     color: "rgba(13,13,11,0.7)",
   },
@@ -217,13 +191,13 @@ const s = StyleSheet.create({
   },
   totalsLabel: {
     fontSize: 10,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 300,
     color: "rgba(13,13,11,0.35)",
   },
   totalsValue: {
     fontSize: 10,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 300,
     color: "rgba(13,13,11,0.35)",
     textAlign: "right",
@@ -239,13 +213,13 @@ const s = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 500,
     color: COLOR,
   },
   totalValue: {
     fontSize: 14,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 500,
     color: COLOR,
     textAlign: "right",
@@ -260,7 +234,7 @@ const s = StyleSheet.create({
   },
   footerLabel: {
     fontSize: 9,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 400,
     color: "rgba(13,13,11,0.4)",
     letterSpacing: 0.02 * 9,
@@ -268,7 +242,7 @@ const s = StyleSheet.create({
   },
   footerValue: {
     fontSize: 9,
-    fontFamily: "Barlow",
+    fontFamily: "Helvetica",
     fontWeight: 300,
     color: COLOR,
     marginBottom: 8,

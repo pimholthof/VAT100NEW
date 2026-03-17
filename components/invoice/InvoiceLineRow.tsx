@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import type { InvoiceLineInput, InvoiceUnit } from "@/lib/types";
+import { playSound } from "@/lib/utils/sound";
 
 interface InvoiceLineRowProps {
   line: InvoiceLineInput;
@@ -32,99 +33,67 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "2fr 80px 90px 100px 100px 60px",
-        gap: 8,
-        marginBottom: 4,
+        gridTemplateColumns: "1fr 100px 140px 100px",
+        gap: 24,
+        alignItems: "center",
+        padding: "16px 0",
+        borderBottom: "var(--border-rule)"
       }}
     >
       <input
         type="text"
         value={line.description}
         onChange={(e) => onUpdate(line.id, "description", e.target.value)}
-        placeholder="Omschrijving"
-        style={cellInputStyle}
+        placeholder="Line Description"
+        style={{ ...cellInputStyle, fontSize: 14, fontWeight: 400 }}
       />
-      <input
-        type="number"
-        value={line.quantity}
-        onChange={(e) =>
-          onUpdate(line.id, "quantity", parseFloat(e.target.value) || 0)
-        }
-        min={0}
-        step={0.5}
-        style={{ ...cellInputStyle, fontFamily: "var(--font-mono), monospace" }}
-      />
-      <select
-        value={line.unit}
-        onChange={(e) => onUpdate(line.id, "unit", e.target.value)}
-        style={cellInputStyle}
-      >
-        {units.map((u) => (
-          <option key={u.value} value={u.value}>
-            {u.label}
-          </option>
-        ))}
-      </select>
-      <input
-        type="number"
-        value={line.rate}
-        onChange={(e) =>
-          onUpdate(line.id, "rate", parseFloat(e.target.value) || 0)
-        }
-        min={0}
-        step={0.01}
-        style={{ ...cellInputStyle, fontFamily: "var(--font-mono), monospace" }}
-      />
-      <div
-        style={{
-          ...cellInputStyle,
-          background: "transparent",
-          border: "none",
-          borderBottom: "1px solid transparent",
-          display: "flex",
-          alignItems: "center",
-          fontFamily: "var(--font-mono), monospace",
-          fontVariantNumeric: "tabular-nums",
-          fontWeight: 400,
-          opacity: 0.5,
-        }}
-      >
-        {new Intl.NumberFormat("nl-NL", {
-          style: "currency",
-          currency: "EUR",
-        }).format(amount)}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <input
+          type="number"
+          value={line.quantity}
+          onChange={(e) =>
+            onUpdate(line.id, "quantity", parseFloat(e.target.value) || 0)
+          }
+          style={{ ...cellInputStyle, textAlign: "right", width: 40 }}
+        />
+        <select
+          value={line.unit}
+          onChange={(e) => onUpdate(line.id, "unit", e.target.value)}
+          style={{ ...cellInputStyle, opacity: 0.3, width: "auto" }}
+        >
+          {units.map((u) => (
+            <option key={u.value} value={u.value}>
+              {u.label.toLowerCase()}
+            </option>
+          ))}
+        </select>
       </div>
-      <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ opacity: 0.2, fontSize: 10 }}>@</span>
+        <input
+          type="number"
+          value={line.rate}
+          onChange={(e) =>
+            onUpdate(line.id, "rate", parseFloat(e.target.value) || 0)
+          }
+          style={{ ...cellInputStyle, textAlign: "right" }}
+        />
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 16 }}>
+        <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: 14, fontWeight: 500 }}>
+          {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount)}
+        </div>
         <button
           type="button"
-          onClick={() => onMove(line.id, "up")}
-          disabled={index === 0}
-          style={iconBtnStyle}
-          title="Omhoog"
-          aria-label="Regel omhoog verplaatsen"
-        >
-          &#8593;
-        </button>
-        <button
-          type="button"
-          onClick={() => onMove(line.id, "down")}
-          disabled={index === totalLines - 1}
-          style={iconBtnStyle}
-          title="Omlaag"
-          aria-label="Regel omlaag verplaatsen"
-        >
-          &#8595;
-        </button>
-        <button
-          type="button"
-          onClick={() => onRemove(line.id)}
+          onClick={() => {
+            onRemove(line.id);
+            playSound("tink");
+          }}
           disabled={totalLines <= 1}
           style={{
             ...iconBtnStyle,
-            opacity: totalLines <= 1 ? 0.15 : 0.3,
+            opacity: totalLines <= 1 ? 0 : 0.2,
           }}
-          title="Verwijder"
-          aria-label="Regel verwijderen"
         >
           &#10005;
         </button>
@@ -135,14 +104,14 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
 
 const cellInputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "8px 0",
+  padding: 0,
   border: "none",
-  borderBottom: "0.5px solid rgba(13,13,11,0.12)",
+  borderBottom: "none",
   background: "transparent",
   color: "var(--foreground)",
-  fontFamily: "var(--font-body), sans-serif",
+  fontFamily: "var(--font-mono), monospace",
   fontSize: "var(--text-body-sm)",
-  fontWeight: 300,
+  fontWeight: 400,
   outline: "none",
 };
 

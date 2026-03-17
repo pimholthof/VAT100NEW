@@ -55,7 +55,7 @@ export function SafeToSpendRing({
           cy={size / 2}
           r={radius}
           fill="transparent"
-          stroke="rgba(255, 255, 255, 0.05)"
+          stroke="rgba(0, 0, 0, 0.03)"
           strokeWidth={strokeWidth}
         />
         
@@ -96,9 +96,10 @@ export function SafeToSpendRing({
           transition={{ delay: 1.5 }}
           style={{
             fontFamily: "var(--font-mono), monospace",
-            fontSize: "var(--text-mono-lg)",
-            fontWeight: 300,
-            letterSpacing: "-0.05em"
+            fontSize: "var(--text-mono-md)",
+            fontWeight: 400,
+            letterSpacing: "-0.05em",
+            color: "var(--foreground)"
           }}
         >
           {Math.round(percentage * 100)}%

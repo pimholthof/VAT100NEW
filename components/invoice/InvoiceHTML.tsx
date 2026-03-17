@@ -222,12 +222,12 @@ const header: React.CSSProperties = {
 };
 
 const vat100Mark: React.CSSProperties = {
-  fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif',
-  fontWeight: 700,
-  fontSize: "120px",
-  lineHeight: "0.85",
-  letterSpacing: "0.02em",
+  fontFamily: 'monospace, sans-serif',
+  fontWeight: 400,
+  fontSize: "40px",
+  letterSpacing: "-0.04em",
   color: COLOR,
+  opacity: 0.1,
 };
 
 const metaRow: React.CSSProperties = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
@@ -18,19 +18,15 @@ import {
   StatCard,
   SkeletonCard,
   SkeletonTable,
-  Th,
-  Td,
   ErrorMessage,
   ButtonSecondary,
 } from "@/components/ui";
 import { ActionFeed } from "@/components/dashboard/ActionFeed";
-import { SafeToSpendRing } from "@/components/dashboard/SafeToSpendRing";
+import { FiscalPulse } from "@/components/dashboard/FiscalPulse";
 import { QuickReceiptUpload } from "@/components/dashboard/QuickReceiptUpload";
 
 import { CashflowChart } from "@/components/dashboard/CashflowChart";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import { SetupChecklist } from "@/components/dashboard/SetupChecklist";
-import { VatDeadlineBanner } from "@/components/dashboard/VatDeadlineBanner";
 
 function getCurrentMonth(): string {
   return new Date().toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
@@ -60,6 +56,20 @@ export default function DashboardClient({
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
+  useEffect(() => {
+    const startHum = () => {
+      import('@/lib/utils/sound').then(({ playAmbient }) => playAmbient());
+      window.removeEventListener('click', startHum);
+      window.removeEventListener('keydown', startHum);
+    };
+    window.addEventListener('click', startHum);
+    window.addEventListener('keydown', startHum);
+    return () => {
+      window.removeEventListener('click', startHum);
+      window.removeEventListener('keydown', startHum);
+    };
+  }, []);
+
   return (
     <motion.div
       initial="hidden"
@@ -68,189 +78,128 @@ export default function DashboardClient({
         hidden: {},
         show: {
           transition: {
-            staggerChildren: 0.1,
+            staggerChildren: 0.12,
           },
         },
       }}
       className="dashboard-content"
       style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(12, 1fr)", 
-        gap: 24,
-        paddingBottom: 120 // Space for floating bar
+        display: "flex",
+        flexDirection: "column",
+        gap: 60,
+        paddingBottom: 160
       }}
     >
-      {/* ── Hero: Safe to Spend (8 cols) ── */}
       {safeToSpend && !isLoading && (
-        <motion.div 
-          variants={itemVariants} 
-          className="glass" 
-          style={{ 
-            gridColumn: "span 8", 
-            padding: "60px 80px",
-            borderRadius: 0,
-            display: "flex",
-            flexDirection: "column"
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ flex: 1 }}>
-              <p className="label" style={{ opacity: 0.4, marginBottom: 8 }}>Safe to Spend</p>
-              <AnimatedNumber 
-                value={safeToSpend.safeToSpend} 
-                style={{
-                  fontFamily: "var(--font-geist), sans-serif",
-                  fontSize: "clamp(3rem, 8vw, 6rem)",
-                  fontWeight: 700,
-                  lineHeight: 0.9,
-                  letterSpacing: "-0.04em",
-                }}
-              />
-            </div>
-            <div style={{ marginLeft: 40 }}>
-              <SafeToSpendRing 
-                percentage={safeToSpend.currentBalance > 0 ? safeToSpend.safeToSpend / safeToSpend.currentBalance : 0} 
-                size={160}
-                strokeWidth={10}
-              />
-            </div>
-          </div>
+        <FiscalPulse 
+          safeToSpend={safeToSpend.safeToSpend} 
+          currentBalance={safeToSpend.currentBalance} 
+          isLoading={isLoading}
+        />
+      )}
 
-          <div style={{ display: "flex", gap: 32, marginTop: 40, borderTop: "var(--border-rule)", paddingTop: 24 }}>
-            <div>
-              <p className="label" style={{ opacity: 0.4, marginBottom: 4 }}>Saldo</p>
-              <p style={{ fontSize: 16 }}>{formatCurrency(safeToSpend.currentBalance)}</p>
-            </div>
-            <div>
-              <p className="label" style={{ opacity: 0.4, marginBottom: 4 }}>BTW Reserve</p>
-              <p style={{ fontSize: 16, color: "var(--color-accent)" }}>{formatCurrency(safeToSpend.estimatedVat)}</p>
-            </div>
-            {safeToSpend.taxShieldPotential > 0 && (
-              <div style={{ marginLeft: "auto", textAlign: "right" }}>
-                <p className="label" style={{ opacity: 0.5, marginBottom: 4, color: "var(--color-accent)" }}>Tax Shield Potential</p>
-                <p style={{ fontSize: 16, fontWeight: 600 }}>{formatCurrency(safeToSpend.taxShieldPotential)}</p>
+      {/* ── Secondary row: Stats and Actions ── */}
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(12, 1fr)", 
+        gap: 40,
+        alignItems: "start"
+      }}>
+        {/* Stats Column (8 cols) */}
+        <div style={{ 
+          gridColumn: "span 8", 
+          display: "grid", 
+          gridTemplateColumns: "repeat(2, 1fr)", 
+          gap: 40 
+        }}>
+          {!isLoading && stats && (
+            <>
+              <motion.div variants={itemVariants}>
+                <StatCard
+                  label="Outstanding"
+                  value={String(stats.openInvoiceCount)}
+                  numericValue={stats.openInvoiceCount}
+                  sub={formatCurrency(stats.openInvoiceAmount)}
+                />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard
+                  label="Tax Reserve"
+                  value={formatCurrency(stats.vatToPay)}
+                  numericValue={stats.vatToPay}
+                  sub="BTW Q-Forecast"
+                />
+              </motion.div>
+            </>
+          )}
+
+          {cashflow && (
+            <motion.div 
+              variants={itemVariants}
+              className="glass tilted-canvas"
+              style={{ 
+                gridColumn: "span 2", 
+                padding: 40, 
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
+                <p className="label">Cashflow / Projection</p>
               </div>
-            )}
-          </div>
-        </motion.div>
-      )}
+              <CashflowChart cashflow={cashflow} />
+            </motion.div>
+          )}
+        </div>
 
-      {/* ── Action Feed (4 cols, tall) ── */}
-      {!isLoading && (
-        <motion.div 
-          variants={itemVariants}
-          className="glass"
-          style={{ 
-            gridColumn: "span 4", 
-            gridRow: "span 2",
-            borderRadius: 0,
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column"
-          }}
-        >
-          <div style={{ padding: "24px 24px 12px", borderBottom: "var(--border-rule)" }}>
-             <p className="label">Inbox Zero</p>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 24px" }}>
-            <ActionFeed />
-          </div>
-        </motion.div>
-      )}
+        {/* Action Column (4 cols) */}
+        <div style={{ gridColumn: "span 4", display: "flex", flexDirection: "column", gap: 40 }}>
+          {!isLoading && (
+            <motion.div 
+              variants={itemVariants}
+              className="glass"
+              style={{ 
+                height: 500,
+                display: "flex",
+                flexDirection: "column",
+                position: "relative",
+              }}
+            >
+              <div className="vertical-label" style={{ right: -15, fontSize: 8 }}>Intelligence Buffer</div>
+              <div style={{ padding: "32px 32px 20px", borderBottom: "var(--border-rule)" }}>
+                 <p className="label">Agentic Anticipation</p>
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 24px" }}>
+                <ActionFeed />
+              </div>
+            </motion.div>
+          )}
 
-      {/* ── Stats (2x 4 cols) ── */}
-      {!isLoading && stats && (
-        <>
-          <motion.div variants={itemVariants} style={{ gridColumn: "span 4" }}>
-            <StatCard
-              label="Open facturen"
-              value={String(stats.openInvoiceCount)}
-              numericValue={stats.openInvoiceCount}
-              sub={formatCurrency(stats.openInvoiceAmount)}
-            />
-          </motion.div>
-          <motion.div variants={itemVariants} style={{ gridColumn: "span 4" }}>
-            <StatCard
-              label="BTW te betalen"
-              value={formatCurrency(stats.vatToPay)}
-              numericValue={stats.vatToPay}
-              sub="Kwartaal overzicht"
-            />
-          </motion.div>
-          <motion.div 
-            variants={itemVariants} 
-            style={{ gridColumn: "span 4" }}
-          >
-            <StatCard
-              label="Bonnen deze maand"
-              value={String(stats.receiptsThisMonth)}
-              numericValue={stats.receiptsThisMonth}
-              sub="Kostenbeheer status: Actief"
-            />
-          </motion.div>
-        </>
-      )}
+          {!isLoading && (
+            <motion.div 
+              variants={itemVariants}
+              className="glass tilted-canvas"
+              style={{ 
+                padding: 40,
+                textAlign: "center"
+              }}
+            >
+              <QuickReceiptUpload />
+            </motion.div>
+          )}
+        </div>
+      </div>
 
-      {/* ── Cashflow Chart (8 cols) ── */}
-      {cashflow && (
-        <motion.div 
-          variants={itemVariants}
-          className="glass"
-          style={{ 
-            gridColumn: "span 8", 
-            padding: 32, 
-            borderRadius: 0
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-            <p className="label">Cashflow</p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--color-accent)" }} />
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
-            </div>
-          </div>
-          <CashflowChart cashflow={cashflow} />
-        </motion.div>
-      )}
-
-      {/* ── Quick Upload (4 cols) ── */}
-      {!isLoading && (
-        <motion.div 
-          variants={itemVariants}
-          className="glass"
-          style={{ 
-            gridColumn: "span 4",
-            padding: 24,
-            borderRadius: 0,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            textAlign: "center"
-          }}
-        >
-          <QuickReceiptUpload />
-        </motion.div>
-      )}
-
-      {/* ── BTW Deadline (Full width) ── */}
-      {vatDeadline && (
-        <motion.div variants={itemVariants} style={{ gridColumn: "span 12" }}>
-          <VatDeadlineBanner deadline={vatDeadline} />
-        </motion.div>
-      )}
-
-      {/* ── Openstaande facturen (Full width) ── */}
-      <motion.div variants={itemVariants} style={{ gridColumn: "span 12", marginTop: 40 }}>
-        <h2 className="section-header" style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 16 }}>
-          Facturen overzicht
-          <span style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.05)" }} />
+      {/* ── Table: Bottom section ── */}
+      <motion.div variants={itemVariants} style={{ marginTop: 40 }}>
+        <h2 className="section-header" style={{ marginBottom: 40, display: "flex", alignItems: "center", gap: 24, opacity: 0.5 }}>
+          Ledger / Open
+          <span style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.04)" }} />
         </h2>
         {isLoading ? (
           <SkeletonTable />
         ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
           <UpcomingInvoiceTable invoices={upcomingInvoices} />
         ) : (
-          <p className="empty-state">Geen openstaande facturen</p>
+          <p className="empty-state">No active fiscal items</p>
         )}
       </motion.div>
 
@@ -274,7 +223,8 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
       setStatusMsg(res.error);
     } else {
       setStatusMsg("Herinnering verzonden.");
-      playSound("tink");
+      // Eno-inspired ritual: glass-ping for precision
+      playSound("glass-ping");
     }
     setSendingId(null);
   };
@@ -282,81 +232,119 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
   return (
     <div style={{ marginBottom: "var(--space-block)" }}>
       {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", borderSpacing: 0 }}>
-          <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)" }}>
-              <Th>Klant</Th>
-              <Th>Factuurnr</Th>
-              <Th style={{ textAlign: "right" }}>Bedrag</Th>
-              <Th>Status</Th>
-              <Th style={{ width: 160 }}>Actie</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((inv) => {
-              const isOverdue = inv.days_overdue > 0;
-              return (
-                <tr key={inv.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                  <Td
+      
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Abstract Headers */}
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "1fr 2fr 1fr 1.5fr 1fr", 
+          gap: 24, 
+          paddingBottom: 16, 
+          borderBottom: "var(--border-rule)",
+          opacity: 0.2
+        }}>
+          <span className="label">REF</span>
+          <span className="label">RECIPIENT</span>
+          <span className="label">STATE</span>
+          <span className="label" style={{ textAlign: "right" }}>SUM</span>
+          <span className="label" style={{ textAlign: "right" }}>ACTION</span>
+        </div>
+
+        {/* List Items */}
+        {invoices.map((inv) => {
+          const isOverdue = inv.days_overdue > 0;
+          return (
+            <div 
+              key={inv.id} 
+              style={{ 
+                display: "grid", 
+                gridTemplateColumns: "1fr 2fr 1fr 1.5fr 1fr", 
+                gap: 24, 
+                alignItems: "center",
+                padding: "24px 0",
+                borderBottom: "0.5px solid rgba(0,0,0,0.03)",
+                transition: "background 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(0,0,0,0.01)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
+              <Link
+                href={`/dashboard/invoices/${inv.id}`}
+                style={{
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: 13,
+                  color: "var(--foreground)",
+                  fontWeight: 400,
+                  textDecoration: "none",
+                  opacity: 0.6
+                }}
+              >
+                {inv.invoice_number}
+              </Link>
+              
+              <span style={{ 
+                fontSize: 15, 
+                fontWeight: 400, 
+                letterSpacing: "-0.01em",
+                color: isOverdue ? "var(--foreground)" : "inherit"
+              }}>
+                {inv.client_name}
+              </span>
+
+              <span className="label" style={{ 
+                opacity: isOverdue ? 1 : 0.4,
+                color: isOverdue ? "var(--color-error, #DE350B)" : "inherit" 
+              }}>
+                {isOverdue
+                  ? `${inv.days_overdue}d BREACH`
+                  : inv.days_overdue === 0
+                    ? "TODAY"
+                    : `${Math.abs(inv.days_overdue)}d`}
+              </span>
+
+              <span 
+                style={{ 
+                  textAlign: "right",
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: 14,
+                  fontWeight: 500,
+                }}
+              >
+                {formatCurrency(inv.total_inc_vat)}
+              </span>
+
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                {inv.client_email ? (
+                  <button
+                    onClick={() => handleSendReminder(inv.id)}
+                    disabled={sendingId === inv.id}
                     style={{
-                      borderLeft: isOverdue
-                        ? "2px solid var(--foreground)"
-                        : "2px solid transparent",
-                      fontWeight: 400,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: "var(--font-mono), monospace",
+                      fontSize: 10,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      opacity: sendingId === inv.id ? 0.2 : 0.6,
+                      padding: 0,
                     }}
                   >
-                    {inv.client_name}
-                  </Td>
-                  <Td>
-                    <Link
-                      href={`/dashboard/invoices/${inv.id}`}
-                      style={{
-                        fontFamily: "var(--font-mono), monospace",
-                        fontSize: "var(--text-mono-md)",
-                        fontWeight: 400,
-                        color: "var(--foreground)",
-                        textDecoration: "none",
-                      }}
-                    >
-                      {inv.invoice_number}
-                    </Link>
-                  </Td>
-                  <Td style={{ textAlign: "right" }}>
-                    <span className="mono-amount">
-                      {formatCurrency(inv.total_inc_vat)}
-                    </span>
-                  </Td>
-                  <Td>
-                    <span className="label" style={{ opacity: 1 }}>
-                      {isOverdue
-                        ? `${inv.days_overdue}d verlopen`
-                        : inv.days_overdue === 0
-                          ? "Vandaag"
-                          : `${Math.abs(inv.days_overdue)}d`}
-                    </span>
-                  </Td>
-                  <Td>
-                    {inv.client_email ? (
-                      <ButtonSecondary
-                        onClick={() => handleSendReminder(inv.id)}
-                        disabled={sendingId === inv.id}
-                      >
-                        {sendingId === inv.id
-                          ? "Verzenden..."
-                          : "Stuur herinnering"}
-                      </ButtonSecondary>
-                    ) : (
-                      <span className="label" style={{ opacity: 0.3 }}>
-                        Geen e-mail
-                      </span>
-                    )}
-                  </Td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    {sendingId === inv.id ? "SYNCING..." : "PING"}
+                  </button>
+                ) : (
+                  <span className="label" style={{ opacity: 0.2 }}>
+                    NO EMAIL
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

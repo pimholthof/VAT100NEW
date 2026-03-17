@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient } from "@/lib/actions/invoices";
 import type { InvoiceStatus } from "@/lib/types";
-import { Th, Td } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 export default function InvoicesPage() {
@@ -43,27 +42,30 @@ export default function InvoicesPage() {
           marginBottom: 80,
         }}
       >
-        <h1 className="display-title">
-          Facturen
-        </h1>
+        <div>
+          <h1 className="display-title" style={{ fontSize: "4rem", letterSpacing: "-0.04em", marginBottom: 8 }}>
+            Ledger
+          </h1>
+          <p className="label" style={{ opacity: 0.3 }}>{invoices.length} ACTIVE EXPRESSIONS</p>
+        </div>
         <Link
           href="/dashboard/invoices/new"
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-label)",
+            fontFamily: "var(--font-mono), monospace",
+            fontSize: "10px",
             fontWeight: 500,
-            letterSpacing: "0.10em",
+            letterSpacing: "0.2em",
             textTransform: "uppercase",
-            padding: "14px 28px",
-            border: "0.5px solid rgba(13,13,11,0.25)",
-            background: "transparent",
-            color: "var(--foreground)",
+            padding: "16px 32px",
+            background: "var(--foreground)",
+            color: "var(--background)",
             textDecoration: "none",
             display: "inline-block",
             transition: "opacity 0.2s ease",
+            boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
           }}
         >
-          + Nieuwe factuur
+          [+] New Expression
         </Link>
       </div>
 
@@ -91,111 +93,154 @@ export default function InvoicesPage() {
           </Link>
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-              <Th>Nummer</Th>
-              <Th>Klant</Th>
-              <Th>Datum</Th>
-              <Th>Status</Th>
-              <Th style={{ textAlign: "right" }}>Totaal</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((invoice: InvoiceWithClient) => (
-              <tr key={invoice.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                <Td>
-                  <Link
-                    href={`/dashboard/invoices/${invoice.id}`}
-                    style={{
-                      fontFamily: "var(--font-mono), monospace",
-                      fontSize: "var(--text-mono-md)",
-                      color: "var(--foreground)",
-                      fontWeight: 400,
-                      textDecoration: "none",
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Abstract Headers */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr 1fr", 
+            gap: 24, 
+            paddingBottom: 16, 
+            borderBottom: "var(--border-rule)",
+            opacity: 0.2
+          }}>
+            <span className="label">REF</span>
+            <span className="label">RECIPIENT</span>
+            <span className="label">DATE</span>
+            <span className="label">STATE</span>
+            <span className="label" style={{ textAlign: "right" }}>SUM</span>
+            <span className="label" style={{ textAlign: "right" }}>SEQ</span>
+          </div>
+
+          {/* List Items */}
+          {invoices.map((invoice: InvoiceWithClient) => (
+            <div 
+              key={invoice.id} 
+              style={{ 
+                display: "grid", 
+                gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr 1fr", 
+                gap: 24, 
+                alignItems: "center",
+                padding: "24px 0",
+                borderBottom: "0.5px solid rgba(0,0,0,0.03)",
+                transition: "background 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(0,0,0,0.01)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
+              <Link
+                href={`/dashboard/invoices/${invoice.id}`}
+                style={{
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: 13,
+                  color: "var(--foreground)",
+                  fontWeight: 400,
+                  textDecoration: "none",
+                  opacity: 0.6
+                }}
+              >
+                {invoice.invoice_number}
+              </Link>
+              
+              <span style={{ fontSize: 15, fontWeight: 400, letterSpacing: "-0.01em" }}>
+                {invoice.client?.name ?? "—"}
+              </span>
+
+              <span className="mono-amount" style={{ fontSize: 12, opacity: 0.4 }}>
+                {formatDate(invoice.issue_date)}
+              </span>
+
+              <select
+                value={invoice.status}
+                onChange={(e) =>
+                  statusMutation.mutate({
+                    id: invoice.id,
+                    status: e.target.value as InvoiceStatus,
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "8px 0",
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--foreground)",
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  outline: "none",
+                  opacity:
+                    statusMutation.isPending &&
+                    statusMutation.variables?.id === invoice.id
+                      ? 0.2
+                      : 0.5,
+                  cursor: "pointer"
+                }}
+              >
+                <option value="draft">Concept</option>
+                <option value="sent">Issued</option>
+                <option value="paid">Resolved</option>
+                <option value="overdue">Breach</option>
+              </select>
+
+              {/* Psychology of money: Amount is minimal and monospace */}
+              <span 
+                style={{ 
+                  textAlign: "right",
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  opacity: invoice.status === "paid" ? 0.3 : 1
+                }}
+              >
+                {formatCurrency(invoice.total_inc_vat)}
+              </span>
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 16, justifyContent: "flex-end", alignItems: "center" }}>
+                <Link
+                  href={`/dashboard/invoices/${invoice.id}/preview`}
+                  style={{
+                    fontFamily: "var(--font-mono), monospace",
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    textDecoration: "none",
+                    color: "var(--foreground)",
+                    opacity: 0.4
+                  }}
+                >
+                  VIEW
+                </Link>
+                {invoice.status === "draft" && (
+                  <button
+                    onClick={() => {
+                      if (confirm("Initiate deletion protocol?")) {
+                        deleteMutation.mutate(invoice.id);
+                      }
                     }}
-                  >
-                    {invoice.invoice_number}
-                  </Link>
-                </Td>
-                <Td style={{ fontWeight: 400 }}>{invoice.client?.name ?? "—"}</Td>
-                <Td>
-                  <span className="mono-amount">
-                    {formatDate(invoice.issue_date)}
-                  </span>
-                </Td>
-                <Td>
-                  <select
-                    value={invoice.status}
-                    onChange={(e) =>
-                      statusMutation.mutate({
-                        id: invoice.id,
-                        status: e.target.value as InvoiceStatus,
-                      })
-                    }
                     style={{
-                      width: 130,
-                      padding: "6px 0",
+                      background: "none",
                       border: "none",
-                      borderBottom: "0.5px solid rgba(13,13,11,0.12)",
-                      background: "transparent",
-                      color: "var(--foreground)",
-                      fontFamily: "var(--font-body), sans-serif",
-                      fontSize: "var(--text-body-md)",
-                      fontWeight: 300,
-                      outline: "none",
-                      opacity:
-                        statusMutation.isPending &&
-                        statusMutation.variables?.id === invoice.id
-                          ? 0.5
-                          : 1,
+                      cursor: "pointer",
+                      fontFamily: "var(--font-mono), monospace",
+                      fontSize: 10,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      opacity: 0.2,
+                      padding: 0,
                     }}
                   >
-                    <option value="draft">Concept</option>
-                    <option value="sent">Verzonden</option>
-                    <option value="paid">Betaald</option>
-                    <option value="overdue">Verlopen</option>
-                  </select>
-                </Td>
-                <Td style={{ textAlign: "right" }}>
-                  <span className="mono-amount">
-                    {formatCurrency(invoice.total_inc_vat)}
-                  </span>
-                </Td>
-                <Td style={{ textAlign: "right" }}>
-                  <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                    <Link
-                      href={`/dashboard/invoices/${invoice.id}/preview`}
-                      className="table-action"
-                    >
-                      Bekijk
-                    </Link>
-                    {invoice.status === "draft" && (
-                      <button
-                        onClick={() => {
-                          if (confirm("Weet je zeker dat je deze factuur wilt verwijderen?")) {
-                            deleteMutation.mutate(invoice.id);
-                          }
-                        }}
-                        className="table-action"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          opacity: 0.3,
-                          padding: 0,
-                        }}
-                      >
-                        Verwijder
-                      </button>
-                    )}
-                  </div>
-                </Td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    DEL
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

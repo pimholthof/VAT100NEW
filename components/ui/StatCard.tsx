@@ -15,47 +15,34 @@ export function StatCard({
 }) {
   return (
     <motion.div 
-      whileHover={{ y: -4, scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className="glass"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="glass tilted-canvas"
       style={{ 
-        padding: "24px", 
+        padding: "32px", 
         display: "flex", 
         flexDirection: "column", 
         justifyContent: "space-between",
-        minHeight: 140,
-        borderRadius: 0,
+        minHeight: 180,
         position: "relative",
-        overflow: "hidden",
+        overflow: "visible", // To allow vertical label to bleed out if needed
       }}
     >
-      {/* Subtle glow effect on hover */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileHover={{ opacity: 1 }}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "radial-gradient(circle at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
+      <div className="vertical-label">{label}</div>
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        <p className="label-strong" style={{ margin: "0 0 6px" }}>
-          {label}
+        <p className="label" style={{ margin: "0 0 12px", opacity: 0.2 }}>
+          Concept / {label}
         </p>
         <p
           className="display-hero"
           style={{
-            fontSize: "2.5rem",
-            fontWeight: 500,
-            lineHeight: 1,
+            fontSize: "3.5rem",
+            fontWeight: 400,
+            lineHeight: 0.9,
             margin: 0,
-            letterSpacing: "-0.03em",
+            letterSpacing: "-0.05em",
           }}
         >
           {numericValue !== undefined ? (
@@ -65,18 +52,23 @@ export function StatCard({
           )}
         </p>
       </div>
+
       {sub && (
-        <p
-          className="mono-amount"
-          style={{
-            fontSize: "var(--text-body-xs)",
-            marginTop: 12,
-            marginBottom: 0,
-            opacity: 0.4,
-          }}
-        >
-          {sub}
-        </p>
+        <div style={{ marginTop: 24 }}>
+          <div style={{ width: 40, height: 1, background: "rgba(0,0,0,0.05)", marginBottom: 12 }} />
+          <p
+            className="mono-amount"
+            style={{
+              fontSize: "10px",
+              margin: 0,
+              opacity: 0.3,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em"
+            }}
+          >
+            {sub}
+          </p>
+        </div>
       )}
     </motion.div>
   );

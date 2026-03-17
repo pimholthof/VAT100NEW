@@ -25,7 +25,7 @@ export function ActionFeed() {
     mutationFn: ({ id, draft }: { id: string; draft?: string }) => resolveActionItem(id, undefined, draft),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
-      playSound("tink");
+      playSound("glass-ping");
     },
   });
 
@@ -58,8 +58,8 @@ export function ActionFeed() {
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
-          borderTop: "0.5px solid rgba(13,13,11,0.15)",
-          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
+          borderTop: "var(--border-rule)",
+          borderBottom: "var(--border-rule)",
         }}
       >
         <p
@@ -186,7 +186,6 @@ function ActionCard({
             style={{
               fontFamily: "var(--font-geist), sans-serif",
               fontSize: "var(--text-body-sm)",
-              color: "var(--color-white)",
               opacity: 0.4,
               margin: 0,
             }}
@@ -220,10 +219,10 @@ function ActionCard({
             style={{
               width: "100%",
               height: "120px",
-              background: "rgba(255,255,255,0.03)",
-              border: "0.5px solid rgba(255,255,255,0.1)",
+              background: "rgba(0,0,0,0.02)",
+              border: "0.5px solid rgba(0,0,0,0.1)",
               padding: "12px",
-              color: "white",
+              color: "var(--foreground)",
               fontFamily: "var(--font-geist), sans-serif",
               fontSize: "13px",
               lineHeight: "1.5",
@@ -242,8 +241,8 @@ function ActionCard({
             disabled={isPending}
             style={{
               background: "transparent",
-              color: "white",
-              border: "0.5px solid rgba(255,255,255,0.2)",
+              color: "var(--foreground)",
+              border: "0.5px solid rgba(0,0,0,0.2)",
               padding: "6px 14px",
               borderRadius: 0,
               fontFamily: "var(--font-geist), sans-serif",
@@ -262,8 +261,8 @@ function ActionCard({
           onClick={onIgnore}
           disabled={isPending}
           style={{
-            background: "rgba(255,255,255,0.05)",
-            color: "white",
+            background: "rgba(0,0,0,0.05)",
+            color: "var(--foreground)",
             border: "none",
             padding: "6px 14px",
             borderRadius: 0,
