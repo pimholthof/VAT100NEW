@@ -36,10 +36,10 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
         background: "var(--background)"
       }}
     >
-      <div className="vertical-label">Fiscal Pulse</div>
+      <div className="vertical-label">Fiscale Index</div>
       
       <div style={{ flex: 1 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 20 }}>Net Liquid Wealth</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 20 }}>Netto Liquiditeit</p>
         <div style={{ position: "relative" }}>
           <AnimatedNumber 
             value={safeToSpend} 
@@ -61,7 +61,7 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
             letterSpacing: "0.3em",
             textTransform: "uppercase"
           }}>
-            Available Assets / {formatCurrency(currentBalance)}
+            Beschikbaar Kapitaal / {formatCurrency(currentBalance)}
           </p>
         </div>
       </div>
@@ -80,7 +80,7 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
           transform: "translate(-50%, -50%)",
           textAlign: "center"
         }}>
-          <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, margin: 0 }}>INDEX</p>
+          <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, margin: 0 }}>RATIO</p>
           <p className="display-sm" style={{ margin: 0, fontWeight: 500 }}>{Math.round(ratio * 100)}%</p>
         </div>
       </div>

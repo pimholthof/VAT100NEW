@@ -84,13 +84,13 @@ export default function LoginPage() {
             opacity: 0.4,
           }}
         >
-          Boekhouding voor creatieven
+          Boekhouding zonder ruis
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <label htmlFor="email" className="label">
-              E-mailadres
+              E-mail
             </label>
             <input
               id="email"
@@ -168,7 +168,7 @@ export default function LoginPage() {
               transition: "opacity 0.15s ease",
             }}
           >
-            {pending ? "Bezig..." : "Inloggen"}
+            {pending ? "Authenticatie..." : "Toegang"}
           </button>
         </form>
 
@@ -179,7 +179,7 @@ export default function LoginPage() {
             opacity: 0.4,
           }}
         >
-          Nog geen account?{" "}
+          Geen dossier?{" "}
           <Link
             href="/register"
             style={{
@@ -191,7 +191,7 @@ export default function LoginPage() {
               paddingBottom: 1,
             }}
           >
-            Registreer
+            Registreren
           </Link>
         </p>
       </div>

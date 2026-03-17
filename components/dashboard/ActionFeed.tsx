@@ -72,10 +72,10 @@ export function ActionFeed() {
             textTransform: "uppercase",
           }}
         >
-          Helemaal bij
+          SYSTEEM OPTIMAAL
         </p>
         <p className="label" style={{ opacity: 0.4, margin: 0 }}>
-          Administratie actueel. Geen actie vereist.
+          Alle protocollen voltooid. Geen actie vereist.
         </p>
       </motion.div>
     );
@@ -84,7 +84,7 @@ export function ActionFeed() {
   return (
     <div style={{ marginBottom: "var(--space-section)" }}>
       <h2 className="section-header" style={{ margin: "0 0 16px" }}>
-        Acties ({actions.length})
+        ACTIES [{actions.length}]
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <AnimatePresence>
@@ -123,19 +123,19 @@ function ActionCard({
   const [draft, setDraft] = useState(action.draft_content || "");
 
   const typeLabel: Record<string, string> = {
-    missing_receipt: "Document",
-    match_suggestion: "Match",
-    tax_alert: "Belasting",
-    uncategorized: "Rubriceer",
-    reminder_suggestion: "Herinnering",
+    missing_receipt: "DOCUMENTATIE",
+    match_suggestion: "RECONCILIATIE",
+    tax_alert: "BELASTING",
+    uncategorized: "RUBRIEK",
+    reminder_suggestion: "COMMUNICATIE",
   };
 
   const actionLabel: Record<string, string> = {
-    missing_receipt: "Aanleveren",
-    match_suggestion: "Accorderen",
-    tax_alert: "Bekijken",
-    uncategorized: "Rubriceren",
-    reminder_suggestion: "Versturen",
+    missing_receipt: "TOEVOEGEN",
+    match_suggestion: "AKKOORD",
+    tax_alert: "INZIEN",
+    uncategorized: "VERWERKEN",
+    reminder_suggestion: "VERZENDEN",
   };
 
   return (
@@ -167,7 +167,7 @@ function ActionCard({
             {typeLabel[action.type] ?? action.type}
             {action.ai_confidence != null && (
               <span style={{ color: "var(--color-accent)", opacity: 0.8, marginLeft: 12 }}>
-                {Math.round(action.ai_confidence * 100)}% Match
+                {Math.round(action.ai_confidence * 100)}% MATCH
               </span>
             )}
           </p>
@@ -254,7 +254,7 @@ function ActionCard({
               transition: "all 0.2s ease"
             }}
           >
-            {isEditing ? "Sluit Concept" : "Concept Bekijken"}
+            {isEditing ? "SLUIT CONCEPT" : "BEKIJK CONCEPT"}
           </button>
         )}
         <button
@@ -275,7 +275,7 @@ function ActionCard({
             transition: "all 0.2s ease"
           }}
         >
-          Negeer
+          NEGEREN
         </button>
         <button
           onClick={() => onResolve(isEditing ? draft : undefined)}

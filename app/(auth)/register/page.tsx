@@ -92,7 +92,8 @@ export default function RegisterPage() {
             margin: 0,
           }}
         >
-          Registreren
+          Systeem
+          <br/>Toegang
         </h1>
         <p
           className="label"
@@ -103,7 +104,7 @@ export default function RegisterPage() {
             opacity: 0.4,
           }}
         >
-          Word lid van VAT100
+          Start je dossier
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 36 }}>
@@ -118,7 +119,7 @@ export default function RegisterPage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="email" className="label">E-mailadres</label>
+            <label htmlFor="email" className="label">E-mail</label>
             <input id="email" name="email" type="email" required autoComplete="email" style={{ ...textInputStyle, fontFamily: "var(--font-mono), monospace" }} />
           </div>
 
@@ -163,7 +164,7 @@ export default function RegisterPage() {
               transition: "opacity 0.15s ease",
             }}
           >
-            {pending ? "Bezig..." : "Registreren"}
+            {pending ? "Systeem configureren..." : "Account Aanmaken"}
           </button>
         </form>
 
@@ -174,7 +175,7 @@ export default function RegisterPage() {
             opacity: 0.4,
           }}
         >
-          Al een account?{" "}
+          Al een dossier?{" "}
           <Link
             href="/login"
             style={{

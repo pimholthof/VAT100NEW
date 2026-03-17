@@ -116,7 +116,7 @@ export default function DashboardClient({
             <>
               <motion.div variants={itemVariants}>
                 <StatCard
-                  label="Outstanding"
+                  label="Openstaand"
                   value={String(stats.openInvoiceCount)}
                   numericValue={stats.openInvoiceCount}
                   sub={formatCurrency(stats.openInvoiceAmount)}
@@ -124,10 +124,10 @@ export default function DashboardClient({
               </motion.div>
               <motion.div variants={itemVariants}>
                 <StatCard
-                  label="Tax Reserve"
+                  label="BTW-Reserve"
                   value={formatCurrency(stats.vatToPay)}
                   numericValue={stats.vatToPay}
-                  sub="BTW Q-Forecast"
+                  sub="Q-Prognose"
                 />
               </motion.div>
             </>
@@ -143,7 +143,7 @@ export default function DashboardClient({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
-                <p className="label">Cashflow / Projection</p>
+                <p className="label">Liquiditeit / Prognose</p>
               </div>
               <CashflowChart cashflow={cashflow} />
             </motion.div>
@@ -164,9 +164,9 @@ export default function DashboardClient({
                 background: "var(--background)"
               }}
             >
-              <div className="vertical-label" style={{ right: -15, fontSize: 8 }}>Intelligence Buffer</div>
+              <div className="vertical-label" style={{ right: -15, fontSize: 8 }}>Intelligentielaag</div>
               <div style={{ padding: "32px 32px 20px", borderBottom: "var(--border-rule)" }}>
-                 <p className="label">Agentic Anticipation</p>
+                 <p className="label">Anticipatieprotocol</p>
               </div>
               <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 24px" }}>
                 <ActionFeed />
@@ -192,7 +192,7 @@ export default function DashboardClient({
       {/* ── Table: Bottom section ── */}
       <motion.div variants={itemVariants} style={{ marginTop: 40 }}>
         <h2 className="section-header" style={{ marginBottom: 40, display: "flex", alignItems: "center", gap: 24, opacity: 0.5 }}>
-          Ledger / Open
+          Dossier / Openstaand
           <span style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.04)" }} />
         </h2>
         {isLoading ? (
@@ -200,7 +200,7 @@ export default function DashboardClient({
         ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
           <UpcomingInvoiceTable invoices={upcomingInvoices} />
         ) : (
-          <p className="empty-state">No active fiscal items</p>
+          <p className="empty-state">Geen actieve componenten</p>
         )}
       </motion.div>
 
@@ -313,11 +313,11 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                       opacity: sendingId === inv.id ? 0.2 : 0.8,
                     }}
                   >
-                    {sendingId === inv.id ? "SYNCING..." : "SEND PING"}
+                    {sendingId === inv.id ? "SYNC..." : "PING STUREN"}
                   </button>
                 ) : (
                   <span className="label" style={{ opacity: 0.2 }}>
-                    NO EMAIL
+                    GEEN E-MAIL
                   </span>
                 )}
               </div>

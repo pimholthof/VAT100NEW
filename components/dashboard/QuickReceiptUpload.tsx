@@ -19,7 +19,7 @@ export function QuickReceiptUpload() {
   const processMutation = useMutation({
     mutationFn: async (file: File) => {
       setStatus("uploading");
-      setMessage("Upload initialiseren...");
+      setMessage("SYSTEEM INITIALISEREN...");
 
       // 1. Create a placeholder receipt
       const receiptResult = await createReceipt({
@@ -47,13 +47,13 @@ export function QuickReceiptUpload() {
 
       // 3. Scan with AI
       setStatus("scanning");
-      setMessage("Claude Vision analyseert de bon...");
+      setMessage("VISION AI EXTRAGEERT DATA...");
       const scanResult = await scanReceiptWithAI(receiptId);
 
       if (scanResult.error) {
         // Receipt is still saved, just not AI-enriched
         setStatus("done");
-        setMessage("Geregistreerd (AI-extractie mislukt).");
+        setMessage("DOCUMENT OPGESLAGEN (EXTRACTIE MISLUKT).");
         return;
       }
 
@@ -77,7 +77,7 @@ export function QuickReceiptUpload() {
     setMessage(
       scanResult.data?.vendor_name
         ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
-        : "Document geregistreerd."
+        : "DOCUMENT GEREGISTREERD."
     );
     },
     onError: (err) => {
@@ -99,7 +99,7 @@ export function QuickReceiptUpload() {
     (file: File) => {
       if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
         setStatus("error");
-        setMessage("Uitsluitend afbeeldingen en PDF-bestanden toegestaan.");
+        setMessage("ALLEEN AFBEELDING OF PDF TOEGESTAAN.");
         return;
       }
       processMutation.mutate(file);
@@ -161,10 +161,10 @@ export function QuickReceiptUpload() {
               margin: "0 0 4px",
             }}
           >
-            Document selecteren of slepen
+            DOCUMENT DROPZONE
           </p>
           <p className="label" style={{ opacity: 0.5, margin: 0 }}>
-            Foto of PDF — AI-verwerking
+            Sleep foto of PDF voor AI-verwerking
           </p>
         </>
       )}

@@ -70,22 +70,22 @@ export function DashboardNav({
               {/* Navigation Column 1 */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <span className="label" style={{ marginBottom: 16 }}>Index</span>
-                <Link href="/dashboard" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)" }}>OVERVIEW</Link>
-                <Link href="/dashboard/invoices" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>INVOICES</Link>
-                <Link href="/dashboard/clients" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>CLIENTS</Link>
+                <Link href="/dashboard" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)" }}>OVERZICHT</Link>
+                <Link href="/dashboard/invoices" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>FACTUREN</Link>
+                <Link href="/dashboard/clients" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>KLANTEN</Link>
               </div>
 
               {/* Navigation Column 2 */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <span className="label" style={{ marginBottom: 16 }}>Systems</span>
-                <Link href="/dashboard/bank" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>BANKING</Link>
-                <Link href="/dashboard/tax" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>TAX SHIELD</Link>
-                <Link href="/dashboard/settings" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>SETTINGS</Link>
+                <span className="label" style={{ marginBottom: 16 }}>Systemen</span>
+                <Link href="/dashboard/bank" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>TRANSACTIES</Link>
+                <Link href="/dashboard/tax" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>BELASTING</Link>
+                <Link href="/dashboard/settings" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>INSTELLINGEN</Link>
               </div>
 
               {/* Action Column */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-end" }}>
-                <span className="label" style={{ marginBottom: 16 }}>Actions</span>
+                <span className="label" style={{ marginBottom: 16 }}>Sessie</span>
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -99,7 +99,7 @@ export function DashboardNav({
                     color: "var(--foreground)"
                   }}
                 >
-                  SIGN OUT
+                  VERLATEN
                 </button>
               </div>
 
