@@ -90,30 +90,22 @@ export default function DashboardClient({
         paddingBottom: 160
       }}
     >
-      {safeToSpend && !isLoading && (
-        <FiscalPulse 
-          safeToSpend={safeToSpend.safeToSpend} 
-          currentBalance={safeToSpend.currentBalance} 
-          isLoading={isLoading}
-        />
-      )}
+      {/* ── EDITORIAL GRID ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 pt-10">
+        
+        {/* ── LEFT COLUMN: OPERATIONAL STACK (Span 4) ── */}
+        <div className="lg:col-span-4 flex flex-col gap-20 lg:sticky top-32 pb-10 relative z-10">
+          
+          {/* 1. Quick Action (Playful offset) */}
+          {!isLoading && (
+            <motion.div variants={itemVariants} className="lg:-ml-8">
+              <QuickReceiptUpload />
+            </motion.div>
+          )}
 
-      {/* ── Secondary row: Stats and Actions ── */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(12, 1fr)", 
-        gap: 40,
-        alignItems: "start"
-      }}>
-        {/* Stats Column (8 cols) */}
-        <div style={{ 
-          gridColumn: "span 8", 
-          display: "grid", 
-          gridTemplateColumns: "repeat(2, 1fr)", 
-          gap: 40 
-        }}>
+          {/* 2. Tactical Metrics */}
           {!isLoading && stats && (
-            <>
+            <div className="flex flex-col gap-10">
               <motion.div variants={itemVariants}>
                 <StatCard
                   label="Openstaand"
@@ -122,7 +114,7 @@ export default function DashboardClient({
                   sub={formatCurrency(stats.openInvoiceAmount)}
                 />
               </motion.div>
-              <motion.div variants={itemVariants}>
+              <motion.div variants={itemVariants} className="ml-10 lg:ml-20">
                 <StatCard
                   label="BTW-Reserve"
                   value={formatCurrency(stats.vatToPay)}
@@ -130,38 +122,17 @@ export default function DashboardClient({
                   sub="Q-Prognose"
                 />
               </motion.div>
-            </>
+            </div>
           )}
 
-          {cashflow && (
-            <motion.div 
-              variants={itemVariants}
-              style={{ 
-                gridColumn: "span 2", 
-                padding: 40, 
-                border: "var(--border-light)"
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
-                <p className="label">Liquiditeit / Prognose</p>
-              </div>
-              <CashflowChart cashflow={cashflow} />
-            </motion.div>
-          )}
-        </div>
-
-        {/* Action Column (4 cols) */}
-        <div style={{ gridColumn: "span 4", display: "flex", flexDirection: "column", gap: 40 }}>
+          {/* 3. Action Protocol */}
           {!isLoading && (
             <motion.div 
               variants={itemVariants}
+              className="flex flex-col relative bg-[var(--background)] lg:-ml-6"
               style={{ 
-                height: 500,
-                display: "flex",
-                flexDirection: "column",
-                position: "relative",
+                height: 500, // Fixed height for the feed
                 border: "var(--border-light)",
-                background: "var(--background)"
               }}
             >
               <div className="vertical-label" style={{ right: -15, fontSize: 8 }}>Intelligentielaag</div>
@@ -173,36 +144,51 @@ export default function DashboardClient({
               </div>
             </motion.div>
           )}
+        </div>
 
-          {!isLoading && (
+        {/* ── RIGHT COLUMN: STRATEGIC CANVAS (Span 8) ── */}
+        <div className="lg:col-span-8 flex flex-col gap-24 lg:gap-32 lg:pt-20">
+          
+          {/* 1. Fiscal Pulse Hero */}
+          {safeToSpend && !isLoading && (
+            <div className="lg:-mr-12 relative z-0">
+              <FiscalPulse 
+                safeToSpend={safeToSpend.safeToSpend} 
+                currentBalance={safeToSpend.currentBalance} 
+                isLoading={isLoading}
+              />
+            </div>
+          )}
+
+          {/* 2. Cashflow Projection */}
+          {cashflow && (
             <motion.div 
               variants={itemVariants}
-              style={{ 
-                padding: 40,
-                textAlign: "center",
-                border: "var(--border-light)"
-              }}
+              className="p-8 lg:p-10 border border-[rgba(34,34,34,0.1)] lg:ml-12"
             >
-              <QuickReceiptUpload />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
+                <p className="label">Liquiditeit / Prognose</p>
+              </div>
+              <CashflowChart cashflow={cashflow} />
             </motion.div>
           )}
+
+          {/* 3. The Ledger Gallery */}
+          <motion.div variants={itemVariants} style={{ marginTop: 40 }}>
+            <h2 className="section-header" style={{ marginBottom: 60, display: "flex", alignItems: "center", gap: 24, opacity: 0.5 }}>
+              Dossier / Openstaand
+              <span style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.04)" }} />
+            </h2>
+            {isLoading ? (
+              <SkeletonTable />
+            ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
+              <UpcomingInvoiceTable invoices={upcomingInvoices} />
+            ) : (
+              <p className="empty-state">Geen actieve componenten</p>
+            )}
+          </motion.div>
         </div>
       </div>
-
-      {/* ── Table: Bottom section ── */}
-      <motion.div variants={itemVariants} style={{ marginTop: 40 }}>
-        <h2 className="section-header" style={{ marginBottom: 40, display: "flex", alignItems: "center", gap: 24, opacity: 0.5 }}>
-          Dossier / Openstaand
-          <span style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.04)" }} />
-        </h2>
-        {isLoading ? (
-          <SkeletonTable />
-        ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
-          <UpcomingInvoiceTable invoices={upcomingInvoices} />
-        ) : (
-          <p className="empty-state">Geen actieve componenten</p>
-        )}
-      </motion.div>
 
     </motion.div>
   );
@@ -231,30 +217,28 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
   };
 
   return (
-    <div style={{ marginBottom: 120 }}>
+    <div style={{ marginBottom: 120, position: "relative" }}>
+      {/* Playful editorial background line */}
+      <div style={{ position: "absolute", left: "5%", top: 0, bottom: 0, width: "1px", background: "rgba(0,0,0,0.03)", zIndex: 0 }} />
+      
       {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
       
       <div style={{ 
         display: "flex", 
         flexDirection: "column", 
         gap: 80, // Massive gap for editorial spacing
+        position: "relative",
+        zIndex: 1
       }}>
         {invoices.map((inv, index) => {
           const isOverdue = inv.days_overdue > 0;
           // Asymmetrical staggered layout: alternate margins
-          const staggerMargin = index % 2 === 0 ? "0 0 0 10%" : "0 10% 0 0";
-          const align = index % 2 === 0 ? "flex-start" : "flex-end";
+          const alignClass = index % 2 === 0 ? "items-start pl-0 lg:pl-[10%]" : "items-end pr-0 lg:pr-[10%]";
           
           return (
             <div 
               key={inv.id} 
-              style={{ 
-                margin: staggerMargin,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: align,
-                position: "relative",
-              }}
+              className={`flex flex-col relative ${alignClass}`}
             >
               {/* Top tiny label */}
               <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16 }}>
