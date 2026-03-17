@@ -129,6 +129,7 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
     related_receipt_id: string | null;
     suggested_category: string | null;
     ai_confidence: number | null;
+    status?: "pending" | "resolved" | "ignored";
   }> = [];
 
   for (const tx of uncategorized) {
@@ -144,28 +145,65 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
 
     const { data: matchingReceipts } = await supabase
       .from("receipts")
-      .select("id, vendor_name, amount_inc_vat")
+      .select("id, vendor_name, amount_inc_vat, category, receipt_date")
       .eq("user_id", userId)
       .gte("receipt_date", dateFrom.toISOString().split("T")[0])
       .lte("receipt_date", dateTo.toISOString().split("T")[0]);
 
-    const match = (matchingReceipts ?? []).find(
-      (r: { amount_inc_vat: number }) => Math.abs(Number(r.amount_inc_vat) - txAmount) < 0.02
+    const matchingReceipt = (matchingReceipts ?? []).find(
+      (r: { amount_inc_vat: number }) => Math.abs(Number(r.amount_inc_vat) - txAmount) < 0.01
     );
 
-    if (match) {
-      // High-confidence match found
-      newActions.push({
-        user_id: userId,
-        type: "match_suggestion",
-        title: `Match: ${tx.counterpart_name ?? tx.description ?? "Onbekend"}`,
-        description: `Transactie van ${new Date(tx.booking_date).toLocaleDateString("nl-NL")} lijkt te passen bij bon van ${match.vendor_name ?? "onbekend"}.`,
-        amount: txAmount,
-        related_transaction_id: tx.id,
-        related_receipt_id: match.id,
-        suggested_category: null,
-        ai_confidence: 0.85,
-      });
+    if (matchingReceipt) {
+      // Calculate confidence
+      let confidence = 0.85;
+      const receiptDate = new Date(matchingReceipt.receipt_date);
+      const daysDiff = Math.abs((txDate.getTime() - receiptDate.getTime()) / (1000 * 3600 * 24));
+      
+      if (daysDiff <= 1) confidence += 0.05;
+      if (matchingReceipt.vendor_name && tx.counterpart_name?.toLowerCase().includes(matchingReceipt.vendor_name.toLowerCase())) confidence += 0.05;
+
+      if (confidence >= 0.95) {
+        // AUTONOMOUS MATCH
+        // 1. Link receipt to transaction
+        await supabase
+          .from("bank_transactions")
+          .update({ 
+            category: matchingReceipt.category || "Algemeen",
+            receipt_id: matchingReceipt.id,
+            reconciled_at: new Date().toISOString()
+          })
+          .eq("id", tx.id);
+        
+        // 2. Mark receipt as processed/matched if needed (assuming a status field exists, else just trust the link)
+        
+        // 3. Create a RESOLVED action item for the audit trail
+        newActions.push({
+          user_id: userId,
+          type: "autonomous_match",
+          title: `Autonome Match: ${matchingReceipt.vendor_name}`,
+          description: `AI heeft deze transactie automatisch gekoppeld aan een bon (${Math.round(confidence * 100)}% zekerheid).`,
+          amount: txAmount,
+          related_transaction_id: tx.id,
+          related_receipt_id: matchingReceipt.id,
+          suggested_category: matchingReceipt.category,
+          ai_confidence: confidence,
+          status: "resolved" as any, // resolved instead of pending
+        });
+      } else {
+        // Suggestion
+        newActions.push({
+          user_id: userId,
+          type: "match_suggestion",
+          title: `Match: ${tx.counterpart_name ?? tx.description ?? "Onbekend"}`,
+          description: `Transactie van ${new Date(tx.booking_date).toLocaleDateString("nl-NL")} lijkt te passen bij bon van ${matchingReceipt.vendor_name ?? "onbekend"}.`,
+          amount: txAmount,
+          related_transaction_id: tx.id,
+          related_receipt_id: matchingReceipt.id,
+          suggested_category: matchingReceipt.category,
+          ai_confidence: confidence,
+        });
+      }
     } else {
       // No match - create an uncategorized action
       newActions.push({

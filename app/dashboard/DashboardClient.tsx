@@ -12,6 +12,7 @@ import {
 import type { ActionResult } from "@/lib/types";
 import { sendReminder } from "@/lib/actions/invoices";
 import { formatCurrency } from "@/lib/format";
+import { playSound } from "@/lib/utils/sound";
 
 import {
   StatCard,
@@ -66,195 +67,159 @@ export default function DashboardClient({
         hidden: {},
         show: {
           transition: {
-            staggerChildren: 0.08,
+            staggerChildren: 0.1,
           },
         },
       }}
+      className="dashboard-content"
+      style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(12, 1fr)", 
+        gap: 24,
+        paddingBottom: 120 // Space for floating bar
+      }}
     >
-      {/* ── Smart Onboarding ── */}
-      <motion.div variants={itemVariants}>
-        <SetupChecklist />
-      </motion.div>
-
-      {/* ── Masthead ── */}
-      <motion.div
-        variants={itemVariants}
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingBottom: 16,
-          marginBottom: 48,
-          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-sm)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
-            textTransform: "uppercase",
-          }}
-        >
-          Overzicht
-        </span>
-        <span className="label" style={{ opacity: 0.4 }}>
-          {getCurrentMonth().toUpperCase()}
-        </span>
-      </motion.div>
-
-      {/* ── Hero Vrij Besteedbaar ── */}
-      {isLoading ? (
-        <motion.div variants={itemVariants} style={{ marginBottom: "var(--space-hero)" }}>
-          <div className="skeleton" style={{ width: "40%", height: 9, marginBottom: 20, opacity: 0.08 }} />
-          <div className="skeleton" style={{ width: "60%", height: 80, opacity: 0.06 }} />
-        </motion.div>
-      ) : safeToSpend ? (
-        <motion.div
+      {/* ── Hero: Safe to Spend (8 cols) ── */}
+      {safeToSpend && !isLoading && (
+        <motion.div 
           variants={itemVariants}
-          style={{
-            marginBottom: "var(--space-hero)",
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: 32,
-            alignItems: "end",
+          className="glass"
+          style={{ 
+            gridColumn: "span 8", 
+            padding: 48, 
+            borderRadius: "var(--radius-lg)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center"
           }}
         >
-          <div>
-            <p className="label" style={{ margin: "0 0 16px", opacity: 0.4 }}>
-              Vrij besteedbaar
-            </p>
-            <AnimatedNumber
-              value={safeToSpend.safeToSpend}
-              style={{
-                fontFamily: "var(--font-display), sans-serif",
-                fontSize: "var(--text-display-xl)",
-                fontWeight: 700,
-                lineHeight: 0.85,
-                letterSpacing: "var(--tracking-display)",
-              }}
-            />
-          </div>
-          <div
+          <p className="label" style={{ marginBottom: 24, opacity: 0.5 }}>Vrij besteedbaar</p>
+          <AnimatedNumber
+            value={safeToSpend.safeToSpend}
             style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              alignItems: "flex-end",
-              borderLeft: "0.5px solid rgba(13,13,11,0.12)",
-              paddingLeft: 32,
+              fontFamily: "var(--font-geist), sans-serif",
+              fontSize: "clamp(3rem, 8vw, 6rem)",
+              fontWeight: 700,
+              lineHeight: 0.9,
+              letterSpacing: "-0.04em",
             }}
-          >
-            <span className="label" style={{ opacity: 0.4, textTransform: "none", letterSpacing: "normal" }}>
-              Saldo: {formatCurrency(safeToSpend.currentBalance)}
-            </span>
-            <span className="label" style={{ opacity: 0.4, textTransform: "none", letterSpacing: "normal" }}>
-              BTW reserve: {formatCurrency(safeToSpend.estimatedVat)}
-            </span>
-            <span className="label" style={{ opacity: 0.4, textTransform: "none", letterSpacing: "normal" }}>
-              IB reserve: {formatCurrency(safeToSpend.estimatedIncomeTax)}
-            </span>
+          />
+          <div style={{ display: "flex", gap: 32, marginTop: 40, borderTop: "var(--border-rule)", paddingTop: 24 }}>
+            <div>
+              <p className="label" style={{ opacity: 0.4, marginBottom: 4 }}>Saldo</p>
+              <p style={{ fontSize: 16 }}>{formatCurrency(safeToSpend.currentBalance)}</p>
+            </div>
+            <div>
+              <p className="label" style={{ opacity: 0.4, marginBottom: 4 }}>BTW Reserve</p>
+              <p style={{ fontSize: 16, color: "var(--color-accent)" }}>{formatCurrency(safeToSpend.estimatedVat)}</p>
+            </div>
           </div>
         </motion.div>
-      ) : null}
+      )}
 
-      {/* ── Quick Receipt Upload ── */}
+      {/* ── Action Feed (4 cols, tall) ── */}
       {!isLoading && (
-        <motion.div variants={itemVariants}>
-          <QuickReceiptUpload />
+        <motion.div 
+          variants={itemVariants}
+          className="glass"
+          style={{ 
+            gridColumn: "span 4", 
+            gridRow: "span 2",
+            borderRadius: "var(--radius-lg)",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
+          <div style={{ padding: "24px 24px 12px", borderBottom: "var(--border-rule)" }}>
+             <p className="label">Inbox Zero</p>
+          </div>
+          <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 24px" }}>
+            <ActionFeed />
+          </div>
         </motion.div>
       )}
 
-      {/* ── Action Feed (Inbox Zero) ── */}
-      {!isLoading && (
-        <motion.div variants={itemVariants}>
-          <ActionFeed />
-        </motion.div>
+      {/* ── Stats (2x 4 cols) ── */}
+      {!isLoading && stats && (
+        <>
+          <motion.div variants={itemVariants} style={{ gridColumn: "span 4" }}>
+            <StatCard
+              label="Open facturen"
+              value={String(stats.openInvoiceCount)}
+              sub={formatCurrency(stats.openInvoiceAmount)}
+            />
+          </motion.div>
+          <motion.div variants={itemVariants} style={{ gridColumn: "span 4" }}>
+            <StatCard
+              label="BTW te betalen"
+              value={formatCurrency(stats.vatToPay)}
+              sub="Kwartaal overzicht"
+            />
+          </motion.div>
+        </>
       )}
 
-      {/* ── Cashflow Chart ── */}
+      {/* ── Cashflow Chart (8 cols) ── */}
       {cashflow && (
-        <motion.div variants={itemVariants}>
+        <motion.div 
+          variants={itemVariants}
+          className="glass"
+          style={{ 
+            gridColumn: "span 8", 
+            padding: 32, 
+            borderRadius: "var(--radius-lg)"
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+            <p className="label">Cashflow</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--color-accent)" }} />
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
+            </div>
+          </div>
           <CashflowChart cashflow={cashflow} />
         </motion.div>
       )}
 
-      {/* ── BTW Deadline ── */}
+      {/* ── Quick Upload (4 cols) ── */}
+      {!isLoading && (
+        <motion.div 
+          variants={itemVariants}
+          className="glass"
+          style={{ 
+            gridColumn: "span 4",
+            padding: 24,
+            borderRadius: "var(--radius-lg)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            textAlign: "center"
+          }}
+        >
+          <QuickReceiptUpload />
+        </motion.div>
+      )}
+
+      {/* ── BTW Deadline (Full width) ── */}
       {vatDeadline && (
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants} style={{ gridColumn: "span 12" }}>
           <VatDeadlineBanner deadline={vatDeadline} />
         </motion.div>
       )}
 
-      {/* ── Stat Strip ── */}
-      <motion.div variants={itemVariants} className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr",
-            gap: 1,
-            background: "rgba(13,13,11,0.06)",
-            border: "0.5px solid rgba(13,13,11,0.08)",
-          }}
-          className="stat-cards-grid"
-        >
-          {isLoading ? (
-            <>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </>
-          ) : stats ? (
-            <>
-              <StatCard
-                label="Open facturen"
-                value={String(stats.openInvoiceCount)}
-                sub={formatCurrency(stats.openInvoiceAmount)}
-              />
-              <StatCard
-                label="BTW te betalen"
-                value={formatCurrency(stats.vatToPay)}
-              />
-              <StatCard
-                label="Bonnen deze maand"
-                value={String(stats.receiptsThisMonth)}
-              />
-            </>
-          ) : null}
-        </div>
-      </motion.div>
-
-      {/* ── Openstaande facturen ── */}
-      <motion.h2
-        variants={itemVariants}
-        className="section-header"
-        style={{
-          margin: "0 0 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-        }}
-      >
-        Openstaande facturen
-        <span
-          style={{
-            flex: 1,
-            height: "0.5px",
-            background: "rgba(13,13,11,0.15)",
-          }}
-        />
-      </motion.h2>
-
-      <motion.div variants={itemVariants}>
+      {/* ── Openstaande facturen (Full width) ── */}
+      <motion.div variants={itemVariants} style={{ gridColumn: "span 12", marginTop: 40 }}>
+        <h2 className="section-header" style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 16 }}>
+          Facturen overzicht
+          <span style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.05)" }} />
+        </h2>
         {isLoading ? (
           <SkeletonTable />
         ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
           <UpcomingInvoiceTable invoices={upcomingInvoices} />
         ) : (
-          <p className="empty-state">
-            Geen openstaande facturen
-          </p>
+          <p className="empty-state">Geen openstaande facturen</p>
         )}
       </motion.div>
 
@@ -278,6 +243,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
       setStatusMsg(res.error);
     } else {
       setStatusMsg("Herinnering verstuurd.");
+      playSound("tink");
     }
     setSendingId(null);
   };

@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardNav } from "@/components/layout/DashboardNav";
+import { QuickActionBar } from "@/components/layout/QuickActionBar";
+import { DashboardTransition } from "@/components/layout/DashboardTransition";
 
 export default async function DashboardLayout({
   children,
@@ -24,7 +26,10 @@ export default async function DashboardLayout({
       <DashboardNav
         studioName={profile?.studio_name ?? undefined}
       />
-      <main className="dashboard-content">{children}</main>
+      <DashboardTransition>
+        <main className="dashboard-content">{children}</main>
+      </DashboardTransition>
+      <QuickActionBar />
     </div>
   );
 }

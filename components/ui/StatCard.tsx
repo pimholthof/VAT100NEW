@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 
 export function StatCard({
   label,
@@ -10,37 +11,50 @@ export function StatCard({
   sub?: string;
 }) {
   return (
-    <div style={{ padding: "36px 0 28px" }}>
-      <p className="label" style={{ margin: "0 0 12px" }}>
-        {label}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-mono), monospace",
-          fontSize: "var(--text-mono-lg)",
-          fontWeight: 300,
-          lineHeight: 1,
-          margin: 0,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {value}
-      </p>
+    <motion.div 
+      whileHover={{ y: -2 }}
+      className="glass"
+      style={{ 
+        padding: "24px", 
+        display: "flex", 
+        flexDirection: "column", 
+        justifyContent: "space-between",
+        minHeight: 140,
+        borderRadius: "var(--radius-md)",
+      }}
+    >
+      <div>
+        <p className="label" style={{ margin: "0 0 4px", opacity: 0.5 }}>
+          {label}
+        </p>
+        <p
+          style={{
+            fontFamily: "var(--font-geist), sans-serif",
+            fontSize: "var(--text-display-md)",
+            fontWeight: 500,
+            lineHeight: 1.1,
+            margin: 0,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {value}
+        </p>
+      </div>
       {sub && (
         <p
           style={{
             fontFamily: "var(--font-mono), monospace",
             fontSize: "var(--text-mono-sm)",
-            fontWeight: 300,
-            marginTop: 8,
+            fontWeight: 400,
+            marginTop: 12,
             marginBottom: 0,
-            opacity: 0.3,
+            opacity: 0.4,
           }}
         >
           {sub}
         </p>
       )}
-    </div>
+    </motion.div>
   );
 }
 

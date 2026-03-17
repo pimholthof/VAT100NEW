@@ -9,6 +9,7 @@ import {
   ignoreActionItem,
 } from "@/lib/actions/action-feed";
 import type { ActionFeedItem } from "@/lib/types";
+import { playSound } from "@/lib/utils/sound";
 
 export function ActionFeed() {
   const queryClient = useQueryClient();
@@ -24,6 +25,7 @@ export function ActionFeed() {
     mutationFn: (id: string) => resolveActionItem(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
+      playSound("tink");
     },
   });
 
@@ -31,6 +33,7 @@ export function ActionFeed() {
     mutationFn: (id: string) => ignoreActionItem(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
+      playSound("tink");
     },
   });
 
@@ -131,62 +134,65 @@ function ActionCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
       transition={{ 
         duration: 0.3, 
         delay: index * 0.05, 
-        ease: "easeOut",
+        ease: "anticipate",
         layout: { duration: 0.3 }
       }}
-      whileHover={{ x: 4, transition: { duration: 0.2 } }}
+      whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
+      className="glass"
       style={{
-        padding: 16,
-        border: "0.5px solid rgba(13,13,11,0.12)",
+        padding: "20px 24px",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        background: "var(--background)",
+        borderRadius: "var(--radius-md)",
         opacity: isPending ? 0.5 : 1,
       }}
     >
-      <div>
-        <p className="label" style={{ opacity: 0.6, margin: "0 0 4px" }}>
+      <div style={{ flex: 1 }}>
+        <p className="label" style={{ opacity: 0.5, margin: "0 0 6px" }}>
           {typeLabel[action.type] ?? action.type}
           {action.ai_confidence != null && (
-            <span style={{ opacity: 0.5, marginLeft: 8 }}>
-              {Math.round(action.ai_confidence * 100)}% zeker
+            <span style={{ color: "var(--color-accent)", opacity: 0.8, marginLeft: 12 }}>
+              {Math.round(action.ai_confidence * 100)}% Match
             </span>
           )}
         </p>
         <p
           style={{
-            fontFamily: "var(--font-body), sans-serif",
+            fontFamily: "var(--font-geist), sans-serif",
             fontSize: "var(--text-body-md)",
-            fontWeight: 500,
+            fontWeight: 600,
             margin: "0 0 4px",
+            letterSpacing: "-0.01em"
           }}
         >
           {action.title}
         </p>
         <p
           style={{
-            fontFamily: "var(--font-body), sans-serif",
+            fontFamily: "var(--font-geist), sans-serif",
             fontSize: "var(--text-body-sm)",
-            color: "rgba(13,13,11,0.6)",
+            color: "var(--color-white)",
+            opacity: 0.4,
             margin: 0,
           }}
         >
           {action.description}
         </p>
       </div>
-      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
+      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 16, marginLeft: 24 }}>
         {action.amount != null && (
           <span
             style={{
               fontFamily: "var(--font-mono), monospace",
               fontSize: "var(--text-mono-md)",
+              fontWeight: 500
             }}
           >
             {formatCurrency(action.amount)}
@@ -197,15 +203,18 @@ function ActionCard({
             onClick={onIgnore}
             disabled={isPending}
             style={{
-              background: "rgba(13,13,11,0.06)",
+              background: "rgba(255,255,255,0.05)",
+              color: "white",
               border: "none",
-              padding: "6px 12px",
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-label)",
+              padding: "6px 14px",
+              borderRadius: "var(--radius-sm)",
+              fontFamily: "var(--font-geist), sans-serif",
+              fontSize: "11px",
               fontWeight: 500,
               textTransform: "uppercase",
-              letterSpacing: "var(--tracking-label)",
+              letterSpacing: "0.05em",
               cursor: "pointer",
+              transition: "all 0.2s ease"
             }}
           >
             Negeer
@@ -214,16 +223,19 @@ function ActionCard({
             onClick={onResolve}
             disabled={isPending}
             style={{
-              background: "var(--foreground)",
-              color: "var(--background)",
+              background: "var(--color-accent)",
+              color: "white",
               border: "none",
-              padding: "6px 12px",
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-label)",
-              fontWeight: 500,
+              padding: "6px 14px",
+              borderRadius: "var(--radius-sm)",
+              fontFamily: "var(--font-geist), sans-serif",
+              fontSize: "11px",
+              fontWeight: 600,
               textTransform: "uppercase",
-              letterSpacing: "var(--tracking-label)",
+              letterSpacing: "0.05em",
               cursor: "pointer",
+              transition: "all 0.2s ease",
+              boxShadow: "0 0 20px -5px var(--color-accent)"
             }}
           >
             {actionLabel[action.type] ?? "OK"}

@@ -2,6 +2,17 @@ import type { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
 import "@/styles/globals.css";
 import { CommandMenu } from "@/components/ui/CommandMenu";
+import { Geist, Geist_Mono } from "next/font/google";
+
+const geistSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+});
 
 export const viewport: Viewport = {
   themeColor: "#0d0d0b",
@@ -31,15 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&family=Space+Grotesk:wght@700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="nl" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <Providers>
           {children}

@@ -5,61 +5,51 @@
   /* Baseline unit */
   --u: 8px;
 
-  /* Grid */
-  --col: 12;
+  /* Colors — Deep Obsidian & Pure White */
+  --color-black: #0A0A0A;
+  --color-white: #FFFFFF;
+  --color-accent: #6366F1; /* Electric Indigo */
 
-  /* Colors — pure black & white, no greys */
-  --color-black: #0D0D0B;
-  --color-white: #FAFAF8;
+  /* Foreground / Background */
+  --foreground: var(--color-white);
+  --background: var(--color-black);
 
-  /* Foreground / Background (light mode defaults) */
-  --foreground: var(--color-black);
-  --background: var(--color-white);
-
-  /* Borders */
-  --border-light: 0.5px solid rgba(13, 13, 11, 0.12);
-  --border-dark: 0.5px solid rgba(255, 255, 255, 0.10);
+  /* Borders — Subtler, more premium */
+  --border-light: 0.5px solid rgba(255, 255, 255, 0.08);
+  --border-dark: 0.5px solid rgba(255, 255, 255, 0.12);
   --border: var(--border-light);
 
-  /* Refined borders */
-  --border-rule: 0.5px solid rgba(13, 13, 11, 0.15);
-  --border-input: 0.5px solid rgba(13, 13, 11, 0.12);
-  --border-input-focus: 0.5px solid rgba(13, 13, 11, 0.5);
+  /* Refined components */
+  --border-rule: 0.5px solid rgba(255, 255, 255, 0.06);
+  --border-input: 0.5px solid rgba(255, 255, 255, 0.1);
+  --border-input-focus: 0.5px solid var(--color-accent);
 
-  /* Display font sizes — extreme typographic scale */
-  --text-display-hero: 12rem;
+  /* Typography Scale — Tight and sharp */
+  --text-display-hero: clamp(4rem, 12vw, 10rem);
   --text-display-xl: 6rem;
   --text-display-lg: 3.5rem;
   --text-display-md: 2rem;
   --text-display-sm: 1rem;
 
-  /* Body font sizes */
-  --text-body-lg: 13px;
-  --text-body-md: 12px;
-  --text-body-sm: 11px;
-  --text-body-xs: 9px;
+  --text-body-lg: 14px;
+  --text-body-md: 13px;
+  --text-body-sm: 12px;
+  --text-body-xs: 10px;
 
-  /* Monospace font sizes */
+  /* Monospace */
   --text-mono-lg: 2rem;
-  --text-mono-md: 12px;
-  --text-mono-sm: 11px;
+  --text-mono-md: 13px;
+  --text-mono-sm: 12px;
 
-  /* Label size */
-  --text-label: 9px;
+  /* Label */
+  --text-label: 10px;
 
-  /* Letter spacing */
-  --tracking-display: 0.02em;
-  --tracking-label: 0.08em;
-  --tracking-caps: 0.25em;
-
-  /* Spacing — dramatic whitespace */
-  --space-hero: 120px;
-  --space-section: 96px;
-  --space-block: 48px;
-  --space-element: 24px;
-
-  /* Border radius — zero everywhere */
-  --radius: 0px;
+  /* Spacing & Leading */
+  --tracking-display: -0.04em;
+  --tracking-tight: -0.01em;
+  --tracking-label: 0.06em;
+  
+  --radius: 8px; /* Refined curves for lifestyle feel */
 }
 
 /* Force light mode — no dark mode swap */
@@ -70,36 +60,35 @@
   --color-foreground: var(--foreground);
   --color-black: var(--color-black);
   --color-white: var(--color-white);
-  --font-display: "Space Grotesk", sans-serif;
-  --font-body: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
+  --color-accent: var(--color-accent);
+  
+  --font-geist: var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 }
 
 /* ─── Base ─── */
 *,
 *::before,
 *::after {
-  border-radius: 0 !important;
+  border-radius: inherit;
 }
 
 body {
-  color-scheme: light;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-geist), sans-serif;
   font-size: var(--text-body-md);
-  letter-spacing: 0.01em;
+  letter-spacing: var(--tracking-tight);
   font-variant-numeric: tabular-nums;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 /* ─── Selection ─── */
@@ -144,9 +133,25 @@ tbody tr:hover {
   min-height: 100vh;
 }
 
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+}
+
+.glass-dark {
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
 /* ─── Reusable Typography Classes ─── */
 .label {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-geist), sans-serif;
   font-size: var(--text-label);
   font-weight: 500;
   letter-spacing: var(--tracking-label);
@@ -155,7 +160,7 @@ tbody tr:hover {
 }
 
 .label-strong {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-geist), sans-serif;
   font-size: var(--text-label);
   font-weight: 500;
   letter-spacing: var(--tracking-label);
@@ -164,7 +169,7 @@ tbody tr:hover {
 }
 
 .display-hero {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-geist), sans-serif;
   font-size: var(--text-display-hero);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -173,7 +178,7 @@ tbody tr:hover {
 }
 
 .display-title {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-geist), sans-serif;
   font-size: var(--text-display-lg);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -182,7 +187,7 @@ tbody tr:hover {
 }
 
 .section-header {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-geist), sans-serif;
   font-size: var(--text-display-sm);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -206,11 +211,11 @@ tbody tr:hover {
 }
 
 .editorial-divider {
-  border-top: 0.5px solid rgba(13, 13, 11, 0.15);
+  border-top: 0.5px solid rgba(255, 255, 255, 0.1);
 }
 
 .table-action {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-geist), sans-serif;
   font-size: var(--text-label);
   font-weight: 500;
   letter-spacing: var(--tracking-label);
@@ -225,7 +230,7 @@ tbody tr:hover {
 }
 
 .empty-state {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-geist), sans-serif;
   font-size: var(--text-display-md);
   font-weight: 700;
   line-height: 1;
@@ -238,8 +243,9 @@ tbody tr:hover {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: var(--background);
-  border-bottom: 0.5px solid rgba(13, 13, 11, 0.08);
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
   padding: 0 80px;
 }
 
@@ -342,13 +348,13 @@ tbody tr:hover {
 
 /* ─── Skeleton Loaders ─── */
 .skeleton {
-  background: rgba(13, 13, 11, 0.08);
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: rgba(255, 255, 255, 0.05);
+  animation: skeleton-pulse 2s ease-in-out infinite;
 }
 
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.08; }
-  50% { opacity: 0.2; }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
 }
 
 /* ── Upload zone pulse ── */
