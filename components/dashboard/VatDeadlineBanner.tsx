@@ -53,9 +53,16 @@ export function VatDeadlineBanner({ deadline }: { deadline: VatDeadline }) {
         >
           {deadline.daysRemaining}d
         </p>
-        <p className="label" style={{ opacity: 0.5, margin: 0 }}>
-          ~{formatCurrency(deadline.estimatedAmount)}
-        </p>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+          <p className="label" style={{ opacity: 0.5, margin: 0 }}>
+            Nu: {formatCurrency(deadline.estimatedAmount)}
+          </p>
+          {deadline.forecastedAmount && deadline.forecastedAmount > deadline.estimatedAmount && (
+            <p className="label" style={{ opacity: 0.3, margin: 0, fontSize: "10px" }}>
+              Verwacht: {formatCurrency(deadline.forecastedAmount)}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

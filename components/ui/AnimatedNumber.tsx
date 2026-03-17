@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { animate, useMotionValue, useTransform, motion } from "framer-motion";
 
 /**
  * AnimatedNumber — Smoothly counts up/down to a target value.
- * Used for the Safe-to-Spend display to give a premium, real-time feel.
+ * Used for financial displays to give a premium, real-time feel.
  */
 export function AnimatedNumber({
   value,
-  duration = 800,
+  duration = 1.2,
   prefix = "",
   suffix = "",
   style,
   className,
+  isCurrency = true,
 }: {
   value: number;
   duration?: number;
@@ -20,59 +22,38 @@ export function AnimatedNumber({
   suffix?: string;
   style?: React.CSSProperties;
   className?: string;
+  isCurrency?: boolean;
 }) {
-  const [displayValue, setDisplayValue] = useState(value);
-  const previousValue = useRef(value);
-  const animationRef = useRef<number>(0);
+  const count = useMotionValue(value);
+  const rounded = useTransform(count, (latest) => {
+    const formatter = new Intl.NumberFormat("nl-NL", {
+      style: isCurrency ? "currency" : "decimal",
+      currency: "EUR",
+      minimumFractionDigits: isCurrency ? 0 : 0,
+      maximumFractionDigits: isCurrency ? 0 : 2,
+    });
+    
+    // For currency, it already adds the symbol, so we might not need prefix/suffix 
+    // but we keep them for flexibility.
+    const formatted = formatter.format(Math.round(latest));
+    return `${prefix}${formatted}${suffix}`;
+  });
+
+  const prevValue = useRef(value);
 
   useEffect(() => {
-    const start = previousValue.current;
-    const end = value;
-    const diff = end - start;
-
-    if (Math.abs(diff) < 0.01) {
-      previousValue.current = end;
-      // Defer state update to avoid synchronous setState in effect
-      const id = requestAnimationFrame(() => setDisplayValue(end));
-      return () => cancelAnimationFrame(id);
-    }
-
-    const startTime = performance.now();
-
-    function step(now: number) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = start + diff * eased;
-
-      setDisplayValue(current);
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(step);
-      } else {
-        previousValue.current = end;
-      }
-    }
-
-    animationRef.current = requestAnimationFrame(step);
-
-    return () => {
-      cancelAnimationFrame(animationRef.current);
-    };
-  }, [value, duration]);
-
-  const formatted = new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Math.round(displayValue));
+    const controls = animate(count, value, {
+      duration: duration,
+      ease: [0.16, 1, 0.3, 1], // Custom "liquid" ease: fast start, soft settle
+    });
+    
+    prevValue.current = value;
+    return controls.stop;
+  }, [value, count, duration]);
 
   return (
-    <span style={style} className={className}>
-      {prefix}
-      {formatted}
-      {suffix}
-    </span>
+    <motion.span style={style} className={className}>
+      {rounded}
+    </motion.span>
   );
 }

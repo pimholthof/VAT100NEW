@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/lib/actions/receipts";
 
@@ -75,8 +76,8 @@ export function QuickReceiptUpload() {
     setStatus("done");
     setMessage(
       scanResult.data?.vendor_name
-        ? `✓ ${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
-        : "✓ Document geregistreerd."
+        ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
+        : "Document geregistreerd."
     );
     },
     onError: (err) => {
@@ -169,17 +170,35 @@ export function QuickReceiptUpload() {
       )}
 
       {(status === "uploading" || status === "scanning") && (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            margin: 0,
-            opacity: 0.7,
-          }}
-        >
-          {message}
-        </p>
+        <div style={{ position: "relative", overflow: "hidden", margin: "-24px", padding: "24px" }}>
+          {status === "scanning" && (
+            <motion.div
+              initial={{ top: "0%" }}
+              animate={{ top: "100%" }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                height: "2px",
+                background: "linear-gradient(to right, transparent, var(--color-accent), transparent)",
+                zIndex: 10,
+                boxShadow: "0 0 15px var(--color-accent)",
+              }}
+            />
+          )}
+          <p
+            style={{
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-body-md)",
+              fontWeight: 400,
+              margin: 0,
+              opacity: 0.7,
+            }}
+          >
+            {message}
+          </p>
+        </div>
       )}
 
       {status === "done" && (
@@ -205,7 +224,7 @@ export function QuickReceiptUpload() {
             opacity: 0.7,
           }}
         >
-          ⚠ {message}
+          {message}
         </p>
       )}
     </div>

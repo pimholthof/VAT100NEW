@@ -309,7 +309,7 @@ export async function generateShareToken(
   return { error: null, data: token };
 }
 
-export async function sendReminder(invoiceId: string): Promise<ActionResult> {
+export async function sendReminder(invoiceId: string, customMessage?: string): Promise<ActionResult> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -337,7 +337,7 @@ export async function sendReminder(invoiceId: string): Promise<ActionResult> {
   if (result.error || !result.data) {
     return { error: result.error ?? "Kon factuurgegevens niet ophalen." };
   }
-  return sendReminderEmail(result.data);
+  return sendReminderEmail(result.data, customMessage);
 }
 
 export async function sendInvoice(id: string): Promise<ActionResult> {

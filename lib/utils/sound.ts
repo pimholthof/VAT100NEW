@@ -1,14 +1,17 @@
-"use client";
+export type SoundToken = 
+  | "tink"        // Default UI click
+  | "success"     // Success/Resolve
+  | "reconcile"   // Reconciled successfully
+  | "alert"       // Action needed
+  | "navigation"  // Tab change
+  | "glass-ping"  // Subtle alert
+  | "bass-thump"  // Depth feedback
+  | "paper-shimmer"; // Refresh/Slide
 
-/**
- * Signature Sound utility for premium feedback.
- */
-export const playSound = (soundName: "tink" | "success" = "tink") => {
+export const playSound = (soundName: SoundToken = "tink") => {
   if (typeof window === "undefined") return;
   
   const audio = new Audio(`/sounds/${soundName}.mp3`);
-  audio.volume = 0.4;
-  audio.play().catch(() => {
-    // Browser may block auto-play if no user interaction yet, silently fail
-  });
+  audio.volume = 0.25; // Even subtler default
+  audio.play().catch(() => {});
 };

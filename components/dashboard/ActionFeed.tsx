@@ -22,7 +22,7 @@ export function ActionFeed() {
   const actions = result?.data ?? [];
 
   const resolveMutation = useMutation({
-    mutationFn: (id: string) => resolveActionItem(id),
+    mutationFn: ({ id, draft }: { id: string; draft?: string }) => resolveActionItem(id, undefined, draft),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
       playSound("tink");
@@ -93,7 +93,7 @@ export function ActionFeed() {
               key={action.id}
               action={action}
               index={index}
-              onResolve={() => resolveMutation.mutate(action.id)}
+              onResolve={(draft) => resolveMutation.mutate({ id: action.id, draft })}
               onIgnore={() => ignoreMutation.mutate(action.id)}
               isPending={resolveMutation.isPending || ignoreMutation.isPending}
             />
@@ -104,6 +104,8 @@ export function ActionFeed() {
   );
 }
 
+import { useState } from "react";
+
 function ActionCard({
   action,
   index,
@@ -113,15 +115,19 @@ function ActionCard({
 }: {
   action: ActionFeedItem;
   index: number;
-  onResolve: () => void;
+  onResolve: (draftContent?: string) => void;
   onIgnore: () => void;
   isPending: boolean;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(action.draft_content || "");
+
   const typeLabel: Record<string, string> = {
     missing_receipt: "Document",
     match_suggestion: "Match",
     tax_alert: "Belasting",
     uncategorized: "Rubriceer",
+    reminder_suggestion: "Herinnering",
   };
 
   const actionLabel: Record<string, string> = {
@@ -129,6 +135,7 @@ function ActionCard({
     match_suggestion: "Accorderen",
     tax_alert: "Bekijken",
     uncategorized: "Rubriceren",
+    reminder_suggestion: "Versturen",
   };
 
   return (
@@ -148,66 +155,97 @@ function ActionCard({
       style={{
         padding: "20px 24px",
         display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderRadius: "var(--radius-md)",
+        flexDirection: "column",
+        gap: 16,
+        borderRadius: 0,
         opacity: isPending ? 0.5 : 1,
       }}
     >
-      <div style={{ flex: 1 }}>
-        <p className="label" style={{ opacity: 0.5, margin: "0 0 6px" }}>
-          {typeLabel[action.type] ?? action.type}
-          {action.ai_confidence != null && (
-            <span style={{ color: "var(--color-accent)", opacity: 0.8, marginLeft: 12 }}>
-              {Math.round(action.ai_confidence * 100)}% Match
-            </span>
-          )}
-        </p>
-        <p
-          style={{
-            fontFamily: "var(--font-geist), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 600,
-            margin: "0 0 4px",
-            letterSpacing: "-0.01em"
-          }}
-        >
-          {action.title}
-        </p>
-        <p
-          style={{
-            fontFamily: "var(--font-geist), sans-serif",
-            fontSize: "var(--text-body-sm)",
-            color: "var(--color-white)",
-            opacity: 0.4,
-            margin: 0,
-          }}
-        >
-          {action.description}
-        </p>
-      </div>
-      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 16, marginLeft: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ flex: 1 }}>
+          <p className="label" style={{ opacity: 0.5, margin: "0 0 6px" }}>
+            {typeLabel[action.type] ?? action.type}
+            {action.ai_confidence != null && (
+              <span style={{ color: "var(--color-accent)", opacity: 0.8, marginLeft: 12 }}>
+                {Math.round(action.ai_confidence * 100)}% Match
+              </span>
+            )}
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-geist), sans-serif",
+              fontSize: "var(--text-body-md)",
+              fontWeight: 600,
+              margin: "0 0 4px",
+              letterSpacing: "-0.01em"
+            }}
+          >
+            {action.title}
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-geist), sans-serif",
+              fontSize: "var(--text-body-sm)",
+              color: "var(--color-white)",
+              opacity: 0.4,
+              margin: 0,
+            }}
+          >
+            {action.description}
+          </p>
+        </div>
         {action.amount != null && (
           <span
             style={{
               fontFamily: "var(--font-mono), monospace",
               fontSize: "var(--text-mono-md)",
-              fontWeight: 500
+              fontWeight: 500,
+              marginLeft: 24
             }}
           >
             {formatCurrency(action.amount)}
           </span>
         )}
-        <div style={{ display: "flex", gap: 8 }}>
+      </div>
+
+      {isEditing && action.draft_content && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          style={{ overflow: "hidden" }}
+        >
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            style={{
+              width: "100%",
+              height: "120px",
+              background: "rgba(255,255,255,0.03)",
+              border: "0.5px solid rgba(255,255,255,0.1)",
+              padding: "12px",
+              color: "white",
+              fontFamily: "var(--font-geist), sans-serif",
+              fontSize: "13px",
+              lineHeight: "1.5",
+              outline: "none",
+              resize: "none"
+            }}
+            placeholder="Typ hier de tekst voor de herinnering..."
+          />
+        </motion.div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        {action.draft_content && (
           <button
-            onClick={onIgnore}
+            onClick={() => setIsEditing(!isEditing)}
             disabled={isPending}
             style={{
-              background: "rgba(255,255,255,0.05)",
+              background: "transparent",
               color: "white",
-              border: "none",
+              border: "0.5px solid rgba(255,255,255,0.2)",
               padding: "6px 14px",
-              borderRadius: "var(--radius-sm)",
+              borderRadius: 0,
               fontFamily: "var(--font-geist), sans-serif",
               fontSize: "11px",
               fontWeight: 500,
@@ -217,30 +255,50 @@ function ActionCard({
               transition: "all 0.2s ease"
             }}
           >
-            Negeer
+            {isEditing ? "Sluit Concept" : "Concept Bekijken"}
           </button>
-          <button
-            onClick={onResolve}
-            disabled={isPending}
-            style={{
-              background: "var(--color-accent)",
-              color: "white",
-              border: "none",
-              padding: "6px 14px",
-              borderRadius: "var(--radius-sm)",
-              fontFamily: "var(--font-geist), sans-serif",
-              fontSize: "11px",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              boxShadow: "0 0 20px -5px var(--color-accent)"
-            }}
-          >
-            {actionLabel[action.type] ?? "OK"}
-          </button>
-        </div>
+        )}
+        <button
+          onClick={onIgnore}
+          disabled={isPending}
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            color: "white",
+            border: "none",
+            padding: "6px 14px",
+            borderRadius: 0,
+            fontFamily: "var(--font-geist), sans-serif",
+            fontSize: "11px",
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            cursor: "pointer",
+            transition: "all 0.2s ease"
+          }}
+        >
+          Negeer
+        </button>
+        <button
+          onClick={() => onResolve(isEditing ? draft : undefined)}
+          disabled={isPending}
+          style={{
+            background: "var(--color-accent)",
+            color: "white",
+            border: "none",
+            padding: "6px 14px",
+            borderRadius: 0,
+            fontFamily: "var(--font-geist), sans-serif",
+            fontSize: "11px",
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            boxShadow: "0 0 20px -5px var(--color-accent)"
+          }}
+        >
+          {actionLabel[action.type] ?? "OK"}
+        </button>
       </div>
     </motion.div>
   );

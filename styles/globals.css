@@ -49,7 +49,7 @@
   --tracking-tight: -0.01em;
   --tracking-label: 0.06em;
   
-  --radius: 8px; /* Refined curves for lifestyle feel */
+  --radius: 0; /* Strict 0px radius for premium architectural feel */
 }
 
 /* Force light mode — no dark mode swap */
@@ -65,10 +65,10 @@
   --font-geist: var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
   
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 }
 
 /* ─── Base ─── */
@@ -139,6 +139,30 @@ tbody tr:hover {
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: 0.5s;
+}
+
+.glass:hover::before {
+  left: 150%;
+  transition: 0.8s ease-in-out;
 }
 
 .glass-dark {
@@ -147,6 +171,64 @@ tbody tr:hover {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.glass-refraction {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-refraction::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.glass-refraction:hover::after {
+  opacity: 1;
+  animation: refractionRotate 10s linear infinite;
+}
+
+@keyframes refractionRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.liquid-glimmer {
+  position: relative;
+}
+
+.liquid-glimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(99, 102, 241, 0.05) 45%,
+    rgba(99, 102, 241, 0.1) 50%,
+    rgba(99, 102, 241, 0.05) 55%,
+    transparent 60%
+  );
+  background-size: 200% 200%;
+  animation: liquidFlow 8s ease infinite;
+  pointer-events: none;
+}
+
+@keyframes liquidFlow {
+  0% { background-position: 200% 0%; }
+  100% { background-position: -200% 0%; }
 }
 
 /* ─── Reusable Typography Classes ─── */

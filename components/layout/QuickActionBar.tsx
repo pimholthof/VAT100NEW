@@ -14,7 +14,7 @@ export function QuickActionBar() {
         left: "50%",
         zIndex: 2000,
         padding: "12px 24px",
-        borderRadius: 100,
+        borderRadius: 0,
         display: "flex",
         gap: 24,
         alignItems: "center"

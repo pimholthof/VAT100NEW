@@ -56,7 +56,7 @@ export function CommandMenu() {
       const data = await res.json();
       setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error }]);
     } catch (e) {
-      setChatMessages(prev => [...prev, { role: 'ai', content: "Mislukt om te verbinden met AI." }]);
+      setChatMessages(prev => [...prev, { role: 'ai', content: "Systeem onderbroken. We herstellen de verbinding." }]);
     } finally {
       setIsChatLoading(false);
     }
@@ -89,9 +89,9 @@ export function CommandMenu() {
           maxWidth: 640,
           background: "var(--background)",
           border: "0.5px solid rgba(13,13,11,0.15)",
-          borderRadius: 8,
+          borderRadius: 0,
           overflow: "hidden",
-          boxShadow: "0 24px 48px -12px rgba(0,0,0,0.15)",
+          boxShadow: "0 24px 48px -12px rgba(0,0,0,0.25)",
         }}
       >
         <Command
@@ -150,9 +150,9 @@ export function CommandMenu() {
               {query && (
                 <div 
                   onClick={() => askAI(query)}
-                  style={{ marginTop: 12, padding: "8px 16px", background: "var(--foreground)", color: "var(--background)", borderRadius: 6, cursor: "pointer", display: "inline-block" }}
+                  style={{ marginTop: 12, padding: "8px 16px", background: "var(--foreground)", color: "var(--background)", borderRadius: 0, cursor: "pointer", display: "inline-block" }}
                 >
-                  ✨ Vraag dit aan de AI CFO
+                  Vraag dit aan de AI CFO
                 </div>
               )}
             </Command.Empty>
@@ -164,7 +164,7 @@ export function CommandMenu() {
                 }}
                 className="cmdk-item"
               >
-                <span style={{color: '#9061F9'}}>✨ Vraag AI CFO</span> {query ? `"${query}"` : "..."}
+                <span style={{color: 'var(--color-accent)'}}>Vraag AI CFO</span> {query ? `"${query}"` : "..."}
               </Command.Item>
             </Command.Group>
 
@@ -173,13 +173,13 @@ export function CommandMenu() {
                 onSelect={() => runCommand(() => router.push("/dashboard/invoices/new"))}
                 className="cmdk-item"
               >
-                📝 Nieuwe factuur maken
+                Nieuwe factuur maken
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/clients/new"))}
                 className="cmdk-item"
               >
-                🏢 Nieuwe klant toevoegen
+                Nieuwe klant toevoegen
               </Command.Item>
             </Command.Group>
 
@@ -188,31 +188,31 @@ export function CommandMenu() {
                 onSelect={() => runCommand(() => router.push("/dashboard"))}
                 className="cmdk-item"
               >
-                🏠 Dashboard
+                Dashboard
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/invoices"))}
                 className="cmdk-item"
               >
-                📄 Facturen overzicht
+                Facturen overzicht
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/receipts"))}
                 className="cmdk-item"
               >
-                🧾 Bonnen & Uitgaven
+                Bonnen & Uitgaven
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/clients"))}
                 className="cmdk-item"
               >
-                👥 Klanten overzicht
+                Klanten overzicht
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/settings"))}
                 className="cmdk-item"
               >
-                ⚙️ Instellingen
+                Instellingen
               </Command.Item>
             </Command.Group>
 
@@ -229,13 +229,13 @@ export function CommandMenu() {
                   alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                   background: msg.role === 'user' ? 'rgba(13,13,11,0.06)' : 'transparent',
                   padding: '12px 16px',
-                  borderRadius: 8,
+                   borderRadius: 0,
                   maxWidth: '85%',
                   whiteSpace: 'pre-wrap',
-                  fontFamily: "var(--font-body), sans-serif",
+                  fontFamily: "var(--font-geist), sans-serif",
                   fontSize: "var(--text-body-md)"
                 }}>
-                  {msg.role === 'ai' && <strong style={{color: '#9061F9', display: 'block', marginBottom: 4}}>✨ VAT100 AI</strong>}
+                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 AI</strong>}
                   {msg.content}
                 </div>
               ))}

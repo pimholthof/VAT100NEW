@@ -24,6 +24,7 @@ import {
   ButtonSecondary,
 } from "@/components/ui";
 import { ActionFeed } from "@/components/dashboard/ActionFeed";
+import { SafeToSpendRing } from "@/components/dashboard/SafeToSpendRing";
 import { QuickReceiptUpload } from "@/components/dashboard/QuickReceiptUpload";
 
 import { CashflowChart } from "@/components/dashboard/CashflowChart";
@@ -82,28 +83,39 @@ export default function DashboardClient({
       {/* ── Hero: Safe to Spend (8 cols) ── */}
       {safeToSpend && !isLoading && (
         <motion.div 
-          variants={itemVariants}
-          className="glass"
+          variants={itemVariants} 
+          className="glass" 
           style={{ 
             gridColumn: "span 8", 
-            padding: 48, 
-            borderRadius: "var(--radius-lg)",
+            padding: "60px 80px",
+            borderRadius: 0,
             display: "flex",
-            flexDirection: "column",
-            justifyContent: "center"
+            flexDirection: "column"
           }}
         >
-          <p className="label" style={{ marginBottom: 24, opacity: 0.5 }}>Vrij besteedbaar</p>
-          <AnimatedNumber
-            value={safeToSpend.safeToSpend}
-            style={{
-              fontFamily: "var(--font-geist), sans-serif",
-              fontSize: "clamp(3rem, 8vw, 6rem)",
-              fontWeight: 700,
-              lineHeight: 0.9,
-              letterSpacing: "-0.04em",
-            }}
-          />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ flex: 1 }}>
+              <p className="label" style={{ opacity: 0.4, marginBottom: 8 }}>Safe to Spend</p>
+              <AnimatedNumber 
+                value={safeToSpend.safeToSpend} 
+                style={{
+                  fontFamily: "var(--font-geist), sans-serif",
+                  fontSize: "clamp(3rem, 8vw, 6rem)",
+                  fontWeight: 700,
+                  lineHeight: 0.9,
+                  letterSpacing: "-0.04em",
+                }}
+              />
+            </div>
+            <div style={{ marginLeft: 40 }}>
+              <SafeToSpendRing 
+                percentage={safeToSpend.currentBalance > 0 ? safeToSpend.safeToSpend / safeToSpend.currentBalance : 0} 
+                size={160}
+                strokeWidth={10}
+              />
+            </div>
+          </div>
+
           <div style={{ display: "flex", gap: 32, marginTop: 40, borderTop: "var(--border-rule)", paddingTop: 24 }}>
             <div>
               <p className="label" style={{ opacity: 0.4, marginBottom: 4 }}>Saldo</p>
@@ -113,6 +125,12 @@ export default function DashboardClient({
               <p className="label" style={{ opacity: 0.4, marginBottom: 4 }}>BTW Reserve</p>
               <p style={{ fontSize: 16, color: "var(--color-accent)" }}>{formatCurrency(safeToSpend.estimatedVat)}</p>
             </div>
+            {safeToSpend.taxShieldPotential > 0 && (
+              <div style={{ marginLeft: "auto", textAlign: "right" }}>
+                <p className="label" style={{ opacity: 0.5, marginBottom: 4, color: "var(--color-accent)" }}>Tax Shield Potential</p>
+                <p style={{ fontSize: 16, fontWeight: 600 }}>{formatCurrency(safeToSpend.taxShieldPotential)}</p>
+              </div>
+            )}
           </div>
         </motion.div>
       )}
@@ -125,7 +143,7 @@ export default function DashboardClient({
           style={{ 
             gridColumn: "span 4", 
             gridRow: "span 2",
-            borderRadius: "var(--radius-lg)",
+            borderRadius: 0,
             overflow: "hidden",
             display: "flex",
             flexDirection: "column"
@@ -147,6 +165,7 @@ export default function DashboardClient({
             <StatCard
               label="Open facturen"
               value={String(stats.openInvoiceCount)}
+              numericValue={stats.openInvoiceCount}
               sub={formatCurrency(stats.openInvoiceAmount)}
             />
           </motion.div>
@@ -154,7 +173,19 @@ export default function DashboardClient({
             <StatCard
               label="BTW te betalen"
               value={formatCurrency(stats.vatToPay)}
+              numericValue={stats.vatToPay}
               sub="Kwartaal overzicht"
+            />
+          </motion.div>
+          <motion.div 
+            variants={itemVariants} 
+            style={{ gridColumn: "span 4" }}
+          >
+            <StatCard
+              label="Bonnen deze maand"
+              value={String(stats.receiptsThisMonth)}
+              numericValue={stats.receiptsThisMonth}
+              sub="Kostenbeheer status: Actief"
             />
           </motion.div>
         </>
@@ -168,7 +199,7 @@ export default function DashboardClient({
           style={{ 
             gridColumn: "span 8", 
             padding: 32, 
-            borderRadius: "var(--radius-lg)"
+            borderRadius: 0
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
@@ -190,7 +221,7 @@ export default function DashboardClient({
           style={{ 
             gridColumn: "span 4",
             padding: 24,
-            borderRadius: "var(--radius-lg)",
+            borderRadius: 0,
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -242,7 +273,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
     if (res.error) {
       setStatusMsg(res.error);
     } else {
-      setStatusMsg("Herinnering verstuurd.");
+      setStatusMsg("Herinnering verzonden.");
       playSound("tink");
     }
     setSendingId(null);

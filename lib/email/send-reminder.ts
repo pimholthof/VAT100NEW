@@ -15,7 +15,8 @@ function getResend() {
 }
 
 export async function sendReminderEmail(
-  data: InvoiceData
+  data: InvoiceData,
+  customMessage?: string
 ): Promise<{ error: string | null }> {
   const { invoice, client, profile } = data;
 
@@ -45,7 +46,9 @@ export async function sendReminderEmail(
     : undefined;
 
   const htmlBody = buildInvoiceEmailHtml(data, {
-    introParagraph: `Graag herinneren wij u aan de openstaande factuur <strong>${invoiceNum}</strong>.`,
+    introParagraph: customMessage 
+      ? escapeHtml(customMessage).replace(/\n/g, "<br>")
+      : `Graag herinneren wij u aan de openstaande factuur <strong>${invoiceNum}</strong>.`,
     amountLabel: "Openstaand bedrag",
     extraHtml: ibanHtml,
     closingText:

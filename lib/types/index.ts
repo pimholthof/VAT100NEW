@@ -32,6 +32,14 @@ export interface Client {
   created_at: string;
 }
 
+export interface VatDeadline {
+  quarter: string;
+  deadline: string;
+  daysRemaining: number;
+  estimatedAmount: number;
+  forecastedAmount: number; // Predicted total for the full quarter
+}
+
 export interface InvoiceLine {
   id: string;
   invoice_id: string;
@@ -177,7 +185,7 @@ export interface ActionResult<T = undefined> {
 
 // ─── Action Feed types (AI Agent System) ───
 
-export type ActionFeedType = "missing_receipt" | "match_suggestion" | "tax_alert" | "uncategorized";
+export type ActionFeedType = "missing_receipt" | "match_suggestion" | "tax_alert" | "uncategorized" | "reminder_suggestion" | "autonomous_match";
 export type ActionFeedStatus = "pending" | "resolved" | "ignored";
 
 export interface ActionFeedItem {
@@ -188,8 +196,10 @@ export interface ActionFeedItem {
   title: string;
   description: string;
   amount: number | null;
+  draft_content: string | null; // Pre-generated content for the action (e.g. email draft)
   related_transaction_id: string | null;
   related_receipt_id: string | null;
+  related_invoice_id: string | null;
   suggested_category: string | null;
   ai_confidence: number | null;
   created_at: string;
@@ -204,4 +214,5 @@ export interface SafeToSpendData {
   estimatedIncomeTax: number;
   reservedTotal: number;
   safeToSpend: number;
+  taxShieldPotential: number; // Potential tax savings if gear investment is made
 }

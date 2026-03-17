@@ -2,6 +2,7 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
+import { runReconciliationAgent, runAnticipationAgent, runInvestmentAgent } from "./action-feed";
 
 export interface DashboardStats {
   revenueThisMonth: number;
@@ -62,6 +63,7 @@ export interface VatDeadline {
   deadline: string;
   daysRemaining: number;
   estimatedAmount: number;
+  forecastedAmount: number;
 }
 
 export interface DashboardData {
@@ -80,6 +82,12 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
 
   const now = new Date();
   const userId = user.id;
+
+  // Trigger Agents in background (don't block the core dashboard load)
+  // These will populate the action_feed for the separate ActionFeed component
+  runReconciliationAgent(userId, supabase).catch(console.error);
+  runAnticipationAgent(userId, supabase).catch(console.error);
+  runInvestmentAgent(userId, supabase).catch(console.error);
 
   // Date ranges
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -350,6 +358,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         }),
         daysRemaining,
         estimatedAmount: Math.round((outputVat - inputVat) * 100) / 100,
+        forecastedAmount: Math.round(((outputVat - inputVat) * (90 / Math.max(1, 90 - daysRemaining))) * 100) / 100,
       },
       safeToSpend: calculateSafeToSpend(
         bankBalanceData ?? [],
@@ -386,12 +395,17 @@ function calculateSafeToSpend(
   const reservedTotal = estimatedVat + estimatedIncomeTax;
   const safeToSpend = Math.round((currentBalance - reservedTotal) * 100) / 100;
 
+  // Tax Shield: If they invest €1000, they save roughly 37% in income tax (€370)
+  // This is only relevant if they have a decent revenue
+  const taxShieldPotential = totalRevenueExVat > 10000 ? 370 : 0;
+
   return {
     currentBalance: Math.round(currentBalance * 100) / 100,
     estimatedVat,
     estimatedIncomeTax,
     reservedTotal: Math.round(reservedTotal * 100) / 100,
     safeToSpend: Math.max(0, safeToSpend),
+    taxShieldPotential,
   };
 }
 
