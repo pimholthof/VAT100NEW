@@ -5,18 +5,18 @@
   /* Baseline unit */
   --u: 8px;
 
-  /* Colors — Luminous White & Obsidian Ink */
-  --color-black: #000000;
-  --color-white: #FFFFFF;
-  --color-accent: #6366F1; /* Electric Indigo */
+  /* Colors — Rockmen Editorial */
+  --color-black: #222222; /* Soft Off-Black */
+  --color-white: #F4F4F4; /* Premium Off-White Paper */
+  --color-accent: #6366F1; /* Retaining Indigo for critical errors if needed, but rarely used */
 
-  /* Foreground / Background — FORCE LIGHT MODE */
+  /* Foreground / Background — FORCE ROCKMEN LIGHT MODE */
   --foreground: var(--color-black);
   --background: var(--color-white);
 
-  /* Borders — Luminous structure */
-  --border-light: 0.5px solid rgba(0, 0, 0, 0.05);
-  --border-dark: 0.5px solid rgba(0, 0, 0, 0.1);
+  /* Borders — Minimal structure */
+  --border-light: 0.5px solid rgba(34, 34, 34, 0.1); /* Subtle dark border on light bg */
+  --border-dark: 0.5px solid rgba(34, 34, 34, 0.2);
   --border: var(--border-light);
 
   /* Refined components */
@@ -72,6 +72,10 @@
 }
 
 /* ─── Base ─── */
+html {
+  scroll-behavior: smooth;
+}
+
 *,
 *::before,
 *::after {
@@ -81,7 +85,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist), sans-serif;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-body-md);
   letter-spacing: var(--tracking-tight);
   font-variant-numeric: tabular-nums;
@@ -93,8 +97,8 @@ body {
 
 /* ─── Selection ─── */
 ::selection {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--color-black);
+  background: var(--foreground);
+  color: var(--background);
 }
 
 /* ─── Global transitions ─── */
@@ -257,25 +261,25 @@ tbody tr:hover {
 
 /* ─── Reusable Typography Classes ─── */
 .label {
-  font-family: var(--font-geist), sans-serif;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-label);
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.3; /* Even more ghost-like */
+  opacity: 0.6; /* Higher opacity for legibility due to tiny size */
 }
 
 .label-strong {
-  font-family: var(--font-geist), sans-serif;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-label);
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.5;
+  opacity: 0.9;
 }
 
 .display-hero {
-  font-family: var(--font-geist), sans-serif;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-display-hero);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -284,7 +288,7 @@ tbody tr:hover {
 }
 
 .display-title {
-  font-family: var(--font-geist), sans-serif;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-display-lg);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -293,7 +297,7 @@ tbody tr:hover {
 }
 
 .section-header {
-  font-family: var(--font-geist), sans-serif;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-display-sm);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -321,9 +325,9 @@ tbody tr:hover {
 }
 
 .table-action {
-  font-family: var(--font-geist), sans-serif;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-label);
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--foreground);
@@ -336,7 +340,7 @@ tbody tr:hover {
 }
 
 .empty-state {
-  font-family: var(--font-geist), sans-serif;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-display-md);
   font-weight: 700;
   line-height: 1;

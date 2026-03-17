@@ -2,20 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
 import "@/styles/globals.css";
 import { CommandMenu } from "@/components/ui/CommandMenu";
-import { Geist, Geist_Mono } from "next/font/google";
-
-const geistSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-});
 
 export const viewport: Viewport = {
-  themeColor: "#0d0d0b",
+  themeColor: "#f4f4f4",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -42,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="nl">
       <body>
         <Providers>
           {children}
