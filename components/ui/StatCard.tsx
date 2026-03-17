@@ -18,7 +18,6 @@ export function StatCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="glass tilted-canvas"
       style={{ 
         padding: "32px", 
         display: "flex", 
@@ -27,6 +26,8 @@ export function StatCard({
         minHeight: 180,
         position: "relative",
         overflow: "visible", // To allow vertical label to bleed out if needed
+        border: "var(--border-light)",
+        background: "var(--background)"
       }}
     >
       <div className="vertical-label">{label}</div>

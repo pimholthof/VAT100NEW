@@ -62,8 +62,8 @@
   --color-white: var(--color-white);
   --color-accent: var(--color-accent);
   
-  --font-geist: var(--font-geist-sans), sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --font-geist: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
   
   --radius-sm: 0;
   --radius-md: 0;

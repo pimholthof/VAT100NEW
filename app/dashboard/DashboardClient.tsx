@@ -136,10 +136,10 @@ export default function DashboardClient({
           {cashflow && (
             <motion.div 
               variants={itemVariants}
-              className="glass tilted-canvas"
               style={{ 
                 gridColumn: "span 2", 
                 padding: 40, 
+                border: "var(--border-light)"
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
@@ -155,12 +155,13 @@ export default function DashboardClient({
           {!isLoading && (
             <motion.div 
               variants={itemVariants}
-              className="glass"
               style={{ 
                 height: 500,
                 display: "flex",
                 flexDirection: "column",
                 position: "relative",
+                border: "var(--border-light)",
+                background: "var(--background)"
               }}
             >
               <div className="vertical-label" style={{ right: -15, fontSize: 8 }}>Intelligence Buffer</div>
@@ -176,10 +177,10 @@ export default function DashboardClient({
           {!isLoading && (
             <motion.div 
               variants={itemVariants}
-              className="glass tilted-canvas"
               style={{ 
                 padding: 40,
-                textAlign: "center"
+                textAlign: "center",
+                border: "var(--border-light)"
               }}
             >
               <QuickReceiptUpload />

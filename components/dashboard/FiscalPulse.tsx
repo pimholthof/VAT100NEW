@@ -14,7 +14,7 @@ interface FiscalPulseProps {
 export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPulseProps) {
   if (isLoading) {
     return (
-      <div className="glass" style={{ padding: "80px 100px", height: 320, opacity: 0.1 }} />
+      <div style={{ padding: "80px 100px", height: 320, opacity: 0.1, border: "var(--border-light)" }} />
     );
   }
 
@@ -25,14 +25,15 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      className="glass tilted-canvas" 
       style={{ 
         padding: "80px 100px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         position: "relative",
-        minHeight: 320
+        minHeight: 320,
+        border: "var(--border-light)",
+        background: "var(--background)"
       }}
     >
       <div className="vertical-label">Fiscal Pulse</div>
@@ -43,9 +44,9 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
           <AnimatedNumber 
             value={safeToSpend} 
             style={{
-              fontFamily: "var(--font-geist), sans-serif",
+              fontFamily: `"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif`,
               fontSize: "clamp(4rem, 12vw, 10rem)",
-              fontWeight: 400,
+              fontWeight: 700,
               lineHeight: 0.8,
               letterSpacing: "-0.06em",
               color: "var(--foreground)"

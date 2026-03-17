@@ -21,14 +21,18 @@ export function DashboardNav({
   }
 
   return (
-    <>
-      <header className="dashboard-nav" style={{ padding: "40px 80px", background: "var(--background)", borderBottom: "none" }}>
+    <div style={{ position: "sticky", top: 0, zIndex: 1000, background: "var(--background)" }}>
+      <header style={{ padding: "40px 80px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <span className="label-strong" style={{ fontSize: "12px", letterSpacing: "0.05em" }}>
+            <Link 
+              href="/dashboard"
+              className="label-strong" 
+              style={{ fontSize: "12px", letterSpacing: "0.05em", color: "var(--foreground)", textDecoration: "none" }}
+            >
               VAT100
-            </span>
+            </Link>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
@@ -42,7 +46,8 @@ export function DashboardNav({
                 cursor: "pointer",
                 padding: "4px 0",
                 borderBottom: isDrawerOpen ? "1px solid var(--foreground)" : "1px solid transparent",
-                transition: "border-color 0.2s ease"
+                transition: "border-color 0.2s ease",
+                color: "var(--foreground)"
               }}
             >
               {isDrawerOpen ? "CLOSE" : "MENU"}
@@ -90,7 +95,8 @@ export function DashboardNav({
                     border: "none",
                     cursor: "pointer",
                     padding: 0,
-                    opacity: 0.5
+                    opacity: 0.5,
+                    color: "var(--foreground)"
                   }}
                 >
                   SIGN OUT
@@ -101,6 +107,6 @@ export function DashboardNav({
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
