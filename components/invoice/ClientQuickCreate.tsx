@@ -35,8 +35,11 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const handleCreate = async () => {
     if (!name.trim()) return;
+    setErrorMsg(null);
     const result = await createNewClient({
       name: name.trim(),
       contact_name: null,
@@ -47,7 +50,9 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
       kvk_number: null,
       btw_number: null,
     });
-    if (result.data) {
+    if (result.error) {
+      setErrorMsg(result.error);
+    } else if (result.data) {
       setClientId(result.data.id);
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       onClose();
@@ -140,6 +145,11 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
           Annuleer
         </ButtonSecondary>
       </div>
+      {errorMsg && (
+        <p style={{ color: "var(--foreground)", opacity: 0.8, marginTop: 12, fontSize: "var(--text-body-sm)" }}>
+          Fout: {errorMsg}
+        </p>
+      )}
     </div>
   );
 }

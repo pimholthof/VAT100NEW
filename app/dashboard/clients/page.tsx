@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import { getClients, deleteClient } from "@/lib/actions/clients";
 import type { Client } from "@/lib/types";
 import { Th, Td, ErrorMessage } from "@/components/ui";
@@ -99,6 +100,10 @@ export default function ClientsPage() {
             />
           ))}
         </div>
+      ) : result?.error ? (
+        <div style={{ paddingTop: "var(--space-block)" }}>
+          <ErrorMessage>{result.error}</ErrorMessage>
+        </div>
       ) : filtered.length === 0 ? (
         <div style={{ paddingTop: "var(--space-block)" }}>
           <p className="empty-state">
@@ -125,54 +130,64 @@ export default function ClientsPage() {
               <Th style={{ textAlign: "right" }}>Acties</Th>
             </tr>
           </thead>
-          <tbody>
-            {filtered.map((client: Client) => (
-              <tr key={client.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                <Td>
-                  <Link
-                    href={`/dashboard/clients/${client.id}`}
-                    style={{
-                      color: "var(--foreground)",
-                      fontWeight: 400,
-                      textDecoration: "none",
-                    }}
-                  >
-                    {client.name}
-                  </Link>
-                </Td>
-                <Td>{client.contact_name ?? "—"}</Td>
-                <Td>{client.email ?? "—"}</Td>
-                <Td>{client.city ?? "—"}</Td>
-                <Td style={{ textAlign: "right" }}>
-                  <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+          <motion.tbody layout>
+            <AnimatePresence>
+              {filtered.map((client: Client, index: number) => (
+                <motion.tr 
+                  key={client.id} 
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2, delay: index * 0.03 }}
+                  style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}
+                >
+                  <Td>
                     <Link
                       href={`/dashboard/clients/${client.id}`}
-                      className="table-action"
-                    >
-                      Bekijk
-                    </Link>
-                    <button
-                      onClick={() => {
-                        if (confirm("Weet je zeker dat je deze klant wilt verwijderen?")) {
-                          deleteMutation.mutate(client.id);
-                        }
-                      }}
-                      className="table-action"
                       style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        opacity: 0.3,
-                        padding: 0,
+                        color: "var(--foreground)",
+                        fontWeight: 400,
+                        textDecoration: "none",
                       }}
                     >
-                      Verwijder
-                    </button>
-                  </div>
-                </Td>
-              </tr>
-            ))}
-          </tbody>
+                      {client.name}
+                    </Link>
+                  </Td>
+                  <Td>{client.contact_name ?? "—"}</Td>
+                  <Td>{client.email ?? "—"}</Td>
+                  <Td>{client.city ?? "—"}</Td>
+                  <Td style={{ textAlign: "right" }}>
+                    <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                      <Link
+                        href={`/dashboard/clients/${client.id}`}
+                        className="table-action"
+                      >
+                        Bekijk
+                      </Link>
+                      <button
+                        onClick={() => {
+                          if (confirm("Weet je zeker dat je deze klant wilt verwijderen?")) {
+                            deleteMutation.mutate(client.id);
+                          }
+                        }}
+                        className="table-action"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          opacity: 0.3,
+                          padding: 0,
+                        }}
+                      >
+                        Verwijder
+                      </button>
+                    </div>
+                  </Td>
+                </motion.tr>
+              ))}
+            </AnimatePresence>
+          </motion.tbody>
         </table>
       )}
 

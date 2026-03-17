@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { requireAuth } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult, Receipt, ReceiptInput } from "@/lib/types";
 import { receiptSchema, validate } from "@/lib/validation";
 import { calculateVat } from "@/lib/format";
@@ -222,20 +223,20 @@ export async function scanReceiptWithAI(
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen. Analyseer de afbeelding en extraheer alle informatie. Retourneer UITSLUITEND valid JSON zonder markdown backticks.
-Velden:
+  const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen in het administratiesysteem VAT100. Analyseer de afbeelding en extraheer alle informatie. Retourneer UITSLUITEND valide JSON zonder expliciete markdown backticks rondom de JSON.
+Velden in het JSON object:
 - vendor_name (string): naam van de winkel/leverancier
 - receipt_date (string): datum in YYYY-MM-DD format
-- amount_ex_vat (number): bedrag exclusief BTW. Als alleen incl BTW zichtbaar is, reken terug.
-- vat_rate (number): BTW-tarief — 21, 9, of 0. Leid af uit de bon.
-- cost_code (number): de meest passende kostensoort uit deze lijst:
+- amount_ex_vat (number): bedrag exclusief BTW. Reken terug indien enkel het totaalbedrag en BTW-bedrag/percentage vermeld staan.
+- vat_rate (number): BTW-tarief als integer (21, 9, of 0). Leid correct af uit de bon.
+- cost_code (number): de meest passende kostensoort code uit deze lijst:
   4100=Huur, 4105=Energie, 4195=Overige huisvesting, 4230=Kleine investering, 4300=Kantoorkosten, 4330=Computer & software, 4340=Telefoon, 4341=Webhosting & internet, 4350=Porto, 4360=Vakliteratuur, 4400=Verzekeringen, 4500=Vervoer (OV/auto), 4510=Reiskosten, 4520=Parkeren, 4600=Reclame & marketing, 4610=Representatie, 4620=Website & SEO, 4700=Accountant & advies, 4710=Boekhouding, 4720=Juridisch, 4750=Bankkosten, 4800=Abonnementen & licenties, 4900=Eten & drinken zakelijk, 4910=Gereedschap & materiaal, 4999=Overig
-- confidence (number 0-1): hoe zeker je bent van de extractie
-Als een veld niet leesbaar is, gebruik null.`;
+- confidence (number 0-1): hoe zeker je bent van je extractie (bijv. 0.95)
+Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-3-5-sonnet-20241022",
       max_tokens: 1024,
       system: systemPrompt,
       messages: [
@@ -246,13 +247,13 @@ Als een veld niet leesbaar is, gebruik null.`;
               type: "image",
               source: {
                 type: "base64",
-                media_type: mimeType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
+                media_type: mimeType as "image/jpeg" | "image/png" | "image/webp" | "image/gif",
                 data: base64,
               },
             },
             {
               type: "text",
-              text: "Analyseer deze bon en extraheer de gevraagde velden als JSON.",
+              text: "Analyseer deze bon en extraheer de gevraagde velden in JSON.",
             },
           ],
         },
@@ -261,10 +262,12 @@ Als een veld niet leesbaar is, gebruik null.`;
 
     const textContent = response.content.find((c) => c.type === "text");
     if (!textContent || textContent.type !== "text") {
-      return { error: "Geen tekst in AI-antwoord." };
+      return { error: "Geen parsable tekst gevonden in de uitslag van Claude Vision." };
     }
 
-    const raw = JSON.parse(textContent.text);
+    // Strip potential markdown JSON codeblocks returned by Claude
+    const cleanedText = textContent.text.replace(/```json\n|\n```/g, '');
+    const raw = JSON.parse(cleanedText);
     const aiReceiptSchema = z.object({
       vendor_name: z.string().nullable().optional(),
       receipt_date: z.string().nullable().optional(),
@@ -299,4 +302,84 @@ export async function markReceiptAiProcessed(
 
   if (error) return { error: error.message };
   return { error: null };
+}
+
+/**
+ * Common logic for processing a receipt (e.g. from an inbound email or direct webhook).
+ * Handles storage, matching, and action creation.
+ */
+export async function processReceiptWebhook(payload: {
+  userId: string;
+  vendorName?: string;
+  amount: number;
+  vatAmount?: number;
+  receiptDate?: string;
+  storagePath?: string;
+}, externalSupabase?: ReturnType<typeof createServiceClient>): Promise<ActionResult<{ status: string; receiptId: string; matchedTransactionId?: string }>> {
+  const supabase = externalSupabase || createServiceClient();
+  const { userId, vendorName, amount, vatAmount, receiptDate, storagePath } = payload;
+
+  const { data: receipt, error: receiptError } = await supabase
+    .from("receipts")
+    .insert({
+      user_id: userId,
+      vendor_name: vendorName ?? null,
+      amount_inc_vat: amount,
+      vat_amount: vatAmount ?? null,
+      amount_ex_vat: amount - (vatAmount ?? 0),
+      receipt_date: receiptDate ?? new Date().toISOString().split("T")[0],
+      storage_path: storagePath ?? null,
+      ai_processed: true,
+    })
+    .select()
+    .single();
+
+  if (receiptError) return { error: receiptError.message };
+
+  // 2. Try to find a matching bank transaction
+  const txDate = new Date(receiptDate ?? new Date());
+  const dateFrom = new Date(txDate);
+  dateFrom.setDate(dateFrom.getDate() - 3);
+  const dateTo = new Date(txDate);
+  dateTo.setDate(dateTo.getDate() + 3);
+
+  const { data: matchingTx } = await supabase
+    .from("bank_transactions")
+    .select("id, description, counterpart_name, amount")
+    .eq("user_id", userId)
+    .is("linked_receipt_id", null)
+    .gte("booking_date", dateFrom.toISOString().split("T")[0])
+    .lte("booking_date", dateTo.toISOString().split("T")[0]);
+
+  const match = (matchingTx ?? []).find(
+    (tx: { amount: number }) => Math.abs(Math.abs(Number(tx.amount)) - amount) < 0.02
+  );
+
+  if (match) {
+    await supabase
+      .from("bank_transactions")
+      .update({ linked_receipt_id: receipt.id })
+      .eq("id", match.id);
+
+    await supabase.from("action_feed").insert({
+      user_id: userId,
+      type: "match_suggestion",
+      title: `Bon automatisch gekoppeld: ${vendorName ?? "Onbekend"}`,
+      description: `Bon van ${vendorName ?? "onbekend"} (${new Date(receiptDate || "").toLocaleDateString("nl-NL")}) is gekoppeld aan afschrijving "${match.counterpart_name ?? match.description}". Bevestig of corrigeer.`,
+      amount,
+      related_transaction_id: match.id,
+      related_receipt_id: receipt.id,
+      ai_confidence: 0.92,
+    });
+
+    return { 
+      error: null, 
+      data: { status: "matched", receiptId: receipt.id, matchedTransactionId: match.id } 
+    };
+  }
+
+  return { 
+    error: null, 
+    data: { status: "stored", receiptId: receipt.id } 
+  };
 }

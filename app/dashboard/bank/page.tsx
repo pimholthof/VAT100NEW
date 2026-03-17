@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   getBankConnections,
   getBankTransactions,
@@ -13,6 +15,7 @@ import {
   autoCategorizeTransactions,
   learnFromCorrection,
 } from "@/lib/actions/banking";
+import { InstitutionSelector } from "@/components/dashboard/InstitutionSelector";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
 import { Th, Td, SkeletonTable } from "@/components/ui";
@@ -59,29 +62,54 @@ const selectStyle: React.CSSProperties = {
 
 export default function BankPage() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0].value);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+
   const { data: connectionsResult, isLoading: connectionsLoading } = useQuery({
     queryKey: ["bank-connections"],
     queryFn: () => getBankConnections(),
   });
 
   const { data: transactionsResult, isLoading: transactionsLoading } = useQuery({
-    queryKey: ["bank-transactions", selectedMonth], // Simplified to fetch all for month or all time, adjust to your backend
+    queryKey: ["bank-transactions", selectedMonth],
     queryFn: () => getBankTransactions({ from: getMonthRange(selectedMonth).from, to: getMonthRange(selectedMonth).to }),
   });
 
   const [activeTab, setActiveTab] = useState<"todo" | "auto">("todo");
+  const [completionStatus, setCompletionStatus] = useState<{ loading: boolean; error: string | null; success: boolean }>({
+    loading: false,
+    error: null,
+    success: false,
+  });
+
+  useEffect(() => {
+    const requisitionId = searchParams.get("requisition_id");
+    if (requisitionId && !completionStatus.loading && !completionStatus.success && !completionStatus.error) {
+      const handleComplete = async () => {
+        setCompletionStatus(prev => ({ ...prev, loading: true }));
+        const res = await completeBankConnection(requisitionId);
+        if (res.error) {
+          setCompletionStatus({ loading: false, error: res.error, success: false });
+        } else {
+          setCompletionStatus({ loading: false, error: null, success: true });
+          queryClient.invalidateQueries({ queryKey: ["bank-connections"] });
+          queryClient.invalidateQueries({ queryKey: ["bank-transactions"] });
+        }
+      };
+      
+      handleComplete();
+    }
+  }, [searchParams, completionStatus, queryClient]);
 
   const categorizeMutation = useMutation({
     mutationFn: async ({ id, category }: { id: string; category: string }) => {
       const result = await categorizeTransaction(id, category);
-      // Learn from manual correction
       await learnMutation.mutateAsync({ transactionId: id, category });
       return result;
     },
     onSuccess: (_, variables) => {
-      // Remove from AI-categorized set once manually confirmed/changed
       setAiCategorized((prev) => {
         const next = new Set(prev);
         next.delete(variables.id);
@@ -128,14 +156,13 @@ export default function BankPage() {
     mutationFn: async (institutionId: string) => {
       const result = await initiateBankConnection(institutionId);
       if (result.error) throw new Error(result.error);
-      if (result.data?.redirectUrl.includes("connected=")) {
-        const connId = new URL(result.data.redirectUrl, window.location.origin).searchParams.get("connected");
-        if (connId) await completeBankConnection(connId);
+      if (result.data?.redirectUrl) {
+        window.location.href = result.data.redirectUrl;
       }
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bank-connections"] });
+      setIsSelectorOpen(false);
     },
   });
 
@@ -197,6 +224,57 @@ export default function BankPage() {
         </h1>
       </div>
 
+      {/* Return Status Feedback */}
+      <AnimatePresence>
+        {(completionStatus.loading || completionStatus.error || completionStatus.success) && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{
+              overflow: "hidden",
+              marginBottom: 48,
+              borderLeft: "2px solid var(--foreground)",
+              background: "rgba(13, 13, 11, 0.04)",
+              padding: "24px",
+            }}
+          >
+            {completionStatus.loading && (
+              <p style={{ margin: 0, opacity: 0.6 }}>Bankrekening configureren...</p>
+            )}
+            {completionStatus.error && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <p style={{ margin: 0, color: "#e63946" }}>Fout bij koppelen: {completionStatus.error}</p>
+                <button 
+                  onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
+                  style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
+                >
+                  Sluiten
+                </button>
+              </div>
+            )}
+            {completionStatus.success && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <p style={{ margin: 0 }}>✓ Bankrekening succesvol gekoppeld!</p>
+                <button 
+                  onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
+                  style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
+                >
+                  Sluiten
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <InstitutionSelector 
+        isOpen={isSelectorOpen} 
+        onClose={() => setIsSelectorOpen(false)} 
+        onSelect={(id) => connectMutation.mutate(id)}
+        isPending={connectMutation.isPending}
+      />
+
       {/* Section 1: Connected accounts */}
       <div style={{ marginBottom: 48 }}>
         <h2
@@ -220,8 +298,9 @@ export default function BankPage() {
               border: "none",
               borderTop: "var(--border-rule)",
               borderBottom: "var(--border-rule)",
-              padding: 48,
+              padding: 64,
               textAlign: "center",
+              background: "rgba(13, 13, 11, 0.02)",
             }}
           >
             <p
@@ -229,27 +308,28 @@ export default function BankPage() {
                 fontFamily: "var(--font-body), sans-serif",
                 fontSize: "var(--text-body-lg)",
                 fontWeight: 300,
-                margin: "0 0 16px",
+                margin: "0 0 24px",
+                opacity: 0.6,
               }}
             >
-              Nog geen bankrekening gekoppeld.
+              Nog geen bankrekening gekoppeld. Koppel je bank om transacties automatisch te verwerken.
             </p>
             <button
-              onClick={() => connectMutation.mutate("PLACEHOLDER_BANK_NL")}
-              disabled={connectMutation.isPending}
+              onClick={() => setIsSelectorOpen(true)}
               style={{
                 fontFamily: "var(--font-body), sans-serif",
                 fontSize: "var(--text-body-lg)",
                 fontWeight: 500,
-                letterSpacing: "0.05em",
-                padding: "12px 20px",
+                letterSpacing: "0.08em",
+                padding: "16px 32px",
                 border: "none",
                 background: "var(--foreground)",
                 color: "var(--background)",
                 cursor: "pointer",
+                textTransform: "uppercase",
               }}
             >
-              {connectMutation.isPending ? "Bezig..." : "Koppel bankrekening"}
+              Koppel bankrekening
             </button>
           </div>
         ) : (
@@ -357,23 +437,23 @@ export default function BankPage() {
                 </div>
               </div>
             ))}
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 24 }}>
               <button
-                onClick={() => connectMutation.mutate("PLACEHOLDER_BANK_NL")}
-                disabled={connectMutation.isPending}
+                onClick={() => setIsSelectorOpen(true)}
                 style={{
                   fontFamily: "var(--font-body), sans-serif",
                   fontSize: "var(--text-body-md)",
                   fontWeight: 500,
                   letterSpacing: "0.05em",
-                  padding: "10px 16px",
+                  padding: "12px 20px",
                   border: "0.5px solid rgba(13, 13, 11, 0.25)",
                   background: "transparent",
                   color: "var(--foreground)",
                   cursor: "pointer",
+                  textTransform: "uppercase",
                 }}
               >
-                + Nog een rekening koppelen
+                + Andere rekening koppelen
               </button>
             </div>
           </div>

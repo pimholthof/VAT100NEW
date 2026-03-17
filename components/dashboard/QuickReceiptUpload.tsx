@@ -46,13 +46,13 @@ export function QuickReceiptUpload() {
 
       // 3. Scan with AI
       setStatus("scanning");
-      setMessage("AI-extractie actief...");
+      setMessage("Claude Vision analyseert de bon...");
       const scanResult = await scanReceiptWithAI(receiptId);
 
       if (scanResult.error) {
         // Receipt is still saved, just not AI-enriched
         setStatus("done");
-        setMessage("Geregistreerd (AI-extractie onvoltooid).");
+        setMessage("Geregistreerd (AI-extractie mislukt).");
         return;
       }
 

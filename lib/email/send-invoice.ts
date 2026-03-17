@@ -8,7 +8,13 @@ import type { ActionResult } from "@/lib/types";
 import { escapeHtml } from "@/lib/format";
 import { buildInvoiceEmailHtml } from "./template";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend() {
+  if (!_resend) {
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
+}
 
 export async function sendInvoiceEmail(
   invoiceId: string
@@ -43,7 +49,7 @@ export async function sendInvoiceEmail(
     amountLabel: "Totaal incl. BTW",
   });
 
-  const { error: sendError } = await resend.emails.send({
+  const { error: sendError } = await getResend().emails.send({
     from: process.env.EMAIL_FROM!,
     to: client.email,
     subject: `Factuur ${invoice.invoice_number} — ${profile.studio_name || profile.full_name}`,

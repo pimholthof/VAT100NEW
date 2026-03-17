@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/format";
 import {
   getActionFeedItems,
@@ -45,7 +45,9 @@ export function ActionFeed() {
 
   if (actions.length === 0) {
     return (
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         className="editorial-divider"
         style={{
           padding: "48px 0",
@@ -72,7 +74,7 @@ export function ActionFeed() {
         <p className="label" style={{ opacity: 0.4, margin: 0 }}>
           Administratie actueel. Geen actie vereist.
         </p>
-      </div>
+      </motion.div>
     );
   }
 
@@ -82,16 +84,18 @@ export function ActionFeed() {
         Acties ({actions.length})
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {actions.map((action, index) => (
-          <ActionCard
-            key={action.id}
-            action={action}
-            index={index}
-            onResolve={() => resolveMutation.mutate(action.id)}
-            onIgnore={() => ignoreMutation.mutate(action.id)}
-            isPending={resolveMutation.isPending || ignoreMutation.isPending}
-          />
-        ))}
+        <AnimatePresence>
+          {actions.map((action, index) => (
+            <ActionCard
+              key={action.id}
+              action={action}
+              index={index}
+              onResolve={() => resolveMutation.mutate(action.id)}
+              onIgnore={() => ignoreMutation.mutate(action.id)}
+              isPending={resolveMutation.isPending || ignoreMutation.isPending}
+            />
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -110,16 +114,6 @@ function ActionCard({
   onIgnore: () => void;
   isPending: boolean;
 }) {
-  const [exiting, setExiting] = useState(false);
-
-  const handleExit = useCallback(
-    (callback: () => void) => {
-      setExiting(true);
-      setTimeout(callback, 300);
-    },
-    [],
-  );
-
   const typeLabel: Record<string, string> = {
     missing_receipt: "Document",
     match_suggestion: "Match",
@@ -135,7 +129,18 @@ function ActionCard({
   };
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
+      transition={{ 
+        duration: 0.3, 
+        delay: index * 0.05, 
+        ease: "easeOut",
+        layout: { duration: 0.3 }
+      }}
+      whileHover={{ x: 4, transition: { duration: 0.2 } }}
       style={{
         padding: 16,
         border: "0.5px solid rgba(13,13,11,0.12)",
@@ -143,22 +148,7 @@ function ActionCard({
         justifyContent: "space-between",
         alignItems: "center",
         background: "var(--background)",
-        transition: "opacity 0.3s ease, transform 0.3s ease",
-        opacity: exiting ? 0 : isPending ? 0.5 : 1,
-        transform: exiting ? "translateY(-8px)" : undefined,
-        animation: exiting ? "none" : `feedSlideIn 0.3s ease ${index * 0.06}s both`,
-        cursor: "default",
-        pointerEvents: exiting ? "none" : undefined,
-      }}
-      onMouseEnter={(e) => {
-        if (!exiting) {
-          e.currentTarget.style.transform = "translateX(4px)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!exiting) {
-          e.currentTarget.style.transform = "";
-        }
+        opacity: isPending ? 0.5 : 1,
       }}
     >
       <div>
@@ -204,8 +194,8 @@ function ActionCard({
         )}
         <div style={{ display: "flex", gap: 8 }}>
           <button
-            onClick={() => handleExit(onIgnore)}
-            disabled={isPending || exiting}
+            onClick={onIgnore}
+            disabled={isPending}
             style={{
               background: "rgba(13,13,11,0.06)",
               border: "none",
@@ -221,8 +211,8 @@ function ActionCard({
             Negeer
           </button>
           <button
-            onClick={() => handleExit(onResolve)}
-            disabled={isPending || exiting}
+            onClick={onResolve}
+            disabled={isPending}
             style={{
               background: "var(--foreground)",
               color: "var(--background)",
@@ -240,6 +230,6 @@ function ActionCard({
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

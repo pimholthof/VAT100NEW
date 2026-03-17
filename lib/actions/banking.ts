@@ -3,6 +3,7 @@
 import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth } from "@/lib/supabase/server";
+import { gocardless } from "@/lib/banking/gocardless";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 
@@ -115,28 +116,34 @@ export async function initiateBankConnection(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Placeholder: create a pending connection record
-  const { data, error } = await supabase
-    .from("bank_connections")
-    .insert({
-      user_id: user.id,
-      institution_id: institutionId,
-      institution_name: `Bank (${institutionId})`,
-      status: "pending",
-    })
-    .select()
-    .single();
+  try {
+    const reference = crypto.randomUUID();
+    const requisition = await gocardless.createRequisition({
+      institutionId,
+      redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/dashboard/bank?reference=${reference}`,
+      reference,
+    });
 
-  if (error) return { error: error.message };
+    const { error } = await supabase
+      .from("bank_connections")
+      .insert({
+        user_id: user.id,
+        institution_id: institutionId,
+        institution_name: `Bank (${institutionId})`,
+        status: "pending",
+        requisition_id: requisition.id,
+        reference,
+      });
 
-  // TODO: GoCardless API — Replace with actual GoCardless requisition creation
-  // const requisition = await gocardless.createRequisition({ ... });
-  // return { error: null, data: { redirectUrl: requisition.link } };
+    if (error) return { error: error.message };
 
-  return {
-    error: null,
-    data: { redirectUrl: `/dashboard/bank?connected=${data.id}` },
-  };
+    return {
+      error: null,
+      data: { redirectUrl: requisition.link },
+    };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 // TODO: GoCardless API — Completes a bank connection after user returns from GoCardless.
@@ -147,58 +154,114 @@ export async function completeBankConnection(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // TODO: GoCardless API — Fetch requisition status, get account details
-  // const requisition = await gocardless.getRequisition(requisitionId);
-  // const account = await gocardless.getAccountDetails(requisition.accounts[0]);
+  try {
+    const requisition = await gocardless.getRequisition(requisitionId);
+    
+    // In many cases, we take the first account returned by the requisition
+    const accountId = requisition.accounts[0];
+    if (!accountId) return { error: "Geen rekeningen gevonden bij deze bank." };
 
-  const { error } = await supabase
-    .from("bank_connections")
-    .update({
-      status: "active",
-      requisition_id: requisitionId,
-      // TODO: GoCardless API — Set real account_id and iban from API response
-      account_id: `placeholder_${requisitionId}`,
-      iban: null,
-    })
-    .eq("id", requisitionId)
-    .eq("user_id", user.id);
+    const accountDetails = await gocardless.getAccountDetails(accountId);
+    const detail = accountDetails.account;
 
-  if (error) return { error: error.message };
-  return { error: null };
+    const { error } = await supabase
+      .from("bank_connections")
+      .update({
+        status: "active",
+        account_id: accountId,
+        iban: detail.iban || null,
+        institution_name: requisition.institution_id, // We'll improve this with actual name later
+      })
+      .eq("requisition_id", requisitionId)
+      .eq("user_id", user.id);
+
+    if (error) return { error: error.message };
+    
+    // Trigger initial sync
+    await syncTransactions(requisitionId, true);
+
+    return { error: null };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 // TODO: GoCardless API — Syncs transactions from a linked bank account.
 export async function syncTransactions(
-  connectionId: string
+  connectionIdOrReqId: string,
+  isReqId = false
 ): Promise<ActionResult<number>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Verify the connection belongs to this user
-  const { data: connection, error: connError } = await supabase
+  // 1. Fetch connection
+  const query = supabase
     .from("bank_connections")
     .select("*")
-    .eq("id", connectionId)
-    .eq("user_id", user.id)
-    .single();
+    .eq("user_id", user.id);
+  
+  const { data: connection, error: connError } = await (isReqId 
+    ? query.eq("requisition_id", connectionIdOrReqId)
+    : query.eq("id", connectionIdOrReqId)
+  ).single();
 
   if (connError || !connection) {
     return { error: "Bankverbinding niet gevonden." };
   }
 
-  // TODO: GoCardless API — Fetch transactions from GoCardless
-  // const transactions = await gocardless.getTransactions(connection.account_id);
-  // For now, return 0 synced transactions
+  if (!connection.account_id) return { error: "Bankrekening ID ontbreekt." };
 
-  // Update last_synced_at
-  await supabase
-    .from("bank_connections")
-    .update({ last_synced_at: new Date().toISOString() })
-    .eq("id", connectionId)
-    .eq("user_id", user.id);
+  try {
+    // 2. Fetch transactions from GoCardless
+    const response = await gocardless.getTransactions(connection.account_id);
+    const booked = response.transactions.booked || [];
 
-  return { error: null, data: 0 };
+    // 3. Map to our schema
+    const newTransactions = booked.map((t: {
+      internalTransactionId?: string;
+      transactionId?: string;
+      transactionAmount: { amount: string; currency: string };
+      remittanceInformationUnstructured?: string;
+      additionalInformation?: string;
+      debtorName?: string;
+      creditorName?: string;
+      debtorAccount?: { iban?: string };
+      creditorAccount?: { iban?: string };
+      bookingDate?: string;
+      valueDate?: string;
+    }) => ({
+      user_id: user.id,
+      bank_connection_id: connection.id,
+      external_id: t.internalTransactionId || t.transactionId,
+      amount: parseFloat(t.transactionAmount.amount),
+      currency: t.transactionAmount.currency,
+      description: t.remittanceInformationUnstructured || t.additionalInformation || "",
+      counterpart_name: t.debtorName || t.creditorName || "",
+      counterpart_iban: t.debtorAccount?.iban || t.creditorAccount?.iban || "",
+      booking_date: t.bookingDate || t.valueDate,
+      status: "booked",
+    }));
+
+    // 4. Upsert (ignore duplicates based on external_id)
+    if (newTransactions.length > 0) {
+      const { error: upsertError } = await supabase
+        .from("bank_transactions")
+        .upsert(newTransactions, { onConflict: "external_id" });
+      
+      if (upsertError) return { error: upsertError.message };
+    }
+
+    // 5. Update last_synced_at
+    await supabase
+      .from("bank_connections")
+      .update({ last_synced_at: new Date().toISOString() })
+      .eq("id", connection.id);
+
+    return { error: null, data: newTransactions.length };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 export async function deleteBankConnection(

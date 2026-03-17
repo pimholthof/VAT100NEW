@@ -59,12 +59,16 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     queryFn: () => getClients(),
   });
   const clients = clientsResult?.data ?? [];
+  const hasClientError = clientsError || !!clientsResult?.error;
+  const clientErrorMessage = clientsResult?.error || "Fout bij ophalen";
 
   // Generate invoice number for new invoices
   useEffect(() => {
     if (!invoiceId && !invoiceNumber) {
       generateInvoiceNumber().then((result) => {
-        if (result.data) {
+        if (result.error) {
+          setError(result.error);
+        } else if (result.data) {
           setInvoiceNumber(result.data);
         }
       });
@@ -149,7 +153,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             style={inputStyle}
           >
             <option value="">
-              {clientsLoading ? "Laden..." : clientsError ? "Fout bij ophalen" : "— Selecteer klant —"}
+              {clientsLoading ? "Laden..." : hasClientError ? clientErrorMessage : "— Selecteer klant —"}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>

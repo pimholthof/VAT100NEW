@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
     // Run reconciliation for each user
     const results = await Promise.allSettled(
-      userIds.map((userId) => runReconciliationAgent(userId))
+      userIds.map((userId) => runReconciliationAgent(userId, supabase))
     );
 
     const summary = results.map((r, i) => ({

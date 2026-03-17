@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import {
   getDashboardData,
@@ -52,13 +53,32 @@ export default function DashboardClient({
   const vatDeadline = data?.vatDeadline;
   const safeToSpend = data?.safeToSpend;
 
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div>
+    <motion.div
+      initial="hidden"
+      animate="show"
+      variants={{
+        hidden: {},
+        show: {
+          transition: {
+            staggerChildren: 0.08,
+          },
+        },
+      }}
+    >
       {/* ── Smart Onboarding ── */}
-      <SetupChecklist />
+      <motion.div variants={itemVariants}>
+        <SetupChecklist />
+      </motion.div>
 
       {/* ── Masthead ── */}
-      <div
+      <motion.div
+        variants={itemVariants}
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -82,16 +102,17 @@ export default function DashboardClient({
         <span className="label" style={{ opacity: 0.4 }}>
           {getCurrentMonth().toUpperCase()}
         </span>
-      </div>
+      </motion.div>
 
       {/* ── Hero Vrij Besteedbaar ── */}
       {isLoading ? (
-        <div style={{ marginBottom: "var(--space-hero)" }}>
+        <motion.div variants={itemVariants} style={{ marginBottom: "var(--space-hero)" }}>
           <div className="skeleton" style={{ width: "40%", height: 9, marginBottom: 20, opacity: 0.08 }} />
           <div className="skeleton" style={{ width: "60%", height: 80, opacity: 0.06 }} />
-        </div>
+        </motion.div>
       ) : safeToSpend ? (
-        <div
+        <motion.div
+          variants={itemVariants}
           style={{
             marginBottom: "var(--space-hero)",
             display: "grid",
@@ -135,23 +156,39 @@ export default function DashboardClient({
               IB reserve: {formatCurrency(safeToSpend.estimatedIncomeTax)}
             </span>
           </div>
-        </div>
+        </motion.div>
       ) : null}
 
       {/* ── Quick Receipt Upload ── */}
-      {!isLoading && <QuickReceiptUpload />}
+      {!isLoading && (
+        <motion.div variants={itemVariants}>
+          <QuickReceiptUpload />
+        </motion.div>
+      )}
 
       {/* ── Action Feed (Inbox Zero) ── */}
-      {!isLoading && <ActionFeed />}
+      {!isLoading && (
+        <motion.div variants={itemVariants}>
+          <ActionFeed />
+        </motion.div>
+      )}
 
       {/* ── Cashflow Chart ── */}
-      {cashflow && <CashflowChart cashflow={cashflow} />}
+      {cashflow && (
+        <motion.div variants={itemVariants}>
+          <CashflowChart cashflow={cashflow} />
+        </motion.div>
+      )}
 
       {/* ── BTW Deadline ── */}
-      {vatDeadline && <VatDeadlineBanner deadline={vatDeadline} />}
+      {vatDeadline && (
+        <motion.div variants={itemVariants}>
+          <VatDeadlineBanner deadline={vatDeadline} />
+        </motion.div>
+      )}
 
       {/* ── Stat Strip ── */}
-      <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
+      <motion.div variants={itemVariants} className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
         <div
           style={{
             display: "grid",
@@ -186,10 +223,11 @@ export default function DashboardClient({
             </>
           ) : null}
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Openstaande facturen ── */}
-      <h2
+      <motion.h2
+        variants={itemVariants}
         className="section-header"
         style={{
           margin: "0 0 16px",
@@ -206,19 +244,21 @@ export default function DashboardClient({
             background: "rgba(13,13,11,0.15)",
           }}
         />
-      </h2>
+      </motion.h2>
 
-      {isLoading ? (
-        <SkeletonTable />
-      ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
-        <UpcomingInvoiceTable invoices={upcomingInvoices} />
-      ) : (
-        <p className="empty-state">
-          Geen openstaande facturen
-        </p>
-      )}
+      <motion.div variants={itemVariants}>
+        {isLoading ? (
+          <SkeletonTable />
+        ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
+          <UpcomingInvoiceTable invoices={upcomingInvoices} />
+        ) : (
+          <p className="empty-state">
+            Geen openstaande facturen
+          </p>
+        )}
+      </motion.div>
 
-    </div>
+    </motion.div>
   );
 }
 

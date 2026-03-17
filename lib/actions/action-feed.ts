@@ -87,10 +87,9 @@ export async function ignoreActionItem(itemId: string): Promise<ActionResult> {
 /**
  * Agent 2: The Reconciliation Engine.
  * Scans for uncategorized transactions and generates action items.
- * This runs as a background process (called from a cron or API route).
  */
-export async function runReconciliationAgent(userId: string): Promise<ActionResult<{ created: number }>> {
-  const supabase = await createClient();
+export async function runReconciliationAgent(userId: string, externalSupabase?: Awaited<ReturnType<typeof createClient>>): Promise<ActionResult<{ created: number }>> {
+  const supabase = externalSupabase || await createClient();
 
   // 1. Find uncategorized bank transactions with no existing pending action
   const { data: uncategorized, error: txError } = await supabase
@@ -107,7 +106,7 @@ export async function runReconciliationAgent(userId: string): Promise<ActionResu
   }
 
   // 2. Check which transactions already have pending actions
-  const txIds = uncategorized.map((tx) => tx.id);
+  const txIds = uncategorized.map((tx: { id: string }) => tx.id);
   const { data: existingActions } = await supabase
     .from("action_feed")
     .select("related_transaction_id")
@@ -116,7 +115,7 @@ export async function runReconciliationAgent(userId: string): Promise<ActionResu
     .in("related_transaction_id", txIds);
 
   const existingTxIds = new Set(
-    (existingActions ?? []).map((a) => a.related_transaction_id)
+    (existingActions ?? []).map((a: { related_transaction_id: string | null }) => a.related_transaction_id)
   );
 
   // 3. Try to match transactions to receipts (simple: amount + date range)
@@ -151,7 +150,7 @@ export async function runReconciliationAgent(userId: string): Promise<ActionResu
       .lte("receipt_date", dateTo.toISOString().split("T")[0]);
 
     const match = (matchingReceipts ?? []).find(
-      (r) => Math.abs(Number(r.amount_inc_vat) - txAmount) < 0.02
+      (r: { amount_inc_vat: number }) => Math.abs(Number(r.amount_inc_vat) - txAmount) < 0.02
     );
 
     if (match) {
