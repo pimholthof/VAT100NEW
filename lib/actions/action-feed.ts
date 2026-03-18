@@ -129,7 +129,49 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
       (existingActions ?? []).map((a: { related_transaction_id: string | null }) => a.related_transaction_id)
     );
 
-    // 3. Try to match transactions to receipts
+    // 3. Batch-fetch receipts and prior categorizations to avoid N+1 queries
+    const bookingDates = uncategorized
+      .filter((tx) => !existingTxIds.has(tx.id))
+      .map((tx) => new Date(tx.booking_date));
+
+    if (bookingDates.length === 0) {
+      return { error: null, data: { created: 0 } };
+    }
+
+    const minDate = new Date(Math.min(...bookingDates.map((d) => d.getTime())));
+    minDate.setDate(minDate.getDate() - 3);
+    const maxDate = new Date(Math.max(...bookingDates.map((d) => d.getTime())));
+    maxDate.setDate(maxDate.getDate() + 3);
+
+    const counterpartNames = [...new Set(
+      uncategorized
+        .filter((tx) => !existingTxIds.has(tx.id) && tx.counterpart_name)
+        .map((tx) => tx.counterpart_name as string)
+    )];
+
+    // Batch: all receipts in the date window
+    const { data: allReceipts } = await supabase
+      .from("receipts")
+      .select("id, vendor_name, amount_inc_vat, category, receipt_date")
+      .eq("user_id", userId)
+      .gte("receipt_date", minDate.toISOString().split("T")[0])
+      .lte("receipt_date", maxDate.toISOString().split("T")[0]);
+
+    // Batch: all prior categorizations for known counterparts
+    const priorCategorizations = new Set<string>();
+    if (counterpartNames.length > 0) {
+      const { data: previous } = await supabase
+        .from("bank_transactions")
+        .select("counterpart_name")
+        .eq("user_id", userId)
+        .in("counterpart_name", counterpartNames)
+        .not("category", "is", null);
+      for (const p of previous ?? []) {
+        if (p.counterpart_name) priorCategorizations.add(p.counterpart_name);
+      }
+    }
+
+    const receipts = allReceipts ?? [];
     const newActions: Partial<ActionFeedItem>[] = [];
 
     for (const tx of uncategorized) {
@@ -142,35 +184,22 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
       const dateTo = new Date(txDate);
       dateTo.setDate(dateTo.getDate() + 3);
 
-      const { data: matchingReceipts } = await supabase
-        .from("receipts")
-        .select("id, vendor_name, amount_inc_vat, category, receipt_date")
-        .eq("user_id", userId)
-        .gte("receipt_date", dateFrom.toISOString().split("T")[0])
-        .lte("receipt_date", dateTo.toISOString().split("T")[0]);
-
-      const matchingReceipt = (matchingReceipts ?? []).find(
-        (r: { amount_inc_vat: number }) => Math.abs(Number(r.amount_inc_vat) - txAmount) < 0.01
-      );
+      // In-memory filter from batch-fetched receipts
+      const matchingReceipt = receipts.find((r) => {
+        const rd = new Date(r.receipt_date);
+        return rd >= dateFrom && rd <= dateTo && Math.abs(Number(r.amount_inc_vat) - txAmount) < 0.01;
+      });
 
       if (matchingReceipt) {
         let confidence = 0.85;
         const receiptDate = new Date(matchingReceipt.receipt_date);
         const daysDiff = Math.abs((txDate.getTime() - receiptDate.getTime()) / (1000 * 3600 * 24));
-        
+
         if (daysDiff <= 1) confidence += 0.05;
         if (matchingReceipt.vendor_name && tx.counterpart_name?.toLowerCase().includes(matchingReceipt.vendor_name.toLowerCase())) confidence += 0.05;
 
-        // Learn from previous resolutions
-        const { data: previous } = await supabase
-          .from("bank_transactions")
-          .select("category")
-          .eq("user_id", userId)
-          .eq("counterpart_name", tx.counterpart_name)
-          .not("category", "is", null)
-          .limit(1);
-
-        if (previous && previous.length > 0) confidence += 0.05;
+        // Learn from previous resolutions (in-memory lookup)
+        if (tx.counterpart_name && priorCategorizations.has(tx.counterpart_name)) confidence += 0.05;
 
         if (confidence >= 0.98) {
           // Autonomous match

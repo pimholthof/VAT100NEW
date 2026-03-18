@@ -2,7 +2,7 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
-import { runReconciliationAgent, runAnticipationAgent, runInvestmentAgent } from "./action-feed";
+import { calculateSafeToSpend } from "@/lib/tax";
 
 export interface DashboardStats {
   revenueThisMonth: number;
@@ -83,11 +83,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   const now = new Date();
   const userId = user.id;
 
-  // Trigger Agents in background (don't block the core dashboard load)
-  // These will populate the action_feed for the separate ActionFeed component
-  runReconciliationAgent(userId, supabase).catch(console.error);
-  runAnticipationAgent(userId, supabase).catch(console.error);
-  runInvestmentAgent(userId, supabase).catch(console.error);
+  // Agents now run via cron (/api/agents/reconcile) instead of on every dashboard load
 
   // Date ranges
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -183,7 +179,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     // Cashflow: receipts last 6 months
     supabase
       .from("receipts")
-      .select("receipt_date, total_amount")
+      .select("receipt_date, amount_inc_vat")
       .eq("user_id", userId)
       .gte("receipt_date", cashflowStart),
     // VAT deadline: quarter invoices
@@ -290,7 +286,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     const d = new Date(rec.receipt_date);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     if (expenseMap.has(key)) {
-      expenseMap.set(key, (expenseMap.get(key) ?? 0) + (Number(rec.total_amount) || 0));
+      expenseMap.set(key, (expenseMap.get(key) ?? 0) + (Number(rec.amount_inc_vat) || 0));
     }
   }
 
@@ -370,44 +366,6 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   };
 }
 
-// ── Safe-to-Spend Calculator (Agent 3: Tax Forecaster) ──
-function calculateSafeToSpend(
-  bankTransactions: Array<{ amount: number }>,
-  yearRevenue: Array<{ total_inc_vat: number; vat_amount: number }>,
-  outputVat: number,
-  inputVat: number
-): SafeToSpendData {
-  // Current bank balance = sum of all transactions
-  const currentBalance = bankTransactions.reduce(
-    (sum, tx) => sum + (Number(tx.amount) || 0), 0
-  );
-
-  // Estimated VAT to pay this quarter
-  const estimatedVat = Math.max(0, Math.round((outputVat - inputVat) * 100) / 100);
-
-  // Estimated income tax: ~37% of net profit (revenue minus VAT = ex-VAT revenue)
-  // This is a simplified Dutch IB estimate for ZZP'ers
-  const totalRevenueExVat = yearRevenue.reduce(
-    (sum, inv) => sum + ((Number(inv.total_inc_vat) || 0) - (Number(inv.vat_amount) || 0)), 0
-  );
-  const estimatedIncomeTax = Math.max(0, Math.round(totalRevenueExVat * 0.37 * 100) / 100);
-
-  const reservedTotal = estimatedVat + estimatedIncomeTax;
-  const safeToSpend = Math.round((currentBalance - reservedTotal) * 100) / 100;
-
-  // Tax Shield: If they invest €1000, they save roughly 37% in income tax (€370)
-  // This is only relevant if they have a decent revenue
-  const taxShieldPotential = totalRevenueExVat > 10000 ? 370 : 0;
-
-  return {
-    currentBalance: Math.round(currentBalance * 100) / 100,
-    estimatedVat,
-    estimatedIncomeTax,
-    reservedTotal: Math.round(reservedTotal * 100) / 100,
-    safeToSpend: Math.max(0, safeToSpend),
-    taxShieldPotential,
-  };
-}
 
 // ── Setup Progress (Onboarding Checklist) ──
 
