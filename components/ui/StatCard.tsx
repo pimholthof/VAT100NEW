@@ -14,62 +14,59 @@ export function StatCard({
   numericValue?: number;
 }) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      style={{ 
-        padding: "32px", 
-        display: "flex", 
-        flexDirection: "column", 
+      style={{
+        padding: "24px 28px",
+        display: "flex",
+        flexDirection: "column",
         justifyContent: "space-between",
-        minHeight: 180,
+        gap: 16,
+        minHeight: 140,
         position: "relative",
-        overflow: "visible", // To allow vertical label to bleed out if needed
+        overflow: "hidden",
         border: "var(--border-light)",
         background: "var(--background)"
       }}
     >
-      <div className="vertical-label">{label}</div>
+      <p className="label" style={{ margin: 0, opacity: 0.4 }}>
+        {label}
+      </p>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <p className="label" style={{ margin: "0 0 12px", opacity: 0.2 }}>
-          Concept / {label}
-        </p>
-        <p
-          className="display-hero"
-          style={{
-            fontSize: "3.5rem",
-            fontWeight: 400,
-            lineHeight: 0.9,
-            margin: 0,
-            letterSpacing: "-0.05em",
-          }}
-        >
-          {numericValue !== undefined ? (
-            <AnimatedNumber value={numericValue} isCurrency={true} />
-          ) : (
-            value
-          )}
-        </p>
-      </div>
+      <p
+        style={{
+          fontFamily: `"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif`,
+          fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+          fontWeight: 700,
+          lineHeight: 1,
+          margin: 0,
+          letterSpacing: "-0.03em",
+        }}
+      >
+        {numericValue !== undefined ? (
+          <AnimatedNumber value={numericValue} isCurrency={true} />
+        ) : (
+          value
+        )}
+      </p>
 
       {sub && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ width: 40, height: 1, background: "rgba(0,0,0,0.05)", marginBottom: 12 }} />
-          <p
-            className="mono-amount"
-            style={{
-              fontSize: "10px",
-              margin: 0,
-              opacity: 0.3,
-              textTransform: "uppercase",
-              letterSpacing: "0.1em"
-            }}
-          >
-            {sub}
-          </p>
-        </div>
+        <p
+          className="mono-amount"
+          style={{
+            fontSize: 10,
+            margin: 0,
+            opacity: 0.35,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            borderTop: "var(--border-rule)",
+            paddingTop: 12
+          }}
+        >
+          {sub}
+        </p>
       )}
     </motion.div>
   );
