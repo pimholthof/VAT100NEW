@@ -41,6 +41,7 @@ export default function DashboardClient({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
     initialData: initialResult,
+    staleTime: 5 * 60 * 1000, // 5 min — dashboard data is expensive to fetch
   });
 
   const data = dashboardResult?.data;

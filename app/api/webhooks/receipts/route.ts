@@ -5,6 +5,11 @@ import { processReceiptWebhook } from "@/lib/actions/receipts";
  * Agent 1: Receipt Catcher (Webhook Endpoint)
  */
 export async function POST(request: Request) {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const payload = await request.json();
     
