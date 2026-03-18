@@ -6,7 +6,7 @@ import { formatCurrency } from "@/lib/format";
 import type { CashflowSummary } from "@/lib/actions/dashboard";
 
 export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
-  const { monthlyRevenue } = cashflow; // Focus on revenue for the primary line
+  const { monthlyRevenue } = cashflow;
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -44,9 +44,8 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const scrollX = (x / rect.width) * width;
-    
-    // Find nearest point
-    const closest = points.reduce((prev, curr, idx) => {
+
+    const closest = points.reduce((prev, curr) => {
       return Math.abs(curr.x - scrollX) < Math.abs(prev.x - scrollX) ? curr : prev;
     }, points[0]);
 
@@ -57,7 +56,7 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setActiveIndex(null)}
@@ -67,45 +66,36 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
         viewBox={`0 0 ${width} ${height}`}
         style={{ width: "100%", height: "100%", overflow: "visible" }}
       >
-        <defs>
-          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-
-        {/* Area under the line */}
+        {/* Area under the line — subtle fill using foreground opacity */}
         <motion.path
           d={areaPath}
-          fill="url(#areaGradient)"
+          fill="rgba(13, 13, 11, 0.04)"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.3 }}
         />
 
         {/* The Sparkline */}
         <motion.path
           d={linePath}
           fill="none"
-          stroke="var(--color-accent)"
-          strokeWidth="3"
+          stroke="rgba(13, 13, 11, 0.6)"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 1.5, ease: "easeInOut" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         />
 
-        {/* Magnetic Indicator */}
+        {/* Indicator dot */}
         <AnimatePresence>
           {activeIndex !== null && (
             <motion.circle
               cx={springX}
               cy={springY}
-              r="6"
-              fill="var(--color-white)"
-              stroke="var(--color-accent)"
-              strokeWidth="2"
+              r="4"
+              fill="var(--foreground)"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
@@ -114,32 +104,34 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
         </AnimatePresence>
       </svg>
 
-      {/* Interactive Tooltip */}
+      {/* Tooltip */}
       <AnimatePresence>
         {activeIndex !== null && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ 
-              opacity: 1, 
-              y: 0, 
-              scale: 1,
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: 1,
               left: `${(points[activeIndex].x / width) * 100}%`,
-              top: `${(points[activeIndex].y / height) * 100 - 40}%`
+              top: `${(points[activeIndex].y / height) * 100 - 40}%`,
             }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="glass"
+            exit={{ opacity: 0 }}
             style={{
               position: "absolute",
               transform: "translateX(-50%)",
               padding: "8px 12px",
-              borderRadius: "var(--radius-sm)",
+              background: "var(--background)",
+              border: "var(--border-light)",
               pointerEvents: "none",
               zIndex: 10,
-              textAlign: "center"
+              textAlign: "center",
             }}
           >
-            <p className="label" style={{ fontSize: 9, marginBottom: 2, opacity: 0.5 }}>{data[activeIndex].label}</p>
-            <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{formatCurrency(data[activeIndex].value)}</p>
+            <p className="label" style={{ fontSize: 9, marginBottom: 2, opacity: 0.4 }}>
+              {data[activeIndex].label}
+            </p>
+            <p style={{ fontSize: 12, fontWeight: 500, margin: 0 }}>
+              {formatCurrency(data[activeIndex].value)}
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -147,7 +139,7 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
       {/* X-Axis Labels */}
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: -10, padding: "0 20px" }}>
         {data.map((d, i) => (
-          <span key={i} className="label" style={{ fontSize: 10, textTransform: "lowercase", opacity: i === activeIndex ? 1 : 0.3 }}>
+          <span key={i} className="label" style={{ fontSize: 9, textTransform: "lowercase", opacity: i === activeIndex ? 0.6 : 0.3 }}>
             {d.label}
           </span>
         ))}

@@ -14,6 +14,7 @@ export function Th({
         padding: "16px 0",
         textAlign: "left",
         opacity: 0.3,
+        borderBottom: "0.5px solid rgba(13, 13, 11, 0.15)",
         ...style,
       }}
     >
@@ -34,6 +35,7 @@ export function Td({
       style={{
         padding: "16px 0",
         fontWeight: 300,
+        borderBottom: "0.5px solid rgba(13, 13, 11, 0.06)",
         ...style,
       }}
     >

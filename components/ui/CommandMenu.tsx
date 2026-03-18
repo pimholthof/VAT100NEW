@@ -72,14 +72,12 @@ export function CommandMenu() {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(255, 255, 255, 0.4)",
+        backgroundColor: "rgba(250, 250, 248, 0.9)",
         zIndex: 9999,
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "center",
         paddingTop: "15vh",
-        backdropFilter: "blur(40px)",
-        WebkitBackdropFilter: "blur(40px)",
       }}
       onClick={() => setOpen(false)}
     >
@@ -88,11 +86,9 @@ export function CommandMenu() {
         style={{
           width: "100%",
           maxWidth: 640,
-          background: "rgba(255, 255, 255, 0.95)",
-          border: "var(--border)",
-          borderRadius: 0,
+          background: "var(--background)",
+          border: "var(--border-rule)",
           overflow: "hidden",
-          boxShadow: "0 32px 64px -12px rgba(0,0,0,0.1)",
         }}
       >
         <Command
@@ -165,7 +161,7 @@ export function CommandMenu() {
                 }}
                 className="cmdk-item"
               >
-                <span style={{color: 'var(--color-accent)'}}>Vraag AI CFO</span> {query ? `"${query}"` : "..."}
+                <span style={{opacity: 0.6}}>Vraag AI CFO</span> {query ? `"${query}"` : "..."}
               </Command.Item>
             </Command.Group>
 
@@ -233,10 +229,10 @@ export function CommandMenu() {
                    borderRadius: 0,
                   maxWidth: '85%',
                   whiteSpace: 'pre-wrap',
-                  fontFamily: "var(--font-geist), sans-serif",
+                  fontFamily: '"Inter", sans-serif',
                   fontSize: "var(--text-body-md)"
                 }}>
-                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 AI</strong>}
+                  {msg.role === 'ai' && <strong style={{display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '9px', fontWeight: 500, opacity: 0.4}}>VAT100 AI</strong>}
                   {msg.content}
                 </div>
               ))}

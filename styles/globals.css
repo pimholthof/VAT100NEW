@@ -1,58 +1,60 @@
 @import "tailwindcss";
 
-/* ─── Design Tokens ─── */
+/* ─── Design Tokens (STIJLGIDS.md) ─── */
 :root {
   /* Baseline unit */
   --u: 8px;
+  --col: 12;
 
-  /* Colors — Rockmen Editorial */
-  --color-black: #222222; /* Soft Off-Black */
-  --color-white: #F4F4F4; /* Premium Off-White Paper */
-  --color-accent: #6366F1; /* Retaining Indigo for critical errors if needed, but rarely used */
-
-  /* Foreground / Background — FORCE ROCKMEN LIGHT MODE */
+  /* Colors — Two colors only */
+  --color-black: #0D0D0B;
+  --color-white: #FAFAF8;
   --foreground: var(--color-black);
   --background: var(--color-white);
 
-  /* Borders — Minimal structure */
-  --border-light: 0.5px solid rgba(34, 34, 34, 0.1); /* Subtle dark border on light bg */
-  --border-dark: 0.5px solid rgba(34, 34, 34, 0.2);
+  /* Borders — Always rgba, never hex */
+  --border-light: 0.5px solid rgba(13, 13, 11, 0.12);
+  --border-dark: 0.5px solid rgba(255, 255, 255, 0.10);
+  --border-rule: 0.5px solid rgba(13, 13, 11, 0.15);
+  --border-input: 0.5px solid rgba(13, 13, 11, 0.12);
+  --border-input-focus: 0.5px solid rgba(13, 13, 11, 0.5);
   --border: var(--border-light);
 
-  /* Refined components */
-  --border-rule: 0.5px solid rgba(0, 0, 0, 0.04);
-  --border-input: 0.5px solid rgba(0, 0, 0, 0.08);
-  --border-input-focus: 0.5px solid var(--color-black);
-
-  /* Typography Scale — Tight and sharp */
-  --text-display-hero: clamp(4rem, 12vw, 10rem);
+  /* Display Typography — Space Grotesk 700 */
+  --text-display-hero: 12rem;
   --text-display-xl: 6rem;
   --text-display-lg: 3.5rem;
   --text-display-md: 2rem;
   --text-display-sm: 1rem;
 
-  --text-body-lg: 14px;
-  --text-body-md: 13px;
-  --text-body-sm: 12px;
-  --text-body-xs: 10px;
+  /* Body Typography — Inter 300/400/500 */
+  --text-body-lg: 13px;
+  --text-body-md: 12px;
+  --text-body-sm: 11px;
+  --text-body-xs: 9px;
 
-  /* Monospace */
+  /* Mono Typography — JetBrains Mono 300/400 */
   --text-mono-lg: 2rem;
-  --text-mono-md: 13px;
-  --text-mono-sm: 12px;
+  --text-mono-md: 12px;
+  --text-mono-sm: 11px;
 
-  /* Label */
-  --text-label: 10px;
+  /* Labels */
+  --text-label: 9px;
 
-  /* Spacing & Leading */
-  --tracking-display: -0.04em;
-  --tracking-tight: -0.01em;
-  --tracking-label: 0.06em;
-  
-  --radius: 0; /* Strict 0px radius for premium architectural feel */
+  /* Letter-spacing */
+  --tracking-display: 0.02em;
+  --tracking-label: 0.08em;
+  --tracking-caps: 0.25em;
+
+  /* Whitespace */
+  --space-hero: 120px;
+  --space-section: 96px;
+  --space-block: 48px;
+  --space-element: 24px;
+
+  /* Radius — strictly 0 */
+  --radius: 0px;
 }
-
-/* Force light mode — no dark mode swap */
 
 /* ─── Tailwind theme integration ─── */
 @theme inline {
@@ -60,11 +62,11 @@
   --color-foreground: var(--foreground);
   --color-black: var(--color-black);
   --color-white: var(--color-white);
-  --color-accent: var(--color-accent);
-  
-  --font-geist: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: "Courier New", Courier, monospace;
-  
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
   --radius-sm: 0;
   --radius-md: 0;
   --radius-lg: 0;
@@ -79,17 +81,17 @@ html {
 *,
 *::before,
 *::after {
-  border-radius: inherit;
+  border-radius: 0 !important;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: var(--text-body-md);
-  letter-spacing: var(--tracking-tight);
-  font-variant-numeric: tabular-nums;
+  font-weight: 300;
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -97,8 +99,7 @@ body {
 
 /* ─── Selection ─── */
 ::selection {
-  background: var(--foreground);
-  color: var(--background);
+  background: rgba(13, 13, 11, 0.08);
 }
 
 /* ─── Global transitions ─── */
@@ -107,28 +108,28 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: var(--color-black) !important;
+  border-color: rgba(13, 13, 11, 0.5) !important;
 }
 
 button {
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.15s ease;
 }
 
 button:hover:not(:disabled) {
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 button:disabled {
-  opacity: 0.2;
+  opacity: 0.4;
   cursor: default;
 }
 
 tbody tr {
-  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.15s ease;
 }
 
 tbody tr:hover {
-  background: rgba(0, 0, 0, 0.01);
+  background: rgba(13, 13, 11, 0.012);
 }
 
 /* ─── Dashboard Shell ─── */
@@ -138,148 +139,27 @@ tbody tr:hover {
   min-height: 100vh;
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-.glass::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(255, 255, 255, 0.05),
-    transparent
-  );
-  transform: skewX(-25deg);
-  transition: 0.5s;
-}
-
-.glass:hover::before {
-  left: 150%;
-  transition: 0.8s ease-in-out;
-}
-
-.glass-dark {
-  background: rgba(10, 10, 10, 0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.glass-refraction {
-  position: relative;
-  overflow: hidden;
-}
-
-.glass-refraction::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.03) 0%,
-    transparent 50%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-.glass-refraction:hover::after {
-  opacity: 1;
-  animation: refractionRotate 10s linear infinite;
-}
-
-@keyframes refractionRotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.liquid-glimmer {
-  position: relative;
-}
-
-.liquid-glimmer::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 40%,
-    rgba(99, 102, 241, 0.05) 45%,
-    rgba(99, 102, 241, 0.1) 50%,
-    rgba(99, 102, 241, 0.05) 55%,
-    transparent 60%
-  );
-  background-size: 200% 200%;
-  animation: liquidFlow 8s ease infinite;
-  pointer-events: none;
-}
-
-@keyframes liquidFlow {
-  0% { background-position: 200% 0%; }
-  100% { background-position: -200% 0%; }
-}
-
-/* ─── Deviant / Experimental Classes ─── */
-.vertical-label {
-  writing-mode: vertical-rl;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  opacity: 0.3;
-  position: absolute;
-  right: -20px;
-  top: 50%;
-  transform: translateY(-50%) rotate(180deg);
-  pointer-events: none;
-}
-
-.tilted-canvas {
-  transform: perspective(1000px) rotateX(1deg) rotateY(-0.5deg);
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.tilted-canvas:hover {
-  transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
-}
-
 /* ─── Reusable Typography Classes ─── */
 .label {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-body), "Inter", sans-serif;
   font-size: var(--text-label);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.6; /* Higher opacity for legibility due to tiny size */
+  opacity: 0.4;
 }
 
 .label-strong {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-body), "Inter", sans-serif;
   font-size: var(--text-label);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.9;
+  opacity: 0.6;
 }
 
 .display-hero {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-display), "Space Grotesk", sans-serif;
   font-size: var(--text-display-hero);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -288,7 +168,7 @@ tbody tr:hover {
 }
 
 .display-title {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-display), "Space Grotesk", sans-serif;
   font-size: var(--text-display-lg);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -297,7 +177,7 @@ tbody tr:hover {
 }
 
 .section-header {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-display), "Space Grotesk", sans-serif;
   font-size: var(--text-display-sm);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -307,27 +187,23 @@ tbody tr:hover {
 }
 
 .mono-amount {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
   font-size: var(--text-mono-md);
   font-variant-numeric: tabular-nums;
 }
 
 .mono-amount-lg {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
   font-size: var(--text-mono-lg);
   font-weight: 300;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
-.editorial-divider {
-  border-top: 0.5px solid rgba(255, 255, 255, 0.1);
-}
-
 .table-action {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-body), "Inter", sans-serif;
   font-size: var(--text-label);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--foreground);
@@ -340,7 +216,7 @@ tbody tr:hover {
 }
 
 .empty-state {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-display), "Space Grotesk", sans-serif;
   font-size: var(--text-display-md);
   font-weight: 700;
   line-height: 1;
@@ -353,9 +229,8 @@ tbody tr:hover {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(10, 10, 10, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+  background: var(--background);
+  border-bottom: 0.5px solid rgba(13, 13, 11, 0.08);
   padding: 0 80px;
 }
 
@@ -372,8 +247,27 @@ tbody tr:hover {
   gap: 36px;
 }
 
+.dashboard-nav-links a {
+  position: relative;
+}
+
 .dashboard-nav-links a:hover {
-  opacity: 0.8 !important;
+  opacity: 0.6 !important;
+}
+
+.dashboard-nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 0.5px;
+  background: var(--foreground);
+  transition: width 0.2s ease;
+}
+
+.dashboard-nav-links a:hover::after {
+  width: 100%;
 }
 
 .dashboard-nav-right {
@@ -393,15 +287,10 @@ tbody tr:hover {
   line-height: 1;
 }
 
-.dashboard-nav-mobile {
-  padding: 0 0 16px;
-  border-top: var(--border-rule);
-}
-
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 80px 80px;
+  padding: 80px;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -409,92 +298,29 @@ tbody tr:hover {
 }
 
 @keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(8px); }
+  0% { opacity: 0; transform: translateY(4px); }
   100% { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Stagger animation for dashboard sections ── */
-@keyframes slideUp {
-  0% { opacity: 0; transform: translateY(16px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-.dashboard-content > * {
-  animation: slideUp 0.4s ease both;
-}
-
-.dashboard-content > *:nth-child(1) { animation-delay: 0s; }
-.dashboard-content > *:nth-child(2) { animation-delay: 0.06s; }
-.dashboard-content > *:nth-child(3) { animation-delay: 0.12s; }
-.dashboard-content > *:nth-child(4) { animation-delay: 0.18s; }
-.dashboard-content > *:nth-child(5) { animation-delay: 0.24s; }
-.dashboard-content > *:nth-child(6) { animation-delay: 0.30s; }
-.dashboard-content > *:nth-child(7) { animation-delay: 0.36s; }
-.dashboard-content > *:nth-child(8) { animation-delay: 0.42s; }
-.dashboard-content > *:nth-child(9) { animation-delay: 0.48s; }
-.dashboard-content > *:nth-child(10) { animation-delay: 0.54s; }
-
-/* ── Stat Card hover ── */
-.stat-cards-grid > div {
-  transition: opacity 0.15s ease;
-}
-
-.stat-cards-grid > div:hover {
-  opacity: 0.85;
-}
-
-/* ── Action Feed item animation ── */
-@keyframes feedSlideIn {
-  0% { opacity: 0; transform: translateX(-12px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
-
-/* ── Smooth number pulse (for value changes) ── */
-@keyframes numberPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
 }
 
 /* ─── Skeleton Loaders ─── */
 .skeleton {
-  background: rgba(255, 255, 255, 0.05);
-  animation: skeleton-pulse 2s ease-in-out infinite;
+  background: rgba(13, 13, 11, 0.04);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.2; }
 }
 
 /* ── Upload zone pulse ── */
 @keyframes uploadPulse {
-  0%, 100% { border-color: rgba(13, 13, 11, 0.2); }
-  50% { border-color: rgba(13, 13, 11, 0.5); }
+  0%, 100% { border-color: rgba(13, 13, 11, 0.12); }
+  50% { border-color: rgba(13, 13, 11, 0.3); }
 }
 
 .upload-processing {
   animation: uploadPulse 1.5s ease-in-out infinite;
-}
-
-/* ── Nav link underline animation ── */
-.dashboard-nav-links a {
-  position: relative;
-}
-
-.dashboard-nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 1.5px;
-  background: var(--foreground);
-  transition: width 0.2s ease;
-}
-
-.dashboard-nav-links a:hover::after {
-  width: 100%;
 }
 
 /* ── Tablet (≤1024px) ── */
@@ -519,9 +345,9 @@ tbody tr:hover {
 /* ── Mobile (≤768px) ── */
 @media (max-width: 768px) {
   :root {
-    --text-display-hero: 4rem;
+    --text-display-hero: 5rem;
     --text-display-xl: 3rem;
-    --text-display-lg: 2rem;
+    --text-display-lg: 2.5rem;
     --text-display-md: 1.5rem;
     --space-hero: 48px;
     --space-section: 40px;
@@ -553,11 +379,11 @@ tbody tr:hover {
   }
 
   .display-hero {
-    font-size: 3rem;
+    font-size: 5rem;
   }
 
   .display-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
   .stat-cards-grid {
@@ -586,4 +412,3 @@ tbody tr:hover {
     table-layout: fixed;
   }
 }
-

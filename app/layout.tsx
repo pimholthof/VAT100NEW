@@ -4,7 +4,7 @@ import "@/styles/globals.css";
 import { CommandMenu } from "@/components/ui/CommandMenu";
 
 export const viewport: Viewport = {
-  themeColor: "#f4f4f4",
+  themeColor: "#FAFAF8",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -32,6 +32,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nl">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
         <Providers>
           {children}

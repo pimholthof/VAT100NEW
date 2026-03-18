@@ -180,10 +180,10 @@ export function QuickReceiptUpload() {
                 position: "absolute",
                 left: 0,
                 right: 0,
-                height: "2px",
-                background: "linear-gradient(to right, transparent, var(--color-accent), transparent)",
+                height: "0.5px",
+                background: "var(--foreground)",
                 zIndex: 10,
-                boxShadow: "0 0 15px var(--color-accent)",
+                opacity: 0.4,
               }}
             />
           )}

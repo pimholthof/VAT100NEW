@@ -10,8 +10,8 @@ export function ButtonPrimary({
     <button
       className={className ?? ""}
       style={{
-        fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-label)",
+        fontFamily: '"Inter", sans-serif',
+        fontSize: "9px",
         fontWeight: 500,
         letterSpacing: "0.10em",
         textTransform: "uppercase",
@@ -40,17 +40,17 @@ export function ButtonSecondary({
     <button
       className={className ?? ""}
       style={{
-        fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-label)",
+        fontFamily: '"Inter", sans-serif',
+        fontSize: "9px",
         fontWeight: 500,
         letterSpacing: "0.10em",
         textTransform: "uppercase",
         cursor: "pointer",
         padding: "14px 28px",
-        border: "0.5px solid rgba(13,13,11,0.25)",
+        border: "0.5px solid rgba(13, 13, 11, 0.25)",
         background: "transparent",
         color: "var(--foreground)",
-        transition: "all 0.2s ease",
+        transition: "opacity 0.15s ease",
         ...style,
       }}
       {...props}

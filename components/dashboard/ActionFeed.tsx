@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/format";
@@ -9,7 +10,6 @@ import {
   ignoreActionItem,
 } from "@/lib/actions/action-feed";
 import type { ActionFeedItem } from "@/lib/types";
-import { playSound } from "@/lib/utils/sound";
 
 export function ActionFeed() {
   const queryClient = useQueryClient();
@@ -25,7 +25,6 @@ export function ActionFeed() {
     mutationFn: ({ id, draft }: { id: string; draft?: string }) => resolveActionItem(id, undefined, draft),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
-      playSound("glass-ping");
     },
   });
 
@@ -33,60 +32,39 @@ export function ActionFeed() {
     mutationFn: (id: string) => ignoreActionItem(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
-      playSound("tink");
     },
   });
 
   if (isLoading) {
     return (
-      <div style={{ marginBottom: "var(--space-section)" }}>
-        <div className="skeleton" style={{ width: "30%", height: 14, marginBottom: 16, opacity: 0.08 }} />
-        <div className="skeleton" style={{ width: "100%", height: 60, opacity: 0.04 }} />
+      <div>
+        <div className="skeleton" style={{ width: "30%", height: 9, marginBottom: 16 }} />
+        <div className="skeleton" style={{ width: "100%", height: 60 }} />
       </div>
     );
   }
 
   if (actions.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="editorial-divider"
-        style={{
-          padding: "48px 0",
-          marginBottom: "var(--space-section)",
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          borderTop: "var(--border-rule)",
-          borderBottom: "var(--border-rule)",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-lg)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
-            margin: 0,
-            textTransform: "uppercase",
-          }}
-        >
-          SYSTEEM OPTIMAAL
-        </p>
-        <p className="label" style={{ opacity: 0.4, margin: 0 }}>
+      <div style={{
+        padding: "var(--space-block) 0",
+        borderTop: "var(--border-rule)",
+        borderBottom: "var(--border-rule)",
+      }}>
+        <p className="empty-state">SYSTEEM OPTIMAAL</p>
+        <p className="label" style={{ opacity: 0.3 }}>
           Alle protocollen voltooid. Geen actie vereist.
         </p>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <div style={{ marginBottom: "var(--space-section)" }}>
-      <h2 className="section-header" style={{ margin: "0 0 16px" }}>
+    <div>
+      <h2 className="section-header" style={{ margin: "0 0 var(--space-element)" }}>
         ACTIES [{actions.length}]
       </h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column" }}>
         <AnimatePresence>
           {actions.map((action, index) => (
             <ActionCard
@@ -103,8 +81,6 @@ export function ActionFeed() {
     </div>
   );
 }
-
-import { useState } from "react";
 
 function ActionCard({
   action,
@@ -141,67 +117,45 @@ function ActionCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
-      transition={{ 
-        duration: 0.3, 
-        delay: index * 0.05, 
-        ease: "anticipate",
-        layout: { duration: 0.3 }
-      }}
-      whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
-      className="glass"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
       style={{
-        padding: "20px 24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        borderRadius: 0,
-        opacity: isPending ? 0.5 : 1,
+        padding: "20px 0",
+        borderBottom: "0.5px solid rgba(13, 13, 11, 0.06)",
+        opacity: isPending ? 0.4 : 1,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
-          <p className="label" style={{ opacity: 0.5, margin: "0 0 6px" }}>
+          <p className="label" style={{ margin: "0 0 6px" }}>
             {typeLabel[action.type] ?? action.type}
             {action.ai_confidence != null && (
-              <span style={{ color: "var(--color-accent)", opacity: 0.8, marginLeft: 12 }}>
-                {Math.round(action.ai_confidence * 100)}% MATCH
+              <span style={{ opacity: 0.6, marginLeft: 12 }}>
+                {Math.round(action.ai_confidence * 100)}%
               </span>
             )}
           </p>
-          <p
-            style={{
-              fontFamily: "var(--font-geist), sans-serif",
-              fontSize: "var(--text-body-md)",
-              fontWeight: 600,
-              margin: "0 0 4px",
-              letterSpacing: "-0.01em"
-            }}
-          >
+          <p style={{
+            fontFamily: '"Inter", sans-serif',
+            fontSize: 12,
+            fontWeight: 500,
+            margin: "0 0 4px",
+          }}>
             {action.title}
           </p>
-          <p
-            style={{
-              fontFamily: "var(--font-geist), sans-serif",
-              fontSize: "var(--text-body-sm)",
-              opacity: 0.4,
-              margin: 0,
-            }}
-          >
+          <p style={{
+            fontFamily: '"Inter", sans-serif',
+            fontSize: 11,
+            opacity: 0.4,
+            margin: 0,
+          }}>
             {action.description}
           </p>
         </div>
         {action.amount != null && (
-          <span
-            style={{
-              fontFamily: "var(--font-mono), monospace",
-              fontSize: "var(--text-mono-md)",
-              fontWeight: 500,
-              marginLeft: 24
-            }}
-          >
+          <span className="mono-amount" style={{ marginLeft: 24 }}>
             {formatCurrency(action.amount)}
           </span>
         )}
@@ -211,68 +165,57 @@ function ActionCard({
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          style={{ overflow: "hidden" }}
+          style={{ overflow: "hidden", marginTop: 16 }}
         >
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             style={{
               width: "100%",
-              height: "120px",
-              background: "rgba(0,0,0,0.02)",
-              border: "0.5px solid rgba(0,0,0,0.1)",
-              padding: "12px",
+              height: 120,
+              background: "transparent",
+              border: "var(--border-input)",
+              padding: 12,
               color: "var(--foreground)",
-              fontFamily: "var(--font-geist), sans-serif",
-              fontSize: "13px",
-              lineHeight: "1.5",
+              fontFamily: '"Inter", sans-serif',
+              fontSize: 13,
+              fontWeight: 300,
+              lineHeight: 1.5,
               outline: "none",
-              resize: "none"
+              resize: "none",
             }}
             placeholder="Typ hier de tekst voor de herinnering..."
           />
         </motion.div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
         {action.draft_content && (
           <button
             onClick={() => setIsEditing(!isEditing)}
             disabled={isPending}
+            className="label-strong"
             style={{
               background: "transparent",
               color: "var(--foreground)",
-              border: "0.5px solid rgba(0,0,0,0.2)",
+              border: "0.5px solid rgba(13, 13, 11, 0.25)",
               padding: "6px 14px",
-              borderRadius: 0,
-              fontFamily: "var(--font-geist), sans-serif",
-              fontSize: "11px",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
               cursor: "pointer",
-              transition: "all 0.2s ease"
             }}
           >
-            {isEditing ? "SLUIT CONCEPT" : "BEKIJK CONCEPT"}
+            {isEditing ? "SLUIT" : "CONCEPT"}
           </button>
         )}
         <button
           onClick={onIgnore}
           disabled={isPending}
+          className="label"
           style={{
-            background: "rgba(0,0,0,0.05)",
+            background: "transparent",
             color: "var(--foreground)",
             border: "none",
             padding: "6px 14px",
-            borderRadius: 0,
-            fontFamily: "var(--font-geist), sans-serif",
-            fontSize: "11px",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
             cursor: "pointer",
-            transition: "all 0.2s ease"
           }}
         >
           NEGEREN
@@ -281,19 +224,16 @@ function ActionCard({
           onClick={() => onResolve(isEditing ? draft : undefined)}
           disabled={isPending}
           style={{
-            background: "var(--color-accent)",
-            color: "white",
+            background: "var(--foreground)",
+            color: "var(--background)",
             border: "none",
             padding: "6px 14px",
-            borderRadius: 0,
-            fontFamily: "var(--font-geist), sans-serif",
-            fontSize: "11px",
-            fontWeight: 600,
+            fontFamily: '"Inter", sans-serif',
+            fontSize: 9,
+            fontWeight: 500,
             textTransform: "uppercase",
-            letterSpacing: "0.05em",
+            letterSpacing: "0.10em",
             cursor: "pointer",
-            transition: "all 0.2s ease",
-            boxShadow: "0 0 20px -5px var(--color-accent)"
           }}
         >
           {actionLabel[action.type] ?? "OK"}

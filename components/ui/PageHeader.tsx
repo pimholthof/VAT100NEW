@@ -40,7 +40,7 @@ export function PageHeader({
         <h1
           className={titleSize === "lg" ? "display-title" : ""}
           style={titleSize === "md" ? {
-            fontFamily: "var(--font-display), sans-serif",
+            fontFamily: '"Space Grotesk", sans-serif',
             fontSize: "var(--text-display-md)",
             fontWeight: 700,
             letterSpacing: "var(--tracking-display)",
