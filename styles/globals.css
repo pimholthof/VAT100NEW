@@ -401,8 +401,8 @@ tbody tr:hover {
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 120px 10vw; /* Massive fluid padding */
-  max-width: 1800px; /* allow it to grow large */
+  padding: 48px 5vw;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.3s ease;
