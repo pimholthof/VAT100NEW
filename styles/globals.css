@@ -24,15 +24,15 @@
   --border-input: 0.5px solid rgba(0, 0, 0, 0.08);
   --border-input-focus: 0.5px solid var(--color-black);
 
-  /* Typography Scale — Tight and sharp */
-  --text-display-hero: clamp(4rem, 12vw, 10rem);
-  --text-display-xl: 6rem;
-  --text-display-lg: 3.5rem;
-  --text-display-md: 2rem;
-  --text-display-sm: 1rem;
+  /* Typography Scale — Extreme Outspoken Scale */
+  --text-display-hero: clamp(6rem, 16vw, 14rem); /* Massive hero */
+  --text-display-xl: 8rem;
+  --text-display-lg: 5rem;
+  --text-display-md: 2.5rem;
+  --text-display-sm: 1.25rem;
 
-  --text-body-lg: 14px;
-  --text-body-md: 13px;
+  --text-body-lg: 16px;
+  --text-body-md: 14px;
   --text-body-sm: 12px;
   --text-body-xs: 10px;
 
@@ -363,13 +363,13 @@ tbody tr:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
+  height: 120px; /* Taller nav header */
 }
 
 .dashboard-nav-links {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 60px; /* wider gaps */
 }
 
 .dashboard-nav-links a:hover {
@@ -401,8 +401,8 @@ tbody tr:hover {
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 80px 80px;
-  max-width: 1200px;
+  padding: 120px 10vw; /* Massive fluid padding */
+  max-width: 1800px; /* allow it to grow large */
   width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.3s ease;

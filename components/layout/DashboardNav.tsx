@@ -28,8 +28,8 @@ export function DashboardNav({
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
             <Link 
               href="/dashboard"
-              className="label-strong" 
-              style={{ fontSize: "12px", letterSpacing: "0.05em", color: "var(--foreground)", textDecoration: "none" }}
+              className="display-hero" 
+              style={{ fontSize: "clamp(3rem, 6vw, 6rem)", letterSpacing: "-0.05em", color: "var(--foreground)", textDecoration: "none" }}
             >
               VAT100
             </Link>

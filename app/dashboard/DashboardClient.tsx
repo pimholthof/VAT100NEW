@@ -91,10 +91,10 @@ export default function DashboardClient({
       }}
     >
       {/* ── EDITORIAL GRID ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 pt-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 pt-10">
         
         {/* ── LEFT COLUMN: OPERATIONAL STACK (Span 4) ── */}
-        <div className="lg:col-span-4 flex flex-col gap-20 lg:sticky top-32 pb-10 relative z-10">
+        <div className="lg:col-span-4 flex flex-col gap-32 lg:sticky top-40 pb-10 relative z-10">
           
           {/* 1. Quick Action (Playful offset) */}
           {!isLoading && (
@@ -147,7 +147,7 @@ export default function DashboardClient({
         </div>
 
         {/* ── RIGHT COLUMN: STRATEGIC CANVAS (Span 8) ── */}
-        <div className="lg:col-span-8 flex flex-col gap-24 lg:gap-32 lg:pt-20">
+        <div className="lg:col-span-8 flex flex-col gap-32 lg:gap-48 lg:pt-32">
           
           {/* 1. Fiscal Pulse Hero */}
           {safeToSpend && !isLoading && (
@@ -226,7 +226,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
       <div style={{ 
         display: "flex", 
         flexDirection: "column", 
-        gap: 80, // Massive gap for editorial spacing
+        gap: 160, // Extreme gap for editorial spacing
         position: "relative",
         zIndex: 1
       }}>
@@ -258,14 +258,15 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                 href={`/dashboard/invoices/${inv.id}`}
                 className="display-title"
                 style={{
-                  fontSize: "3rem",
+                  fontSize: "clamp(3rem, 6vw, 6rem)", // Massive scaling
                   textDecoration: "none",
                   color: "var(--foreground)",
-                  lineHeight: 1,
+                  lineHeight: 0.9,
                   display: "inline-block",
-                  borderBottom: "2px solid transparent",
+                  borderBottom: "4px solid transparent",
                   transition: "border-color 0.3s ease",
-                  marginBottom: 16
+                  marginBottom: 24,
+                  letterSpacing: "-0.04em"
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = "var(--foreground)";
