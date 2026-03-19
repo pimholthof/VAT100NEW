@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
 const DUTCH_BANKS = [
@@ -33,153 +32,112 @@ export function InstitutionSelector({
     b.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  if (!isOpen) return null;
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(13, 13, 11, 0.4)",
-              backdropFilter: "blur(8px)",
-              zIndex: 100,
-            }}
-          />
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(10, 10, 10, 0.3)",
+          zIndex: 100,
+        }}
+      />
 
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.98 }}
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "100%",
-              maxWidth: "480px",
-              background: "var(--background)",
-              border: "0.5px solid rgba(13, 13, 11, 0.15)",
-              boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
-              zIndex: 101,
-              padding: "32px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "24px",
-            }}
-          >
-            <div>
-              <h3
-                style={{
-                  fontFamily: "var(--font-display), sans-serif",
-                  fontSize: "var(--text-display-sm)",
-                  fontWeight: 700,
-                  letterSpacing: "0.05em",
-                  textTransform: "uppercase",
-                  margin: "0 0 8px",
-                }}
-              >
-                Kies je bank
-              </h3>
-              <p
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-body-md)",
-                  fontWeight: 300,
-                  opacity: 0.5,
-                  margin: 0,
-                }}
-              >
-                Selecteer een instantie om je rekeningen veilig te koppelen.
-              </p>
-            </div>
+      {/* Modal */}
+      <div
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "100%",
+          maxWidth: "480px",
+          background: "var(--color-surface)",
+          border: "var(--border)",
+          zIndex: 101,
+          padding: "32px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "24px",
+        }}
+      >
+        <div>
+          <h3 className="section-header" style={{ margin: "0 0 8px" }}>
+            Kies je bank
+          </h3>
+          <p style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.5, margin: 0 }}>
+            Selecteer een instantie om je rekeningen veilig te koppelen.
+          </p>
+        </div>
 
-            <input
-              type="text"
-              placeholder="Zoek je bank..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              autoFocus
+        <input
+          type="text"
+          placeholder="Zoek je bank..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          autoFocus
+          style={{
+            width: "100%",
+            padding: "12px 0",
+            background: "transparent",
+            border: "none",
+            borderBottom: "var(--border-light)",
+            fontSize: "var(--text-body-lg)",
+            outline: "none",
+            color: "var(--foreground)",
+          }}
+        />
+
+        <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "2px" }}>
+          {filteredBanks.map((bank) => (
+            <button
+              key={bank.id}
+              onClick={() => onSelect(bank.id)}
+              disabled={isPending}
               style={{
-                width: "100%",
-                padding: "12px 0",
+                textAlign: "left",
+                padding: "12px",
                 background: "transparent",
                 border: "none",
-                borderBottom: "1px solid rgba(13, 13, 11, 0.15)",
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-lg)",
-                outline: "none",
+                cursor: isPending ? "default" : "pointer",
+                fontSize: "var(--text-body-md)",
                 color: "var(--foreground)",
+                opacity: isPending ? 0.5 : 1,
+                transition: "background 0.15s ease",
               }}
-            />
-
-            <div
-              style={{
-                maxHeight: "300px",
-                overflowY: "auto",
-                display: "flex",
-                flexDirection: "column",
-                gap: "2px",
-              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(10, 10, 10, 0.04)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
-              {filteredBanks.map((bank) => (
-                <button
-                  key={bank.id}
-                  onClick={() => onSelect(bank.id)}
-                  disabled={isPending}
-                  style={{
-                    textAlign: "left",
-                    padding: "12px",
-                    background: "transparent",
-                    border: "none",
-                    cursor: isPending ? "default" : "pointer",
-                    fontFamily: "var(--font-body), sans-serif",
-                    fontSize: "var(--text-body-md)",
-                    color: "var(--foreground)",
-                    opacity: isPending ? 0.5 : 1,
-                    transition: "background 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(13, 13, 11, 0.04)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  {bank.name}
-                </button>
-              ))}
-              {filteredBanks.length === 0 && (
-                <p style={{ padding: "12px", opacity: 0.4 }}>Geen banken gevonden.</p>
-              )}
-            </div>
+              {bank.name}
+            </button>
+          ))}
+          {filteredBanks.length === 0 && (
+            <p style={{ padding: "12px", opacity: 0.4 }}>Geen banken gevonden.</p>
+          )}
+        </div>
 
-            <div style={{ alignSelf: "flex-end" }}>
-              <button
-                onClick={onClose}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-body-sm)",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  cursor: "pointer",
-                  opacity: 0.4,
-                }}
-              >
-                Annuleren
-              </button>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        <div style={{ alignSelf: "flex-end" }}>
+          <button
+            onClick={onClose}
+            className="label-strong"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              opacity: 0.4,
+            }}
+          >
+            Annuleren
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

@@ -1,23 +1,16 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { AnimatedNumber } from "./AnimatedNumber";
 
 export function StatCard({
   label,
   value,
   sub,
-  numericValue,
 }: {
   label: string;
   value: string;
   sub?: string;
-  numericValue?: number;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+    <div
       style={{
         padding: "24px 28px",
         display: "flex",
@@ -25,10 +18,8 @@ export function StatCard({
         justifyContent: "space-between",
         gap: 16,
         minHeight: 140,
-        position: "relative",
-        overflow: "hidden",
         border: "var(--border-light)",
-        background: "var(--background)"
+        background: "var(--color-surface)",
       }}
     >
       <p className="label" style={{ margin: 0, opacity: 0.4 }}>
@@ -36,20 +27,16 @@ export function StatCard({
       </p>
 
       <p
+        className="mono-amount"
         style={{
-          fontFamily: `"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif`,
-          fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
-          fontWeight: 700,
+          fontSize: "clamp(1.6rem, 3vw, 2.4rem)",
+          fontWeight: 500,
           lineHeight: 1,
           margin: 0,
-          letterSpacing: "-0.03em",
+          letterSpacing: "-0.02em",
         }}
       >
-        {numericValue !== undefined ? (
-          <AnimatedNumber value={numericValue} isCurrency={true} />
-        ) : (
-          value
-        )}
+        {value}
       </p>
 
       {sub && (
@@ -62,13 +49,13 @@ export function StatCard({
             textTransform: "uppercase",
             letterSpacing: "0.1em",
             borderTop: "var(--border-rule)",
-            paddingTop: 12
+            paddingTop: 12,
           }}
         >
           {sub}
         </p>
       )}
-    </motion.div>
+    </div>
   );
 }
 

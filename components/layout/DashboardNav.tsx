@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { motion, AnimatePresence } from "framer-motion";
 
 export function DashboardNav({
   studioName,
@@ -22,18 +21,20 @@ export function DashboardNav({
 
   return (
     <div style={{ position: "sticky", top: 0, zIndex: 1000, background: "var(--background)" }}>
-      <header style={{ padding: "40px 80px" }}>
+      <header style={{ padding: "40px 80px", borderBottom: "var(--border-light)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          
-          <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <Link 
-              href="/dashboard"
-              className="display-hero" 
-              style={{ fontSize: "clamp(3rem, 6vw, 6rem)", letterSpacing: "-0.05em", color: "var(--foreground)", textDecoration: "none" }}
-            >
-              VAT100
-            </Link>
-          </div>
+          <Link
+            href="/dashboard"
+            className="display-hero"
+            style={{
+              fontSize: "clamp(2rem, 4vw, 4rem)",
+              letterSpacing: "-0.05em",
+              color: "var(--foreground)",
+              textDecoration: "none",
+            }}
+          >
+            VAT100
+          </Link>
 
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
             <span className="label" style={{ opacity: 0.4 }}>{studioName}</span>
@@ -47,7 +48,7 @@ export function DashboardNav({
                 padding: "4px 0",
                 borderBottom: isDrawerOpen ? "1px solid var(--foreground)" : "1px solid transparent",
                 transition: "border-color 0.2s ease",
-                color: "var(--foreground)"
+                color: "var(--foreground)",
               }}
             >
               {isDrawerOpen ? "SLUIT" : "MENU"}
@@ -56,57 +57,44 @@ export function DashboardNav({
         </div>
       </header>
 
-      <AnimatePresence>
-        {isDrawerOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            style={{ overflow: "hidden", background: "var(--background)", borderBottom: "var(--border-light)" }}
-          >
-            <div style={{ padding: "40px 80px 80px 80px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "40px" }}>
-              
-              {/* Navigation Column 1 */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <span className="label" style={{ marginBottom: 16 }}>Index</span>
-                <Link href="/dashboard" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)" }}>OVERZICHT</Link>
-                <Link href="/dashboard/invoices" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>FACTUREN</Link>
-                <Link href="/dashboard/clients" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>KLANTEN</Link>
-              </div>
-
-              {/* Navigation Column 2 */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <span className="label" style={{ marginBottom: 16 }}>Systemen</span>
-                <Link href="/dashboard/bank" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>TRANSACTIES</Link>
-                <Link href="/dashboard/tax" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>BELASTING</Link>
-                <Link href="/dashboard/settings" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>INSTELLINGEN</Link>
-              </div>
-
-              {/* Action Column */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-end" }}>
-                <span className="label" style={{ marginBottom: 16 }}>Sessie</span>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="label-strong"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                    opacity: 0.5,
-                    color: "var(--foreground)"
-                  }}
-                >
-                  VERLATEN
-                </button>
-              </div>
-
+      {isDrawerOpen && (
+        <div style={{ background: "var(--background)", borderBottom: "var(--border-light)" }}>
+          <div style={{ padding: "40px 80px 80px 80px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "40px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <span className="label" style={{ marginBottom: 16 }}>Index</span>
+              <Link href="/dashboard" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)" }}>OVERZICHT</Link>
+              <Link href="/dashboard/invoices" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>FACTUREN</Link>
+              <Link href="/dashboard/clients" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>KLANTEN</Link>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <span className="label" style={{ marginBottom: 16 }}>Systemen</span>
+              <Link href="/dashboard/bank" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>TRANSACTIES</Link>
+              <Link href="/dashboard/tax" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>BELASTING</Link>
+              <Link href="/dashboard/settings" className="display-title" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>INSTELLINGEN</Link>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-end" }}>
+              <span className="label" style={{ marginBottom: 16 }}>Sessie</span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="label-strong"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  opacity: 0.5,
+                  color: "var(--foreground)",
+                }}
+              >
+                VERLATEN
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { memo } from "react";
 import type { InvoiceLineInput, InvoiceUnit } from "@/lib/types";
-import { playSound } from "@/lib/utils/sound";
 
 interface InvoiceLineRowProps {
   line: InvoiceLineInput;
@@ -87,7 +86,6 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
           type="button"
           onClick={() => {
             onRemove(line.id);
-            playSound("tink");
           }}
           disabled={totalLines <= 1}
           style={{

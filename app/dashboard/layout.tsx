@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardNav } from "@/components/layout/DashboardNav";
-import { DashboardTransition } from "@/components/layout/DashboardTransition";
 
 export default async function DashboardLayout({
   children,
@@ -13,7 +12,6 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  // Fetch profile for studio name
   const { data: profile } = await supabase
     .from("profiles")
     .select("studio_name")
@@ -22,12 +20,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="dashboard-shell">
-      <DashboardNav
-        studioName={profile?.studio_name ?? undefined}
-      />
-      <DashboardTransition>
-        <main className="dashboard-content">{children}</main>
-      </DashboardTransition>
+      <DashboardNav studioName={profile?.studio_name ?? undefined} />
+      <main className="dashboard-content">{children}</main>
     </div>
   );
 }

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
 import { getClients, deleteClient } from "@/lib/actions/clients";
 import type { Client } from "@/lib/types";
 import { Th, Td, ErrorMessage } from "@/components/ui";
@@ -130,17 +129,11 @@ export default function ClientsPage() {
               <Th style={{ textAlign: "right" }}>Acties</Th>
             </tr>
           </thead>
-          <motion.tbody layout>
-            <AnimatePresence>
-              {filtered.map((client: Client, index: number) => (
-                <motion.tr 
-                  key={client.id} 
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2, delay: index * 0.03 }}
-                  style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}
+          <tbody>
+              {filtered.map((client: Client) => (
+                <tr
+                  key={client.id}
+                  style={{ borderBottom: "0.5px solid rgba(10,10,10,0.06)" }}
                 >
                   <Td>
                     <Link
@@ -184,10 +177,9 @@ export default function ClientsPage() {
                       </button>
                     </div>
                   </Td>
-                </motion.tr>
+                </tr>
               ))}
-            </AnimatePresence>
-          </motion.tbody>
+          </tbody>
         </table>
       )}
 

@@ -4,7 +4,7 @@ import "@/styles/globals.css";
 import { CommandMenu } from "@/components/ui/CommandMenu";
 
 export const viewport: Viewport = {
-  themeColor: "#f4f4f4",
+  themeColor: "#F2F0EB",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -13,16 +13,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "VAT100",
-  description: "VAT100 Invoice System",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "VAT100",
-  },
-  formatDetection: {
-    telephone: false,
-  },
+  description: "VAT100 — Boekhouding voor ZZP'ers",
 };
 
 export default function RootLayout({
@@ -32,6 +23,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nl">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
         <Providers>
           {children}
