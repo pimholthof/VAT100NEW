@@ -38,15 +38,19 @@ export default function DashboardClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 48, paddingBottom: 80 }}>
+      <h1 className="sr-only">Dashboard</h1>
+
       {/* ── 1. HERO: Vrij te besteden ── */}
       {safeToSpend && !isLoading && (
-        <section style={{ paddingTop: 16, paddingBottom: 48, borderBottom: "var(--border-light)" }}>
+        <section aria-label="Vrij te besteden">
+          <div style={{ paddingTop: 16, paddingBottom: 48, borderBottom: "var(--border-light)" }}>
           <p className="hero-label" style={{ marginBottom: 16 }}>
             Vrij te besteden
           </p>
           <p className="hero-amount">
             {formatCurrency(safeToSpend.safeToSpend)}
           </p>
+          </div>
         </section>
       )}
 
@@ -194,7 +198,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                   {sendingId === inv.id ? "..." : "HERINNERING"}
                 </button>
               ) : (
-                <span className="label" style={{ opacity: 0.2 }}>—</span>
+                <span className="label" style={{ opacity: 0.5 }}>—</span>
               )}
             </div>
           </div>

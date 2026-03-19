@@ -262,7 +262,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
         <div style={{ position: "sticky", top: 80, alignSelf: "start", width: "100%", height: 400 }}>
           <Image
             src={imageUrl || filePreview || ""}
-            alt="Bon"
+            alt={vendorName ? `Foto van bon van ${vendorName}` : "Foto van bon"}
             fill
             style={{
               objectFit: "contain",

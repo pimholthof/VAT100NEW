@@ -3,17 +3,20 @@ import React from "react";
 export function Th({
   children,
   style,
+  scope = "col",
 }: {
   children?: React.ReactNode;
   style?: React.CSSProperties;
+  scope?: "col" | "row" | "colgroup" | "rowgroup";
 }) {
   return (
     <th
+      scope={scope}
       className="label"
       style={{
         padding: "16px 0",
         textAlign: "left",
-        opacity: 0.3,
+        opacity: 0.5,
         ...style,
       }}
     >

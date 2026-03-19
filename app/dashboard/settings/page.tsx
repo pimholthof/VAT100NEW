@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getProfile, updateProfile } from "@/lib/actions/profile";
 import type { Profile } from "@/lib/types";
-import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage } from "@/components/ui";
+import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage, SuccessMessage } from "@/components/ui";
 
 export default function SettingsPage() {
   const { data: result, isLoading } = useQuery({
@@ -95,9 +95,9 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
       )}
 
       {success && (
-        <ErrorMessage style={{ marginBottom: 24 }}>
+        <SuccessMessage style={{ marginBottom: 24 }}>
           Instellingen opgeslagen.
-        </ErrorMessage>
+        </SuccessMessage>
       )}
 
       <div style={{ maxWidth: 480 }}>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 
 export function FieldGroup({
   label,
@@ -9,10 +9,13 @@ export function FieldGroup({
   htmlFor?: string;
   children: React.ReactNode;
 }) {
+  const autoId = useId();
+  const inputId = htmlFor || autoId;
+
   return (
     <div style={{ marginBottom: 16 }}>
       <label
-        htmlFor={htmlFor}
+        htmlFor={inputId}
         style={{
           display: "block",
           fontFamily: "var(--font-body), sans-serif",
@@ -26,7 +29,12 @@ export function FieldGroup({
       >
         {label}
       </label>
-      {children}
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement<{ id?: string }>(child) && !child.props.id) {
+          return React.cloneElement(child, { id: inputId });
+        }
+        return child;
+      })}
     </div>
   );
 }

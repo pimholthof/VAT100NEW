@@ -69,7 +69,8 @@ export default function ClientsPage() {
       {/* Search */}
       <div style={{ marginBottom: 32 }}>
         <input
-          type="text"
+          type="search"
+          aria-label="Zoek klanten"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Zoek op naam, contactpersoon of e-mail..."

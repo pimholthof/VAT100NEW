@@ -84,6 +84,7 @@
 /* ─── Base ─── */
 html {
   scroll-behavior: smooth;
+  font-display: swap;
 }
 
 body {
@@ -112,6 +113,20 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-ink) !important;
+}
+
+/* ─── Focus Visible ─── */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -313,7 +328,7 @@ tbody tr:hover {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   font-weight: 400;
-  opacity: 0.15;
+  opacity: 0.5;
   margin-top: auto;
   text-align: right;
 }
@@ -339,14 +354,14 @@ tbody tr:hover {
   font-size: 11px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  opacity: 0.15;
+  opacity: 0.5;
 }
 
 .footer-meta {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   font-weight: 400;
-  opacity: 0.15;
+  opacity: 0.5;
 }
 
 .footer-shortcut {
@@ -943,4 +958,66 @@ tbody tr:hover {
     min-height: 120px;
     padding: 20px 24px;
   }
+}
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Screen Reader Only ─── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ─── Skip Link ─── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 10000;
+  padding: 12px 24px;
+  background: var(--foreground);
+  color: var(--background);
+  font-family: 'Inter', sans-serif;
+  font-size: var(--text-body-md);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+/* ─── Success Message ─── */
+.success-message {
+  padding: 16px;
+  margin-bottom: 16px;
+  background: rgba(28, 79, 28, 0.06);
+  border-left: 2px solid var(--color-safe);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* ─── Minimum touch target ─── */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

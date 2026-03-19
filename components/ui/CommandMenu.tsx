@@ -1,27 +1,30 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 
 export function CommandMenu() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  
+
   // AI Chat State
   const [chatMode, setChatMode] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user' | 'ai', content: string}[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const router = useRouter();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((open) => !open);
+        setOpen((prev) => !prev);
       }
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && open) {
+        e.preventDefault();
         if (chatMode) {
           setChatMode(false);
           setQuery("");
@@ -33,7 +36,35 @@ export function CommandMenu() {
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [open, chatMode]);
+
+  // Focus trap for dialog
+  useEffect(() => {
+    if (!open || !dialogRef.current) return;
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !dialogRef.current) return;
+
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'input, button:not([disabled]), [tabindex]:not([tabindex="-1"]), a[href], select, textarea'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTab);
+    return () => document.removeEventListener("keydown", handleTab);
+  }, [open]);
 
   const runCommand = useCallback((command: () => unknown) => {
     setOpen(false);
@@ -55,12 +86,17 @@ export function CommandMenu() {
       });
       const data = await res.json();
       setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error }]);
-    } catch (e) {
+    } catch {
       setChatMessages(prev => [...prev, { role: 'ai', content: "Systeem onderbroken. We herstellen de verbinding." }]);
     } finally {
       setIsChatLoading(false);
     }
   };
+
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, isChatLoading]);
 
   if (!open) return null;
 
@@ -68,23 +104,29 @@ export function CommandMenu() {
     <div
       className="cmdk-overlay"
       onClick={() => setOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Commandomenu"
     >
       <div
+        ref={dialogRef}
         onClick={(e) => e.stopPropagation()}
         className="cmdk-dialog"
       >
         <Command
           style={{ width: "100%" }}
           label="Globale commando's"
-          shouldFilter={!chatMode} 
+          shouldFilter={!chatMode}
         >
           <div style={{ display: 'flex', alignItems: 'center', borderBottom: "var(--border-rule)" }}>
             {chatMode && (
-              <button 
+              <button
                 onClick={() => setChatMode(false)}
+                aria-label="Terug naar commandomenu"
                 style={{
                   background: 'transparent', border: 'none', cursor: 'pointer',
-                  padding: '20px 0 20px 24px', color: 'rgba(13,13,11,0.5)'
+                  padding: '20px 0 20px 24px', color: 'rgba(13,13,11,0.5)',
+                  minHeight: 44, minWidth: 44,
                 }}
               >
                 ←
@@ -127,8 +169,11 @@ export function CommandMenu() {
             >
               Geen resultaten voor &quot;{query}&quot;.
               {query && (
-                <div 
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => askAI(query)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") askAI(query); }}
                   style={{ marginTop: 12, padding: "8px 16px", background: "var(--foreground)", color: "var(--background)", borderRadius: 0, cursor: "pointer", display: "inline-block" }}
                 >
                   Vraag dit aan de AI CFO
@@ -197,7 +242,11 @@ export function CommandMenu() {
 
           </Command.List>
           ) : (
-            <div style={{ maxHeight: 400, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div
+              aria-live="polite"
+              aria-label="AI chat berichten"
+              style={{ maxHeight: 400, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}
+            >
               {chatMessages.length === 0 && (
                 <div style={{ textAlign: "center", opacity: 0.5, padding: "24px 0" }}>
                   Hoe kan ik je vandaag helpen met je administratie?
@@ -223,6 +272,7 @@ export function CommandMenu() {
                   <span className="spinner"></span> AI is aan het nadenken...
                 </div>
               )}
+              <div ref={chatEndRef} />
             </div>
           )}
         </Command>
