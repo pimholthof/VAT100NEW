@@ -13,17 +13,21 @@ export function ButtonPrimary({
       disabled={disabled}
       aria-disabled={disabled || undefined}
       style={{
-        fontFamily: "var(--font-body), sans-serif",
+        fontFamily: "var(--font-utility), 'Space Mono', monospace",
         fontSize: "var(--text-label)",
-        fontWeight: 500,
-        letterSpacing: "0.10em",
+        fontWeight: 400,
+        letterSpacing: "0.15em",
         textTransform: "uppercase",
         cursor: disabled ? "default" : "pointer",
-        padding: "16px 32px",
+        padding: "12px 24px",
         border: "none",
-        background: "var(--foreground)",
-        color: "var(--background)",
-        transition: "opacity 0.15s ease",
+        background: disabled
+          ? "var(--vat-light-grey)"
+          : "var(--vat-obsidian)",
+        color: disabled
+          ? "var(--vat-mid-grey)"
+          : "var(--vat-paper)",
+        transition: "background-color 0.2s ease",
         ...style,
       }}
       {...props}
@@ -46,17 +50,17 @@ export function ButtonSecondary({
       disabled={disabled}
       aria-disabled={disabled || undefined}
       style={{
-        fontFamily: "var(--font-body), sans-serif",
+        fontFamily: "var(--font-utility), 'Space Mono', monospace",
         fontSize: "var(--text-label)",
-        fontWeight: 500,
-        letterSpacing: "0.10em",
+        fontWeight: 400,
+        letterSpacing: "0.15em",
         textTransform: "uppercase",
         cursor: disabled ? "default" : "pointer",
-        padding: "14px 28px",
-        border: "0.5px solid rgba(13,13,11,0.25)",
+        padding: "10px 22px",
+        border: "2px solid var(--vat-obsidian)",
         background: "transparent",
-        color: "var(--foreground)",
-        transition: "all 0.2s ease",
+        color: "var(--vat-obsidian)",
+        transition: "background-color 0.2s ease, color 0.2s ease",
         ...style,
       }}
       {...props}
