@@ -312,11 +312,13 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     netThisMonth > netLastMonth ? "up" : netThisMonth < netLastMonth ? "down" : "stable";
 
   // ── VAT deadline ──
+  // BTW-aangifte deadlines: laatste dag van maand na kwartaal
+  // Maand is 0-based in JS Date, dus month 3 = april, etc.
   const deadlines: Record<number, { month: number; day: number; yearOffset: number }> = {
-    1: { month: 3, day: 30, yearOffset: 0 },
-    2: { month: 6, day: 31, yearOffset: 0 },
-    3: { month: 9, day: 31, yearOffset: 0 },
-    4: { month: 0, day: 31, yearOffset: 1 },
+    1: { month: 3, day: 30, yearOffset: 0 },  // 30 april
+    2: { month: 6, day: 31, yearOffset: 0 },  // 31 juli
+    3: { month: 9, day: 31, yearOffset: 0 },  // 31 oktober
+    4: { month: 0, day: 31, yearOffset: 1 },  // 31 januari volgend jaar
   };
   const dl = deadlines[currentQ];
   const deadlineDate = new Date(now.getFullYear() + dl.yearOffset, dl.month, dl.day);

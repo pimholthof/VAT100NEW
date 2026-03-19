@@ -1,9 +1,12 @@
 "use server";
 
-import { requireAuth, createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult, ActionFeedItem } from "@/lib/types";
 import { sendReminder } from "./invoices";
 import * as Sentry from "@sentry/nextjs";
+
+type ServiceClient = ReturnType<typeof createServiceClient>;
 
 /**
  * Fetch all pending action items for the current user (the "Inbox").
@@ -98,9 +101,9 @@ export async function ignoreActionItem(itemId: string): Promise<ActionResult> {
  * Agent 2: The Reconciliation Engine.
  * Scans for uncategorized transactions and generates action items.
  */
-export async function runReconciliationAgent(userId: string, externalSupabase?: Awaited<ReturnType<typeof createClient>>): Promise<ActionResult<{ created: number }>> {
+export async function runReconciliationAgent(userId: string, externalSupabase?: ServiceClient): Promise<ActionResult<{ created: number }>> {
   try {
-    const supabase = externalSupabase || await createClient();
+    const supabase = externalSupabase ?? createServiceClient();
 
     // 1. Find uncategorized bank transactions with no existing pending action
     const { data: uncategorized, error: txError } = await supabase
@@ -258,7 +261,7 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
     return { error: null, data: { created: newActions.length } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "reconciliation", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in reconciliation agent" };
+    return { error: err instanceof Error ? err.message : "Onbekende fout in reconciliatie-agent" };
   }
 }
 
@@ -273,9 +276,9 @@ interface OverdueInvoice {
 /**
  * Agent 3: The Anticipation Engine.
  */
-export async function runAnticipationAgent(userId: string, externalSupabase?: Awaited<ReturnType<typeof createClient>>): Promise<ActionResult<{ created: number }>> {
+export async function runAnticipationAgent(userId: string, externalSupabase?: ServiceClient): Promise<ActionResult<{ created: number }>> {
   try {
-    const supabase = externalSupabase || await createClient();
+    const supabase = externalSupabase ?? createServiceClient();
     const today = new Date().toISOString().split("T")[0];
 
     const { data: overdue, error: invError } = await supabase
@@ -336,16 +339,16 @@ export async function runAnticipationAgent(userId: string, externalSupabase?: Aw
     return { error: null, data: { created: newActions.length } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "anticipation", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in anticipation agent" };
+    return { error: err instanceof Error ? err.message : "Onbekende fout in anticipatie-agent" };
   }
 }
 
 /**
  * Agent 4: The Investment Agent (Tax Shield).
  */
-export async function runInvestmentAgent(userId: string, externalSupabase?: Awaited<ReturnType<typeof createClient>>): Promise<ActionResult<{ created: number }>> {
+export async function runInvestmentAgent(userId: string, externalSupabase?: ServiceClient): Promise<ActionResult<{ created: number }>> {
   try {
-    const supabase = externalSupabase || await createClient();
+    const supabase = externalSupabase ?? createServiceClient();
     const now = new Date();
     const yearStart = `${now.getFullYear()}-01-01`;
     
@@ -391,7 +394,7 @@ export async function runInvestmentAgent(userId: string, externalSupabase?: Awai
     return { error: null, data: { created: 0 } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "investment", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in investment agent" };
+    return { error: err instanceof Error ? err.message : "Onbekende fout in investerings-agent" };
   }
 }
 

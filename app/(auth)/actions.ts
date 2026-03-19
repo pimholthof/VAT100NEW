@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -7,15 +8,45 @@ export interface AuthResult {
   error: string | null;
 }
 
+const loginSchema = z.object({
+  email: z.string().trim().email("Ongeldig e-mailadres"),
+  password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens zijn"),
+});
+
+const registerSchema = z.object({
+  email: z.string().trim().email("Ongeldig e-mailadres"),
+  password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens zijn"),
+  full_name: z.string().trim().min(1, "Naam is verplicht"),
+  studio_name: z.string().trim().optional().default(""),
+});
+
+const onboardingSchema = z.object({
+  full_name: z.string().trim().optional().default(""),
+  studio_name: z.string().trim().optional().default(""),
+  kvk_number: z.string().trim().optional().default(""),
+  btw_number: z.string().trim().optional().default(""),
+  iban: z.string().trim().optional().default(""),
+  bic: z.string().trim().optional().default(""),
+  address: z.string().trim().optional().default(""),
+  city: z.string().trim().optional().default(""),
+  postal_code: z.string().trim().optional().default(""),
+});
+
 export async function login(formData: FormData): Promise<AuthResult> {
+  const parsed = loginSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Validatiefout" };
+  }
+
   const supabase = await createClient();
 
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-
   const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
+    email: parsed.data.email,
+    password: parsed.data.password,
   });
 
   if (error) {
@@ -26,20 +57,26 @@ export async function login(formData: FormData): Promise<AuthResult> {
 }
 
 export async function register(formData: FormData): Promise<AuthResult> {
+  const parsed = registerSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    full_name: formData.get("full_name"),
+    studio_name: formData.get("studio_name"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Validatiefout" };
+  }
+
   const supabase = await createClient();
 
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const fullName = formData.get("full_name") as string;
-  const studioName = formData.get("studio_name") as string;
-
   const { error } = await supabase.auth.signUp({
-    email,
-    password,
+    email: parsed.data.email,
+    password: parsed.data.password,
     options: {
       data: {
-        full_name: fullName,
-        studio_name: studioName,
+        full_name: parsed.data.full_name,
+        studio_name: parsed.data.studio_name,
       },
     },
   });
@@ -64,23 +101,39 @@ export async function completeOnboarding(
     return { error: "Niet ingelogd." };
   }
 
+  const parsed = onboardingSchema.safeParse({
+    full_name: formData.get("full_name"),
+    studio_name: formData.get("studio_name"),
+    kvk_number: formData.get("kvk_number"),
+    btw_number: formData.get("btw_number"),
+    iban: formData.get("iban"),
+    bic: formData.get("bic"),
+    address: formData.get("address"),
+    city: formData.get("city"),
+    postal_code: formData.get("postal_code"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Validatiefout" };
+  }
+
   const { error } = await supabase.from("profiles").upsert({
     id: user.id,
     full_name:
-      (formData.get("full_name") as string) ||
+      parsed.data.full_name ||
       user.user_metadata?.full_name ||
       "",
     studio_name:
-      (formData.get("studio_name") as string) ||
+      parsed.data.studio_name ||
       user.user_metadata?.studio_name ||
       "",
-    kvk_number: formData.get("kvk_number") as string,
-    btw_number: formData.get("btw_number") as string,
-    iban: formData.get("iban") as string,
-    bic: formData.get("bic") as string,
-    address: formData.get("address") as string,
-    city: formData.get("city") as string,
-    postal_code: formData.get("postal_code") as string,
+    kvk_number: parsed.data.kvk_number,
+    btw_number: parsed.data.btw_number,
+    iban: parsed.data.iban,
+    bic: parsed.data.bic,
+    address: parsed.data.address,
+    city: parsed.data.city,
+    postal_code: parsed.data.postal_code,
   });
 
   if (error) {

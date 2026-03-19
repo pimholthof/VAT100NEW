@@ -416,7 +416,7 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
       const [clientResult, profileResult, itemsResult] = await Promise.all([
         supabase.from("clients").select("*").eq("id", inv.client_id).single(),
         supabase.from("profiles").select("*").eq("id", inv.user_id).single(),
-        supabase.from("invoice_items").select("*").eq("invoice_id", inv.id),
+        supabase.from("invoice_lines").select("*").eq("invoice_id", inv.id),
       ]);
 
       if (clientResult.data && profileResult.data && clientResult.data.email) {

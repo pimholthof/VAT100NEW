@@ -1,5 +1,54 @@
 import { describe, it, expect } from "vitest";
-import { calculateSafeToSpend } from "../../tax";
+import { calculateSafeToSpend, estimateIncomeTax } from "../../tax";
+
+describe("estimateIncomeTax", () => {
+  it("geeft 0 bij omzet onder zelfstandigenaftrek", () => {
+    // €5.000 winst → ZA = €5.000, winstNaZA = 0 → IB = 0
+    expect(estimateIncomeTax(5000)).toBe(0);
+  });
+
+  it("geeft 0 bij lage winst door heffingskorting", () => {
+    // €10.000 winst → ZA €7.390, winstNaZA €2.610
+    // MKB: €2.610 × 13,31% = €347,39 → belastbaar: €2.262,61
+    // Bruto IB: €2.262,61 × 35,82% = €810,47
+    // Heffingskorting: €3.362 (volledig)
+    // Netto IB: max(0, 810,47 - 3.362) = 0
+    expect(estimateIncomeTax(10000)).toBe(0);
+  });
+
+  it("berekent IB correct bij middeninkomsten", () => {
+    // €50.000 winst
+    const result = estimateIncomeTax(50000);
+    // Moet positief zijn en aanzienlijk lager dan 37% flat
+    expect(result).toBeGreaterThan(0);
+    expect(result).toBeLessThan(50000 * 0.37); // minder dan oud flat tarief
+  });
+
+  it("berekent hogere IB bij hoge inkomsten (derde schijf)", () => {
+    const result = estimateIncomeTax(100000);
+    expect(result).toBeGreaterThan(0);
+    // Bij €100k zitten we in de derde schijf (49,5%)
+    expect(result).toBeGreaterThan(estimateIncomeTax(76817));
+  });
+
+  it("trekt kosten af van winst", () => {
+    const zonderKosten = estimateIncomeTax(50000, 0);
+    const metKosten = estimateIncomeTax(50000, 10000);
+    expect(metKosten).toBeLessThan(zonderKosten);
+  });
+
+  it("respecteert zelfstandigenaftrek toggle", () => {
+    const metZA = estimateIncomeTax(50000, 0, true);
+    const zonderZA = estimateIncomeTax(50000, 0, false);
+    expect(zonderZA).toBeGreaterThan(metZA);
+  });
+
+  it("geeft 0 bij negatieve winst", () => {
+    expect(estimateIncomeTax(0)).toBe(0);
+    expect(estimateIncomeTax(-1000)).toBe(0);
+    expect(estimateIncomeTax(5000, 10000)).toBe(0);
+  });
+});
 
 describe("calculateSafeToSpend", () => {
   it("berekent safe-to-spend correct met standaard waarden", () => {
@@ -12,12 +61,10 @@ describe("calculateSafeToSpend", () => {
 
     expect(result.currentBalance).toBe(8000);
     expect(result.estimatedVat).toBe(1600); // max(0, 2100 - 500)
-    // income tax: (12100 - 2100) * 0.37 = 10000 * 0.37 = 3700
-    expect(result.estimatedIncomeTax).toBe(3700);
-    expect(result.reservedTotal).toBe(5300); // 1600 + 3700
-    expect(result.safeToSpend).toBe(2700); // 8000 - 5300
-    // revenue ex vat = 10000, threshold is > 10000 (strict), so no shield
-    expect(result.taxShieldPotential).toBe(0);
+    // €10.000 netto omzet → na ZA + MKB + heffingskorting = €0 IB
+    expect(result.estimatedIncomeTax).toBe(0);
+    expect(result.reservedTotal).toBe(1600);
+    expect(result.safeToSpend).toBe(6400); // 8000 - 1600
   });
 
   it("geeft nul bij lege bank transacties", () => {
@@ -32,13 +79,12 @@ describe("calculateSafeToSpend", () => {
   });
 
   it("klempt safe-to-spend op 0 (nooit negatief)", () => {
-    const bankTx = [{ amount: 1000 }];
-    const yearRevenue = [{ total_inc_vat: 24200, vat_amount: 4200 }];
+    const bankTx = [{ amount: 100 }];
+    const yearRevenue = [{ total_inc_vat: 72600, vat_amount: 12600 }];
 
-    const result = calculateSafeToSpend(bankTx, yearRevenue, 4200, 0);
+    const result = calculateSafeToSpend(bankTx, yearRevenue, 12600, 0);
 
-    // balance: 1000, vat: 4200, income tax: 20000*0.37=7400, reserved: 11600
-    // safe: 1000 - 11600 = -10600 → clamped to 0
+    // balance: 100, vat: 12600, plus IB → reserved > 100
     expect(result.safeToSpend).toBe(0);
   });
 
