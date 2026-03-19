@@ -55,7 +55,7 @@ export type InvoiceSchema = z.infer<typeof invoiceSchema>;
 export const receiptSchema = z.object({
   vendor_name: optionalString,
   amount_ex_vat: z.number().min(0).nullable().optional(),
-  vat_rate: z.number().min(0).max(100).nullable().optional(),
+  vat_rate: z.union([z.literal(0), z.literal(9), z.literal(21)]).nullable().optional(),
   category: optionalString,
   cost_code: z.number().nullable().optional(),
   receipt_date: z.string().nullable().optional(),
