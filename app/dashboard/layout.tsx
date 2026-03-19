@@ -21,8 +21,11 @@ export default async function DashboardLayout({
 
   return (
     <div className="dashboard-shell">
+      <a href="#main-content" className="skip-link">
+        Ga naar inhoud
+      </a>
       <DashboardNav studioName={profile?.studio_name ?? undefined} />
-      <main className="dashboard-content">{children}</main>
+      <main id="main-content" className="dashboard-content">{children}</main>
       <DashboardFooter />
     </div>
   );

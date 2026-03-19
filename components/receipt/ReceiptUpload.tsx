@@ -98,7 +98,7 @@ export function ReceiptUpload({
         />
 
         {uploading ? (
-          <p style={uploadTextStyle}>Uploaden...</p>
+          <p role="status" aria-live="polite" style={uploadTextStyle}>Uploaden...</p>
         ) : selectedFile && filePreview ? (
           <>
             <div style={{ position: "relative", width: 200, height: 150 }}>

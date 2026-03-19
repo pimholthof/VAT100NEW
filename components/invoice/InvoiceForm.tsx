@@ -143,11 +143,13 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* ── Ontvanger ── */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.3, marginBottom: 12 }}>ONTVANGER</p>
+        <label className="label" htmlFor="invoice-client" style={{ display: "block", opacity: 0.5, marginBottom: 12 }}>ONTVANGER</label>
         <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
           <select
+            id="invoice-client"
             value={clientId}
             onChange={(e) => setClientId(e.target.value)}
+            aria-label="Selecteer klant"
             style={{
               ...inputStyle,
               fontSize: "2.5rem",
@@ -172,6 +174,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           <button
             type="button"
             onClick={() => setShowNewClient(!showNewClient)}
+            aria-expanded={showNewClient}
             style={{
               background: "none",
               border: "none",
@@ -179,7 +182,9 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               fontSize: 10,
               textTransform: "uppercase",
               letterSpacing: "0.2em",
-              opacity: 0.3,
+              opacity: 0.5,
+              minHeight: 44,
+              minWidth: 44,
             }}
           >
             {showNewClient ? "[-] SLUIT" : "[+] NIEUW"}
@@ -194,7 +199,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* ── Regels ── */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.3, marginBottom: 24 }}>REGELS</p>
+        <span className="label" style={{ display: "block", opacity: 0.5, marginBottom: 24 }}>REGELS</span>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {lines.map((line, index) => (
             <InvoiceLineRow
@@ -217,9 +222,10 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               fontSize: 10,
               textAlign: "left",
               padding: "12px 0",
-              opacity: 0.2,
+              opacity: 0.5,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
+              minHeight: 44,
             }}
           >
             + REGEL TOEVOEGEN
@@ -240,8 +246,9 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p className="label">REF</p>
+          <label htmlFor="invoice-ref" className="label">REF</label>
           <input
+            id="invoice-ref"
             type="text"
             value={invoiceNumber}
             onChange={(e) => setInvoiceNumber(e.target.value)}
@@ -249,8 +256,9 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p className="label">DATUM</p>
+          <label htmlFor="invoice-date" className="label">DATUM</label>
           <input
+            id="invoice-date"
             type="date"
             value={issueDate}
             onChange={(e) => setIssueDate(e.target.value)}
@@ -258,8 +266,9 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p className="label">BTW ({vatRate}%)</p>
+          <label htmlFor="invoice-vat" className="label">BTW ({vatRate}%)</label>
           <select
+            id="invoice-vat"
             value={vatRate}
             onChange={(e) => setVatRate(Number(e.target.value) as VatRate)}
             style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
@@ -274,7 +283,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       {/* ── Totaal ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 100 }}>
         <div>
-          <p className="label" style={{ opacity: 0.15, marginBottom: 8 }}>TOTAAL</p>
+          <p className="label" style={{ opacity: 0.5, marginBottom: 8 }}>TOTAAL</p>
           <p
             className="mono-amount-lg"
             style={{
@@ -298,6 +307,8 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         <button
           onClick={() => handleSave(false)}
           disabled={saving}
+          aria-disabled={saving}
+          aria-label={saving ? "Bezig met opslaan..." : "Concept opslaan"}
           style={{
             flex: 1,
             padding: "24px",
@@ -307,14 +318,16 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.12em",
-            cursor: "pointer",
+            cursor: saving ? "default" : "pointer",
           }}
         >
-          {saving ? "..." : "Concept opslaan"}
+          {saving ? "Opslaan..." : "Concept opslaan"}
         </button>
         <button
           onClick={() => handleSave(true)}
           disabled={saving}
+          aria-disabled={saving}
+          aria-label={saving ? "Bezig met versturen..." : "Versturen & Bekijken"}
           style={{
             flex: 2,
             padding: "24px",
@@ -325,18 +338,21 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.12em",
-            cursor: "pointer",
+            cursor: saving ? "default" : "pointer",
           }}
         >
-          {saving ? "..." : "Versturen & Bekijken"}
+          {saving ? "Versturen..." : "Versturen & Bekijken"}
         </button>
       </div>
 
-      {lastSavedAt && (
-        <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, marginTop: 40, textAlign: "center" }}>
-          Opgeslagen / {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
-        </p>
-      )}
+      <p
+        className="mono-amount"
+        role="status"
+        aria-live="polite"
+        style={{ fontSize: 10, opacity: lastSavedAt ? 0.5 : 0, marginTop: 40, textAlign: "center" }}
+      >
+        {lastSavedAt ? `Opgeslagen / ${new Date(lastSavedAt).toLocaleTimeString("nl-NL")}` : ""}
+      </p>
     </div>
   );
 }
