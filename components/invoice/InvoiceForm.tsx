@@ -17,9 +17,6 @@ import {
   inputStyle,
   ErrorMessage,
 } from "@/components/ui";
-import { motion } from "framer-motion";
-import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import { playSound } from "@/lib/utils/sound";
 
 interface InvoiceFormProps {
   invoiceId?: string;
@@ -62,7 +59,6 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const hasClientError = clientsError || !!clientsResult?.error;
   const clientErrorMessage = clientsResult?.error || "Fout bij ophalen";
 
-  // Generate invoice number for new invoices
   useEffect(() => {
     if (!invoiceId && !invoiceNumber) {
       generateInvoiceNumber().then((result) => {
@@ -75,7 +71,6 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     }
   }, [invoiceId, invoiceNumber, setInvoiceNumber]);
 
-  // Auto-save draft every 30 seconds
   const handleAutoSave = useCallback(async () => {
     const s = useInvoiceStore.getState();
     if (!s.isDirty || !s.clientId || !s.invoiceNumber) return;
@@ -138,41 +133,35 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     setSaving(false);
   };
 
+  const fmt = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" });
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      style={{ maxWidth: 900, margin: "0 auto" }}
-    >
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
       {error && (
         <ErrorMessage style={{ marginBottom: 40 }}>{error}</ErrorMessage>
       )}
 
-      {/* ── Recipient: Large and focused ── */}
+      {/* ── Ontvanger ── */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>RECIPIENT</p>
+        <p className="label" style={{ opacity: 0.3, marginBottom: 12 }}>ONTVANGER</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
           <select
             value={clientId}
-            onChange={(e) => {
-              setClientId(e.target.value);
-              playSound("tink");
-            }}
-            style={{ 
-              ...inputStyle, 
-              fontSize: "2.5rem", 
-              fontWeight: 400, 
+            onChange={(e) => setClientId(e.target.value)}
+            style={{
+              ...inputStyle,
+              fontSize: "2.5rem",
+              fontWeight: 400,
               letterSpacing: "-0.04em",
               border: "none",
               padding: 0,
               width: "auto",
               minWidth: 300,
-              background: "transparent"
+              background: "transparent",
             }}
           >
             <option value="">
-              {clientsLoading ? "Loading..." : hasClientError ? clientErrorMessage : "Select Client"}
+              {clientsLoading ? "Laden..." : hasClientError ? clientErrorMessage : "Selecteer klant"}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
@@ -182,10 +171,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           </select>
           <button
             type="button"
-            onClick={() => {
-              setShowNewClient(!showNewClient);
-              playSound("glass-ping");
-            }}
+            onClick={() => setShowNewClient(!showNewClient)}
             style={{
               background: "none",
               border: "none",
@@ -193,26 +179,22 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               fontSize: 10,
               textTransform: "uppercase",
               letterSpacing: "0.2em",
-              opacity: 0.3
+              opacity: 0.3,
             }}
           >
-            {showNewClient ? "[-] CLOSE" : "[+] NEW"}
+            {showNewClient ? "[-] SLUIT" : "[+] NIEUW"}
           </button>
         </div>
         {showNewClient && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            style={{ overflow: "hidden", marginTop: 24 }}
-          >
+          <div style={{ marginTop: 24 }}>
             <ClientQuickCreate onClose={() => setShowNewClient(false)} />
-          </motion.div>
+          </div>
         )}
       </div>
 
-      {/* ── The Sum: Invoicing as Expression ── */}
+      {/* ── Regels ── */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>EXPRESSION</p>
+        <p className="label" style={{ opacity: 0.3, marginBottom: 24 }}>REGELS</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {lines.map((line, index) => (
             <InvoiceLineRow
@@ -227,10 +209,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           ))}
           <button
             type="button"
-            onClick={() => {
-              addLine();
-              playSound("tink");
-            }}
+            onClick={() => addLine()}
             style={{
               background: "none",
               border: "none",
@@ -240,24 +219,26 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               padding: "12px 0",
               opacity: 0.2,
               letterSpacing: "0.1em",
-              textTransform: "uppercase"
+              textTransform: "uppercase",
             }}
           >
-            + ADD LINE
+            + REGEL TOEVOEGEN
           </button>
         </div>
       </div>
 
-      {/* ── Metadata: Precision lines ── */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "1fr 1fr 1fr", 
-        gap: 60, 
-        padding: "40px 0",
-        borderTop: "var(--border-rule)",
-        borderBottom: "var(--border-rule)",
-        marginBottom: 80
-      }}>
+      {/* ── Metadata ── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: 60,
+          padding: "40px 0",
+          borderTop: "var(--border-rule)",
+          borderBottom: "var(--border-rule)",
+          marginBottom: 80,
+        }}
+      >
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <p className="label">REF</p>
           <input
@@ -268,7 +249,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p className="label">DATE</p>
+          <p className="label">DATUM</p>
           <input
             type="date"
             value={issueDate}
@@ -277,68 +258,62 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p className="label">TAX ({vatRate}%)</p>
+          <p className="label">BTW ({vatRate}%)</p>
           <select
             value={vatRate}
             onChange={(e) => setVatRate(Number(e.target.value) as VatRate)}
             style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
           >
-            <option value={21}>High (21%)</option>
-            <option value={9}>Low (9%)</option>
-            <option value={0}>Zero (0%)</option>
+            <option value={21}>Hoog (21%)</option>
+            <option value={9}>Laag (9%)</option>
+            <option value={0}>Nul (0%)</option>
           </select>
         </div>
       </div>
 
-      {/* ── The Monolith: Total ── */}
+      {/* ── Totaal ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 100 }}>
         <div>
-          <p className="label" style={{ opacity: 0.1, marginBottom: 8 }}>GRAND TOTAL</p>
-          <AnimatedNumber 
-            value={totals.total} 
-            isCurrency={true}
+          <p className="label" style={{ opacity: 0.15, marginBottom: 8 }}>TOTAAL</p>
+          <p
+            className="mono-amount-lg"
             style={{
               fontSize: "6rem",
-              fontWeight: 400,
               lineHeight: 0.8,
-              letterSpacing: "-0.06em",
-              color: "var(--foreground)"
+              letterSpacing: "-0.04em",
+              color: "var(--foreground)",
             }}
-          />
+          >
+            {fmt.format(totals.total)}
+          </p>
         </div>
         <div style={{ textAlign: "right", opacity: 0.4 }}>
-          <p className="mono-amount" style={{ fontSize: 11, marginBottom: 4 }}>Sub: {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totals.subtotal)}</p>
-          <p className="mono-amount" style={{ fontSize: 11 }}>Tax: {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totals.vatAmount)}</p>
+          <p className="mono-amount" style={{ fontSize: 11, marginBottom: 4 }}>Sub: {fmt.format(totals.subtotal)}</p>
+          <p className="mono-amount" style={{ fontSize: 11 }}>BTW: {fmt.format(totals.vatAmount)}</p>
         </div>
       </div>
 
-      {/* ── Actions: The VanMoof Unlock ── */}
+      {/* ── Acties ── */}
       <div style={{ display: "flex", gap: 24 }}>
         <button
-          onClick={() => {
-            handleSave(false);
-            playSound("glass-ping");
-          }}
+          onClick={() => handleSave(false)}
           disabled={saving}
           style={{
             flex: 1,
             padding: "24px",
-            background: "rgba(0,0,0,0.03)",
-            border: "var(--border-rule)",
+            background: "transparent",
+            border: "var(--border)",
             fontSize: 11,
             fontWeight: 500,
             textTransform: "uppercase",
-            letterSpacing: "0.2em",
-            cursor: "pointer"
+            letterSpacing: "0.12em",
+            cursor: "pointer",
           }}
         >
-          {saving ? "..." : "Save Draft"}
+          {saving ? "..." : "Concept opslaan"}
         </button>
         <button
-          onClick={() => {
-            handleSave(true);
-            playSound("glass-ping");
-          }}
+          onClick={() => handleSave(true)}
           disabled={saving}
           style={{
             flex: 2,
@@ -349,85 +324,19 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             fontSize: 11,
             fontWeight: 600,
             textTransform: "uppercase",
-            letterSpacing: "0.2em",
+            letterSpacing: "0.12em",
             cursor: "pointer",
-            boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
           }}
         >
-          {saving ? "..." : "Issue & Preview"}
+          {saving ? "..." : "Versturen & Bekijken"}
         </button>
       </div>
 
       {lastSavedAt && (
         <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, marginTop: 40, textAlign: "center" }}>
-          PROTOCOL Sync / {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
+          Opgeslagen / {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
         </p>
       )}
-    </motion.div>
-  );
-}
-
-// ─── Reusable sub-components ───
-
-function LabelCell({ children }: { children?: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-label)",
-        fontWeight: 500,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        opacity: 0.4,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function TotalRow({
-  label,
-  value,
-  bold,
-}: {
-  label: string;
-  value: number;
-  bold?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        gap: 32,
-        padding: "4px 0",
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "11px",
-          fontWeight: 300,
-          opacity: bold ? 1 : 0.4,
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          fontFamily: "var(--font-mono), monospace",
-          fontSize: bold ? "14px" : "12px",
-          fontWeight: bold ? 500 : 400,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {new Intl.NumberFormat("nl-NL", {
-          style: "currency",
-          currency: "EUR",
-        }).format(value)}
-      </span>
     </div>
   );
 }
-

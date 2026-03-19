@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   getBankConnections,
   getBankTransactions,
@@ -225,48 +224,42 @@ export default function BankPage() {
       </div>
 
       {/* Return Status Feedback */}
-      <AnimatePresence>
-        {(completionStatus.loading || completionStatus.error || completionStatus.success) && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            style={{
-              overflow: "hidden",
-              marginBottom: 48,
-              borderLeft: "2px solid var(--foreground)",
-              background: "rgba(13, 13, 11, 0.04)",
-              padding: "24px",
-            }}
-          >
-            {completionStatus.loading && (
-              <p style={{ margin: 0, opacity: 0.6 }}>Bankrekening configureren...</p>
-            )}
-            {completionStatus.error && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ margin: 0, color: "#e63946" }}>Fout bij koppelen: {completionStatus.error}</p>
-                <button 
-                  onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
-                  style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
-                >
-                  Sluiten
-                </button>
-              </div>
-            )}
-            {completionStatus.success && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ margin: 0 }}>✓ Bankrekening succesvol gekoppeld!</p>
-                <button 
-                  onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
-                  style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
-                >
-                  Sluiten
-                </button>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {(completionStatus.loading || completionStatus.error || completionStatus.success) && (
+        <div
+          style={{
+            marginBottom: 48,
+            borderLeft: "2px solid var(--foreground)",
+            background: "rgba(10, 10, 10, 0.04)",
+            padding: "24px",
+          }}
+        >
+          {completionStatus.loading && (
+            <p style={{ margin: 0, opacity: 0.6 }}>Bankrekening configureren...</p>
+          )}
+          {completionStatus.error && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <p style={{ margin: 0, color: "var(--color-reserved)" }}>Fout bij koppelen: {completionStatus.error}</p>
+              <button
+                onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
+                style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
+              >
+                Sluiten
+              </button>
+            </div>
+          )}
+          {completionStatus.success && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <p style={{ margin: 0 }}>Bankrekening succesvol gekoppeld.</p>
+              <button
+                onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
+                style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
+              >
+                Sluiten
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <InstitutionSelector 
         isOpen={isSelectorOpen} 
