@@ -16,7 +16,8 @@ export async function getReceipts(): Promise<ActionResult<Receipt[]>> {
     .from("receipts")
     .select("*")
     .eq("user_id", user.id)
-    .order("receipt_date", { ascending: false });
+    .order("receipt_date", { ascending: false })
+    .limit(200);
 
   if (error) return { error: error.message };
   return { error: null, data: data ?? [] };
@@ -139,6 +140,12 @@ export async function uploadReceiptImage(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  // Validate receiptId as UUID to prevent path traversal
+  const uuidResult = z.string().uuid("Ongeldige bon-ID.").safeParse(receiptId);
+  if (!uuidResult.success) {
+    return { error: "Ongeldige bon-ID." };
+  }
+
   const file = formData.get("file") as File | null;
   if (!file) return { error: "Geen bestand geselecteerd." };
 
@@ -193,6 +200,12 @@ export async function scanReceiptWithAI(
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
+
+  // Validate receiptId as UUID
+  const uuidResult = z.string().uuid("Ongeldige bon-ID.").safeParse(receiptId);
+  if (!uuidResult.success) {
+    return { error: "Ongeldige bon-ID." };
+  }
 
   // Get receipt to find storage_path
   const { data: receipt, error: receiptError } = await supabase

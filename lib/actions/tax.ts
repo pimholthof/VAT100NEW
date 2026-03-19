@@ -15,6 +15,9 @@ export interface QuarterStats {
 
 function getQuarterKey(dateStr: string): string {
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) {
+    return "Q0 0000";
+  }
   const month = d.getMonth(); // 0-based
   const year = d.getFullYear();
   const q = Math.floor(month / 3) + 1;

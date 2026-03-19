@@ -204,6 +204,9 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
         // Learn from previous resolutions (in-memory lookup)
         if (tx.counterpart_name && priorCategorizations.has(tx.counterpart_name)) confidence += 0.05;
 
+        // Cap confidence: AI-derived matches should never claim absolute certainty
+        confidence = Math.min(confidence, 0.99);
+
         if (confidence >= 0.98) {
           // Autonomous match
           await supabase

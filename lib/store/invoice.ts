@@ -122,7 +122,11 @@ export const useInvoiceStore = create<InvoiceFormState>((set, get) => ({
     const { lines, vatRate } = get();
     const newLines = lines.map((l) => {
       if (l.id !== id) return l;
-      return { ...l, [field]: value };
+      // Coerce numeric fields to numbers to prevent NaN in calculations
+      const coerced = (field === "quantity" || field === "rate")
+        ? Number(value) || 0
+        : value;
+      return { ...l, [field]: coerced };
     });
     set({ lines: newLines, totals: calcTotals(newLines, vatRate), isDirty: true });
   },
