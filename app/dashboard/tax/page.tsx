@@ -6,6 +6,7 @@ import { getDashboardData } from "@/lib/actions/dashboard";
 import type { QuarterStats } from "@/lib/actions/tax";
 import { StatCard, SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
+import { estimateIncomeTax, ZELFSTANDIGENAFTREK, MKB_WINSTVRIJSTELLING_RATE } from "@/lib/tax";
 
 export default function TaxPage() {
   const { data: result, isLoading } = useQuery({
@@ -23,22 +24,17 @@ export default function TaxPage() {
   const safeToSpend = dashResult?.data?.safeToSpend;
   const vatDeadline = dashResult?.data?.vatDeadline;
 
-  // Year-end IB projection (same logic as FinancialInsights)
+  // Year-end IB projection via lib/tax.ts (IB 2025 schijven)
   const now = new Date();
   const monthsElapsed = now.getMonth() + 1;
   const yearRevenueExVat = quarters
     .filter((q) => q.quarter.includes(String(now.getFullYear())))
     .reduce((sum, q) => sum + q.revenueExVat, 0);
-  const annualizedRevenue = (yearRevenueExVat / monthsElapsed) * 12;
-  const zelfstandigenaftrek = 5030;
-  const mkbVrijstelling = annualizedRevenue * 0.14;
-  const taxableProfit = Math.max(0, annualizedRevenue - zelfstandigenaftrek - mkbVrijstelling);
-  let estimatedIB = 0;
-  if (taxableProfit <= 75518) {
-    estimatedIB = taxableProfit * 0.3693;
-  } else {
-    estimatedIB = 75518 * 0.3693 + (taxableProfit - 75518) * 0.4950;
-  }
+  const annualizedRevenue = monthsElapsed > 0 ? (yearRevenueExVat / monthsElapsed) * 12 : 0;
+  const mkbVrijstelling = Math.round(
+    Math.max(0, annualizedRevenue - ZELFSTANDIGENAFTREK) * MKB_WINSTVRIJSTELLING_RATE * 100
+  ) / 100;
+  const estimatedIB = estimateIncomeTax(annualizedRevenue);
 
   // Total year BTW
   const yearBtw = quarters
@@ -80,7 +76,7 @@ export default function TaxPage() {
         <YearCard
           label={`Geschatte IB ${now.getFullYear()}`}
           value={formatCurrency(Math.round(estimatedIB))}
-          sublabel={`Belastbaar: ${formatCurrency(Math.round(taxableProfit))}`}
+          sublabel={`Omzet (geannualiseerd): ${formatCurrency(Math.round(annualizedRevenue))}`}
         />
         <YearCard
           label={`BTW totaal ${now.getFullYear()}`}
@@ -109,13 +105,13 @@ export default function TaxPage() {
         >
           <DeductionItem
             label="Zelfstandigenaftrek"
-            value={formatCurrency(zelfstandigenaftrek)}
+            value={formatCurrency(ZELFSTANDIGENAFTREK)}
             note="1.225+ uur per jaar"
           />
           <DeductionItem
             label="MKB-winstvrijstelling"
             value={formatCurrency(Math.round(mkbVrijstelling))}
-            note="14% van de winst"
+            note={`${(MKB_WINSTVRIJSTELLING_RATE * 100).toFixed(2)}% van de winst na ZA`}
           />
           <DeductionItem
             label="Aftrekbare BTW (YTD)"
@@ -300,8 +296,8 @@ export default function TaxPage() {
       >
         Dit overzicht is indicatief. Dien je BTW-aangifte in via het portaal van
         de Belastingdienst. Bewaar je facturen en bonnen minimaal 7 jaar.
-        Inkomstenbelastingschatting is gebaseerd op 36,93% schijf 1 en 49,50% schijf 2 (2024).
-        Zelfstandigenaftrek (€5.030) en MKB-winstvrijstelling (14%) zijn meegenomen.
+        Inkomstenbelastingschatting is gebaseerd op IB-schijven 2025 (35,82% / 37,48% / 49,50%).
+        Zelfstandigenaftrek (€7.390) en MKB-winstvrijstelling (13,31%) zijn meegenomen.
       </div>
     </div>
   );

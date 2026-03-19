@@ -215,4 +215,5 @@ export interface SafeToSpendData {
   reservedTotal: number;
   safeToSpend: number;
   taxShieldPotential: number; // Potential tax savings if gear investment is made
+  yearRevenueExVat: number; // Jaaromzet excl. BTW (voor IB-prognose)
 }

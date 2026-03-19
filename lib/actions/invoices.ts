@@ -12,7 +12,7 @@ import type {
   InvoiceWithDetails,
 } from "@/lib/types";
 import { invoiceSchema, validate } from "@/lib/validation";
-import { calculateLineTotals } from "@/lib/format";
+import { calculateLineTotals, formatCurrency } from "@/lib/format";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { InvoiceData } from "@/lib/types";
 
@@ -439,7 +439,7 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
         user_id: inv.user_id,
         type: "tax_alert",
         title: `Factuur ${inv.invoice_number} is verlopen`,
-        description: `Factuur ${inv.invoice_number} (${new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(inv.total_inc_vat)}) is verlopen. ${emailSent ? "Een herinnering is automatisch verstuurd." : "Stuur handmatig een herinnering."}`,
+        description: `Factuur ${inv.invoice_number} (${formatCurrency(inv.total_inc_vat)}) is verlopen. ${emailSent ? "Een herinnering is automatisch verstuurd." : "Stuur handmatig een herinnering."}`,
         amount: inv.total_inc_vat,
         ai_confidence: 1.0,
       });

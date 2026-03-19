@@ -11,8 +11,8 @@ const IB_BRACKETS: { limit: number; rate: number }[] = [
   { limit: Infinity, rate: 0.495 },
 ];
 
-const ZELFSTANDIGENAFTREK = 7390;
-const MKB_WINSTVRIJSTELLING_RATE = 0.1331;
+export const ZELFSTANDIGENAFTREK = 7390;
+export const MKB_WINSTVRIJSTELLING_RATE = 0.1331;
 
 // Heffingskorting 2025: max €3.362, afbouw boven €24.814
 const HEFFINGSKORTING_MAX = 3362;
@@ -92,7 +92,9 @@ export function calculateSafeToSpend(
   bankTransactions: Array<{ amount: number }>,
   yearRevenue: Array<{ total_inc_vat: number; vat_amount: number }>,
   outputVat: number,
-  inputVat: number
+  inputVat: number,
+  yearCosts: number = 0,
+  useZelfstandigenaftrek: boolean = true
 ): SafeToSpendData {
   const currentBalance = bankTransactions.reduce(
     (sum, tx) => sum + (Number(tx.amount) || 0), 0
@@ -103,7 +105,7 @@ export function calculateSafeToSpend(
   const totalRevenueExVat = yearRevenue.reduce(
     (sum, inv) => sum + ((Number(inv.total_inc_vat) || 0) - (Number(inv.vat_amount) || 0)), 0
   );
-  const estimatedIncomeTax = estimateIncomeTax(totalRevenueExVat);
+  const estimatedIncomeTax = estimateIncomeTax(totalRevenueExVat, yearCosts, useZelfstandigenaftrek);
 
   const reservedTotal = estimatedVat + estimatedIncomeTax;
   const safeToSpend = Math.round((currentBalance - reservedTotal) * 100) / 100;
@@ -117,5 +119,6 @@ export function calculateSafeToSpend(
     reservedTotal: Math.round(reservedTotal * 100) / 100,
     safeToSpend: Math.max(0, safeToSpend),
     taxShieldPotential,
+    yearRevenueExVat: Math.round(totalRevenueExVat * 100) / 100,
   };
 }
