@@ -66,34 +66,12 @@ export function CommandMenu() {
 
   return (
     <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(255, 255, 255, 0.4)",
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "center",
-        paddingTop: "15vh",
-        backdropFilter: "blur(40px)",
-        WebkitBackdropFilter: "blur(40px)",
-      }}
+      className="cmdk-overlay"
       onClick={() => setOpen(false)}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: 640,
-          background: "rgba(255, 255, 255, 0.95)",
-          border: "var(--border)",
-          borderRadius: 0,
-          overflow: "hidden",
-          boxShadow: "0 32px 64px -12px rgba(0,0,0,0.1)",
-        }}
+        className="cmdk-dialog"
       >
         <Command
           style={{ width: "100%" }}
@@ -233,7 +211,7 @@ export function CommandMenu() {
                    borderRadius: 0,
                   maxWidth: '85%',
                   whiteSpace: 'pre-wrap',
-                  fontFamily: "var(--font-geist), sans-serif",
+                  fontFamily: "'Inter', sans-serif",
                   fontSize: "var(--text-body-md)"
                 }}>
                   {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 AI</strong>}

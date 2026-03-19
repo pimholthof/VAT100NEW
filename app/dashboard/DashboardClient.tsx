@@ -37,56 +37,45 @@ export default function DashboardClient({
   const safeToSpend = data?.safeToSpend;
 
   return (
-    <div
-      className="dashboard-content"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 32,
-        paddingBottom: 80,
-      }}
-    >
-      {/* ── 1. HERO: Safe to Spend ── */}
+    <div style={{ display: "flex", flexDirection: "column", gap: 48, paddingBottom: 80 }}>
+      {/* ── 1. HERO: Vrij te besteden ── */}
       {safeToSpend && !isLoading && (
-        <div style={{ padding: "48px 0", borderBottom: "var(--border-light)" }}>
-          <p className="label" style={{ marginBottom: 16 }}>Vrij te besteden</p>
-          <p className="mono-amount-lg" style={{ fontSize: "clamp(3rem, 8vw, 6rem)" }}>
+        <section style={{ paddingTop: 16, paddingBottom: 48, borderBottom: "var(--border-light)" }}>
+          <p className="hero-label" style={{ marginBottom: 16 }}>
+            Vrij te besteden
+          </p>
+          <p className="hero-amount">
             {formatCurrency(safeToSpend.safeToSpend)}
           </p>
-        </div>
+        </section>
       )}
 
-      {/* ── 2. METRICS ROW ── */}
+      {/* ── 2. KERNGETALLEN ── */}
       {!isLoading && stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard
-            label="Openstaand"
-            value={String(stats.openInvoiceCount)}
-            sub={formatCurrency(stats.openInvoiceAmount)}
-          />
-          <StatCard
-            label="BTW-Reserve"
-            value={formatCurrency(stats.vatToPay)}
-            sub="Q-Prognose"
-          />
-          <QuickReceiptUpload />
-        </div>
+        <section>
+          <h2 className="section-header section-divider" style={{ opacity: 0.4 }}>
+            Kerngetallen
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StatCard
+              label="Openstaand"
+              value={String(stats.openInvoiceCount)}
+              sub={formatCurrency(stats.openInvoiceAmount)}
+            />
+            <StatCard
+              label="BTW-reserve"
+              value={formatCurrency(stats.vatToPay)}
+              sub="Kwartaalprognose"
+            />
+            <QuickReceiptUpload />
+          </div>
+        </section>
       )}
 
       {/* ── 3. DOSSIER / OPENSTAAND ── */}
-      <div>
-        <h2
-          className="section-header"
-          style={{
-            marginBottom: 24,
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            opacity: 0.5,
-          }}
-        >
-          Dossier / Openstaand
-          <span style={{ flex: 1, height: "0.5px", background: "rgba(10,10,10,0.06)" }} />
+      <section>
+        <h2 className="section-header section-divider" style={{ opacity: 0.4 }}>
+          Openstaande facturen
         </h2>
         {isLoading ? (
           <SkeletonTable />
@@ -95,7 +84,7 @@ export default function DashboardClient({
         ) : (
           <p className="empty-state">Geen openstaande facturen</p>
         )}
-      </div>
+      </section>
     </div>
   );
 }
@@ -118,50 +107,30 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
     setSendingId(null);
   };
 
+  const cols = "120px 1fr 140px 100px 120px";
+
   return (
-    <div style={{ border: "var(--border-light)" }}>
+    <div className="data-table">
       {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
 
-      {/* Header row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "120px 1fr 140px 100px 120px",
-          gap: 16,
-          padding: "12px 24px",
-          borderBottom: "var(--border-rule)",
-          alignItems: "center",
-        }}
-      >
-        <span className="label" style={{ opacity: 0.3, margin: 0 }}>Factuur</span>
-        <span className="label" style={{ opacity: 0.3, margin: 0 }}>Klant</span>
-        <span className="label" style={{ opacity: 0.3, margin: 0, textAlign: "right" }}>Bedrag</span>
-        <span className="label" style={{ opacity: 0.3, margin: 0, textAlign: "center" }}>Status</span>
-        <span className="label" style={{ opacity: 0.3, margin: 0, textAlign: "right" }}>Actie</span>
+      {/* Header */}
+      <div className="data-table-header" style={{ gridTemplateColumns: cols }}>
+        <span>Factuur</span>
+        <span>Klant</span>
+        <span style={{ textAlign: "right" }}>Bedrag</span>
+        <span style={{ textAlign: "center" }}>Status</span>
+        <span style={{ textAlign: "right" }}>Actie</span>
       </div>
 
-      {/* Invoice rows */}
+      {/* Rows */}
       {invoices.map((inv) => {
         const isOverdue = inv.days_overdue > 0;
 
         return (
           <div
             key={inv.id}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "120px 1fr 140px 100px 120px",
-              gap: 16,
-              padding: "16px 24px",
-              borderBottom: "var(--border-rule)",
-              alignItems: "center",
-              transition: "background 0.15s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(10,10,10,0.02)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-            }}
+            className="data-table-row"
+            style={{ gridTemplateColumns: cols }}
           >
             <span className="mono-amount" style={{ fontSize: 12, opacity: 0.5 }}>
               {inv.invoice_number}
@@ -194,7 +163,17 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                 margin: 0,
               }}
             >
-              {isOverdue ? `${inv.days_overdue}D` : "ACTIEF"}
+              {isOverdue ? (
+                <>
+                  <span className="status-dot" data-status="overdue" />
+                  {inv.days_overdue}D
+                </>
+              ) : (
+                <>
+                  <span className="status-dot" data-status="active" />
+                  ACTIEF
+                </>
+              )}
             </span>
 
             <div style={{ textAlign: "right" }}>
@@ -202,7 +181,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
                 <button
                   onClick={() => handleSendReminder(inv.id)}
                   disabled={sendingId === inv.id}
-                  className="label-strong"
+                  className="table-action"
                   style={{
                     background: "transparent",
                     border: "none",

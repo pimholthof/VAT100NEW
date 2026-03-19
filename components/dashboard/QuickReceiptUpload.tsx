@@ -5,8 +5,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/lib/actions/receipts";
 
 /**
- * QuickReceiptUpload — A drag-and-drop "snap & go" receipt uploader
- * for the dashboard. Drop a photo → AI extracts data → receipt is created.
+ * QuickReceiptUpload — Drag-and-drop bon-upload voor het dashboard.
+ * Drop een foto → AI extraheert data → bon wordt aangemaakt.
  */
 export function QuickReceiptUpload() {
   const queryClient = useQueryClient();
@@ -20,7 +20,6 @@ export function QuickReceiptUpload() {
       setStatus("uploading");
       setMessage("SYSTEEM INITIALISEREN...");
 
-      // 1. Create a placeholder receipt
       const receiptResult = await createReceipt({
         vendor_name: null,
         amount_ex_vat: 0,
@@ -36,7 +35,6 @@ export function QuickReceiptUpload() {
 
       const receiptId = receiptResult.data.id;
 
-      // 2. Upload the image
       const formData = new FormData();
       formData.append("file", file);
       const uploadResult = await uploadReceiptImage(receiptId, formData);
@@ -44,19 +42,16 @@ export function QuickReceiptUpload() {
         throw new Error(uploadResult.error);
       }
 
-      // 3. Scan with AI
       setStatus("scanning");
-      setMessage("VISION AI EXTRAGEERT DATA...");
+      setMessage("VISION AI EXTRAHEERT DATA...");
       const scanResult = await scanReceiptWithAI(receiptId);
 
       if (scanResult.error) {
-        // Receipt is still saved, just not AI-enriched
         setStatus("done");
         setMessage("DOCUMENT OPGESLAGEN (EXTRACTIE MISLUKT).");
         return;
       }
 
-      // 4. Update receipt with AI data
       if (scanResult.data) {
         const { updateReceipt } = await import("@/lib/actions/receipts");
         await updateReceipt(receiptId, {
@@ -72,12 +67,12 @@ export function QuickReceiptUpload() {
         await markReceiptAiProcessed(receiptId);
       }
 
-    setStatus("done");
-    setMessage(
-      scanResult.data?.vendor_name
-        ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
-        : "DOCUMENT GEREGISTREERD."
-    );
+      setStatus("done");
+      setMessage(
+        scanResult.data?.vendor_name
+          ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
+          : "DOCUMENT GEREGISTREERD."
+      );
     },
     onError: (err) => {
       setStatus("error");
@@ -86,7 +81,6 @@ export function QuickReceiptUpload() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
-      // Auto-reset after 4 seconds
       setTimeout(() => {
         setStatus("idle");
         setMessage("");
@@ -116,9 +110,12 @@ export function QuickReceiptUpload() {
     [handleFile]
   );
 
+  const isProcessing = status === "uploading" || status === "scanning";
+
   return (
     <div
-      className={status === "uploading" || status === "scanning" ? "upload-processing" : ""}
+      className={`upload-zone ${isProcessing ? "upload-processing" : ""}`}
+      data-dragging={isDragging}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -126,17 +123,7 @@ export function QuickReceiptUpload() {
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
       onClick={() => status === "idle" && fileRef.current?.click()}
-      style={{
-        border: isDragging
-          ? "2px solid var(--foreground)"
-          : "1px dashed rgba(13,13,11,0.2)",
-        padding: 24,
-        textAlign: "center",
-        cursor: status === "idle" ? "pointer" : "default",
-        transition: "all 0.2s ease",
-        background: isDragging ? "rgba(13,13,11,0.02)" : "transparent",
-        marginBottom: "var(--space-section)",
-      }}
+      style={{ cursor: status === "idle" ? "pointer" : "default" }}
     >
       <input
         ref={fileRef}
@@ -152,58 +139,27 @@ export function QuickReceiptUpload() {
 
       {status === "idle" && (
         <>
-          <p
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-md)",
-              fontWeight: 500,
-              margin: "0 0 4px",
-            }}
-          >
-            DOCUMENT DROPZONE
-          </p>
-          <p className="label" style={{ opacity: 0.5, margin: 0 }}>
+          <p className="upload-zone-title">Document dropzone</p>
+          <p className="upload-zone-sub">
             Sleep foto of PDF voor AI-verwerking
           </p>
         </>
       )}
 
-      {(status === "uploading" || status === "scanning") && (
-        <p
-          style={{
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            margin: 0,
-            opacity: 0.7,
-          }}
-        >
+      {isProcessing && (
+        <p className="mono-amount" style={{ fontSize: 12, margin: 0, opacity: 0.7 }}>
           {message}
         </p>
       )}
 
       {status === "done" && (
-        <p
-          style={{
-            fontFamily: "var(--font-mono), monospace",
-            fontSize: "var(--text-mono-md)",
-            fontWeight: 400,
-            margin: 0,
-          }}
-        >
+        <p className="mono-amount" style={{ fontSize: 13, margin: 0 }}>
           {message}
         </p>
       )}
 
       {status === "error" && (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            margin: 0,
-            opacity: 0.7,
-          }}
-        >
+        <p style={{ fontSize: 13, margin: 0, opacity: 0.7 }}>
           {message}
         </p>
       )}
