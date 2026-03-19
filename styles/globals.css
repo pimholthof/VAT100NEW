@@ -757,7 +757,7 @@ tbody tr:hover {
   background: var(--color-surface);
   border: var(--border);
   overflow: hidden;
-  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.08);
+  box-shadow: 1px 1px 0px var(--color-border);
 }
 
 .cmdk-group [cmdk-group-heading] {

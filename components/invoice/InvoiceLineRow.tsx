@@ -43,7 +43,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         type="text"
         value={line.description}
         onChange={(e) => onUpdate(line.id, "description", e.target.value)}
-        placeholder="Line Description"
+        placeholder="Omschrijving"
         style={{ ...cellInputStyle, fontSize: 14, fontWeight: 400 }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
