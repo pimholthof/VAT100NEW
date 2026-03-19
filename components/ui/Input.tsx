@@ -2,14 +2,14 @@ import React from "react";
 
 const baseInputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "14px 0",
+  padding: "8px 0",
   border: "none",
-  borderBottom: "0.5px solid rgba(13,13,11,0.12)",
+  borderBottom: "0.6px solid var(--vat-dark-grey)",
   background: "transparent",
   color: "var(--foreground)",
-  fontFamily: "var(--font-body), sans-serif",
-  fontSize: "13px",
-  fontWeight: 300,
+  fontFamily: "var(--font-body), 'Cormorant Garamond', serif",
+  fontSize: "16px",
+  fontWeight: 400,
   outline: "none",
   transition: "border-color 0.2s ease",
 };
@@ -24,7 +24,7 @@ export const selectStyle: React.CSSProperties = {
 
 export const textareaStyle: React.CSSProperties = {
   ...baseInputStyle,
-  border: "0.5px solid rgba(13,13,11,0.12)",
+  border: "0.6px solid var(--vat-dark-grey)",
   padding: 14,
   resize: "vertical",
 };
