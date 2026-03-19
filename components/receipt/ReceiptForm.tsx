@@ -24,7 +24,7 @@ import {
   ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, calculateVat } from "@/lib/format";
 import { ReceiptUpload } from "./ReceiptUpload";
 import { ReceiptProcessing } from "./ReceiptProcessing";
 
@@ -72,8 +72,9 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
   const parsedAmount = parseFloat(amountExVat) || 0;
   const parsedVatRate = parseFloat(vatRate) || 0;
-  const computedVat = Math.round(parsedAmount * (parsedVatRate / 100) * 100) / 100;
-  const computedIncVat = Math.round((parsedAmount + computedVat) * 100) / 100;
+  const vatTotals = calculateVat(parsedAmount, parsedVatRate);
+  const computedVat = vatTotals.vatAmount;
+  const computedIncVat = vatTotals.totalIncVat;
 
   const category = costCode
     ? KOSTENSOORTEN.find((k) => k.code === costCode)?.label ?? "Overig"

@@ -122,6 +122,8 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     { data: vatQuarterReceipts },
     { data: bankBalanceData },
     { data: yearRevenueData },
+    { data: yearCostsData },
+    { data: profileData },
   ] = await Promise.all([
     // Stats: paid invoices this month
     supabase
@@ -209,6 +211,18 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       .eq("user_id", userId)
       .eq("status", "paid")
       .gte("issue_date", `${now.getFullYear()}-01-01`),
+    // Safe-to-Spend: total costs (receipts) this year for income tax estimate
+    supabase
+      .from("receipts")
+      .select("amount_ex_vat")
+      .eq("user_id", userId)
+      .gte("receipt_date", `${now.getFullYear()}-01-01`),
+    // User tax profile settings
+    supabase
+      .from("profiles")
+      .select("zelfstandigenaftrek")
+      .eq("id", userId)
+      .single(),
   ]);
 
   if (recentError) return { error: recentError.message };
@@ -300,8 +314,8 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     amount: Math.round((expenseMap.get(m) ?? 0) * 100) / 100,
   }));
 
-  const currentMonth = months[months.length - 1];
-  const lastMonth = months[months.length - 2];
+  const currentMonth = months[months.length - 1] ?? "";
+  const lastMonth = months.length >= 2 ? months[months.length - 2] : currentMonth;
   const netThisMonth = Math.round(
     ((revenueMap.get(currentMonth) ?? 0) - (expenseMap.get(currentMonth) ?? 0)) * 100
   ) / 100;
@@ -356,13 +370,21 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         }),
         daysRemaining,
         estimatedAmount: Math.round((outputVat - inputVat) * 100) / 100,
-        forecastedAmount: Math.round(((outputVat - inputVat) * (90 / Math.max(1, 90 - daysRemaining))) * 100) / 100,
+        forecastedAmount: (() => {
+          const totalQuarterDays = 90;
+          const daysElapsed = totalQuarterDays - daysRemaining;
+          if (daysElapsed <= 0) return Math.round((outputVat - inputVat) * 100) / 100;
+          const dailyAvg = (outputVat - inputVat) / daysElapsed;
+          return Math.round(dailyAvg * totalQuarterDays * 100) / 100;
+        })(),
       },
       safeToSpend: calculateSafeToSpend(
         bankBalanceData ?? [],
         yearRevenueData ?? [],
         outputVat,
-        inputVat
+        inputVat,
+        (yearCostsData ?? []).reduce((sum, r) => sum + (Number(r.amount_ex_vat) || 0), 0),
+        profileData?.zelfstandigenaftrek ?? true
       ),
     },
   };

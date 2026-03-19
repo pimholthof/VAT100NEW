@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import type { InvoiceLineInput, InvoiceUnit } from "@/lib/types";
+import { formatCurrency } from "@/lib/format";
 
 interface InvoiceLineRowProps {
   line: InvoiceLineInput;
@@ -80,7 +81,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 16 }}>
         <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: 14, fontWeight: 500 }}>
-          {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount)}
+          {formatCurrency(amount)}
         </div>
         <button
           type="button"

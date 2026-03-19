@@ -25,10 +25,9 @@ export function FinancialInsights({ cashflow, safeToSpend }: FinancialInsightsPr
 
   // Jaarschatting IB via gedeelde tax module (progressieve schijven 2025)
   const monthsElapsed = new Date().getMonth() + 1;
-  const currentRevenueExVat = safeToSpend.reservedTotal > 0
-    ? safeToSpend.estimatedIncomeTax / 0.35 // grove benadering voor reverse
+  const annualizedRevenue = monthsElapsed > 0
+    ? (safeToSpend.yearRevenueExVat / monthsElapsed) * 12
     : 0;
-  const annualizedRevenue = currentRevenueExVat * (12 / monthsElapsed);
   const estimatedYearTax = estimateIncomeTax(annualizedRevenue);
 
   const trendIcon = cashflow.trend === "up" ? "↑" : cashflow.trend === "down" ? "↓" : "→";

@@ -65,6 +65,7 @@ describe("calculateSafeToSpend", () => {
     expect(result.estimatedIncomeTax).toBe(0);
     expect(result.reservedTotal).toBe(1600);
     expect(result.safeToSpend).toBe(6400); // 8000 - 1600
+    expect(result.yearRevenueExVat).toBe(10000);
   });
 
   it("geeft nul bij lege bank transacties", () => {
@@ -76,6 +77,7 @@ describe("calculateSafeToSpend", () => {
     expect(result.reservedTotal).toBe(0);
     expect(result.safeToSpend).toBe(0);
     expect(result.taxShieldPotential).toBe(0);
+    expect(result.yearRevenueExVat).toBe(0);
   });
 
   it("klempt safe-to-spend op 0 (nooit negatief)", () => {
@@ -106,6 +108,29 @@ describe("calculateSafeToSpend", () => {
 
     // revenue ex vat: 60500 - 10500 = 50000 > 10000
     expect(result.taxShieldPotential).toBe(370);
+  });
+
+  it("trekt kosten af bij IB-berekening in safe-to-spend", () => {
+    const bankTx = [{ amount: 50000 }];
+    const yearRevenue = [{ total_inc_vat: 60500, vat_amount: 10500 }];
+
+    const zonderKosten = calculateSafeToSpend(bankTx, yearRevenue, 10500, 0, 0);
+    const metKosten = calculateSafeToSpend(bankTx, yearRevenue, 10500, 0, 15000);
+
+    // Met kosten moet IB lager zijn → meer safe-to-spend
+    expect(metKosten.estimatedIncomeTax).toBeLessThan(zonderKosten.estimatedIncomeTax);
+    expect(metKosten.safeToSpend).toBeGreaterThan(zonderKosten.safeToSpend);
+  });
+
+  it("respecteert zelfstandigenaftrek toggle in safe-to-spend", () => {
+    const bankTx = [{ amount: 50000 }];
+    const yearRevenue = [{ total_inc_vat: 60500, vat_amount: 10500 }];
+
+    const metZA = calculateSafeToSpend(bankTx, yearRevenue, 10500, 0, 0, true);
+    const zonderZA = calculateSafeToSpend(bankTx, yearRevenue, 10500, 0, 0, false);
+
+    // Zonder ZA moet IB hoger zijn
+    expect(zonderZA.estimatedIncomeTax).toBeGreaterThan(metZA.estimatedIncomeTax);
   });
 
   it("BTW input hoger dan output geeft 0 BTW reserve", () => {
