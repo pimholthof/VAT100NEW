@@ -116,7 +116,10 @@ export async function createInvoice(
 
     if (linesError) {
       // Rollback: delete the invoice if lines failed
-      await supabase.from("invoices").delete().eq("id", invoice.id);
+      const { error: rollbackError } = await supabase.from("invoices").delete().eq("id", invoice.id);
+      if (rollbackError) {
+        console.error("Rollback mislukt voor factuur", invoice.id, rollbackError.message);
+      }
       return { error: linesError.message };
     }
   }
@@ -211,27 +214,19 @@ export async function deleteInvoice(id: string): Promise<ActionResult> {
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Only allow deleting drafts
-  const { data: invoice } = await supabase
-    .from("invoices")
-    .select("status")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
-  if (!invoice) return { error: "Factuur niet gevonden." };
-  if (invoice.status !== "draft") {
-    return { error: "Alleen conceptfacturen kunnen worden verwijderd." };
-  }
-
-  // Lines cascade-delete via FK
-  const { error } = await supabase
+  // Atomic: only delete if still a draft (lines cascade-delete via FK)
+  const { data, error } = await supabase
     .from("invoices")
     .delete()
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .eq("status", "draft")
+    .select("id");
 
   if (error) return { error: error.message };
+  if (!data || data.length === 0) {
+    return { error: "Factuur niet gevonden of is geen concept meer." };
+  }
   return { error: null };
 }
 
@@ -383,10 +378,10 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
   const supabase = createServiceClient();
   const today = new Date().toISOString().split("T")[0];
 
-  // 1. Find and mark overdue invoices
+  // 1. Find overdue candidates (SELECT first, update per-invoice after processing)
   let query = supabase
     .from("invoices")
-    .update({ status: "overdue" })
+    .select("id, user_id, invoice_number, client_id, total_inc_vat, due_date, issue_date, subtotal_ex_vat, vat_amount")
     .eq("status", "sent")
     .lt("due_date", today);
 
@@ -394,9 +389,7 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
     query = query.eq("user_id", userId);
   }
 
-  const { data: overdueInvoices, error } = await query.select(
-    "id, user_id, invoice_number, client_id, total_inc_vat, due_date, issue_date, subtotal_ex_vat, vat_amount"
-  );
+  const { data: overdueInvoices, error } = await query;
 
   if (error) return { error: error.message };
 
@@ -434,6 +427,12 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
         emailSent = !emailResult.error;
         if (emailResult.error) errorMsg = emailResult.error;
       }
+
+      // Mark as overdue AFTER processing (idempotent: re-runs won't re-process)
+      await supabase
+        .from("invoices")
+        .update({ status: "overdue" })
+        .eq("id", inv.id);
 
       await supabase.from("action_feed").insert({
         user_id: inv.user_id,

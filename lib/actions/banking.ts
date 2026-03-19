@@ -107,7 +107,7 @@ export async function linkTransactionToReceipt(
   return { error: null };
 }
 
-// TODO: GoCardless API — Initiates a bank connection via GoCardless Bank Account Data.
+// NOTE: GoCardless API — Initiates a bank connection via GoCardless Bank Account Data.
 // In production, this will redirect the user to GoCardless to authorize access.
 export async function initiateBankConnection(
   institutionId: string
@@ -146,7 +146,7 @@ export async function initiateBankConnection(
   }
 }
 
-// TODO: GoCardless API — Completes a bank connection after user returns from GoCardless.
+// NOTE: GoCardless API — Completes a bank connection after user returns from GoCardless.
 export async function completeBankConnection(
   requisitionId: string
 ): Promise<ActionResult> {
@@ -186,7 +186,7 @@ export async function completeBankConnection(
   }
 }
 
-// TODO: GoCardless API — Syncs transactions from a linked bank account.
+// NOTE: GoCardless API — Syncs transactions from a linked bank account.
 export async function syncTransactions(
   connectionIdOrReqId: string,
   isReqId = false
@@ -357,11 +357,21 @@ export async function autoCategorizeTransactions(
   const anthropic = new Anthropic();
   const categoryList = AI_CATEGORIES.join(", ");
 
+  /** Strip control chars and limit length to prevent prompt injection */
+  function sanitizeForAI(input: string | null, maxLength = 200): string {
+    if (!input) return "";
+    return input
+      .replace(/[\x00-\x1F\x7F]/g, "") // strip control characters
+      .replace(/[<>{}]/g, "")           // strip chars that could confuse structured output
+      .slice(0, maxLength)
+      .trim();
+  }
+
   for (const batch of batches) {
     const input = batch.map((tx) => ({
       id: tx.id,
-      description: tx.description,
-      counterpart_name: tx.counterpart_name,
+      description: sanitizeForAI(tx.description),
+      counterpart_name: sanitizeForAI(tx.counterpart_name),
       amount: tx.amount,
     }));
 
@@ -412,8 +422,9 @@ Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income}]`,
       for (const item of validItems) {
         results[item.id] = item.category;
       }
-    } catch {
-      // Continue with next batch on error
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`AI-categorisatie batch mislukt: ${msg}`);
       continue;
     }
   }
