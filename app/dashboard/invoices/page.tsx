@@ -33,40 +33,19 @@ export default function InvoicesPage() {
 
   return (
     <div>
-      {/* Page header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: 80,
-        }}
-      >
-        <div>
-          <h1 className="display-title" style={{ fontSize: "4rem", letterSpacing: "-0.04em", marginBottom: 8 }}>
-            Ledger
-          </h1>
-          <p className="label" style={{ opacity: 0.3 }}>{invoices.length} ACTIVE EXPRESSIONS</p>
+      {/* Paginakop */}
+      <div className="page-header">
+        <div className="page-header-row">
+          <div>
+            <h1 className="display-title">Facturen</h1>
+            <p className="page-header-count">
+              {invoices.length} {invoices.length === 1 ? "factuur" : "facturen"}
+            </p>
+          </div>
+          <Link href="/dashboard/invoices/new" className="action-button">
+            + Nieuwe factuur
+          </Link>
         </div>
-        <Link
-          href="/dashboard/invoices/new"
-          style={{
-            fontFamily: "var(--font-mono), monospace",
-            fontSize: "10px",
-            fontWeight: 500,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            padding: "16px 32px",
-            background: "var(--foreground)",
-            color: "var(--background)",
-            textDecoration: "none",
-            display: "inline-block",
-            transition: "opacity 0.2s ease",
-            boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
-          }}
-        >
-          [+] New Expression
-        </Link>
       </div>
 
       {isLoading ? (
@@ -80,10 +59,8 @@ export default function InvoicesPage() {
           ))}
         </div>
       ) : invoices.length === 0 ? (
-        <div style={{ paddingTop: "var(--space-block)" }}>
-          <p className="empty-state">
-            Nog geen facturen
-          </p>
+        <div>
+          <p className="empty-state">Nog geen facturen</p>
           <Link
             href="/dashboard/invoices/new"
             className="table-action"
@@ -93,153 +70,140 @@ export default function InvoicesPage() {
           </Link>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Abstract Headers */}
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr 1fr", 
-            gap: 24, 
-            paddingBottom: 16, 
-            borderBottom: "var(--border-rule)",
-            opacity: 0.2
-          }}>
-            <span className="label">REF</span>
-            <span className="label">RECIPIENT</span>
-            <span className="label">DATE</span>
-            <span className="label">STATE</span>
-            <span className="label" style={{ textAlign: "right" }}>SUM</span>
-            <span className="label" style={{ textAlign: "right" }}>SEQ</span>
+        <div className="data-table">
+          {/* Koprij */}
+          <div
+            className="data-table-header invoice-grid"
+          >
+            <span>Ref</span>
+            <span>Klant</span>
+            <span>Datum</span>
+            <span>Status</span>
+            <span style={{ textAlign: "right" }}>Bedrag</span>
+            <span style={{ textAlign: "right" }}>Acties</span>
           </div>
 
-          {/* List Items */}
-          {invoices.map((invoice: InvoiceWithClient) => (
-            <div 
-              key={invoice.id} 
-              style={{ 
-                display: "grid", 
-                gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr 1fr", 
-                gap: 24, 
-                alignItems: "center",
-                padding: "24px 0",
-                borderBottom: "0.5px solid rgba(0,0,0,0.03)",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(0,0,0,0.01)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <Link
-                href={`/dashboard/invoices/${invoice.id}`}
-                style={{
-                  fontFamily: "var(--font-mono), monospace",
-                  fontSize: 13,
-                  color: "var(--foreground)",
-                  fontWeight: 400,
-                  textDecoration: "none",
-                  opacity: 0.6
-                }}
+          {/* Rijen */}
+          {invoices.map((invoice: InvoiceWithClient) => {
+            const statusLabel = {
+              draft: "Concept",
+              sent: "Verzonden",
+              paid: "Betaald",
+              overdue: "Te laat",
+            }[invoice.status] ?? invoice.status;
+
+            const statusType = {
+              draft: "draft",
+              sent: "active",
+              paid: "paid",
+              overdue: "overdue",
+            }[invoice.status] ?? "draft";
+
+            return (
+              <div
+                key={invoice.id}
+                className="data-table-row invoice-grid"
               >
-                {invoice.invoice_number}
-              </Link>
-              
-              <span style={{ fontSize: 15, fontWeight: 400, letterSpacing: "-0.01em" }}>
-                {invoice.client?.name ?? "—"}
-              </span>
-
-              <span className="mono-amount" style={{ fontSize: 12, opacity: 0.4 }}>
-                {formatDate(invoice.issue_date)}
-              </span>
-
-              <select
-                value={invoice.status}
-                onChange={(e) =>
-                  statusMutation.mutate({
-                    id: invoice.id,
-                    status: e.target.value as InvoiceStatus,
-                  })
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px 0",
-                  border: "none",
-                  background: "transparent",
-                  color: "var(--foreground)",
-                  fontFamily: "var(--font-mono), monospace",
-                  fontSize: 11,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  outline: "none",
-                  opacity:
-                    statusMutation.isPending &&
-                    statusMutation.variables?.id === invoice.id
-                      ? 0.2
-                      : 0.5,
-                  cursor: "pointer"
-                }}
-              >
-                <option value="draft">Concept</option>
-                <option value="sent">Issued</option>
-                <option value="paid">Resolved</option>
-                <option value="overdue">Breach</option>
-              </select>
-
-              {/* Psychology of money: Amount is minimal and monospace */}
-              <span 
-                style={{ 
-                  textAlign: "right",
-                  fontFamily: "var(--font-mono), monospace",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  opacity: invoice.status === "paid" ? 0.3 : 1
-                }}
-              >
-                {formatCurrency(invoice.total_inc_vat)}
-              </span>
-
-              {/* Actions */}
-              <div style={{ display: "flex", gap: 16, justifyContent: "flex-end", alignItems: "center" }}>
                 <Link
-                  href={`/dashboard/invoices/${invoice.id}/preview`}
+                  href={`/dashboard/invoices/${invoice.id}`}
+                  className="mono-amount"
                   style={{
-                    fontFamily: "var(--font-mono), monospace",
-                    fontSize: 10,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    textDecoration: "none",
+                    fontSize: 12,
                     color: "var(--foreground)",
-                    opacity: 0.4
+                    textDecoration: "none",
+                    opacity: 0.5,
                   }}
                 >
-                  VIEW
+                  {invoice.invoice_number}
                 </Link>
-                {invoice.status === "draft" && (
-                  <button
-                    onClick={() => {
-                      if (confirm("Initiate deletion protocol?")) {
-                        deleteMutation.mutate(invoice.id);
-                      }
-                    }}
+
+                <span style={{ fontSize: 14, fontWeight: 500, letterSpacing: "-0.01em" }}>
+                  {invoice.client?.name ?? "—"}
+                </span>
+
+                <span className="mono-amount" style={{ fontSize: 12, opacity: 0.4 }}>
+                  {formatDate(invoice.issue_date)}
+                </span>
+
+                <span className="label" style={{ margin: 0, opacity: 0.5 }}>
+                  <span className="status-dot" data-status={statusType} />
+                  <select
+                    value={invoice.status}
+                    onChange={(e) =>
+                      statusMutation.mutate({
+                        id: invoice.id,
+                        status: e.target.value as InvoiceStatus,
+                      })
+                    }
                     style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontFamily: "var(--font-mono), monospace",
-                      fontSize: 10,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      opacity: 0.2,
                       padding: 0,
+                      border: "none",
+                      background: "transparent",
+                      color: "var(--foreground)",
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: "var(--text-label)",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: "var(--tracking-label)",
+                      outline: "none",
+                      opacity:
+                        statusMutation.isPending &&
+                        statusMutation.variables?.id === invoice.id
+                          ? 0.2
+                          : 1,
+                      cursor: "pointer",
                     }}
                   >
-                    DEL
-                  </button>
-                )}
+                    <option value="draft">Concept</option>
+                    <option value="sent">Verzonden</option>
+                    <option value="paid">Betaald</option>
+                    <option value="overdue">Te laat</option>
+                  </select>
+                </span>
+
+                <span
+                  className="mono-amount"
+                  style={{
+                    textAlign: "right",
+                    fontSize: 14,
+                    fontWeight: 500,
+                    opacity: invoice.status === "paid" ? 0.3 : 1,
+                  }}
+                >
+                  {formatCurrency(invoice.total_inc_vat)}
+                </span>
+
+                <div style={{ display: "flex", gap: 16, justifyContent: "flex-end", alignItems: "center" }}>
+                  <Link
+                    href={`/dashboard/invoices/${invoice.id}/preview`}
+                    className="table-action"
+                    style={{ opacity: 0.4 }}
+                  >
+                    Bekijk
+                  </Link>
+                  {invoice.status === "draft" && (
+                    <button
+                      onClick={() => {
+                        if (confirm("Weet je zeker dat je deze factuur wilt verwijderen?")) {
+                          deleteMutation.mutate(invoice.id);
+                        }
+                      }}
+                      className="table-action"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        opacity: 0.2,
+                        padding: 0,
+                      }}
+                    >
+                      Verwijder
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

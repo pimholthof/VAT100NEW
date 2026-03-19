@@ -27,36 +27,18 @@ export default function ReceiptsPage() {
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: 80,
-        }}
-      >
-        <h1 className="display-title">
-          Bonnen
-        </h1>
-        <Link
-          href="/dashboard/receipts/new"
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-label)",
-            fontWeight: 500,
-            letterSpacing: "0.10em",
-            textTransform: "uppercase",
-            padding: "14px 28px",
-            border: "0.5px solid rgba(13,13,11,0.25)",
-            background: "transparent",
-            color: "var(--foreground)",
-            textDecoration: "none",
-            display: "inline-block",
-            transition: "opacity 0.2s ease",
-          }}
-        >
-          + Nieuwe bon
-        </Link>
+      <div className="page-header">
+        <div className="page-header-row">
+          <div>
+            <h1 className="display-title">Bonnen</h1>
+            <p className="page-header-count">
+              {receipts.length} {receipts.length === 1 ? "bon" : "bonnen"}
+            </p>
+          </div>
+          <Link href="/dashboard/receipts/new" className="action-button-secondary">
+            + Nieuwe bon
+          </Link>
+        </div>
       </div>
 
       {isLoading ? (
@@ -66,10 +48,8 @@ export default function ReceiptsPage() {
           bodyWidths={[10, 50, 70, 60, 50, 40, 40, 30]}
         />
       ) : receipts.length === 0 ? (
-        <div style={{ paddingTop: "var(--space-block)" }}>
-          <p className="empty-state">
-            Nog geen bonnen
-          </p>
+        <div>
+          <p className="empty-state">Nog geen bonnen</p>
           <Link
             href="/dashboard/receipts/new"
             className="table-action"
@@ -99,9 +79,9 @@ export default function ReceiptsPage() {
                 : null;
 
               return (
-                <tr key={receipt.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                  <Td style={{ width: 24, textAlign: "center", opacity: 0.4 }}>
-                    {receipt.storage_path ? "📷" : ""}
+                <tr key={receipt.id} style={{ borderBottom: "var(--border-rule)" }}>
+                  <Td style={{ width: 24, textAlign: "center", opacity: 0.3 }}>
+                    {receipt.storage_path ? "◉" : ""}
                   </Td>
                   <Td>
                     <span className="mono-amount">

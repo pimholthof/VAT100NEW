@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardNav } from "@/components/layout/DashboardNav";
+import { DashboardFooter } from "@/components/layout/DashboardFooter";
 
 export default async function DashboardLayout({
   children,
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
     <div className="dashboard-shell">
       <DashboardNav studioName={profile?.studio_name ?? undefined} />
       <main className="dashboard-content">{children}</main>
+      <DashboardFooter />
     </div>
   );
 }
