@@ -7,8 +7,10 @@ import { createClient } from "@/lib/supabase/client";
 
 export function DashboardNav({
   studioName,
+  isAdvisor = false,
 }: {
   studioName?: string;
+  isAdvisor?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -145,6 +147,26 @@ export function DashboardNav({
           </div>
 
           <div className="nav-section">
+            <span className="nav-section-label">Beheer</span>
+            <Link
+              href="/dashboard/activa"
+              className="nav-link"
+              data-active={isActive("/dashboard/activa")}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              Activa
+            </Link>
+            <Link
+              href="/dashboard/documenten"
+              className="nav-link"
+              data-active={isActive("/dashboard/documenten")}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              Documenten
+            </Link>
+          </div>
+
+          <div className="nav-section">
             <span className="nav-section-label">Systemen</span>
             <Link
               href="/dashboard/bank"
@@ -179,6 +201,20 @@ export function DashboardNav({
               Instellingen
             </Link>
           </div>
+
+          {isAdvisor && (
+            <div className="nav-section">
+              <span className="nav-section-label">Advisor</span>
+              <Link
+                href="/dashboard/advisor"
+                className="nav-link"
+                data-active={isActive("/dashboard/advisor")}
+                onClick={() => setIsDrawerOpen(false)}
+              >
+                Klantenoverzicht
+              </Link>
+            </div>
+          )}
 
           <div className="nav-session-section">
             <span className="nav-section-label">Sessie</span>

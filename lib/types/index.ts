@@ -15,6 +15,7 @@ export interface Profile {
   postal_code: string | null;
   iban: string | null;
   bic: string | null;
+  role: "user" | "advisor";
   created_at: string;
 }
 
@@ -204,6 +205,104 @@ export interface ActionFeedItem {
   ai_confidence: number | null;
   created_at: string;
   resolved_at: string | null;
+}
+
+// ─── Asset types ───
+
+export interface Asset {
+  id: string;
+  user_id: string;
+  description: string;
+  acquisition_date: string;
+  acquisition_cost: number;
+  residual_value: number;
+  useful_life_months: number;
+  category: AssetCategory;
+  created_at: string;
+}
+
+export type AssetCategory =
+  | "computer"
+  | "meubilair"
+  | "gereedschap"
+  | "vervoer"
+  | "software"
+  | "overig";
+
+export interface AssetWithDepreciation extends Asset {
+  monthly_depreciation: number;
+  total_depreciated: number;
+  book_value: number;
+}
+
+export interface AssetInput {
+  description: string;
+  acquisition_date: string;
+  acquisition_cost: number;
+  residual_value: number;
+  useful_life_months: number;
+  category: AssetCategory;
+}
+
+// ─── Document types ───
+
+export interface Document {
+  id: string;
+  user_id: string;
+  name: string;
+  storage_path: string;
+  file_type: string | null;
+  file_size: number | null;
+  client_id: string | null;
+  invoice_id: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface DocumentInput {
+  name: string;
+  client_id: string | null;
+  invoice_id: string | null;
+  notes: string | null;
+}
+
+// ─── Advisor types ───
+
+export type AdvisorClientStatus = "pending" | "active" | "revoked";
+
+export interface AdvisorClient {
+  id: string;
+  advisor_id: string;
+  client_user_id: string;
+  status: AdvisorClientStatus;
+  created_at: string;
+}
+
+export interface AdvisorClientWithProfile extends AdvisorClient {
+  profile: Pick<Profile, "full_name" | "studio_name">;
+}
+
+// ─── Opening balance types ───
+
+export interface OpeningBalance {
+  id: string;
+  user_id: string;
+  fiscal_year: number;
+  equity: number;
+  fixed_assets: number;
+  current_assets: number;
+  cash: number;
+  liabilities: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface OpeningBalanceInput {
+  equity: number;
+  fixed_assets: number;
+  current_assets: number;
+  cash: number;
+  liabilities: number;
 }
 
 // ─── Safe-to-Spend types ───

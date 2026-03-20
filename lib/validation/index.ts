@@ -79,6 +79,49 @@ export const profileSchema = z.object({
 
 export type ProfileSchema = z.infer<typeof profileSchema>;
 
+// ─── Asset ───
+
+export const assetSchema = z.object({
+  description: trimmedString.min(1, "Omschrijving is verplicht"),
+  acquisition_date: z.string().min(1, "Aankoopdatum is verplicht"),
+  acquisition_cost: z.number().positive("Aanschafwaarde moet positief zijn"),
+  residual_value: z.number().min(0, "Restwaarde mag niet negatief zijn"),
+  useful_life_months: z.number().int().min(1, "Levensduur moet minimaal 1 maand zijn"),
+  category: z.enum([
+    "computer",
+    "meubilair",
+    "gereedschap",
+    "vervoer",
+    "software",
+    "overig",
+  ]),
+});
+
+export type AssetSchema = z.infer<typeof assetSchema>;
+
+// ─── Document ───
+
+export const documentSchema = z.object({
+  name: trimmedString.min(1, "Naam is verplicht"),
+  client_id: z.string().nullable().optional(),
+  invoice_id: z.string().nullable().optional(),
+  notes: optionalString,
+});
+
+export type DocumentSchema = z.infer<typeof documentSchema>;
+
+// ─── Opening Balance ───
+
+export const openingBalanceSchema = z.object({
+  equity: z.number(),
+  fixed_assets: z.number().min(0, "Mag niet negatief zijn"),
+  current_assets: z.number().min(0, "Mag niet negatief zijn"),
+  cash: z.number().min(0, "Mag niet negatief zijn"),
+  liabilities: z.number().min(0, "Mag niet negatief zijn"),
+});
+
+export type OpeningBalanceSchema = z.infer<typeof openingBalanceSchema>;
+
 // ─── Helpers ───
 
 export function validate<T>(

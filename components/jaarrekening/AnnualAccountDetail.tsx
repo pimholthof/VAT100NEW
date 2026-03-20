@@ -7,6 +7,7 @@ import {
   generateAnnualAccount,
   previewAnnualFigures,
 } from "@/lib/actions/annual-account";
+import { getUserRole } from "@/lib/actions/advisor";
 import type { AnnualAccount } from "@/lib/annual-account/types";
 import { FiguresPreview } from "./FiguresPreview";
 import { DownloadButtons } from "./DownloadButtons";
@@ -25,6 +26,13 @@ const STATUS_LABELS: Record<string, string> = {
 export function AnnualAccountDetail({ fiscalYear, initialAccount }: Props) {
   const queryClient = useQueryClient();
   const [generateError, setGenerateError] = useState<string | null>(null);
+
+  const { data: roleResult } = useQuery({
+    queryKey: ["user-role"],
+    queryFn: () => getUserRole(),
+  });
+
+  const isAdvisor = roleResult?.data === "advisor";
 
   const { data: accountResult } = useQuery({
     queryKey: ["annual-account", fiscalYear],
@@ -114,17 +122,29 @@ export function AnnualAccountDetail({ fiscalYear, initialAccount }: Props) {
               Nog geen jaarrekening voor {fiscalYear}
             </p>
           )}
-          <button
-            className="action-button"
-            onClick={() => {
-              setGenerateError(null);
-              generateMutation.mutate();
-            }}
-            disabled={isGenerating}
-            style={{ width: "100%" }}
-          >
-            {isGenerating ? "GENEREREN..." : "GENEREER CONCEPT"}
-          </button>
+          {isAdvisor ? (
+            <button
+              className="action-button"
+              onClick={() => {
+                setGenerateError(null);
+                generateMutation.mutate();
+              }}
+              disabled={isGenerating}
+              style={{ width: "100%" }}
+            >
+              {isGenerating ? "GENEREREN..." : "GENEREER CONCEPT"}
+            </button>
+          ) : (
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--vat-mid-grey)",
+                fontFamily: "var(--font-body), sans-serif",
+              }}
+            >
+              Jaarrekening kan alleen door je advisor gegenereerd worden.
+            </p>
+          )}
         </div>
       )}
 
@@ -136,18 +156,22 @@ export function AnnualAccountDetail({ fiscalYear, initialAccount }: Props) {
             hasNlPdf={!!account.pdf_nl_path}
             hasEnPdf={!!account.pdf_en_path}
           />
-          <div style={{ height: 16 }} />
-          <button
-            className="action-button-secondary"
-            onClick={() => {
-              setGenerateError(null);
-              generateMutation.mutate();
-            }}
-            disabled={isGenerating}
-            style={{ width: "100%", opacity: 0.6 }}
-          >
-            {isGenerating ? "OPNIEUW GENEREREN..." : "OPNIEUW GENEREREN"}
-          </button>
+          {isAdvisor && (
+            <>
+              <div style={{ height: 16 }} />
+              <button
+                className="action-button-secondary"
+                onClick={() => {
+                  setGenerateError(null);
+                  generateMutation.mutate();
+                }}
+                disabled={isGenerating}
+                style={{ width: "100%", opacity: 0.6 }}
+              >
+                {isGenerating ? "OPNIEUW GENEREREN..." : "OPNIEUW GENEREREN"}
+              </button>
+            </>
+          )}
         </div>
       )}
 
