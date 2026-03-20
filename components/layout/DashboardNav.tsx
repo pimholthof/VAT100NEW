@@ -161,6 +161,14 @@ export function DashboardNav({
           <div className="nav-section">
             <span className="nav-section-label">Systemen</span>
             <Link
+              href="/dashboard/reservering"
+              className="nav-link"
+              data-active={isActive("/dashboard/reservering")}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              Reserveringspot
+            </Link>
+            <Link
               href="/dashboard/tax"
               className="nav-link"
               data-active={isActive("/dashboard/tax")}

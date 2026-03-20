@@ -12,7 +12,6 @@ export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Debounce search to avoid excessive server calls
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
@@ -34,158 +33,111 @@ export default function ClientsPage() {
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: 80,
-        }}
-      >
-        <h1 className="display-title">
-          Klanten
-        </h1>
+      <div className="flex justify-between items-end mb-[80px]">
+        <h1 className="display-title">Klanten</h1>
         <Link
           href="/dashboard/clients/new"
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-label)",
-            fontWeight: 500,
-            letterSpacing: "0.10em",
-            textTransform: "uppercase",
-            padding: "14px 28px",
-            border: "0.5px solid rgba(13,13,11,0.25)",
-            background: "transparent",
-            color: "var(--foreground)",
-            textDecoration: "none",
-            display: "inline-block",
-            transition: "opacity 0.2s ease",
-          }}
+          className="font-sans text-[length:var(--text-label)] font-medium tracking-[0.10em] uppercase px-7 py-3.5 border-[0.5px] border-foreground/25 bg-transparent text-foreground no-underline inline-block transition-opacity duration-200"
         >
           + Nieuwe klant
         </Link>
       </div>
 
-      {/* Search */}
-      <div style={{ marginBottom: 32 }}>
+      <div className="mb-8">
         <input
           type="search"
           aria-label="Zoek klanten"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Zoek op naam, contactpersoon of e-mail..."
-          style={{
-            width: "100%",
-            maxWidth: 400,
-            padding: "14px 0",
-            border: "none",
-            borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-            background: "transparent",
-            color: "var(--foreground)",
-            fontFamily: "var(--font-mono), monospace",
-            fontSize: "var(--text-mono-md)",
-            fontWeight: 300,
-            outline: "none",
-          }}
+          className="w-full max-w-[400px] py-3.5 px-0 border-0 border-b-[0.5px] border-foreground/15 bg-transparent text-foreground font-mono text-[length:var(--text-mono-md)] font-light outline-none"
         />
       </div>
 
       {isLoading ? (
         <div>
           {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="skeleton"
-              style={{ width: "100%", height: 48, marginBottom: 1 }}
-            />
+            <div key={i} className="skeleton w-full h-12 mb-px" />
           ))}
         </div>
       ) : result?.error ? (
-        <div style={{ paddingTop: "var(--space-block)" }}>
+        <div className="pt-[var(--space-block)]">
           <ErrorMessage>{result.error}</ErrorMessage>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ paddingTop: "var(--space-block)" }}>
+        <div className="pt-[var(--space-block)]">
           <p className="empty-state">
             {search.trim() ? "Geen klanten gevonden" : "Nog geen klanten"}
           </p>
           {!search.trim() && (
             <Link
               href="/dashboard/clients/new"
-              className="table-action"
-              style={{ opacity: 0.4 }}
+              className="table-action opacity-40"
             >
               Voeg je eerste klant toe
             </Link>
           )}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
+            <tr className="border-b-[0.5px] border-foreground/15 text-left">
               <Th>Bedrijfsnaam</Th>
               <Th>Contactpersoon</Th>
               <Th>E-mail</Th>
               <Th>Stad</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
+              <Th className="text-right">Acties</Th>
             </tr>
           </thead>
           <tbody>
-              {filtered.map((client: Client) => (
-                <tr
-                  key={client.id}
-                  style={{ borderBottom: "0.5px solid rgba(10,10,10,0.06)" }}
-                >
-                  <Td>
+            {filtered.map((client: Client) => (
+              <tr
+                key={client.id}
+                className="border-b-[0.5px] border-foreground/[0.06]"
+              >
+                <Td>
+                  <Link
+                    href={`/dashboard/clients/${client.id}`}
+                    className="text-foreground font-normal no-underline"
+                  >
+                    {client.name}
+                  </Link>
+                </Td>
+                <Td>{client.contact_name ?? "—"}</Td>
+                <Td>{client.email ?? "—"}</Td>
+                <Td>{client.city ?? "—"}</Td>
+                <Td className="text-right">
+                  <div className="flex gap-3 justify-end">
                     <Link
                       href={`/dashboard/clients/${client.id}`}
-                      style={{
-                        color: "var(--foreground)",
-                        fontWeight: 400,
-                        textDecoration: "none",
-                      }}
+                      className="table-action"
                     >
-                      {client.name}
+                      Bekijk
                     </Link>
-                  </Td>
-                  <Td>{client.contact_name ?? "—"}</Td>
-                  <Td>{client.email ?? "—"}</Td>
-                  <Td>{client.city ?? "—"}</Td>
-                  <Td style={{ textAlign: "right" }}>
-                    <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                      <Link
-                        href={`/dashboard/clients/${client.id}`}
-                        className="table-action"
-                      >
-                        Bekijk
-                      </Link>
-                      <button
-                        onClick={() => {
-                          if (confirm("Weet je zeker dat je deze klant wilt verwijderen?")) {
-                            deleteMutation.mutate(client.id);
-                          }
-                        }}
-                        className="table-action"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          opacity: 0.3,
-                          padding: 0,
-                        }}
-                      >
-                        Verwijder
-                      </button>
-                    </div>
-                  </Td>
-                </tr>
-              ))}
+                    <button
+                      onClick={() => {
+                        if (
+                          confirm(
+                            "Weet je zeker dat je deze klant wilt verwijderen?",
+                          )
+                        ) {
+                          deleteMutation.mutate(client.id);
+                        }
+                      }}
+                      className="table-action bg-transparent border-none cursor-pointer opacity-30 p-0"
+                    >
+                      Verwijder
+                    </button>
+                  </div>
+                </Td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
 
       {deleteMutation.data?.error && (
-        <ErrorMessage style={{ marginTop: 16 }}>
+        <ErrorMessage className="mt-4">
           {deleteMutation.data.error}
         </ErrorMessage>
       )}

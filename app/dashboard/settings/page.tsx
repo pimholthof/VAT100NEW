@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getProfile, updateProfile } from "@/lib/actions/profile";
 import type { Profile } from "@/lib/types";
-import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage, SuccessMessage } from "@/components/ui";
+import { FieldGroup, ButtonPrimary, ErrorMessage, SuccessMessage } from "@/components/ui";
 
 export default function SettingsPage() {
   const { data: result, isLoading } = useQuery({
@@ -15,11 +15,11 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div>
-        <div className="skeleton" style={{ height: 48, width: 260, marginBottom: 80 }} />
+        <div className="skeleton h-12 w-[260px] mb-[80px]" />
         {[...Array(4)].map((_, i) => (
-          <div key={i} style={{ marginBottom: 20 }}>
-            <div className="skeleton" style={{ height: 9, width: 80, marginBottom: 10 }} />
-            <div className="skeleton" style={{ height: 36, width: "100%", maxWidth: 480 }} />
+          <div key={i} className="mb-5">
+            <div className="skeleton h-[9px] w-20 mb-2.5" />
+            <div className="skeleton h-9 w-full max-w-[480px]" />
           </div>
         ))}
       </div>
@@ -29,7 +29,7 @@ export default function SettingsPage() {
   if (result?.error) {
     return (
       <div>
-        <h1 className="display-title" style={{ margin: "0 0 80px" }}>
+        <h1 className="display-title m-0 mb-[80px]">
           Instellingen
         </h1>
         <ErrorMessage>{result.error}</ErrorMessage>
@@ -84,26 +84,25 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
 
   return (
     <div>
-      <h1 className="display-title" style={{ margin: "0 0 80px" }}>
+      <h1 className="display-title m-0 mb-[80px]">
         Instellingen
       </h1>
 
       {mutation.data?.error && (
-        <ErrorMessage style={{ marginBottom: 24 }}>
+        <ErrorMessage className="mb-6">
           {mutation.data.error}
         </ErrorMessage>
       )}
 
       {success && (
-        <SuccessMessage style={{ marginBottom: 24 }}>
+        <SuccessMessage className="mb-6">
           Instellingen opgeslagen.
         </SuccessMessage>
       )}
 
-      <div style={{ maxWidth: 480 }}>
-        {/* Persoonlijk */}
-        <div style={{ marginBottom: "var(--space-block)" }}>
-          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+      <div className="max-w-[480px]">
+        <div className="mb-[var(--space-block)]">
+          <p className="label-strong m-0 mb-7 pt-3 border-t border-t-foreground/15">
             Persoonlijk
           </p>
 
@@ -113,7 +112,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Je volledige naam"
-              style={inputStyle}
+              className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
             />
           </FieldGroup>
 
@@ -123,25 +122,24 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={studioName}
               onChange={(e) => setStudioName(e.target.value)}
               placeholder="Naam van je studio of bedrijf"
-              style={inputStyle}
+              className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
             />
           </FieldGroup>
         </div>
 
-        {/* Bedrijfsgegevens */}
-        <div style={{ marginBottom: "var(--space-block)" }}>
-          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+        <div className="mb-[var(--space-block)]">
+          <p className="label-strong m-0 mb-7 pt-3 border-t border-t-foreground/15">
             Bedrijfsgegevens
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="grid grid-cols-2 gap-4">
             <FieldGroup label="KVK-nummer">
               <input
                 type="text"
                 value={kvkNumber}
                 onChange={(e) => setKvkNumber(e.target.value)}
                 placeholder="12345678"
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-mono text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
               />
             </FieldGroup>
             <FieldGroup label="BTW-nummer">
@@ -150,7 +148,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={btwNumber}
                 onChange={(e) => setBtwNumber(e.target.value)}
                 placeholder="NL123456789B01"
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-mono text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
               />
             </FieldGroup>
           </div>
@@ -161,18 +159,18 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Straatnaam en huisnummer"
-              style={inputStyle}
+              className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
             />
           </FieldGroup>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 16 }}>
+          <div className="grid grid-cols-[1fr_2fr] gap-4">
             <FieldGroup label="Postcode">
               <input
                 type="text"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
                 placeholder="1234 AB"
-                style={inputStyle}
+                className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
               />
             </FieldGroup>
             <FieldGroup label="Stad">
@@ -181,26 +179,25 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Stad"
-                style={inputStyle}
+                className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
               />
             </FieldGroup>
           </div>
         </div>
 
-        {/* Bankgegevens */}
-        <div style={{ marginBottom: "var(--space-block)" }}>
-          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+        <div className="mb-[var(--space-block)]">
+          <p className="label-strong m-0 mb-7 pt-3 border-t border-t-foreground/15">
             Bankgegevens
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="grid grid-cols-2 gap-4">
             <FieldGroup label="IBAN">
               <input
                 type="text"
                 value={iban}
                 onChange={(e) => setIban(e.target.value)}
                 placeholder="NL00BANK0123456789"
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-mono text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
               />
             </FieldGroup>
             <FieldGroup label="BIC">
@@ -209,19 +206,13 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={bic}
                 onChange={(e) => setBic(e.target.value)}
                 placeholder="BANKNL2A"
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                className="w-full py-2 px-0 border-none border-b border-b-[0.6px] border-b-[var(--vat-dark-grey)] bg-transparent text-foreground font-mono text-base font-normal outline-none transition-[border-color] duration-200 ease-in-out"
               />
             </FieldGroup>
           </div>
         </div>
 
-        {/* Save */}
-        <div
-          style={{
-            paddingTop: 28,
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
-          }}
-        >
+        <div className="pt-7 border-t border-t-foreground/15">
           <ButtonPrimary
             onClick={handleSave}
             disabled={mutation.isPending}

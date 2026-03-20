@@ -53,8 +53,7 @@ export default function InvoicesPage() {
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="skeleton"
-              style={{ width: "100%", height: 48, marginBottom: 1 }}
+              className="skeleton w-full h-[48px] mb-px"
             />
           ))}
         </div>
@@ -63,8 +62,7 @@ export default function InvoicesPage() {
           <p className="empty-state">Nog geen facturen</p>
           <Link
             href="/dashboard/invoices/new"
-            className="table-action"
-            style={{ opacity: 0.4 }}
+            className="table-action opacity-40"
           >
             Maak je eerste factuur
           </Link>
@@ -79,8 +77,8 @@ export default function InvoicesPage() {
             <span>Klant</span>
             <span>Datum</span>
             <span>Status</span>
-            <span style={{ textAlign: "right" }}>Bedrag</span>
-            <span style={{ textAlign: "right" }}>Acties</span>
+            <span className="text-right">Bedrag</span>
+            <span className="text-right">Acties</span>
           </div>
 
           {/* Rijen */}
@@ -106,26 +104,20 @@ export default function InvoicesPage() {
               >
                 <Link
                   href={`/dashboard/invoices/${invoice.id}`}
-                  className="mono-amount"
-                  style={{
-                    fontSize: 12,
-                    color: "var(--foreground)",
-                    textDecoration: "none",
-                    opacity: 0.5,
-                  }}
+                  className="mono-amount text-[12px] text-[var(--foreground)] no-underline opacity-50"
                 >
                   {invoice.invoice_number}
                 </Link>
 
-                <span style={{ fontSize: 14, fontWeight: 500, letterSpacing: "-0.01em" }}>
+                <span className="text-[14px] font-medium tracking-[-0.01em]">
                   {invoice.client?.name ?? "—"}
                 </span>
 
-                <span className="mono-amount" style={{ fontSize: 12, opacity: 0.4 }}>
+                <span className="mono-amount text-[12px] opacity-40">
                   {formatDate(invoice.issue_date)}
                 </span>
 
-                <span className="label" style={{ margin: 0, opacity: 0.5 }}>
+                <span className="label !m-0 opacity-50">
                   <span className="status-dot" data-status={statusType} />
                   <select
                     value={invoice.status}
@@ -135,24 +127,12 @@ export default function InvoicesPage() {
                         status: e.target.value as InvoiceStatus,
                       })
                     }
-                    style={{
-                      padding: 0,
-                      border: "none",
-                      background: "transparent",
-                      color: "var(--foreground)",
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: "var(--text-label)",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "var(--tracking-label)",
-                      outline: "none",
-                      opacity:
-                        statusMutation.isPending &&
-                        statusMutation.variables?.id === invoice.id
-                          ? 0.2
-                          : 1,
-                      cursor: "pointer",
-                    }}
+                    className={`p-0 border-none bg-transparent text-[var(--foreground)] font-sans text-[var(--text-label)] font-semibold uppercase tracking-[var(--tracking-label)] outline-none cursor-pointer ${
+                      statusMutation.isPending &&
+                      statusMutation.variables?.id === invoice.id
+                        ? "opacity-20"
+                        : "opacity-100"
+                    }`}
                   >
                     <option value="draft">Concept</option>
                     <option value="sent">Verzonden</option>
@@ -162,22 +142,17 @@ export default function InvoicesPage() {
                 </span>
 
                 <span
-                  className="mono-amount"
-                  style={{
-                    textAlign: "right",
-                    fontSize: 14,
-                    fontWeight: 500,
-                    opacity: invoice.status === "paid" ? 0.3 : 1,
-                  }}
+                  className={`mono-amount text-right text-[14px] font-medium ${
+                    invoice.status === "paid" ? "opacity-30" : "opacity-100"
+                  }`}
                 >
                   {formatCurrency(invoice.total_inc_vat)}
                 </span>
 
-                <div style={{ display: "flex", gap: 16, justifyContent: "flex-end", alignItems: "center" }}>
+                <div className="flex gap-4 justify-end items-center">
                   <Link
                     href={`/dashboard/invoices/${invoice.id}/preview`}
-                    className="table-action"
-                    style={{ opacity: 0.4 }}
+                    className="table-action opacity-40"
                   >
                     Bekijk
                   </Link>
@@ -188,14 +163,7 @@ export default function InvoicesPage() {
                           deleteMutation.mutate(invoice.id);
                         }
                       }}
-                      className="table-action"
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        opacity: 0.2,
-                        padding: 0,
-                      }}
+                      className="table-action bg-none border-none cursor-pointer opacity-20 p-0"
                     >
                       Verwijder
                     </button>

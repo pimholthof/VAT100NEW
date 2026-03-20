@@ -23,72 +23,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        gridTemplateColumns: "1fr",
-        alignItems: "center",
-        justifyItems: "center",
-        padding: 24,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Giant background logo watermark */}
+    <div className="min-h-screen grid grid-cols-1 items-center justify-items-center p-6 relative overflow-hidden">
       <div
         aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: -40,
-          left: -20,
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "min(14rem, 28vw)",
-          fontWeight: 700,
-          letterSpacing: "var(--tracking-display)",
-          lineHeight: 0.85,
-          color: "var(--foreground)",
-          opacity: 0.04,
-          pointerEvents: "none",
-          userSelect: "none",
-          whiteSpace: "nowrap",
-        }}
+        className="absolute -top-10 -left-5 font-[family-name:var(--font-display)] text-[min(14rem,28vw)] font-bold tracking-[var(--tracking-display)] leading-[0.85] text-foreground opacity-[0.04] pointer-events-none select-none whitespace-nowrap"
       >
         VAT100
       </div>
 
-      <div style={{ width: "100%", maxWidth: 340, position: "relative", zIndex: 1 }}>
-        {/* Logo */}
-        <h1
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-hero)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 0.85,
-            margin: 0,
-          }}
-        >
+      <div className="w-full max-w-[340px] relative z-[1]">
+        <h1 className="font-[family-name:var(--font-display)] text-[length:var(--text-display-hero)] font-bold tracking-[var(--tracking-display)] leading-[0.85] m-0">
           VAT
           <br />
           100
         </h1>
 
-        {/* Tagline */}
-        <p
-          className="label"
-          style={{
-            marginTop: 24,
-            marginBottom: 72,
-            letterSpacing: "var(--tracking-caps)",
-            opacity: 0.4,
-          }}
-        >
+        <p className="label mt-6 mb-[72px] tracking-[var(--tracking-caps)] opacity-40">
           Boekhouding zonder ruis
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-10">
+          <div className="flex flex-col gap-2">
             <label htmlFor="email" className="label">
               E-mail
             </label>
@@ -98,21 +53,11 @@ export default function LoginPage() {
               type="email"
               required
               autoComplete="email"
-              style={{
-                fontFamily: "var(--font-mono), monospace",
-                fontSize: "13px",
-                fontWeight: 300,
-                padding: "14px 0",
-                border: "none",
-                borderBottom: "0.5px solid rgba(13,13,11,0.12)",
-                background: "transparent",
-                color: "var(--foreground)",
-                outline: "none",
-              }}
+              className="font-mono text-[13px] font-light py-3.5 px-0 border-none border-b border-b-foreground/12 bg-transparent text-foreground outline-none"
             />
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="flex flex-col gap-2">
             <label htmlFor="password" className="label">
               Wachtwoord
             </label>
@@ -123,29 +68,12 @@ export default function LoginPage() {
               required
               minLength={6}
               autoComplete="current-password"
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "13px",
-                fontWeight: 300,
-                padding: "14px 0",
-                border: "none",
-                borderBottom: "0.5px solid rgba(13,13,11,0.12)",
-                background: "transparent",
-                color: "var(--foreground)",
-                outline: "none",
-              }}
+              className="font-sans text-[13px] font-light py-3.5 px-0 border-none border-b border-b-foreground/12 bg-transparent text-foreground outline-none"
             />
           </div>
 
           {error && (
-            <div
-              style={{
-                padding: 16,
-                background: "rgba(13,13,11,0.02)",
-                fontFamily: "var(--font-mono), monospace",
-                fontSize: "11px",
-              }}
-            >
+            <div className="p-4 bg-foreground/[0.02] font-mono text-[11px]">
               {error}
             </div>
           )}
@@ -153,43 +81,17 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={pending}
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-label)",
-              fontWeight: 500,
-              letterSpacing: "0.10em",
-              textTransform: "uppercase",
-              padding: 24,
-              border: "none",
-              background: "var(--foreground)",
-              color: "var(--background)",
-              cursor: "pointer",
-              width: "100%",
-              transition: "opacity 0.15s ease",
-            }}
+            className="font-sans text-[length:var(--text-label)] font-medium tracking-[0.10em] uppercase p-6 border-none bg-foreground text-background cursor-pointer w-full transition-opacity duration-150 ease-in-out"
           >
             {pending ? "Authenticatie..." : "Toegang"}
           </button>
         </form>
 
-        <p
-          className="label"
-          style={{
-            marginTop: 40,
-            opacity: 0.4,
-          }}
-        >
+        <p className="label mt-10 opacity-40">
           Geen dossier?{" "}
           <Link
             href="/register"
-            style={{
-              fontWeight: 500,
-              color: "var(--foreground)",
-              textDecoration: "none",
-              opacity: 1,
-              borderBottom: "0.5px solid rgba(13,13,11,0.3)",
-              paddingBottom: 1,
-            }}
+            className="font-medium text-foreground no-underline opacity-100 border-b border-b-foreground/30 pb-px"
           >
             Registreren
           </Link>

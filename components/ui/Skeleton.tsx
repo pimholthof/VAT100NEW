@@ -4,14 +4,16 @@ export function Skeleton({
   width,
   height,
   style,
+  className,
 }: {
   width?: number | string;
   height?: number | string;
   style?: CSSProperties;
+  className?: string;
 }) {
   return (
     <div
-      className="skeleton"
+      className={className ? `skeleton ${className}` : "skeleton"}
       style={{ width, height, ...style }}
     />
   );

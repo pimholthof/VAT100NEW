@@ -36,12 +36,12 @@ export default function ReceiptDetailPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "64px 0" }}>
-        <div className="skeleton" style={{ width: 200, height: 32, marginBottom: 32 }} />
+      <div className="py-16">
+        <div className="skeleton w-[200px] h-8 mb-8" />
         {[...Array(4)].map((_, i) => (
-          <div key={i} style={{ marginBottom: 20 }}>
-            <div className="skeleton" style={{ width: 80, height: 9, marginBottom: 8 }} />
-            <div className="skeleton" style={{ width: "100%", height: 36 }} />
+          <div key={i} className="mb-5">
+            <div className="skeleton w-[80px] h-[9px] mb-2" />
+            <div className="skeleton w-full h-9" />
           </div>
         ))}
       </div>
@@ -51,24 +51,12 @@ export default function ReceiptDetailPage() {
   if (!receipt) {
     return (
       <div>
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "13px",
-            fontWeight: 300,
-          }}
-        >
+        <p className="font-sans text-[13px] font-light">
           Bon niet gevonden.
         </p>
         <Link
           href="/dashboard/receipts"
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            color: "var(--foreground)",
-            textDecoration: "none",
-          }}
+          className="font-sans text-[length:var(--text-body-md)] font-normal text-foreground no-underline"
         >
           Terug naar bonnen
         </Link>
@@ -96,16 +84,7 @@ export default function ReceiptDetailPage() {
         }
       />
       {receipt.ai_processed && (
-        <p
-          style={{
-            fontFamily: "var(--font-mono), monospace",
-            fontSize: "var(--text-mono-sm)",
-            fontWeight: 400,
-            opacity: 0.4,
-            marginTop: -48,
-            marginBottom: 32,
-          }}
-        >
+        <p className="font-mono text-[length:var(--text-mono-sm)] font-normal opacity-40 -mt-12 mb-8">
           AI verwerkt
         </p>
       )}
@@ -122,31 +101,25 @@ export default function ReceiptDetailPage() {
       ) : (
         <>
           {imageUrl && (
-              <div style={{ position: "relative", width: "100%", maxWidth: 300, height: 400, marginBottom: 32 }}>
-                <Image
-                  src={imageUrl}
-                  alt="Bon afbeelding"
-                  fill
-                  style={{
-                    objectFit: "contain",
-                    border: "0.5px solid rgba(13,13,11,0.15)",
-                  }}
-                  unoptimized // Omdat de URL van Supabase Storage komt
-                />
-              </div>
+            <div className="relative w-full max-w-[300px] h-[400px] mb-8">
+              <Image
+                src={imageUrl}
+                alt="Bon afbeelding"
+                fill
+                className="object-contain border-[0.5px] border-foreground/15"
+                unoptimized
+              />
+            </div>
           )}
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 0,
-              marginBottom: 32,
-            }}
-          >
+          <div className="grid grid-cols-2 gap-0 mb-8">
             <DetailCell
               label="Datum"
-              value={receipt.receipt_date ? formatDate(receipt.receipt_date) : null}
+              value={
+                receipt.receipt_date
+                  ? formatDate(receipt.receipt_date)
+                  : null
+              }
             />
             <DetailCell label="Leverancier" value={receipt.vendor_name} />
             <DetailCell
@@ -159,7 +132,9 @@ export default function ReceiptDetailPage() {
             />
             <DetailCell
               label="BTW-tarief"
-              value={receipt.vat_rate != null ? `${receipt.vat_rate}%` : null}
+              value={
+                receipt.vat_rate != null ? `${receipt.vat_rate}%` : null
+              }
             />
             <DetailCell
               label="Bedrag excl. BTW"

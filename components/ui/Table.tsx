@@ -2,23 +2,17 @@ import React from "react";
 
 export function Th({
   children,
-  style,
+  className,
   scope = "col",
 }: {
   children?: React.ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
   scope?: "col" | "row" | "colgroup" | "rowgroup";
 }) {
   return (
     <th
       scope={scope}
-      className="label"
-      style={{
-        padding: "16px 0",
-        textAlign: "left",
-        opacity: 0.5,
-        ...style,
-      }}
+      className={`label py-4 px-0 text-left opacity-50 ${className ?? ""}`}
     >
       {children}
     </th>
@@ -27,19 +21,13 @@ export function Th({
 
 export function Td({
   children,
-  style,
+  className,
 }: {
   children?: React.ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }) {
   return (
-    <td
-      style={{
-        padding: "16px 0",
-        fontWeight: 300,
-        ...style,
-      }}
-    >
+    <td className={`py-4 px-0 font-light ${className ?? ""}`}>
       {children}
     </td>
   );

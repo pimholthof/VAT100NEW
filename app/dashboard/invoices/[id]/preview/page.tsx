@@ -13,38 +13,15 @@ export default async function InvoicePreviewPage({
 
   if (result.error || !result.data) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "var(--background)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          padding: "40px 20px",
-        }}
-      >
-        <div
-          style={{
-            padding: "12px 16px",
-            borderLeft: "2px solid var(--foreground)",
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            marginBottom: 24,
-          }}
-        >
+      <div className="min-h-screen bg-[var(--background)] flex flex-col items-center px-5 py-10">
+        <div className="py-3 px-4 border-l-2 border-[var(--foreground)] font-sans text-[var(--text-body-md)] font-normal mb-6">
           {result.error ?? "Factuur niet gevonden"}
         </div>
         <Link
           href="/dashboard/invoices"
-          style={{
-            fontSize: "var(--text-body-md)",
-            fontFamily: "var(--font-body), sans-serif",
-            fontWeight: 400,
-            color: "var(--foreground)",
-          }}
+          className="text-[var(--text-body-md)] font-sans font-normal text-[var(--foreground)]"
         >
-          ← Terug naar facturen
+          &larr; Terug naar facturen
         </Link>
       </div>
     );
@@ -53,55 +30,24 @@ export default async function InvoicePreviewPage({
   const data = result.data;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--background)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "40px 20px",
-      }}
-    >
+    <div className="min-h-screen bg-[var(--background)] flex flex-col items-center px-5 py-10">
       {/* Toolbar */}
-      <div
-        style={{
-          width: "595px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "24px",
-        }}
-      >
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+      <div className="w-[595px] flex justify-between items-center mb-6">
+        <div className="flex gap-3 items-center">
           <Link
             href="/dashboard/invoices"
-            style={{
-              fontSize: "var(--text-body-md)",
-              fontFamily: "var(--font-body), sans-serif",
-              fontWeight: 400,
-              color: "var(--foreground)",
-              textDecoration: "none",
-              letterSpacing: "0.05em",
-            }}
+            className="text-[var(--text-body-md)] font-sans font-normal text-[var(--foreground)] no-underline tracking-[0.05em]"
           >
             &larr; Overzicht
           </Link>
           <Link
             href={`/dashboard/invoices/${id}`}
-            style={{
-              fontSize: "var(--text-body-md)",
-              fontFamily: "var(--font-body), sans-serif",
-              fontWeight: 400,
-              color: "var(--foreground)",
-              textDecoration: "none",
-              letterSpacing: "0.05em",
-            }}
+            className="text-[var(--text-body-md)] font-sans font-normal text-[var(--foreground)] no-underline tracking-[0.05em]"
           >
             Bewerken
           </Link>
         </div>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <div className="flex gap-3 items-center">
           {data.invoice.status !== "draft" && data.client.email && (
             <SendEmailButton
               invoiceId={id}
@@ -110,16 +56,7 @@ export default async function InvoicePreviewPage({
           )}
           <a
             href={`/api/invoice/${id}/pdf`}
-            style={{
-              fontSize: "var(--text-body-md)",
-              fontFamily: "var(--font-body), sans-serif",
-              fontWeight: 500,
-              color: "var(--foreground)",
-              textDecoration: "none",
-              letterSpacing: "0.05em",
-              padding: "8px 20px",
-              border: "1px solid rgba(13, 13, 11, 0.2)",
-            }}
+            className="text-[var(--text-body-md)] font-sans font-medium text-[var(--foreground)] no-underline tracking-[0.05em] py-2 px-5 border border-foreground/20"
           >
             Download PDF
           </a>
@@ -127,11 +64,7 @@ export default async function InvoicePreviewPage({
       </div>
 
       {/* Invoice Preview */}
-      <div
-        style={{
-          border: "var(--border-rule)",
-        }}
-      >
+      <div className="[border:var(--border-rule)]">
         <InvoiceHTML data={data} />
       </div>
     </div>

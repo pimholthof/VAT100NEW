@@ -87,10 +87,11 @@
   --tracking-widest: 0.15em;
 
   /* ── Font Families ── */
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-body: 'Cormorant Garamond', serif;
-  --font-utility: 'Space Mono', monospace;
-  --font-editorial: 'Playfair Display', serif;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-utility: 'JetBrains Mono', monospace;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-editorial: 'Syne', sans-serif;
 
   /* ── Layout ── */
   --nav-height: auto;
@@ -125,10 +126,10 @@
   --color-warning: var(--color-warning);
 
   /* Fonts */
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-body: 'Cormorant Garamond', serif;
-  --font-utility: 'Space Mono', monospace;
-  --font-editorial: 'Playfair Display', serif;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-utility: 'JetBrains Mono', monospace;
+  --font-editorial: 'Syne', sans-serif;
 
   /* Spacing */
   --spacing-xs: var(--space-xs);
@@ -163,7 +164,7 @@ html {
 body {
   background: var(--vat-paper);
   color: var(--vat-obsidian);
-  font-family: var(--font-body), 'Cormorant Garamond', serif;
+  font-family: var(--font-body), 'Inter', sans-serif;
   font-size: var(--text-body);
   line-height: 1.65;
   letter-spacing: var(--tracking-tight);
@@ -245,7 +246,7 @@ button:disabled {
 }
 
 .nav-logo {
-  font-family: var(--font-display), 'Bebas Neue', sans-serif;
+  font-family: var(--font-display), 'Syne', sans-serif;
   font-size: clamp(1.5rem, 3vw, 2.5rem);
   font-weight: 400;
   letter-spacing: -0.05em;
@@ -262,7 +263,7 @@ button:disabled {
 }
 
 .nav-studio {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -275,7 +276,7 @@ button:disabled {
   border: none;
   cursor: pointer;
   padding: var(--space-xs) 0;
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -322,7 +323,7 @@ button:disabled {
 }
 
 .nav-section-label {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -332,7 +333,7 @@ button:disabled {
 }
 
 .nav-link {
-  font-family: var(--font-display), 'Bebas Neue', sans-serif;
+  font-family: var(--font-display), 'Syne', sans-serif;
   font-size: clamp(1.25rem, 2.5vw, 2rem);
   font-weight: 400;
   letter-spacing: -0.02em;
@@ -372,7 +373,7 @@ button:disabled {
   border: none;
   cursor: pointer;
   padding: 0;
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -387,7 +388,7 @@ button:disabled {
 }
 
 .nav-meta {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   opacity: 0.5;
@@ -412,7 +413,7 @@ button:disabled {
 }
 
 .footer-logo {
-  font-family: var(--font-display), 'Bebas Neue', sans-serif;
+  font-family: var(--font-display), 'Syne', sans-serif;
   font-size: var(--text-body);
   font-weight: 400;
   letter-spacing: -0.03em;
@@ -421,14 +422,14 @@ button:disabled {
 }
 
 .footer-meta {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   opacity: 0.5;
 }
 
 .footer-shortcut {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   opacity: 0.2;
@@ -449,7 +450,7 @@ button:disabled {
 
 /* ─── Typography Classes ─── */
 .label {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -458,7 +459,7 @@ button:disabled {
 }
 
 .label-strong {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -467,7 +468,7 @@ button:disabled {
 }
 
 .display-hero {
-  font-family: var(--font-display), 'Bebas Neue', sans-serif;
+  font-family: var(--font-display), 'Syne', sans-serif;
   font-size: var(--text-display);
   font-weight: 400;
   letter-spacing: var(--tracking-display);
@@ -477,7 +478,7 @@ button:disabled {
 }
 
 .display-title {
-  font-family: var(--font-display), 'Bebas Neue', sans-serif;
+  font-family: var(--font-display), 'Syne', sans-serif;
   font-size: var(--text-h1);
   font-weight: 400;
   letter-spacing: var(--tracking-display);
@@ -487,7 +488,7 @@ button:disabled {
 }
 
 .section-header {
-  font-family: var(--font-body), 'Cormorant Garamond', serif;
+  font-family: var(--font-body), 'Inter', sans-serif;
   font-size: var(--text-h2);
   font-weight: 700;
   line-height: 1.25;
@@ -495,7 +496,7 @@ button:disabled {
 }
 
 .section-subheader {
-  font-family: var(--font-body), 'Cormorant Garamond', serif;
+  font-family: var(--font-body), 'Inter', sans-serif;
   font-size: var(--text-h3);
   font-weight: 600;
   line-height: 1.4;
@@ -503,13 +504,13 @@ button:disabled {
 }
 
 .mono-amount {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-body);
   font-variant-numeric: tabular-nums;
 }
 
 .mono-amount-lg {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-h1);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -529,7 +530,7 @@ button:disabled {
 }
 
 .table-action {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -544,7 +545,7 @@ button:disabled {
 }
 
 .empty-state {
-  font-family: var(--font-display), 'Bebas Neue', sans-serif;
+  font-family: var(--font-display), 'Syne', sans-serif;
   font-size: var(--text-h1);
   font-weight: 400;
   text-transform: uppercase;
@@ -555,7 +556,7 @@ button:disabled {
 
 /* ─── Hero Amount ─── */
 .hero-amount {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: clamp(3rem, 8vw, 6rem);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -564,7 +565,7 @@ button:disabled {
 }
 
 .hero-label {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -591,7 +592,7 @@ button:disabled {
 }
 
 .stat-card-label {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -601,7 +602,7 @@ button:disabled {
 }
 
 .stat-card-value {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: clamp(1.6rem, 3vw, 2.4rem);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -611,7 +612,7 @@ button:disabled {
 }
 
 .stat-card-sub {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-variant-numeric: tabular-nums;
   margin: 0;
@@ -652,7 +653,7 @@ button:disabled {
 }
 
 .data-table-header span {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -697,7 +698,7 @@ button:disabled {
 }
 
 .upload-zone-title {
-  font-family: var(--font-display), 'Bebas Neue', sans-serif;
+  font-family: var(--font-display), 'Syne', sans-serif;
   font-size: var(--text-h3);
   font-weight: 400;
   letter-spacing: 0.05em;
@@ -706,7 +707,7 @@ button:disabled {
 }
 
 .upload-zone-sub {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -721,7 +722,7 @@ button:disabled {
 }
 
 .page-header-back {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -745,7 +746,7 @@ button:disabled {
 }
 
 .page-header-count {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -756,7 +757,7 @@ button:disabled {
 
 /* ─── Action Button ─── */
 .action-button {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -786,7 +787,7 @@ button:disabled {
 }
 
 .action-button-secondary {
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-label);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
@@ -892,7 +893,7 @@ button:disabled {
   margin-bottom: var(--space-m);
   background: rgba(74, 82, 64, 0.06);
   border-left: 2px solid var(--vat-olive);
-  font-family: var(--font-utility), 'Space Mono', monospace;
+  font-family: var(--font-utility), 'JetBrains Mono', monospace;
   font-size: var(--text-body);
   font-weight: 400;
 }
@@ -1124,7 +1125,7 @@ button:disabled {
   padding: var(--space-s) var(--space-l);
   background: var(--foreground);
   color: var(--background);
-  font-family: var(--font-body), 'Cormorant Garamond', serif;
+  font-family: var(--font-body), 'Inter', sans-serif;
   font-size: var(--text-body-lg);
   font-weight: 600;
   text-decoration: none;
