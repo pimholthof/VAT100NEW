@@ -143,68 +143,11 @@ export interface ReceiptInput {
   receipt_date: string | null;
 }
 
-// ─── Bank types ───
-
-export type BankConnectionStatus = "pending" | "active" | "expired" | "error";
-
-export interface BankConnection {
-  id: string;
-  user_id: string;
-  institution_id: string;
-  institution_name: string;
-  requisition_id: string | null;
-  account_id: string | null;
-  iban: string | null;
-  status: BankConnectionStatus;
-  last_synced_at: string | null;
-  created_at: string;
-}
-
-export interface BankTransaction {
-  id: string;
-  user_id: string;
-  bank_connection_id: string;
-  external_id: string;
-  booking_date: string;
-  amount: number;
-  currency: string;
-  description: string | null;
-  counterpart_name: string | null;
-  category: string | null;
-  is_income: boolean;
-  linked_invoice_id: string | null;
-  linked_receipt_id: string | null;
-  created_at: string;
-}
-
 // ─── Action result types ───
 
 export interface ActionResult<T = undefined> {
   error: string | null;
   data?: T;
-}
-
-// ─── Action Feed types (AI Agent System) ───
-
-export type ActionFeedType = "missing_receipt" | "match_suggestion" | "tax_alert" | "uncategorized" | "reminder_suggestion" | "autonomous_match";
-export type ActionFeedStatus = "pending" | "resolved" | "ignored";
-
-export interface ActionFeedItem {
-  id: string;
-  user_id: string;
-  type: ActionFeedType;
-  status: ActionFeedStatus;
-  title: string;
-  description: string;
-  amount: number | null;
-  draft_content: string | null; // Pre-generated content for the action (e.g. email draft)
-  related_transaction_id: string | null;
-  related_receipt_id: string | null;
-  related_invoice_id: string | null;
-  suggested_category: string | null;
-  ai_confidence: number | null;
-  created_at: string;
-  resolved_at: string | null;
 }
 
 // ─── Asset types ───
@@ -242,28 +185,6 @@ export interface AssetInput {
   residual_value: number;
   useful_life_months: number;
   category: AssetCategory;
-}
-
-// ─── Document types ───
-
-export interface Document {
-  id: string;
-  user_id: string;
-  name: string;
-  storage_path: string;
-  file_type: string | null;
-  file_size: number | null;
-  client_id: string | null;
-  invoice_id: string | null;
-  notes: string | null;
-  created_at: string;
-}
-
-export interface DocumentInput {
-  name: string;
-  client_id: string | null;
-  invoice_id: string | null;
-  notes: string | null;
 }
 
 // ─── Advisor types ───

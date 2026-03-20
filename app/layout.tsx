@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
 import "@/styles/globals.css";
-import { CommandMenu } from "@/components/ui/CommandMenu";
 
 export const viewport: Viewport = {
   themeColor: "#FAF8F5",
@@ -32,7 +31,6 @@ export default function RootLayout({
       <body>
         <Providers>
           {children}
-          <CommandMenu />
         </Providers>
       </body>
     </html>

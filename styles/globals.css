@@ -858,55 +858,6 @@ button:disabled {
   animation: uploadPulse 1.5s ease-in-out infinite;
 }
 
-/* ─── Command Menu (cmdk) ─── */
-.cmdk-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(250, 248, 245, 0.85);
-  z-index: 9999;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 15vh;
-}
-
-.cmdk-dialog {
-  width: 100%;
-  max-width: 640px;
-  background: var(--vat-paper);
-  border: var(--border-section);
-  overflow: hidden;
-}
-
-.cmdk-group [cmdk-group-heading] {
-  padding: var(--space-s) var(--space-l);
-  font-family: var(--font-utility), 'Space Mono', monospace;
-  font-size: var(--text-label);
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-widest);
-  color: var(--vat-taupe);
-}
-
-.cmdk-item {
-  padding: var(--space-s) var(--space-l);
-  cursor: pointer;
-  font-family: var(--font-body), 'Cormorant Garamond', serif;
-  font-size: var(--text-body-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--space-s);
-}
-
-.cmdk-item[data-selected="true"],
-.cmdk-item:hover {
-  background: var(--vat-pale-grey);
-  color: var(--foreground);
-}
-
 /* ─── Invoice List ─── */
 .invoice-grid {
   display: grid;
@@ -986,19 +937,6 @@ button:disabled {
 
   .action-button:hover {
     background: var(--vat-moss);
-  }
-
-  .cmdk-overlay {
-    background: rgba(10, 10, 10, 0.85);
-  }
-
-  .cmdk-dialog {
-    background: var(--vat-near-black);
-  }
-
-  .cmdk-item[data-selected="true"],
-  .cmdk-item:hover {
-    background: var(--vat-dark-grey);
   }
 
   img {

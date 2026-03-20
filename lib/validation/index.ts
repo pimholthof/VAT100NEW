@@ -99,17 +99,6 @@ export const assetSchema = z.object({
 
 export type AssetSchema = z.infer<typeof assetSchema>;
 
-// ─── Document ───
-
-export const documentSchema = z.object({
-  name: trimmedString.min(1, "Naam is verplicht"),
-  client_id: z.string().nullable().optional(),
-  invoice_id: z.string().nullable().optional(),
-  notes: optionalString,
-});
-
-export type DocumentSchema = z.infer<typeof documentSchema>;
-
 // ─── Opening Balance ───
 
 export const openingBalanceSchema = z.object({

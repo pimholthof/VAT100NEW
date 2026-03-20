@@ -80,7 +80,6 @@ export function QuickReceiptUpload() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["action-feed"] });
       setTimeout(() => {
         setStatus("idle");
         setMessage("");
