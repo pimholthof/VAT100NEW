@@ -3,10 +3,6 @@
     {
       "path": "/api/cron/overdue",
       "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/agents/reconcile",
-      "schedule": "0 7 * * *"
     }
   ]
 }

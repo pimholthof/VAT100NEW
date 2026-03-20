@@ -156,26 +156,10 @@ export function DashboardNav({
             >
               Activa
             </Link>
-            <Link
-              href="/dashboard/documenten"
-              className="nav-link"
-              data-active={isActive("/dashboard/documenten")}
-              onClick={() => setIsDrawerOpen(false)}
-            >
-              Documenten
-            </Link>
           </div>
 
           <div className="nav-section">
             <span className="nav-section-label">Systemen</span>
-            <Link
-              href="/dashboard/bank"
-              className="nav-link"
-              data-active={isActive("/dashboard/bank")}
-              onClick={() => setIsDrawerOpen(false)}
-            >
-              Transacties
-            </Link>
             <Link
               href="/dashboard/tax"
               className="nav-link"

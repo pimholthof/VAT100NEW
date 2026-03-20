@@ -328,7 +328,7 @@ export async function processReceiptWebhook(payload: {
   vatAmount?: number;
   receiptDate?: string;
   storagePath?: string;
-}, externalSupabase?: ReturnType<typeof createServiceClient>): Promise<ActionResult<{ status: string; receiptId: string; matchedTransactionId?: string }>> {
+}, externalSupabase?: ReturnType<typeof createServiceClient>): Promise<ActionResult<{ status: string; receiptId: string }>> {
   const supabase = externalSupabase || createServiceClient();
   const { userId, vendorName, amount, vatAmount, receiptDate, storagePath } = payload;
 
@@ -349,50 +349,8 @@ export async function processReceiptWebhook(payload: {
 
   if (receiptError) return { error: receiptError.message };
 
-  // 2. Try to find a matching bank transaction
-  const txDate = new Date(receiptDate ?? new Date());
-  const dateFrom = new Date(txDate);
-  dateFrom.setDate(dateFrom.getDate() - 3);
-  const dateTo = new Date(txDate);
-  dateTo.setDate(dateTo.getDate() + 3);
-
-  const { data: matchingTx } = await supabase
-    .from("bank_transactions")
-    .select("id, description, counterpart_name, amount")
-    .eq("user_id", userId)
-    .is("linked_receipt_id", null)
-    .gte("booking_date", dateFrom.toISOString().split("T")[0])
-    .lte("booking_date", dateTo.toISOString().split("T")[0]);
-
-  const match = (matchingTx ?? []).find(
-    (tx: { amount: number }) => Math.abs(Math.abs(Number(tx.amount)) - amount) < 0.02
-  );
-
-  if (match) {
-    await supabase
-      .from("bank_transactions")
-      .update({ linked_receipt_id: receipt.id })
-      .eq("id", match.id);
-
-    await supabase.from("action_feed").insert({
-      user_id: userId,
-      type: "match_suggestion",
-      title: `Bon automatisch gekoppeld: ${vendorName ?? "Onbekend"}`,
-      description: `Bon van ${vendorName ?? "onbekend"} (${new Date(receiptDate || "").toLocaleDateString("nl-NL")}) is gekoppeld aan afschrijving "${match.counterpart_name ?? match.description}". Bevestig of corrigeer.`,
-      amount,
-      related_transaction_id: match.id,
-      related_receipt_id: receipt.id,
-      ai_confidence: 0.92,
-    });
-
-    return { 
-      error: null, 
-      data: { status: "matched", receiptId: receipt.id, matchedTransactionId: match.id } 
-    };
-  }
-
-  return { 
-    error: null, 
-    data: { status: "stored", receiptId: receipt.id } 
+  return {
+    error: null,
+    data: { status: "stored", receiptId: receipt.id }
   };
 }

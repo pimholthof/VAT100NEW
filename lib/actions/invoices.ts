@@ -12,7 +12,7 @@ import type {
   InvoiceWithDetails,
 } from "@/lib/types";
 import { invoiceSchema, validate } from "@/lib/validation";
-import { calculateLineTotals, formatCurrency } from "@/lib/format";
+import { calculateLineTotals } from "@/lib/format";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { InvoiceData } from "@/lib/types";
 
@@ -366,14 +366,13 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
  * Common logic for processing overdue invoices.
  * Can be called by Cron API or manually by user (if userId matches).
  */
-export async function processOverdueInvoices(userId?: string): Promise<ActionResult<{ 
-  updated: number; 
+export async function processOverdueInvoices(userId?: string): Promise<ActionResult<{
+  updated: number;
   results: Array<{
     invoiceNumber: string;
     emailSent: boolean;
-    actionCreated: boolean;
     error?: string;
-  }>; 
+  }>;
 }>> {
   const supabase = createServiceClient();
   const today = new Date().toISOString().split("T")[0];
@@ -396,13 +395,11 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
   const results: Array<{
     invoiceNumber: string;
     emailSent: boolean;
-    actionCreated: boolean;
     error?: string;
   }> = [];
 
   for (const inv of overdueInvoices ?? []) {
     let emailSent = false;
-    let actionCreated = false;
     let errorMsg: string | undefined;
 
     try {
@@ -434,15 +431,6 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
         .update({ status: "overdue" })
         .eq("id", inv.id);
 
-      await supabase.from("action_feed").insert({
-        user_id: inv.user_id,
-        type: "tax_alert",
-        title: `Factuur ${inv.invoice_number} is verlopen`,
-        description: `Factuur ${inv.invoice_number} (${formatCurrency(inv.total_inc_vat)}) is verlopen. ${emailSent ? "Een herinnering is automatisch verstuurd." : "Stuur handmatig een herinnering."}`,
-        amount: inv.total_inc_vat,
-        ai_confidence: 1.0,
-      });
-      actionCreated = true;
     } catch (e: unknown) {
       errorMsg = e instanceof Error ? e.message : String(e);
     }
@@ -450,7 +438,6 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
     results.push({
       invoiceNumber: inv.invoice_number,
       emailSent,
-      actionCreated,
       error: errorMsg,
     });
   }
