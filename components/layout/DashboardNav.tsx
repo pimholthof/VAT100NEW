@@ -163,6 +163,14 @@ export function DashboardNav({
               Belasting
             </Link>
             <Link
+              href="/dashboard/jaarrekening"
+              className="nav-link"
+              data-active={isActive("/dashboard/jaarrekening")}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              Jaarrekening
+            </Link>
+            <Link
               href="/dashboard/settings"
               className="nav-link"
               data-active={isActive("/dashboard/settings")}

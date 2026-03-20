@@ -10,6 +10,7 @@ import {
 } from "@/lib/actions/dashboard";
 import type { ActionResult } from "@/lib/types";
 import { sendReminder } from "@/lib/actions/invoices";
+import { listAnnualAccounts } from "@/lib/actions/annual-account";
 import { formatCurrency } from "@/lib/format";
 
 import {
@@ -18,6 +19,7 @@ import {
   ErrorMessage,
 } from "@/components/ui";
 import { QuickReceiptUpload } from "@/components/dashboard/QuickReceiptUpload";
+import { AnnualAccountCard } from "@/components/jaarrekening/AnnualAccountCard";
 
 export default function DashboardClient({
   initialResult,
@@ -31,10 +33,17 @@ export default function DashboardClient({
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: accountsResult } = useQuery({
+    queryKey: ["annual-accounts"],
+    queryFn: () => listAnnualAccounts(),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const data = dashboardResult?.data;
   const stats = data?.stats;
   const upcomingInvoices = data?.upcomingInvoices;
   const safeToSpend = data?.safeToSpend;
+  const annualAccounts = accountsResult?.data ?? [];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 48, paddingBottom: 80 }}>
@@ -76,7 +85,20 @@ export default function DashboardClient({
         </section>
       )}
 
-      {/* ── 3. DOSSIER / OPENSTAAND ── */}
+      {/* ── 3. JAARREKENING ── */}
+      {!isLoading && (
+        <section>
+          <h2 className="section-header section-divider" style={{ opacity: 0.4 }}>
+            Jaarrekening
+          </h2>
+          <AnnualAccountCard
+            accounts={annualAccounts}
+            currentYear={new Date().getFullYear() - 1}
+          />
+        </section>
+      )}
+
+      {/* ── 4. DOSSIER / OPENSTAAND ── */}
       <section>
         <h2 className="section-header section-divider" style={{ opacity: 0.4 }}>
           Openstaande facturen
