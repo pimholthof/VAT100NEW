@@ -247,7 +247,7 @@ export default function TaxPage() {
               <Th style={{ textAlign: "right" }}>Output BTW</Th>
               <Th style={{ textAlign: "right" }}>Aftrekbare BTW</Th>
               <Th style={{ textAlign: "right" }}>Netto BTW</Th>
-              <Th>Status</Th>
+              <Th style={{ textAlign: "right" }}>Export</Th>
             </tr>
           </thead>
           <tbody>
@@ -268,10 +268,15 @@ export default function TaxPage() {
                 <Td style={{ textAlign: "right" }}>
                   <span className="mono-amount">{formatCurrency(q.netVat)}</span>
                 </Td>
-                <Td>
-                  <span className="label" style={{ opacity: 1 }}>
-                    {q.netVat >= 0 ? "Te betalen" : "Te vorderen"}
-                  </span>
+                <Td style={{ textAlign: "right" }}>
+                  <a
+                    href={`/api/tax/quarter-pdf?quarter=${encodeURIComponent(q.quarter)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="table-action"
+                  >
+                    PDF
+                  </a>
                 </Td>
               </tr>
             ))}

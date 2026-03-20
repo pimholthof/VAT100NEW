@@ -15,7 +15,7 @@ export default async function DashboardLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("studio_name")
+    .select("studio_name, role")
     .eq("id", user.id)
     .single();
 
@@ -24,7 +24,10 @@ export default async function DashboardLayout({
       <a href="#main-content" className="skip-link">
         Ga naar inhoud
       </a>
-      <DashboardNav studioName={profile?.studio_name ?? undefined} />
+      <DashboardNav
+        studioName={profile?.studio_name ?? undefined}
+        isAdvisor={profile?.role === "advisor"}
+      />
       <main id="main-content" className="dashboard-content">{children}</main>
       <DashboardFooter />
     </div>
