@@ -3,6 +3,7 @@
 export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue";
 export type InvoiceUnit = "uren" | "dagen" | "stuks";
 export type VatRate = 0 | 9 | 21;
+export type BtwPeriod = "kwartaal" | "maand";
 
 export interface Profile {
   id: string;
@@ -16,6 +17,10 @@ export interface Profile {
   iban: string | null;
   bic: string | null;
   role: "user" | "advisor";
+  expected_annual_revenue: number;
+  zelfstandigenaftrek: boolean;
+  monthly_fixed_costs: number;
+  btw_period: BtwPeriod;
   created_at: string;
 }
 

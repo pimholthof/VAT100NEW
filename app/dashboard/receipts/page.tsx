@@ -35,7 +35,10 @@ export default function ReceiptsPage() {
               {receipts.length} {receipts.length === 1 ? "bon" : "bonnen"}
             </p>
           </div>
-          <Link href="/dashboard/receipts/new" className="action-button-secondary">
+          <Link
+            href="/dashboard/receipts/new"
+            className="action-button-secondary"
+          >
             + Nieuwe bon
           </Link>
         </div>
@@ -52,24 +55,23 @@ export default function ReceiptsPage() {
           <p className="empty-state">Nog geen bonnen</p>
           <Link
             href="/dashboard/receipts/new"
-            className="table-action"
-            style={{ opacity: 0.4 }}
+            className="table-action opacity-40"
           >
             Voeg je eerste bon toe
           </Link>
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-              <Th style={{ width: 24 }}></Th>
+            <tr className="border-b-[0.5px] border-foreground/15 text-left">
+              <Th className="w-[24px]"></Th>
               <Th>Datum</Th>
               <Th>Leverancier</Th>
               <Th>Kostensoort</Th>
-              <Th style={{ textAlign: "right" }}>Excl. BTW</Th>
-              <Th style={{ textAlign: "right" }}>BTW</Th>
-              <Th style={{ textAlign: "right" }}>Incl. BTW</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
+              <Th className="text-right">Excl. BTW</Th>
+              <Th className="text-right">BTW</Th>
+              <Th className="text-right">Incl. BTW</Th>
+              <Th className="text-right">Acties</Th>
             </tr>
           </thead>
           <tbody>
@@ -79,36 +81,51 @@ export default function ReceiptsPage() {
                 : null;
 
               return (
-                <tr key={receipt.id} style={{ borderBottom: "var(--border-rule)" }}>
-                  <Td style={{ width: 24, textAlign: "center", opacity: 0.3 }}>
+                <tr
+                  key={receipt.id}
+                  className="border-b border-[var(--border-rule)]"
+                >
+                  <Td className="w-[24px] text-center opacity-30">
                     {receipt.storage_path ? "◉" : ""}
                   </Td>
                   <Td>
                     <span className="mono-amount">
-                      {receipt.receipt_date ? formatDate(receipt.receipt_date) : "—"}
+                      {receipt.receipt_date
+                        ? formatDate(receipt.receipt_date)
+                        : "—"}
                     </span>
                   </Td>
-                  <Td style={{ fontWeight: 400 }}>{receipt.vendor_name ?? "—"}</Td>
+                  <Td className="font-normal">
+                    {receipt.vendor_name ?? "—"}
+                  </Td>
                   <Td>
-                    {kostensoort ? kostensoort.label : receipt.category ?? "—"}
+                    {kostensoort
+                      ? kostensoort.label
+                      : (receipt.category ?? "—")}
                   </Td>
-                  <Td style={{ textAlign: "right" }}>
+                  <Td className="text-right">
                     <span className="mono-amount">
-                      {receipt.amount_ex_vat != null ? formatCurrency(receipt.amount_ex_vat) : "—"}
+                      {receipt.amount_ex_vat != null
+                        ? formatCurrency(receipt.amount_ex_vat)
+                        : "—"}
                     </span>
                   </Td>
-                  <Td style={{ textAlign: "right" }}>
+                  <Td className="text-right">
                     <span className="mono-amount">
-                      {receipt.vat_amount != null ? formatCurrency(receipt.vat_amount) : "—"}
+                      {receipt.vat_amount != null
+                        ? formatCurrency(receipt.vat_amount)
+                        : "—"}
                     </span>
                   </Td>
-                  <Td style={{ textAlign: "right" }}>
+                  <Td className="text-right">
                     <span className="mono-amount">
-                      {receipt.amount_inc_vat != null ? formatCurrency(receipt.amount_inc_vat) : "—"}
+                      {receipt.amount_inc_vat != null
+                        ? formatCurrency(receipt.amount_inc_vat)
+                        : "—"}
                     </span>
                   </Td>
-                  <Td style={{ textAlign: "right" }}>
-                    <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                  <Td className="text-right">
+                    <div className="flex gap-3 justify-end">
                       <Link
                         href={`/dashboard/receipts/${receipt.id}`}
                         className="table-action"
@@ -117,18 +134,15 @@ export default function ReceiptsPage() {
                       </Link>
                       <button
                         onClick={() => {
-                          if (confirm("Weet je zeker dat je deze bon wilt verwijderen?")) {
+                          if (
+                            confirm(
+                              "Weet je zeker dat je deze bon wilt verwijderen?",
+                            )
+                          ) {
                             deleteMutation.mutate(receipt.id);
                           }
                         }}
-                        className="table-action"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          opacity: 0.3,
-                          padding: 0,
-                        }}
+                        className="table-action bg-transparent border-none cursor-pointer opacity-30 p-0"
                       >
                         Verwijder
                       </button>

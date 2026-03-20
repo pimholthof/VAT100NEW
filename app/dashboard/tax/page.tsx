@@ -43,35 +43,17 @@ export default function TaxPage() {
 
   return (
     <div>
-      {/* Title */}
-      <div style={{ marginBottom: 80 }}>
+      <div className="mb-[80px]">
         <h1 className="display-title">
           Belasting
         </h1>
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-lg)",
-            fontWeight: 300,
-            margin: "16px 0 0",
-            opacity: 0.5,
-          }}
-        >
+        <p className="font-sans text-[length:var(--text-body-lg)] font-light mt-4 mb-0 opacity-50">
           Alles over je BTW en inkomstenbelasting
         </p>
       </div>
 
-      {/* ── Jaar Prognose ── */}
       <div
-        className="stat-cards-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: 1,
-          background: "rgba(13,13,11,0.08)",
-          border: "0.5px solid rgba(13,13,11,0.08)",
-          marginBottom: "var(--space-section)",
-        }}
+        className="stat-cards-grid grid grid-cols-3 gap-px bg-foreground/8 border border-foreground/8 mb-[var(--space-section)]"
       >
         <YearCard
           label={`Geschatte IB ${now.getFullYear()}`}
@@ -90,19 +72,11 @@ export default function TaxPage() {
         />
       </div>
 
-      {/* ── ZZP Aftrekposten ── */}
-      <div style={{ marginBottom: "var(--space-section)" }}>
-        <h2 className="section-header" style={{ margin: "0 0 16px" }}>
+      <div className="mb-[var(--space-section)]">
+        <h2 className="section-header mb-4">
           Jouw aftrekposten
         </h2>
-        <div
-          className="stat-cards-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 24,
-          }}
-        >
+        <div className="stat-cards-grid grid grid-cols-3 gap-6">
           <DeductionItem
             label="Zelfstandigenaftrek"
             value={formatCurrency(ZELFSTANDIGENAFTREK)}
@@ -125,79 +99,42 @@ export default function TaxPage() {
         </div>
       </div>
 
-      {/* ── BTW Deadline ── */}
       {vatDeadline && (
-        <div
-          style={{
-            padding: 20,
-            border: "0.5px solid rgba(13,13,11,0.08)",
-            marginBottom: "var(--space-section)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+        <div className="p-5 border border-foreground/8 mb-[var(--space-section)] flex justify-between items-center">
           <div>
-            <p className="label" style={{ opacity: 0.5, margin: "0 0 4px" }}>
+            <p className="label opacity-50 mb-1">
               Volgende BTW-aangifte
             </p>
-            <p
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-lg)",
-                fontWeight: 500,
-                margin: 0,
-              }}
-            >
+            <p className="font-sans text-[length:var(--text-body-lg)] font-medium m-0">
               {vatDeadline.quarter} — {vatDeadline.deadline}
             </p>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <p
-              style={{
-                fontFamily: "var(--font-display), sans-serif",
-                fontSize: "var(--text-display-md)",
-                fontWeight: 700,
-                letterSpacing: "var(--tracking-display)",
-                margin: "0 0 4px",
-              }}
-            >
+          <div className="text-right">
+            <p className="font-[family-name:var(--font-display)] text-[length:var(--text-h1)] font-bold tracking-[var(--tracking-display)] mb-1">
               {vatDeadline.daysRemaining}d
             </p>
-            <p className="label" style={{ opacity: 0.5, margin: 0 }}>
+            <p className="label opacity-50 m-0">
               {formatCurrency(vatDeadline.estimatedAmount)}
             </p>
           </div>
         </div>
       )}
 
-      {/* Hero: Netto BTW dit kwartaal */}
       {!isLoading && current && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+        <div className="mb-[var(--space-section)]">
+          <p className="label mb-4 opacity-30">
             {current.netVat >= 0 ? "Te betalen dit kwartaal" : "Te vorderen dit kwartaal"}
           </p>
-          <p
-            style={{
-              fontFamily: "var(--font-display), sans-serif",
-              fontSize: "var(--text-display-xl)",
-              fontWeight: 700,
-              lineHeight: 0.85,
-              letterSpacing: "var(--tracking-display)",
-              margin: 0,
-            }}
-          >
+          <p className="font-[family-name:var(--font-display)] text-[length:var(--text-display)] font-bold leading-[0.85] tracking-[var(--tracking-display)] m-0">
             {formatCurrency(Math.abs(current.netVat))}
           </p>
         </div>
       )}
 
-      {/* Stat cards */}
       {isLoading ? (
-        <div className="editorial-divider" style={{ marginBottom: "var(--space-block)" }}>
+        <div className="editorial-divider mb-[var(--space-block)]">
           <div
-            style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-element)" }}
-            className="stat-cards-grid"
+            className="stat-cards-grid grid grid-cols-3 gap-[var(--space-element)]"
           >
             <SkeletonCard />
             <SkeletonCard />
@@ -205,10 +142,9 @@ export default function TaxPage() {
           </div>
         </div>
       ) : current ? (
-        <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
+        <div className="editorial-divider mb-[var(--space-section)]">
           <div
-            style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-element)" }}
-            className="stat-cards-grid"
+            className="stat-cards-grid grid grid-cols-3 gap-[var(--space-element)]"
           >
             <StatCard
               label="Output BTW"
@@ -226,8 +162,7 @@ export default function TaxPage() {
         </div>
       ) : null}
 
-      {/* Quarterly table */}
-      <h2 className="section-header" style={{ margin: "0 0 16px" }}>
+      <h2 className="section-header mb-4">
         Kwartaaloverzicht
       </h2>
 
@@ -239,36 +174,36 @@ export default function TaxPage() {
           bodyWidths={[50, 70, 60, 60, 50, 40]}
         />
       ) : quarters.length > 0 ? (
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
+        <table className="w-full border-collapse mb-[var(--space-block)]">
           <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
+            <tr className="border-b border-foreground/15 text-left">
               <Th>Kwartaal</Th>
-              <Th style={{ textAlign: "right" }}>Omzet excl. BTW</Th>
-              <Th style={{ textAlign: "right" }}>Output BTW</Th>
-              <Th style={{ textAlign: "right" }}>Aftrekbare BTW</Th>
-              <Th style={{ textAlign: "right" }}>Netto BTW</Th>
-              <Th style={{ textAlign: "right" }}>Export</Th>
+              <Th className="text-right">Omzet excl. BTW</Th>
+              <Th className="text-right">Output BTW</Th>
+              <Th className="text-right">Aftrekbare BTW</Th>
+              <Th className="text-right">Netto BTW</Th>
+              <Th className="text-right">Export</Th>
             </tr>
           </thead>
           <tbody>
             {quarters.map((q: QuarterStats) => (
-              <tr key={q.quarter} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                <Td style={{ fontWeight: 400 }}>
+              <tr key={q.quarter} className="border-b border-foreground/6">
+                <Td className="font-normal">
                   <span className="mono-amount">{q.quarter}</span>
                 </Td>
-                <Td style={{ textAlign: "right" }}>
+                <Td className="text-right">
                   <span className="mono-amount">{formatCurrency(q.revenueExVat)}</span>
                 </Td>
-                <Td style={{ textAlign: "right" }}>
+                <Td className="text-right">
                   <span className="mono-amount">{formatCurrency(q.outputVat)}</span>
                 </Td>
-                <Td style={{ textAlign: "right" }}>
+                <Td className="text-right">
                   <span className="mono-amount">{formatCurrency(q.inputVat)}</span>
                 </Td>
-                <Td style={{ textAlign: "right" }}>
+                <Td className="text-right">
                   <span className="mono-amount">{formatCurrency(q.netVat)}</span>
                 </Td>
-                <Td style={{ textAlign: "right" }}>
+                <Td className="text-right">
                   <a
                     href={`/api/tax/quarter-pdf?quarter=${encodeURIComponent(q.quarter)}`}
                     target="_blank"
@@ -288,17 +223,7 @@ export default function TaxPage() {
         </p>
       )}
 
-      {/* Disclaimer */}
-      <div
-        style={{
-          padding: 20,
-          background: "rgba(13,13,11,0.02)",
-          fontFamily: "var(--font-mono), monospace",
-          fontSize: "11px",
-          fontWeight: 400,
-          lineHeight: 1.6,
-        }}
-      >
+      <div className="p-5 bg-foreground/2 font-mono text-[11px] font-normal leading-[1.6]">
         Dit overzicht is indicatief. Dien je BTW-aangifte in via het portaal van
         de Belastingdienst. Bewaar je facturen en bonnen minimaal 7 jaar.
         Inkomstenbelastingschatting is gebaseerd op IB-schijven 2025 (35,82% / 37,48% / 49,50%).
@@ -318,30 +243,14 @@ function YearCard({
   sublabel: string;
 }) {
   return (
-    <div style={{ background: "var(--background)", padding: 20 }}>
-      <p className="label" style={{ margin: "0 0 8px", opacity: 0.55 }}>
+    <div className="bg-[var(--background)] p-5">
+      <p className="label mb-2 opacity-55">
         {label}
       </p>
-      <p
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-sm)",
-          fontWeight: 700,
-          letterSpacing: "var(--tracking-display)",
-          margin: "0 0 4px",
-        }}
-      >
+      <p className="font-[family-name:var(--font-display)] text-[length:var(--text-h2)] font-bold tracking-[var(--tracking-display)] mb-1">
         {value}
       </p>
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-xs)",
-          fontWeight: 300,
-          opacity: 0.45,
-          margin: 0,
-        }}
-      >
+      <p className="font-sans text-[length:var(--text-caption)] font-light opacity-45 m-0">
         {sublabel}
       </p>
     </div>
@@ -359,28 +268,13 @@ function DeductionItem({
 }) {
   return (
     <div>
-      <p className="label" style={{ margin: "0 0 4px", opacity: 0.55 }}>
+      <p className="label mb-1 opacity-55">
         {label}
       </p>
-      <p
-        style={{
-          fontFamily: "var(--font-mono), monospace",
-          fontSize: "var(--text-mono-md)",
-          fontWeight: 400,
-          margin: "0 0 2px",
-        }}
-      >
+      <p className="font-mono text-[length:var(--text-body-lg)] font-normal mb-0.5">
         {value}
       </p>
-      <p
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-xs)",
-          fontWeight: 300,
-          opacity: 0.4,
-          margin: 0,
-        }}
-      >
+      <p className="font-sans text-[length:var(--text-caption)] font-light opacity-40 m-0">
         {note}
       </p>
     </div>

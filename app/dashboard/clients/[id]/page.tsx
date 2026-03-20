@@ -21,7 +21,6 @@ import {
   ButtonSecondary,
   ErrorMessage,
   PageHeader,
-  inputStyle,
 } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/constants/status";
@@ -56,7 +55,6 @@ export default function ClientDetailPage() {
   const stats = statsResult?.data;
   const invoices = invoicesResult?.data ?? [];
 
-  // Edit form state
   const [name, setName] = useState("");
   const [contactName, setContactName] = useState("");
   const [email, setEmail] = useState("");
@@ -112,12 +110,12 @@ export default function ClientDetailPage() {
 
   if (clientLoading) {
     return (
-      <div style={{ padding: "64px 0" }}>
-        <div className="skeleton" style={{ width: 200, height: 32, marginBottom: 32 }} />
+      <div className="py-16">
+        <div className="skeleton w-[200px] h-8 mb-8" />
         {[...Array(4)].map((_, i) => (
-          <div key={i} style={{ marginBottom: 20 }}>
-            <div className="skeleton" style={{ width: 80, height: 9, marginBottom: 8 }} />
-            <div className="skeleton" style={{ width: "100%", height: 36 }} />
+          <div key={i} className="mb-5">
+            <div className="skeleton w-[80px] h-[9px] mb-2" />
+            <div className="skeleton w-full h-9" />
           </div>
         ))}
       </div>
@@ -127,24 +125,12 @@ export default function ClientDetailPage() {
   if (!client) {
     return (
       <div>
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "13px",
-            fontWeight: 300,
-          }}
-        >
+        <p className="font-sans text-[13px] font-light">
           Klant niet gevonden.
         </p>
         <Link
           href="/dashboard/clients"
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            color: "var(--foreground)",
-            textDecoration: "none",
-          }}
+          className="font-sans text-[length:var(--text-body-md)] font-normal text-foreground no-underline"
         >
           Terug naar klanten
         </Link>
@@ -168,32 +154,18 @@ export default function ClientDetailPage() {
       />
 
       {error && (
-        <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
+        <ErrorMessage className="mb-6">{error}</ErrorMessage>
       )}
 
-      {/* Client details */}
       {editing ? (
-        <div
-          style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.08)",
-            borderBottom: "0.5px solid rgba(13,13,11,0.08)",
-            padding: "24px 0",
-            marginBottom: 32,
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-            }}
-          >
+        <div className="border-t-[0.5px] border-b-[0.5px] border-foreground/[0.08] py-6 mb-8">
+          <div className="grid grid-cols-2 gap-4">
             <FieldGroup label="Bedrijfsnaam *">
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                style={inputStyle}
+                className="w-full py-2 px-0 border-0 border-b-[0.6px] border-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200"
               />
             </FieldGroup>
             <FieldGroup label="Contactpersoon">
@@ -201,7 +173,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
-                style={inputStyle}
+                className="w-full py-2 px-0 border-0 border-b-[0.6px] border-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200"
               />
             </FieldGroup>
             <FieldGroup label="E-mailadres">
@@ -209,7 +181,7 @@ export default function ClientDetailPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={inputStyle}
+                className="w-full py-2 px-0 border-0 border-b-[0.6px] border-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200"
               />
             </FieldGroup>
             <FieldGroup label="Adres">
@@ -217,7 +189,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                style={inputStyle}
+                className="w-full py-2 px-0 border-0 border-b-[0.6px] border-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200"
               />
             </FieldGroup>
             <FieldGroup label="Postcode">
@@ -225,7 +197,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
-                style={inputStyle}
+                className="w-full py-2 px-0 border-0 border-b-[0.6px] border-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200"
               />
             </FieldGroup>
             <FieldGroup label="Stad">
@@ -233,7 +205,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                style={inputStyle}
+                className="w-full py-2 px-0 border-0 border-b-[0.6px] border-[var(--vat-dark-grey)] bg-transparent text-foreground font-sans text-base font-normal outline-none transition-[border-color] duration-200"
               />
             </FieldGroup>
             <FieldGroup label="KVK-nummer">
@@ -241,7 +213,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={kvkNumber}
                 onChange={(e) => setKvkNumber(e.target.value)}
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                className="w-full py-2 px-0 border-0 border-b-[0.6px] border-[var(--vat-dark-grey)] bg-transparent text-foreground font-mono text-base font-normal outline-none transition-[border-color] duration-200"
               />
             </FieldGroup>
             <FieldGroup label="BTW-nummer">
@@ -249,12 +221,15 @@ export default function ClientDetailPage() {
                 type="text"
                 value={btwNumber}
                 onChange={(e) => setBtwNumber(e.target.value)}
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                className="w-full py-2 px-0 border-0 border-b-[0.6px] border-[var(--vat-dark-grey)] bg-transparent text-foreground font-mono text-base font-normal outline-none transition-[border-color] duration-200"
               />
             </FieldGroup>
           </div>
-          <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-            <ButtonSecondary onClick={() => setEditing(false)} style={{ opacity: 0.4 }}>
+          <div className="flex gap-3 mt-5">
+            <ButtonSecondary
+              onClick={() => setEditing(false)}
+              className="opacity-40"
+            >
               Annuleer
             </ButtonSecondary>
             <ButtonPrimary onClick={handleSave} disabled={saving}>
@@ -263,22 +238,16 @@ export default function ClientDetailPage() {
           </div>
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 0,
-            marginBottom: 32,
-          }}
-        >
+        <div className="grid grid-cols-2 gap-0 mb-8">
           <DetailCell label="Contactpersoon" value={client.contact_name} />
           <DetailCell label="E-mailadres" value={client.email} />
           <DetailCell label="Adres" value={client.address} />
           <DetailCell
             label="Postcode / Stad"
             value={
-              [client.postal_code, client.city].filter(Boolean).join(", ") ||
-              null
+              [client.postal_code, client.city]
+                .filter(Boolean)
+                .join(", ") || null
             }
           />
           <DetailCell label="KVK-nummer" value={client.kvk_number} />
@@ -286,22 +255,9 @@ export default function ClientDetailPage() {
         </div>
       )}
 
-      {/* Statistics */}
       {stats && (
-        <div
-          style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
-            marginBottom: 48,
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 16,
-            }}
-            className="stat-cards-grid"
-          >
+        <div className="border-t-[0.5px] border-foreground/15 mb-12">
+          <div className="stat-cards-grid grid grid-cols-3 gap-4">
             <StatCard
               label="Totaal gefactureerd"
               value={formatCurrency(stats.totalInvoiced)}
@@ -318,99 +274,58 @@ export default function ClientDetailPage() {
         </div>
       )}
 
-      {/* Invoice history */}
-      <h2
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-sm)",
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          lineHeight: 1,
-          margin: "0 0 16px",
-        }}
-      >
+      <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-display-sm)] font-bold tracking-[0.08em] uppercase leading-none mb-4">
         Factuurgeschiedenis
       </h2>
 
       {invoices.length === 0 ? (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "13px",
-            fontWeight: 300,
-            opacity: 0.3,
-            paddingTop: 48,
-          }}
-        >
+        <p className="font-sans text-[13px] font-light opacity-30 pt-12">
           Nog geen facturen voor deze klant.
         </p>
       ) : (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-          }}
-        >
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
+            <tr className="border-b-[0.5px] border-foreground/15 text-left">
               <Th>Nummer</Th>
               <Th>Datum</Th>
               <Th>Status</Th>
-              <Th style={{ textAlign: "right" }}>Totaal</Th>
-              <Th style={{ textAlign: "right" }}>Actie</Th>
+              <Th className="text-right">Totaal</Th>
+              <Th className="text-right">Actie</Th>
             </tr>
           </thead>
           <tbody>
             {invoices.map((inv) => (
-              <tr key={inv.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+              <tr
+                key={inv.id}
+                className="border-b-[0.5px] border-foreground/[0.06]"
+              >
                 <Td>
                   <Link
                     href={`/dashboard/invoices/${inv.id}`}
-                    style={{
-                      fontFamily: "var(--font-mono), monospace",
-                      fontSize: "var(--text-mono-md)",
-                      color: "var(--foreground)",
-                      fontWeight: 400,
-                      textDecoration: "none",
-                    }}
+                    className="font-mono text-[length:var(--text-mono-md)] text-foreground font-normal no-underline"
                   >
                     {inv.invoice_number}
                   </Link>
                 </Td>
                 <Td>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                  <span className="font-mono text-[length:var(--text-mono-md)]">
                     {formatDate(inv.issue_date)}
                   </span>
                 </Td>
                 <Td>
-                  <span
-                    style={{
-                      fontSize: "var(--text-label)",
-                      fontWeight: 500,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                    }}
-                  >
+                  <span className="text-[length:var(--text-label)] font-medium tracking-[0.08em] uppercase">
                     {STATUS_LABELS[inv.status] ?? inv.status}
                   </span>
                 </Td>
-                <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                <Td className="text-right">
+                  <span className="font-mono text-[length:var(--text-mono-md)] tabular-nums">
                     {formatCurrency(inv.total_inc_vat)}
                   </span>
                 </Td>
-                <Td style={{ textAlign: "right" }}>
+                <Td className="text-right">
                   <Link
                     href={`/dashboard/invoices/${inv.id}/preview`}
-                    style={{
-                      fontSize: "var(--text-label)",
-                      fontWeight: 500,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: "var(--foreground)",
-                      textDecoration: "none",
-                    }}
+                    className="text-[length:var(--text-label)] font-medium tracking-[0.08em] uppercase text-foreground no-underline"
                   >
                     Bekijk
                   </Link>

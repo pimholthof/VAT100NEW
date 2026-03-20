@@ -17,9 +17,14 @@ export default async function PublicInvoicePage({
   const pdfUrl = `/api/invoice/public/${token}/pdf`;
 
   return (
-    <div style={wrapper}>
-      <div style={toolbar}>
-        <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={downloadButton}>
+    <div className="min-h-screen bg-[#F5F5F5] flex flex-col items-center px-4 py-6">
+      <div className="w-[595px] max-w-full flex justify-end mb-4">
+        <a
+          href={pdfUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-sans text-[13px] font-medium tracking-[0.05em] px-5 py-2.5 border border-[#0D0D0B] bg-[#0D0D0B] text-white cursor-pointer no-underline"
+        >
           Download PDF
         </a>
       </div>
@@ -27,33 +32,3 @@ export default async function PublicInvoicePage({
     </div>
   );
 }
-
-const wrapper: React.CSSProperties = {
-  minHeight: "100vh",
-  backgroundColor: "#F5F5F5",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  padding: "24px 16px",
-};
-
-const toolbar: React.CSSProperties = {
-  width: "595px",
-  maxWidth: "100%",
-  display: "flex",
-  justifyContent: "flex-end",
-  marginBottom: "16px",
-};
-
-const downloadButton: React.CSSProperties = {
-  fontFamily: '"Barlow", Arial, Helvetica, sans-serif',
-  fontSize: "13px",
-  fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "10px 20px",
-  border: "1px solid #0D0D0B",
-  background: "#0D0D0B",
-  color: "#FFFFFF",
-  cursor: "pointer",
-  textDecoration: "none",
-};

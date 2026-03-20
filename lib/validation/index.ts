@@ -75,6 +75,10 @@ export const profileSchema = z.object({
   postal_code: optionalString,
   iban: optionalString,
   bic: optionalString,
+  expected_annual_revenue: z.number().min(0, "Verwachte omzet mag niet negatief zijn").optional(),
+  zelfstandigenaftrek: z.boolean().optional(),
+  monthly_fixed_costs: z.number().min(0, "Vaste kosten mogen niet negatief zijn").optional(),
+  btw_period: z.enum(["kwartaal", "maand"]).optional(),
 });
 
 export type ProfileSchema = z.infer<typeof profileSchema>;

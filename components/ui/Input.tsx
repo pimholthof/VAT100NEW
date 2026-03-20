@@ -7,7 +7,7 @@ const baseInputStyle: React.CSSProperties = {
   borderBottom: "0.6px solid var(--vat-dark-grey)",
   background: "transparent",
   color: "var(--foreground)",
-  fontFamily: "var(--font-body), 'Cormorant Garamond', serif",
+  fontFamily: "var(--font-body), 'Inter', sans-serif",
   fontSize: "16px",
   fontWeight: 400,
   outline: "none",

@@ -30,6 +30,8 @@ const onboardingSchema = z.object({
   address: z.string().trim().optional().default(""),
   city: z.string().trim().optional().default(""),
   postal_code: z.string().trim().optional().default(""),
+  expected_annual_revenue: z.coerce.number().min(0).default(60000),
+  zelfstandigenaftrek: z.enum(["on", ""]).optional().default(""),
 });
 
 export async function login(formData: FormData): Promise<AuthResult> {
@@ -111,6 +113,8 @@ export async function completeOnboarding(
     address: formData.get("address"),
     city: formData.get("city"),
     postal_code: formData.get("postal_code"),
+    expected_annual_revenue: formData.get("expected_annual_revenue"),
+    zelfstandigenaftrek: formData.get("zelfstandigenaftrek") ?? "",
   });
 
   if (!parsed.success) {
@@ -134,6 +138,8 @@ export async function completeOnboarding(
     address: parsed.data.address,
     city: parsed.data.city,
     postal_code: parsed.data.postal_code,
+    expected_annual_revenue: parsed.data.expected_annual_revenue,
+    zelfstandigenaftrek: parsed.data.zelfstandigenaftrek === "on",
   });
 
   if (error) {

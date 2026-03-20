@@ -58,7 +58,7 @@ export default function AdvisorPage() {
     return (
       <div>
         <h1 className="display-title">Advisor</h1>
-        <p className="empty-state" style={{ marginTop: 32 }}>
+        <p className="empty-state mt-8">
           Je account is niet ingesteld als advisor.
           Neem contact op met support om je account te upgraden.
         </p>
@@ -82,17 +82,9 @@ export default function AdvisorPage() {
         </div>
       </div>
 
-      {/* Add client */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          marginBottom: 32,
-          alignItems: "flex-end",
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <label className="label" style={{ display: "block", marginBottom: 4 }}>
+      <div className="flex gap-3 mb-8 items-end">
+        <div className="flex-1">
+          <label className="label block mb-1">
             Klant koppelen (user ID)
           </label>
           <input
@@ -116,12 +108,11 @@ export default function AdvisorPage() {
       </div>
 
       {linkError && (
-        <p style={{ color: "var(--color-reserved)", fontSize: 12, marginBottom: 16 }}>
+        <p className="text-[color:var(--color-reserved)] text-xs mb-4">
           {linkError}
         </p>
       )}
 
-      {/* Clients table */}
       {isLoading ? (
         <SkeletonTable
           columns="2fr 1fr 1fr 80px"
@@ -131,33 +122,32 @@ export default function AdvisorPage() {
       ) : clients.length === 0 ? (
         <p className="empty-state">Nog geen klanten gekoppeld</p>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
+            <tr className="border-b border-foreground/15 text-left">
               <Th>Klant</Th>
               <Th>Bedrijf</Th>
               <Th>Status</Th>
               <Th>Gekoppeld</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
+              <Th className="text-right">Acties</Th>
             </tr>
           </thead>
           <tbody>
             {clients.map((client: AdvisorClientWithProfile) => (
-              <tr key={client.id} style={{ borderBottom: "var(--border-rule)" }}>
-                <Td style={{ fontWeight: 400 }}>
+              <tr key={client.id} className="border-b border-[var(--border-rule)]">
+                <Td className="font-normal">
                   {client.profile.full_name}
                 </Td>
                 <Td>{client.profile.studio_name ?? "—"}</Td>
                 <Td>
                   <span
-                    className="label"
-                    style={{
-                      color: client.status === "active"
-                        ? "var(--color-safe)"
+                    className={`label ${
+                      client.status === "active"
+                        ? "text-[color:var(--color-safe)]"
                         : client.status === "pending"
-                          ? "var(--color-warning)"
-                          : "var(--color-reserved)",
-                    }}
+                          ? "text-[color:var(--color-warning)]"
+                          : "text-[color:var(--color-reserved)]"
+                    }`}
                   >
                     {STATUS_LABELS[client.status]}
                   </span>
@@ -165,7 +155,7 @@ export default function AdvisorPage() {
                 <Td>
                   <span className="mono-amount">{formatDate(client.created_at)}</span>
                 </Td>
-                <Td style={{ textAlign: "right" }}>
+                <Td className="text-right">
                   {client.status === "active" && (
                     <button
                       onClick={() => {
@@ -173,8 +163,7 @@ export default function AdvisorPage() {
                           removeMutation.mutate(client.id);
                         }
                       }}
-                      className="table-action"
-                      style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3, padding: 0 }}
+                      className="table-action bg-transparent border-none cursor-pointer opacity-30 p-0"
                     >
                       Intrekken
                     </button>

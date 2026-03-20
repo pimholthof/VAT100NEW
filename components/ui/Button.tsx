@@ -13,7 +13,7 @@ export function ButtonPrimary({
       disabled={disabled}
       aria-disabled={disabled || undefined}
       style={{
-        fontFamily: "var(--font-utility), 'Space Mono', monospace",
+        fontFamily: "var(--font-utility), 'JetBrains Mono', monospace",
         fontSize: "var(--text-label)",
         fontWeight: 400,
         letterSpacing: "0.15em",
@@ -50,7 +50,7 @@ export function ButtonSecondary({
       disabled={disabled}
       aria-disabled={disabled || undefined}
       style={{
-        fontFamily: "var(--font-utility), 'Space Mono', monospace",
+        fontFamily: "var(--font-utility), 'JetBrains Mono', monospace",
         fontSize: "var(--text-label)",
         fontWeight: 400,
         letterSpacing: "0.15em",

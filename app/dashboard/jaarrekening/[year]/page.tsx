@@ -9,21 +9,13 @@ interface Props {
 
 function JaarrekeningSkeleton() {
   return (
-    <div className="animate-pulse" style={{ maxWidth: 560 }}>
-      <div
-        style={{ height: 28, width: 240, background: "var(--vat-pale-grey)", marginBottom: 32 }}
-      />
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div className="animate-pulse max-w-[560px]">
+      <div className="h-7 w-60 bg-[var(--vat-pale-grey)] mb-8" />
+      <div className="flex flex-col gap-3">
         {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ height: 14, width: 80, background: "var(--vat-pale-grey)" }} />
-            <div style={{ height: 14, width: 100, background: "var(--vat-pale-grey)" }} />
+          <div key={i} className="flex justify-between">
+            <div className="h-3.5 w-20 bg-[var(--vat-pale-grey)]" />
+            <div className="h-3.5 w-[100px] bg-[var(--vat-pale-grey)]" />
           </div>
         ))}
       </div>
@@ -47,7 +39,7 @@ export default async function JaarrekeningPage({ params }: Props) {
   }
 
   return (
-    <div style={{ padding: "32px 0" }}>
+    <div className="py-8">
       <Suspense fallback={<JaarrekeningSkeleton />}>
         <JaarrekeningContent year={year} />
       </Suspense>

@@ -124,12 +124,12 @@ export default function EditInvoicePage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "64px 0" }}>
-        <div className="skeleton" style={{ width: 200, height: 32, marginBottom: 32 }} />
+      <div className="py-16">
+        <div className="skeleton w-[200px] h-[32px] mb-8" />
         {[...Array(4)].map((_, i) => (
-          <div key={i} style={{ marginBottom: 20 }}>
-            <div className="skeleton" style={{ width: 80, height: 9, marginBottom: 8 }} />
-            <div className="skeleton" style={{ width: "100%", height: 36 }} />
+          <div key={i} className="mb-5">
+            <div className="skeleton w-[80px] h-[9px] mb-2" />
+            <div className="skeleton w-full h-[36px]" />
           </div>
         ))}
       </div>
@@ -148,45 +148,19 @@ export default function EditInvoicePage() {
 
   return (
     <div>
-      <h1
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-lg)",
-          fontWeight: 700,
-          letterSpacing: "var(--tracking-display)",
-          lineHeight: 0.9,
-          margin: "0 0 32px",
-        }}
-      >
+      <h1 className="font-[family-name:var(--font-display)] text-[var(--text-display-lg)] font-bold tracking-[var(--tracking-display)] leading-[0.9] mb-8">
         Factuur{" "}
-        <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-display-md)" }}>
+        <span className="font-mono text-[var(--text-display-md)]">
           {result?.data?.invoice_number}
         </span>
       </h1>
 
       {/* Status bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderTop: "0.5px solid rgba(13,13,11,0.15)",
-          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-          padding: "16px 0",
-          marginBottom: 8,
-        }}
-      >
-        <span
-          style={{
-            fontSize: "var(--text-label)",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
-        >
+      <div className="flex justify-between items-center border-t border-b border-foreground/15 py-4 mb-2">
+        <span className="text-[var(--text-label)] font-medium tracking-[0.08em] uppercase">
           {STATUS_LABELS[currentStatus ?? ""] ?? currentStatus}
         </span>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="flex gap-2">
           {currentStatus === "draft" && (
             <ButtonPrimary
               onClick={() => handleStatusChange("sent")}
@@ -239,40 +213,16 @@ export default function EditInvoicePage() {
         </div>
       </div>
       {statusMsg && (
-        <ErrorMessage style={{ marginBottom: 24 }}>{statusMsg}</ErrorMessage>
+        <ErrorMessage className="mb-6">{statusMsg}</ErrorMessage>
       )}
       {/* Share link section */}
-      <div
-        style={{
-          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-          padding: "16px 0",
-          marginBottom: 8,
-        }}
-      >
-        <div
-          style={{
-            fontSize: "var(--text-label)",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            marginBottom: 8,
-            opacity: 0.4,
-          }}
-        >
+      <div className="border-b border-foreground/15 py-4 mb-2">
+        <div className="text-[var(--text-label)] font-medium tracking-[0.08em] uppercase mb-2 opacity-40">
           Deel link
         </div>
         {shareToken ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span
-              style={{
-                fontFamily: "var(--font-mono), monospace",
-                fontSize: "var(--text-mono-md)",
-                fontWeight: 300,
-                opacity: 0.6,
-                wordBreak: "break-all",
-                flex: 1,
-              }}
-            >
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[var(--text-mono-md)] font-light opacity-60 break-all flex-1">
               {typeof window !== "undefined"
                 ? `${window.location.origin}/invoice/${shareToken}`
                 : `/invoice/${shareToken}`}
@@ -291,7 +241,7 @@ export default function EditInvoicePage() {
         )}
       </div>
 
-      <div style={{ marginTop: 24 }}>
+      <div className="mt-6">
         <InvoiceForm invoiceId={params.id} />
       </div>
     </div>

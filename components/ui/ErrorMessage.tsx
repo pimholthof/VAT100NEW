@@ -3,10 +3,12 @@ import React from "react";
 export function ErrorMessage({
   children,
   style,
+  className,
   id,
 }: {
   children: React.ReactNode;
   style?: React.CSSProperties;
+  className?: string;
   id?: string;
 }) {
   return (
@@ -14,16 +16,8 @@ export function ErrorMessage({
       id={id}
       role="alert"
       aria-live="polite"
-      style={{
-        padding: 16,
-        marginBottom: 16,
-        background: "rgba(13,13,11,0.02)",
-        borderLeft: "2px solid var(--color-reserved)",
-        fontFamily: "var(--font-mono), monospace",
-        fontSize: "11px",
-        fontWeight: 400,
-        ...style,
-      }}
+      className={`p-4 mb-4 bg-foreground/[0.02] border-l-2 border-[var(--color-reserved)] font-mono text-[11px] font-normal ${className ?? ""}`}
+      style={style}
     >
       {children}
     </div>

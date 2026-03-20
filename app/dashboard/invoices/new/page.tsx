@@ -13,16 +13,7 @@ export default function NewInvoicePage() {
 
   return (
     <div>
-      <h1
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-md)",
-          fontWeight: 700,
-          letterSpacing: "var(--tracking-display)",
-          lineHeight: 1,
-          margin: "0 0 32px",
-        }}
-      >
+      <h1 className="font-[family-name:var(--font-display)] text-[var(--text-display-md)] font-bold tracking-[var(--tracking-display)] leading-none mb-8">
         Nieuwe factuur
       </h1>
       <InvoiceForm />
