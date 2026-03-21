@@ -69,50 +69,58 @@ export default function DashboardClient({
   }
 
   return (
-    <div className="flex flex-col gap-8 md:gap-12 pb-12 md:pb-20">
+    <div className="flex flex-col gap-10 md:gap-14 pb-12 md:pb-20">
       <h1 className="sr-only">Dashboard</h1>
 
       {!isLoading && notifications.length > 0 && (
         <NotificationBar notifications={notifications} />
       )}
 
+      {/* Hero: Vrij te besteden */}
       {safeToSpend && !isLoading && (
         <section aria-label="Vrij te besteden">
-          <div className="pt-4 pb-12 border-b border-b-[var(--border-light)]">
-          <p className="hero-label mb-4">
-            Vrij te besteden
-          </p>
-          <p className="hero-amount">
-            {formatCurrency(safeToSpend.safeToSpend)}
-          </p>
+          <div className="pt-6 pb-16 border-b-2 border-b-[var(--vat-obsidian)]">
+            <p className="hero-label mb-4">Vrij te besteden</p>
+            <p className="hero-amount">
+              {formatCurrency(safeToSpend.safeToSpend)}
+            </p>
+            <p className="label mt-4 opacity-40">
+              Na BTW-reserve en IB-reservering
+            </p>
           </div>
         </section>
       )}
 
+      {/* Kerngetallen */}
       {!isLoading && stats && (
         <section>
-          <h2 className="section-header section-divider opacity-40">
+          <h2 className="section-header section-divider opacity-60">
             Kerngetallen
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatCard
-              label="Openstaand"
-              value={String(stats.openInvoiceCount)}
-              sub={formatCurrency(stats.openInvoiceAmount)}
-            />
-            <StatCard
-              label="BTW-reserve"
-              value={formatCurrency(stats.vatToPay)}
-              sub="Kwartaalprognose"
-            />
+            <Link href="/dashboard/invoices" className="stat-card-link">
+              <StatCard
+                label="Openstaand"
+                value={String(stats.openInvoiceCount)}
+                sub={formatCurrency(stats.openInvoiceAmount)}
+              />
+            </Link>
+            <Link href="/dashboard/tax" className="stat-card-link">
+              <StatCard
+                label="BTW-reserve"
+                value={formatCurrency(stats.vatToPay)}
+                sub="Kwartaalprognose"
+              />
+            </Link>
             <QuickReceiptUpload />
           </div>
         </section>
       )}
 
+      {/* Jaarrekening */}
       {!isLoading && (
         <section>
-          <h2 className="section-header section-divider opacity-40">
+          <h2 className="section-header section-divider opacity-60">
             Jaarrekening
           </h2>
           <AnnualAccountCard
@@ -122,8 +130,9 @@ export default function DashboardClient({
         </section>
       )}
 
+      {/* Openstaande facturen */}
       <section>
-        <h2 className="section-header section-divider opacity-40">
+        <h2 className="section-header section-divider opacity-60">
           Openstaande facturen
         </h2>
         {isLoading ? (
@@ -156,73 +165,73 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
 
   return (
     <div className="overflow-x-auto">
-    <div className="data-table min-w-[600px]">
-      {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
+      <div className="data-table min-w-[600px]">
+        {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
 
-      <div className="data-table-header grid-cols-[120px_1fr_140px_100px_120px]">
-        <span>Factuur</span>
-        <span>Klant</span>
-        <span className="text-right">Bedrag</span>
-        <span className="text-center">Status</span>
-        <span className="text-right">Actie</span>
-      </div>
+        <div className="data-table-header grid-cols-[120px_1fr_140px_100px_120px]">
+          <span>Factuur</span>
+          <span>Klant</span>
+          <span className="text-right">Bedrag</span>
+          <span className="text-center">Status</span>
+          <span className="text-right">Actie</span>
+        </div>
 
-      {invoices.map((inv) => {
-        const isOverdue = inv.days_overdue > 0;
+        {invoices.map((inv) => {
+          const isOverdue = inv.days_overdue > 0;
 
-        return (
-          <div
-            key={inv.id}
-            className="data-table-row grid-cols-[120px_1fr_140px_100px_120px]"
-          >
-            <span className="mono-amount text-xs opacity-50">
-              {inv.invoice_number}
-            </span>
-
-            <Link
-              href={`/dashboard/invoices/${inv.id}`}
-              className="font-semibold text-sm no-underline text-foreground tracking-[-0.01em] uppercase"
+          return (
+            <div
+              key={inv.id}
+              className="data-table-row grid-cols-[120px_1fr_140px_100px_120px]"
             >
-              {inv.client_name}
-            </Link>
+              <span className="mono-amount text-xs opacity-50">
+                {inv.invoice_number}
+              </span>
 
-            <span className="mono-amount text-[13px] font-medium text-right">
-              {formatCurrency(inv.total_inc_vat)}
-            </span>
+              <Link
+                href={`/dashboard/invoices/${inv.id}`}
+                className="font-semibold text-sm no-underline text-foreground tracking-[-0.01em] uppercase"
+              >
+                {inv.client_name}
+              </Link>
 
-            <span
-              className={`label text-center m-0 ${isOverdue ? "text-[var(--color-reserved)] opacity-100" : "opacity-40"}`}
-            >
-              {isOverdue ? (
-                <>
-                  <span className="status-dot" data-status="overdue" />
-                  {inv.days_overdue}D
-                </>
-              ) : (
-                <>
-                  <span className="status-dot" data-status="active" />
-                  ACTIEF
-                </>
-              )}
-            </span>
+              <span className="mono-amount text-[13px] font-medium text-right">
+                {formatCurrency(inv.total_inc_vat)}
+              </span>
 
-            <div className="text-right">
-              {inv.client_email ? (
-                <button
-                  onClick={() => handleSendReminder(inv.id)}
-                  disabled={sendingId === inv.id}
-                  className={`table-action bg-transparent border-none border-b border-b-foreground cursor-pointer px-0 pt-0 pb-0.5 ${sendingId === inv.id ? "opacity-20" : "opacity-60"}`}
-                >
-                  {sendingId === inv.id ? "..." : "HERINNERING"}
-                </button>
-              ) : (
-                <span className="label opacity-50">—</span>
-              )}
+              <span
+                className={`label text-center m-0 ${isOverdue ? "text-[var(--color-reserved)] opacity-100" : "opacity-40"}`}
+              >
+                {isOverdue ? (
+                  <>
+                    <span className="status-dot" data-status="overdue" />
+                    {inv.days_overdue}D
+                  </>
+                ) : (
+                  <>
+                    <span className="status-dot" data-status="active" />
+                    ACTIEF
+                  </>
+                )}
+              </span>
+
+              <div className="text-right">
+                {inv.client_email ? (
+                  <button
+                    onClick={() => handleSendReminder(inv.id)}
+                    disabled={sendingId === inv.id}
+                    className={`table-action bg-transparent border-none border-b border-b-foreground cursor-pointer px-0 pt-0 pb-0.5 ${sendingId === inv.id ? "opacity-20" : "opacity-60"}`}
+                  >
+                    {sendingId === inv.id ? "..." : "HERINNERING"}
+                  </button>
+                ) : (
+                  <span className="label opacity-50">—</span>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

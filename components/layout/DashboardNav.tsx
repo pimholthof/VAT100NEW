@@ -5,6 +5,28 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+const pageLabels: Record<string, string> = {
+  "/dashboard": "Overzicht",
+  "/dashboard/invoices": "Facturen",
+  "/dashboard/clients": "Klanten",
+  "/dashboard/receipts": "Bonnen",
+  "/dashboard/activa": "Activa",
+  "/dashboard/reservering": "Reserveringspot",
+  "/dashboard/tax": "Belasting",
+  "/dashboard/rapportages": "Rapportages",
+  "/dashboard/jaarrekening": "Jaarrekening",
+  "/dashboard/settings": "Instellingen",
+  "/dashboard/advisor": "Advisor",
+};
+
+function getCurrentPageLabel(pathname: string): string | null {
+  if (pathname === "/dashboard") return null; // Don't show breadcrumb on home
+  for (const [path, label] of Object.entries(pageLabels)) {
+    if (pathname.startsWith(path) && path !== "/dashboard") return label;
+  }
+  return null;
+}
+
 export function DashboardNav({
   studioName,
   isAdvisor = false,
@@ -17,6 +39,8 @@ export function DashboardNav({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+
+  const currentLabel = getCurrentPageLabel(pathname);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -78,9 +102,14 @@ export function DashboardNav({
   return (
     <nav aria-label="Hoofdnavigatie" className="nav-header">
       <div className="nav-bar">
-        <Link href="/dashboard" className="nav-logo">
-          VAT100
-        </Link>
+        <div className="flex items-center">
+          <Link href="/dashboard" className="nav-logo">
+            VAT100
+          </Link>
+          {currentLabel && (
+            <span className="nav-breadcrumb">{currentLabel}</span>
+          )}
+        </div>
 
         <div className="nav-right">
           {studioName && (
@@ -103,11 +132,11 @@ export function DashboardNav({
       <div
         id="nav-drawer"
         ref={drawerRef}
-        className="nav-drawer"
+        className="nav-drawer-animated"
         role="region"
         aria-label="Navigatiemenu"
         aria-hidden={!isDrawerOpen}
-        style={{ display: isDrawerOpen ? undefined : "none" }}
+        data-open={isDrawerOpen}
       >
         <div className="nav-drawer-inner">
           <div className="nav-section">
