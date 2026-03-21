@@ -51,13 +51,15 @@ export default function ReceiptsPage() {
           bodyWidths={[10, 50, 70, 60, 50, 40, 40, 30]}
         />
       ) : receipts.length === 0 ? (
-        <div>
-          <p className="empty-state">Nog geen bonnen</p>
+        <div className="py-16 text-center">
+          <p className="text-[var(--color-muted)] text-[15px] mb-4">
+            Nog geen bonnen — voeg je eerste bon toe
+          </p>
           <Link
             href="/dashboard/receipts/new"
-            className="table-action opacity-40"
+            className="inline-block font-sans text-[length:var(--text-label)] font-semibold uppercase tracking-[0.10em] px-7 py-3.5 border-[0.5px] border-foreground/25 bg-transparent text-foreground no-underline transition-opacity duration-200 hover:opacity-70"
           >
-            Voeg je eerste bon toe
+            + Eerste bon toevoegen
           </Link>
         </div>
       ) : (

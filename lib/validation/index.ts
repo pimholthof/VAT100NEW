@@ -115,6 +115,49 @@ export const openingBalanceSchema = z.object({
 
 export type OpeningBalanceSchema = z.infer<typeof openingBalanceSchema>;
 
+// ─── VAT Return ───
+
+export const vatReturnSchema = z.object({
+  period_start: z.string().min(1, "Startdatum is verplicht"),
+  period_end: z.string().min(1, "Einddatum is verplicht"),
+  output_vat: z.number().min(0, "Output BTW mag niet negatief zijn"),
+  input_vat: z.number().min(0, "Input BTW mag niet negatief zijn"),
+});
+
+export type VatReturnSchema = z.infer<typeof vatReturnSchema>;
+
+// ─── Banking ───
+
+export const institutionQuerySchema = z.object({
+  country: z.string().length(2, "Landcode moet 2 tekens zijn").default("NL"),
+});
+
+export type InstitutionQuerySchema = z.infer<typeof institutionQuerySchema>;
+
+export const createRequisitionSchema = z.object({
+  institution_id: z.string().min(1, "Bank is verplicht"),
+});
+
+export type CreateRequisitionSchema = z.infer<typeof createRequisitionSchema>;
+
+export const requisitionStatusSchema = z.object({
+  requisition_id: z.string().uuid("Ongeldig requisition ID"),
+});
+
+export type RequisitionStatusSchema = z.infer<typeof requisitionStatusSchema>;
+
+export const importTransactionsSchema = z.object({
+  account_id: z.string().uuid("Ongeldig account ID"),
+});
+
+export type ImportTransactionsSchema = z.infer<typeof importTransactionsSchema>;
+
+export const disconnectBankSchema = z.object({
+  connection_id: z.string().uuid("Ongeldig connectie ID"),
+});
+
+export type DisconnectBankSchema = z.infer<typeof disconnectBankSchema>;
+
 // ─── Helpers ───
 
 export function validate<T>(

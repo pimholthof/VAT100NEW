@@ -127,14 +127,16 @@ export default function ActivaPage() {
           bodyWidths={[70, 50, 60, 60, 50, 40, 30]}
         />
       ) : assets.length === 0 ? (
-        <div>
-          <p className="empty-state">Nog geen activa</p>
+        <div className="py-16 text-center">
+          <p className="text-[var(--color-muted)] text-[15px] mb-4">
+            Nog geen activa — registreer je eerste bedrijfsmiddel
+          </p>
           {!showForm && (
             <button
-              className="table-action opacity-40"
+              className="inline-block font-sans text-[length:var(--text-label)] font-semibold uppercase tracking-[0.10em] px-7 py-3.5 border-[0.5px] border-foreground/25 bg-transparent text-foreground cursor-pointer transition-opacity duration-200 hover:opacity-70"
               onClick={() => setShowForm(true)}
             >
-              Voeg je eerste activum toe
+              + Eerste activum registreren
             </button>
           )}
         </div>
