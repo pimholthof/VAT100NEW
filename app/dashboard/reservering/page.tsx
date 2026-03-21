@@ -1,10 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getBtwOverview } from "@/lib/actions/tax";
+import { getBtwOverview, getTaxReservations } from "@/lib/actions/tax";
 import { getDashboardData } from "@/lib/actions/dashboard";
-import { formatCurrency } from "@/lib/format";
-import { ErrorMessage } from "@/components/ui";
+import { formatCurrency, formatDate } from "@/lib/format";
+import { ErrorMessage, Th, Td } from "@/components/ui";
 
 export default function ReserveringPage() {
   const { data: btwResult, isLoading: btwLoading } = useQuery({
@@ -17,12 +17,17 @@ export default function ReserveringPage() {
     queryFn: () => getDashboardData(),
   });
 
-  const isLoading = btwLoading || dashLoading;
+  const { data: reservationsResult, isLoading: resLoading } = useQuery({
+    queryKey: ["tax-reservations"],
+    queryFn: () => getTaxReservations(),
+  });
+
+  const isLoading = btwLoading || dashLoading || resLoading;
 
   if (isLoading) {
     return (
       <div>
-        <h1 className="display-title m-0 mb-[80px]">
+        <h1 className="display-title m-0 mb-12 md:mb-[80px]">
           Reserveringspot
         </h1>
         <div className="skeleton h-[120px] mb-6" />
@@ -35,7 +40,7 @@ export default function ReserveringPage() {
   if (btwResult?.error || dashResult?.error) {
     return (
       <div>
-        <h1 className="display-title m-0 mb-[80px]">
+        <h1 className="display-title m-0 mb-12 md:mb-[80px]">
           Reserveringspot
         </h1>
         <ErrorMessage>{btwResult?.error ?? dashResult?.error}</ErrorMessage>
@@ -45,6 +50,7 @@ export default function ReserveringPage() {
 
   const quarters = btwResult?.data ?? [];
   const safeToSpend = dashResult?.data?.safeToSpend;
+  const reservations = reservationsResult?.data ?? [];
 
   const totalVatReserved = safeToSpend?.estimatedVat ?? 0;
   const totalIbReserved = safeToSpend?.estimatedIncomeTax ?? 0;
@@ -52,17 +58,21 @@ export default function ReserveringPage() {
   const freeToSpend = safeToSpend?.safeToSpend ?? 0;
   const bankBalance = safeToSpend?.currentBalance ?? 0;
 
+  // Totalen uit reserveringen per factuur
+  const resVatTotal = reservations.reduce((sum, r) => sum + r.vat_reserved, 0);
+  const resIbTotal = reservations.reduce((sum, r) => sum + r.ib_reserved, 0);
+
   return (
     <div>
       <h1 className="display-title m-0 mb-4">
         Reserveringspot
       </h1>
-      <p className="label mb-[80px] opacity-40">
+      <p className="label mb-12 md:mb-[80px] opacity-40">
         Overzicht van gereserveerde en vrij besteedbare bedragen
       </p>
 
       {/* Totaaloverzicht */}
-      <div className="grid grid-cols-3 mb-16">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-0 mb-12 md:mb-16">
         <div className="py-6 border-t-2 border-t-foreground">
           <p className="label m-0 mb-3 opacity-40">
             Banksaldo
@@ -90,7 +100,7 @@ export default function ReserveringPage() {
       </div>
 
       {/* BTW-pot & IB-pot */}
-      <div className="grid grid-cols-2 gap-8 mb-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12 md:mb-16">
         <div className="border-t border-foreground/15 pt-6">
           <p className="label-strong m-0 mb-6">
             BTW-pot
@@ -116,6 +126,84 @@ export default function ReserveringPage() {
         </div>
       </div>
 
+      {/* Reserveringen per factuur */}
+      {reservations.length > 0 && (
+        <div className="border-t border-foreground/15 pt-6 mb-16">
+          <p className="label-strong m-0 mb-6">
+            Reserveringen per factuur
+          </p>
+
+          <div className="overflow-x-auto">
+          <table className="w-full border-collapse mb-4 min-w-[600px]">
+            <thead>
+              <tr>
+                <Th className="text-left">Factuur</Th>
+                <Th className="text-left">Periode</Th>
+                <Th className="text-left">Datum</Th>
+                <Th className="text-right">BTW-reservering</Th>
+                <Th className="text-right">IB-reservering</Th>
+                <Th className="text-right">Totaal</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {reservations.map((res) => (
+                <tr key={res.id} className="border-b border-foreground/5">
+                  <Td className="font-normal">
+                    <span className="font-mono text-[13px]">
+                      {res.invoice?.invoice_number ?? "—"}
+                    </span>
+                  </Td>
+                  <Td>
+                    <span className="font-mono text-[13px]">{res.period}</span>
+                  </Td>
+                  <Td>
+                    <span className="font-mono text-[13px]">
+                      {res.invoice?.issue_date ? formatDate(res.invoice.issue_date) : "—"}
+                    </span>
+                  </Td>
+                  <Td className="text-right">
+                    <span className="font-mono text-[13px]">
+                      {formatCurrency(res.vat_reserved)}
+                    </span>
+                  </Td>
+                  <Td className="text-right">
+                    <span className="font-mono text-[13px]">
+                      {formatCurrency(res.ib_reserved)}
+                    </span>
+                  </Td>
+                  <Td className="text-right">
+                    <span className="font-mono text-[13px] font-semibold">
+                      {formatCurrency(res.vat_reserved + res.ib_reserved)}
+                    </span>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-foreground/15">
+                <td className="py-2.5 font-semibold" colSpan={3}>Totaal</td>
+                <Td className="text-right">
+                  <span className="font-mono text-[13px] font-semibold">
+                    {formatCurrency(resVatTotal)}
+                  </span>
+                </Td>
+                <Td className="text-right">
+                  <span className="font-mono text-[13px] font-semibold">
+                    {formatCurrency(resIbTotal)}
+                  </span>
+                </Td>
+                <Td className="text-right">
+                  <span className="font-mono text-[13px] font-semibold">
+                    {formatCurrency(resVatTotal + resIbTotal)}
+                  </span>
+                </Td>
+              </tr>
+            </tfoot>
+          </table>
+          </div>
+        </div>
+      )}
+
       {/* BTW per kwartaal */}
       <div className="border-t border-foreground/15 pt-6">
         <p className="label-strong m-0 mb-6">
@@ -127,13 +215,14 @@ export default function ReserveringPage() {
             Nog geen kwartaalgegevens beschikbaar.
           </p>
         ) : (
-          <table className="w-full border-collapse">
+          <div className="overflow-x-auto">
+          <table className="w-full border-collapse min-w-[400px]">
             <thead>
               <tr>
-                <th className="label text-left py-2 border-b border-foreground/15 opacity-40">Kwartaal</th>
-                <th className="label text-right py-2 border-b border-foreground/15 opacity-40">Output-BTW</th>
-                <th className="label text-right py-2 border-b border-foreground/15 opacity-40">Input-BTW</th>
-                <th className="label text-right py-2 border-b border-foreground/15 opacity-40">Netto BTW</th>
+                <Th className="text-left">Kwartaal</Th>
+                <Th className="text-right">Output-BTW</Th>
+                <Th className="text-right">Input-BTW</Th>
+                <Th className="text-right">Netto BTW</Th>
               </tr>
             </thead>
             <tbody>
@@ -155,6 +244,7 @@ export default function ReserveringPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

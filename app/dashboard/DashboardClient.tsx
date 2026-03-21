@@ -19,6 +19,7 @@ import {
   ErrorMessage,
 } from "@/components/ui";
 import { QuickReceiptUpload } from "@/components/dashboard/QuickReceiptUpload";
+import { NotificationBar, type Notification } from "@/components/dashboard/NotificationBar";
 import { AnnualAccountCard } from "@/components/jaarrekening/AnnualAccountCard";
 
 export default function DashboardClient({
@@ -45,9 +46,35 @@ export default function DashboardClient({
   const safeToSpend = data?.safeToSpend;
   const annualAccounts = accountsResult?.data ?? [];
 
+  // Build notifications from dashboard data
+  const notifications: Notification[] = [];
+
+  if (data?.vatDeadline && data.vatDeadline.daysRemaining <= 14) {
+    const vd = data.vatDeadline;
+    notifications.push({
+      id: `vat-deadline-${vd.quarter}`,
+      type: "urgent",
+      message: `BTW-aangifte ${vd.quarter} is over ${vd.daysRemaining} dagen — ${formatCurrency(vd.estimatedAmount)} te betalen`,
+    });
+  }
+
+  const overdueCount =
+    upcomingInvoices?.filter((inv) => inv.days_overdue > 0).length ?? 0;
+  if (overdueCount > 0) {
+    notifications.push({
+      id: "overdue-invoices",
+      type: "warning",
+      message: `Je hebt ${overdueCount} openstaande ${overdueCount === 1 ? "factuur" : "facturen"} die over de betaaltermijn ${overdueCount === 1 ? "is" : "zijn"}`,
+    });
+  }
+
   return (
-    <div className="flex flex-col gap-12 pb-20">
+    <div className="flex flex-col gap-8 md:gap-12 pb-12 md:pb-20">
       <h1 className="sr-only">Dashboard</h1>
+
+      {!isLoading && notifications.length > 0 && (
+        <NotificationBar notifications={notifications} />
+      )}
 
       {safeToSpend && !isLoading && (
         <section aria-label="Vrij te besteden">
@@ -128,7 +155,8 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
   };
 
   return (
-    <div className="data-table">
+    <div className="overflow-x-auto">
+    <div className="data-table min-w-[600px]">
       {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
 
       <div className="data-table-header grid-cols-[120px_1fr_140px_100px_120px]">
@@ -194,6 +222,7 @@ function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
           </div>
         );
       })}
+    </div>
     </div>
   );
 }

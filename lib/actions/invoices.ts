@@ -135,6 +135,19 @@ export async function updateInvoice(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  // Immutability: alleen conceptfacturen mogen gewijzigd worden
+  const { data: existing } = await supabase
+    .from("invoices")
+    .select("status")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!existing) return { error: "Factuur niet gevonden" };
+  if (existing.status !== "draft") {
+    return { error: "Alleen conceptfacturen kunnen gewijzigd worden. Verzonden en betaalde facturen zijn vergrendeld." };
+  }
+
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
 
@@ -206,6 +219,13 @@ export async function updateInvoiceStatus(
     .eq("user_id", user.id);
 
   if (error) return { error: error.message };
+
+  // Auto-create tax reservation when invoice is marked as paid
+  if (status === "paid") {
+    const { createTaxReservation } = await import("@/lib/actions/tax");
+    await createTaxReservation(id);
+  }
+
   return { error: null };
 }
 

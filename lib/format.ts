@@ -50,10 +50,10 @@ export function calculateLineTotals(
 
 // ─── Formatting ───
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number, currency: string = "EUR"): string {
   return new Intl.NumberFormat("nl-NL", {
     style: "currency",
-    currency: "EUR",
+    currency,
   }).format(amount);
 }
 

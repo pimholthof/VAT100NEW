@@ -58,13 +58,15 @@ export default function InvoicesPage() {
           ))}
         </div>
       ) : invoices.length === 0 ? (
-        <div>
-          <p className="empty-state">Nog geen facturen</p>
+        <div className="py-16 text-center">
+          <p className="text-[var(--color-muted)] text-[15px] mb-4">
+            Nog geen facturen — maak je eerste factuur aan
+          </p>
           <Link
             href="/dashboard/invoices/new"
-            className="table-action opacity-40"
+            className="inline-block font-sans text-[length:var(--text-label)] font-semibold uppercase tracking-[0.10em] px-7 py-3.5 border-[0.5px] border-foreground/25 bg-transparent text-foreground no-underline transition-opacity duration-200 hover:opacity-70"
           >
-            Maak je eerste factuur
+            + Eerste factuur aanmaken
           </Link>
         </div>
       ) : (

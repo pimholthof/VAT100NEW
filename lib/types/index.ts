@@ -231,6 +231,46 @@ export interface OpeningBalanceInput {
   liabilities: number;
 }
 
+// ─── VAT Return types ───
+
+export type VatReturnStatus = "concept" | "ingediend" | "betaald";
+
+export interface VatReturn {
+  id: string;
+  user_id: string;
+  period_start: string;
+  period_end: string;
+  output_vat: number;
+  input_vat: number;
+  vat_due: number;
+  status: VatReturnStatus;
+  submitted_at: string | null;
+  created_at: string;
+}
+
+export interface VatReturnInput {
+  period_start: string;
+  period_end: string;
+  output_vat: number;
+  input_vat: number;
+}
+
+// ─── Tax Reservation types ───
+
+export interface TaxReservation {
+  id: string;
+  user_id: string;
+  invoice_id: string | null;
+  period: string;
+  vat_reserved: number;
+  ib_reserved: number;
+  created_at: string;
+}
+
+export interface TaxReservationWithInvoice extends TaxReservation {
+  invoice: Pick<Invoice, "invoice_number" | "total_inc_vat" | "issue_date"> | null;
+}
+
 // ─── Safe-to-Spend types ───
 
 export interface SafeToSpendData {
@@ -241,4 +281,46 @@ export interface SafeToSpendData {
   safeToSpend: number;
   taxShieldPotential: number; // Potential tax savings if gear investment is made
   yearRevenueExVat: number; // Jaaromzet excl. BTW (voor IB-prognose)
+}
+
+// ─── Banking / GoCardless types ───
+
+export type BankConnectionStatus = "pending" | "linked" | "expired" | "revoked";
+
+export interface BankConnection {
+  id: string;
+  user_id: string;
+  institution_id: string;
+  institution_name: string;
+  requisition_id: string;
+  account_id: string | null;
+  iban: string | null;
+  status: BankConnectionStatus;
+  created_at: string;
+  last_synced_at: string | null;
+}
+
+export interface BankTransaction {
+  id: string;
+  user_id: string;
+  connection_id: string;
+  transaction_id: string;
+  booking_date: string;
+  amount: number;
+  currency: string;
+  description: string;
+  counterpart_name: string | null;
+  counterpart_iban: string | null;
+  category: string | null;
+  matched_invoice_id: string | null;
+  matched_receipt_id: string | null;
+  created_at: string;
+}
+
+export interface GoCardlessInstitution {
+  id: string;
+  name: string;
+  bic: string;
+  logo: string;
+  countries: string[];
 }
