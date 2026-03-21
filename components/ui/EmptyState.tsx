@@ -15,35 +15,30 @@ export function EmptyState({
   actionHref,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      {/* Icon placeholder — brutalist square */}
-      <div className="flex items-center justify-center w-12 h-12 mb-6 border-[0.5px] border-[var(--color-border)] bg-[var(--color-surface)]">
-        <span className="font-mono text-lg text-[var(--color-muted)]">
+    <div className="flex flex-col items-center justify-center py-20 px-4">
+      {/* Brutalist square icon */}
+      <div className="flex items-center justify-center w-14 h-14 mb-8 border-2 border-[var(--vat-obsidian)]">
+        <span className="font-mono text-xl text-[var(--vat-mid-grey)]">
           —
         </span>
       </div>
 
       {/* Micro-label */}
-      <span className="text-[9px] uppercase tracking-[0.12em] mb-2 text-[var(--color-muted)]">
-        Geen gegevens
-      </span>
+      <span className="label mb-3">Geen gegevens</span>
 
       {/* Title */}
-      <h2 className="text-center mb-2 font-[Syne,sans-serif] text-xl font-bold leading-tight text-[var(--color-ink)]">
+      <h2 className="text-center mb-3 font-[family-name:var(--font-display)] text-[length:var(--text-h2)] font-bold leading-tight text-[var(--foreground)] uppercase">
         {title}
       </h2>
 
       {/* Description */}
-      <p className="text-center max-w-sm mb-6 font-[Inter,sans-serif] text-sm leading-normal text-[var(--color-muted)]">
+      <p className="text-center max-w-sm mb-8 text-[var(--vat-mid-grey)] leading-relaxed">
         {description}
       </p>
 
-      {/* Optional CTA */}
+      {/* CTA */}
       {actionLabel && actionHref && (
-        <Link
-          href={actionHref}
-          className="inline-block no-underline font-mono text-[11px] font-normal tracking-[0.15em] uppercase px-6 py-2.5 border-[0.5px] border-[var(--color-border)] bg-[var(--color-ink)] text-[var(--color-paper)] shadow-[1px_1px_0px_var(--color-border)]"
-        >
+        <Link href={actionHref} className="action-button no-underline">
           {actionLabel}
         </Link>
       )}
