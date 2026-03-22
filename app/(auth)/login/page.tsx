@@ -42,13 +42,13 @@ export default function LoginPage() {
           position: "absolute",
           top: -40,
           left: -20,
-          fontFamily: "var(--font-display), sans-serif",
+          fontFamily: "var(--font-serif), serif",
           fontSize: "min(14rem, 28vw)",
           fontWeight: 700,
           letterSpacing: "var(--tracking-display)",
           lineHeight: 0.85,
-          color: "var(--foreground)",
-          opacity: 0.04,
+          color: "var(--color-black)",
+          opacity: 0.05,
           pointerEvents: "none",
           userSelect: "none",
           whiteSpace: "nowrap",
@@ -61,12 +61,13 @@ export default function LoginPage() {
         {/* Logo */}
         <h1
           style={{
-            fontFamily: "var(--font-display), sans-serif",
+            fontFamily: "var(--font-serif), serif",
             fontSize: "var(--text-display-hero)",
             fontWeight: 700,
             letterSpacing: "var(--tracking-display)",
             lineHeight: 0.85,
             margin: 0,
+            color: "var(--color-black)",
           }}
         >
           VAT
@@ -101,12 +102,12 @@ export default function LoginPage() {
               style={{
                 fontFamily: "var(--font-mono), monospace",
                 fontSize: "13px",
-                fontWeight: 300,
+                fontWeight: 400,
                 padding: "14px 0",
                 border: "none",
-                borderBottom: "0.5px solid rgba(13,13,11,0.12)",
+                borderBottom: "var(--border-light)",
                 background: "transparent",
-                color: "var(--foreground)",
+                color: "var(--color-black)",
                 outline: "none",
               }}
             />
@@ -124,14 +125,14 @@ export default function LoginPage() {
               minLength={6}
               autoComplete="current-password"
               style={{
-                fontFamily: "var(--font-body), sans-serif",
+                fontFamily: "var(--font-geist), sans-serif",
                 fontSize: "13px",
-                fontWeight: 300,
+                fontWeight: 400,
                 padding: "14px 0",
                 border: "none",
-                borderBottom: "0.5px solid rgba(13,13,11,0.12)",
+                borderBottom: "var(--border-light)",
                 background: "transparent",
-                color: "var(--foreground)",
+                color: "var(--color-black)",
                 outline: "none",
               }}
             />
@@ -154,18 +155,18 @@ export default function LoginPage() {
             type="submit"
             disabled={pending}
             style={{
-              fontFamily: "var(--font-body), sans-serif",
+              fontFamily: "var(--font-geist), sans-serif",
               fontSize: "var(--text-label)",
               fontWeight: 500,
-              letterSpacing: "0.10em",
+              letterSpacing: "0.15em",
               textTransform: "uppercase",
-              padding: 24,
+              padding: "24px",
               border: "none",
-              background: "var(--foreground)",
-              color: "var(--background)",
+              background: "var(--color-black)",
+              color: "var(--color-white)",
               cursor: "pointer",
               width: "100%",
-              transition: "opacity 0.15s ease",
+              transition: "all 0.2s ease",
             }}
           >
             {pending ? "Authenticatie..." : "Toegang"}
@@ -184,10 +185,10 @@ export default function LoginPage() {
             href="/register"
             style={{
               fontWeight: 500,
-              color: "var(--foreground)",
+              color: "var(--color-black)",
               textDecoration: "none",
               opacity: 1,
-              borderBottom: "0.5px solid rgba(13,13,11,0.3)",
+              borderBottom: "var(--border-light)",
               paddingBottom: 1,
             }}
           >
