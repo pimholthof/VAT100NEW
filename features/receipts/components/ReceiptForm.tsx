@@ -304,7 +304,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             value={receiptDate}
             onChange={(e) => setReceiptDate(e.target.value)}
             required
-            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+            style={{ ...inputStyle }}
           />
         </FieldGroup>
 
@@ -349,7 +349,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             {costCode && (
               <span
                 style={{
-                  fontFamily: "var(--font-mono), monospace",
                   fontSize: "var(--text-mono-sm)",
                   opacity: 0.35,
                 }}
@@ -367,7 +366,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             value={amountExVat}
             onChange={(e) => setAmountExVat(e.target.value)}
             placeholder="0,00"
-            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+            style={{ ...inputStyle }}
           />
         </FieldGroup>
 
@@ -385,7 +384,6 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
         <p
           style={{
-            fontFamily: "var(--font-mono), monospace",
             fontSize: "var(--text-mono-md)",
             fontWeight: 400,
             margin: "0 0 24px",

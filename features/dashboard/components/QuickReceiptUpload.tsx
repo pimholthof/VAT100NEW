@@ -204,7 +204,6 @@ export function QuickReceiptUpload() {
       {status === "done" && (
         <p
           style={{
-            fontFamily: "var(--font-mono), monospace",
             fontSize: "var(--text-mono-md)",
             fontWeight: 400,
             margin: 0,

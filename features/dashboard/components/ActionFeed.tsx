@@ -194,7 +194,6 @@ function ActionCard({
         {action.amount != null && (
           <span
             style={{
-              fontFamily: "var(--font-mono), monospace",
               fontSize: "var(--text-mono-md)",
               fontWeight: 500,
               marginLeft: 24

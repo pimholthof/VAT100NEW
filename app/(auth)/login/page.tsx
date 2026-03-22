@@ -42,7 +42,7 @@ export default function LoginPage() {
           position: "absolute",
           top: -40,
           left: -20,
-          fontFamily: "var(--font-serif), serif",
+          
           fontSize: "min(14rem, 28vw)",
           fontWeight: 700,
           letterSpacing: "var(--tracking-display)",
@@ -61,7 +61,7 @@ export default function LoginPage() {
         {/* Logo */}
         <h1
           style={{
-            fontFamily: "var(--font-serif), serif",
+            
             fontSize: "var(--text-display-hero)",
             fontWeight: 700,
             letterSpacing: "var(--tracking-display)",
@@ -100,7 +100,6 @@ export default function LoginPage() {
               required
               autoComplete="email"
               style={{
-                fontFamily: "var(--font-mono), monospace",
                 fontSize: "13px",
                 fontWeight: 400,
                 padding: "14px 0",
@@ -143,7 +142,6 @@ export default function LoginPage() {
               style={{
                 padding: 16,
                 background: "rgba(13,13,11,0.02)",
-                fontFamily: "var(--font-mono), monospace",
                 fontSize: "11px",
               }}
             >

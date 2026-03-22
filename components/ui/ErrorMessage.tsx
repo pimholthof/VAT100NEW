@@ -15,7 +15,6 @@ export function ErrorMessage({
         padding: 16,
         marginBottom: 16,
         background: "rgba(13,13,11,0.02)",
-        fontFamily: "var(--font-mono), monospace",
         fontSize: "11px",
         fontWeight: 400,
         ...style,

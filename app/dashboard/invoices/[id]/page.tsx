@@ -159,7 +159,7 @@ export default function EditInvoicePage() {
         }}
       >
         Factuur{" "}
-        <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-display-md)" }}>
+        <span style={{ fontSize: "var(--text-display-md)" }}>
           {result?.data?.invoice_number}
         </span>
       </h1>
@@ -265,7 +265,6 @@ export default function EditInvoicePage() {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{
-                fontFamily: "var(--font-mono), monospace",
                 fontSize: "var(--text-mono-md)",
                 fontWeight: 300,
                 opacity: 0.6,

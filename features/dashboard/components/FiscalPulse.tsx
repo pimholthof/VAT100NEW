@@ -44,7 +44,7 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
           <AnimatedNumber 
             value={safeToSpend} 
             style={{
-              fontFamily: `var(--font-serif), "Times New Roman", Times, serif`,
+              
               fontSize: "clamp(4rem, 12vw, 10rem)",
               fontWeight: 500,
               lineHeight: 0.8,

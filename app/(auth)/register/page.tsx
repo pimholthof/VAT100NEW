@@ -120,7 +120,7 @@ export default function RegisterPage() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <label htmlFor="email" className="label">E-mail</label>
-            <input id="email" name="email" type="email" required autoComplete="email" style={{ ...textInputStyle, fontFamily: "var(--font-mono), monospace" }} />
+            <input id="email" name="email" type="email" required autoComplete="email" style={{ ...textInputStyle }} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -138,7 +138,6 @@ export default function RegisterPage() {
               style={{
                 padding: 16,
                 background: "rgba(13,13,11,0.02)",
-                fontFamily: "var(--font-mono), monospace",
                 fontSize: "11px",
               }}
             >

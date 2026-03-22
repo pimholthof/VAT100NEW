@@ -77,7 +77,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         />
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 16 }}>
-        <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: 14, fontWeight: 500 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
           {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount)}
         </div>
         <button
@@ -106,7 +106,6 @@ const cellInputStyle: React.CSSProperties = {
   borderBottom: "none",
   background: "transparent",
   color: "var(--foreground)",
-  fontFamily: "var(--font-mono), monospace",
   fontSize: "var(--text-body-sm)",
   fontWeight: 400,
   outline: "none",

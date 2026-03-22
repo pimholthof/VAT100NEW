@@ -98,7 +98,6 @@ export default function ReceiptDetailPage() {
       {receipt.ai_processed && (
         <p
           style={{
-            fontFamily: "var(--font-mono), monospace",
             fontSize: "var(--text-mono-sm)",
             fontWeight: 400,
             opacity: 0.4,

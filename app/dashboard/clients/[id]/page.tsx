@@ -241,7 +241,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={kvkNumber}
                 onChange={(e) => setKvkNumber(e.target.value)}
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                style={{ ...inputStyle }}
               />
             </FieldGroup>
             <FieldGroup label="BTW-nummer">
@@ -249,7 +249,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={btwNumber}
                 onChange={(e) => setBtwNumber(e.target.value)}
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                style={{ ...inputStyle }}
               />
             </FieldGroup>
           </div>
@@ -368,7 +368,6 @@ export default function ClientDetailPage() {
                   <Link
                     href={`/dashboard/invoices/${inv.id}`}
                     style={{
-                      fontFamily: "var(--font-mono), monospace",
                       fontSize: "var(--text-mono-md)",
                       color: "var(--foreground)",
                       fontWeight: 400,
@@ -379,7 +378,7 @@ export default function ClientDetailPage() {
                   </Link>
                 </Td>
                 <Td>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)" }}>
+                  <span style={{ fontSize: "var(--text-mono-md)" }}>
                     {formatDate(inv.issue_date)}
                   </span>
                 </Td>
@@ -396,7 +395,7 @@ export default function ClientDetailPage() {
                   </span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
+                  <span style={{ fontSize: "var(--text-mono-md)", fontVariantNumeric: "tabular-nums" }}>
                     {formatCurrency(inv.total_inc_vat)}
                   </span>
                 </Td>

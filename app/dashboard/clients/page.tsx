@@ -71,7 +71,6 @@ export default function ClientsPage() {
             borderBottom: "0.5px solid rgba(13,13,11,0.15)",
             background: "transparent",
             color: "var(--foreground)",
-            fontFamily: "var(--font-mono), monospace",
             fontSize: "var(--text-mono-md)",
             fontWeight: 300,
             outline: "none",

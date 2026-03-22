@@ -151,7 +151,7 @@ export function ClientForm({ client }: ClientFormProps) {
             value={kvkNumber}
             onChange={(e) => setKvkNumber(e.target.value)}
             placeholder="12345678"
-            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+            style={{ ...inputStyle }}
           />
         </FieldGroup>
         <FieldGroup label="BTW-nummer">
@@ -160,7 +160,7 @@ export function ClientForm({ client }: ClientFormProps) {
             value={btwNumber}
             onChange={(e) => setBtwNumber(e.target.value)}
             placeholder="NL123456789B01"
-            style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+            style={{ ...inputStyle }}
           />
         </FieldGroup>
       </div>

@@ -141,7 +141,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={kvkNumber}
                 onChange={(e) => setKvkNumber(e.target.value)}
                 placeholder="12345678"
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                style={{ ...inputStyle }}
               />
             </FieldGroup>
             <FieldGroup label="BTW-nummer">
@@ -150,7 +150,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={btwNumber}
                 onChange={(e) => setBtwNumber(e.target.value)}
                 placeholder="NL123456789B01"
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                style={{ ...inputStyle }}
               />
             </FieldGroup>
           </div>
@@ -200,7 +200,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={iban}
                 onChange={(e) => setIban(e.target.value)}
                 placeholder="NL00BANK0123456789"
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                style={{ ...inputStyle }}
               />
             </FieldGroup>
             <FieldGroup label="BIC">
@@ -209,7 +209,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={bic}
                 onChange={(e) => setBic(e.target.value)}
                 placeholder="BANKNL2A"
-                style={{ ...inputStyle, fontFamily: "var(--font-mono), monospace" }}
+                style={{ ...inputStyle }}
               />
             </FieldGroup>
           </div>

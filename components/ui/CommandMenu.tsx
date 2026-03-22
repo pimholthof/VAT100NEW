@@ -126,7 +126,6 @@ export function CommandMenu() {
                 width: "100%",
                 padding: "20px 24px",
                 border: "none",
-                fontFamily: "var(--font-mono), monospace",
                 fontSize: "var(--text-mono-md)",
                 outline: "none",
                 background: "transparent",
@@ -243,7 +242,7 @@ export function CommandMenu() {
                 </div>
               ))}
               {isChatLoading && (
-                <div style={{ alignSelf: 'flex-start', opacity: 0.5, fontFamily: "var(--font-mono)", fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ alignSelf: 'flex-start', opacity: 0.5, fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}>
                   <span className="spinner"></span> AI is aan het nadenken...
                 </div>
               )}

@@ -19,7 +19,6 @@ const textInputStyle: React.CSSProperties = {
 
 const monoInputStyle: React.CSSProperties = {
   ...textInputStyle,
-  fontFamily: "var(--font-mono), monospace",
 };
 
 export default function OnboardingPage() {
@@ -130,7 +129,6 @@ export default function OnboardingPage() {
               style={{
                 padding: 16,
                 background: "rgba(13,13,11,0.02)",
-                fontFamily: "var(--font-mono), monospace",
                 fontSize: "11px",
               }}
             >
