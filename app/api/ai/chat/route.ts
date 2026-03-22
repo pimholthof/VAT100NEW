@@ -1,29 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@/lib/supabase/server";
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const MAX_QUERY_LENGTH = 2000;
+
 export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json();
+    // Authenticate user
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!query) {
-      return NextResponse.json({ error: "Geen vraag gesteld" }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
     }
 
-    // 1. Manually fetch the user context to feed to the LLM (Naive RAG / Context Injection)
-    // Note: In production we would use pgvector and similarity search. 
-    // Here we inject an aggregated summary for the MVP.
-    // We can't easily use cookies in API routes without complex setup
-    // So for the sake of MVP we will use the service role or a simplified approach
-    // If not authenticated, we'll just mock the data fetch or use anon
-    
-    // However, since it's an MVP, let's just make it a general financial assistant first
-    // combined with whatever we can get. 
-    
+    const { query } = await request.json();
+
+    if (!query || typeof query !== "string") {
+      return NextResponse.json({ error: "Geen vraag gesteld." }, { status: 400 });
+    }
+
+    if (query.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json(
+        { error: `Vraag is te lang (max ${MAX_QUERY_LENGTH} tekens).` },
+        { status: 400 }
+      );
+    }
+
     // For now, we simulate pulling the current context
     const contextStr = `
 (Let op: dit is momenteel een demo-omgeving. Je antwoordt als VAT100 AI Assistant.
@@ -32,7 +40,7 @@ Geef korte, bondige, en behulpzame antwoorden in het Nederlands.
 Je kunt uitleggen wat er allemaal mogelijk is wegens de "Liquid" architectuur.)
 `;
 
-    const systemPrompt = `Je bent de VAT100 Autonome CFO Assistent. 
+    const systemPrompt = `Je bent de VAT100 Autonome CFO Assistent.
 Je helpt zzp'ers en freelancers met inzicht in hun cashflow, facturen en bonnetjes.
 Houd je antwoorden professioneel, zeer beknopt, to-the-point en behulpzaam. Vermijd markdown formatting tenzij nodig (zoals opsommingen of vetgedrukt).
 Context van de gebruiker:\n${contextStr}`;
@@ -50,9 +58,9 @@ Context van de gebruiker:\n${contextStr}`;
     });
 
     const textContent = response.content.find((c) => c.type === "text");
-    
-    return NextResponse.json({ 
-      text: textContent?.type === "text" ? textContent.text : "Ik kon helaas geen antwoord formuleren." 
+
+    return NextResponse.json({
+      text: textContent?.type === "text" ? textContent.text : "Ik kon helaas geen antwoord formuleren."
     });
 
   } catch (error) {
