@@ -72,7 +72,7 @@
   --color-accent: var(--color-accent);
   
   --font-geist: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: "Courier New", Courier, monospace;
+  --font-mono: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   
   --radius-sm: 0;
   --radius-md: 0;
@@ -285,40 +285,35 @@ tbody tr:hover {
 }
 
 .display-hero {
-  font-family: var(--font-serif), "Times New Roman", Times, serif;
   font-size: var(--text-display-hero);
-  font-weight: 500;
+  font-weight: 800;
   letter-spacing: var(--tracking-display);
   line-height: 0.85;
   margin: 0;
 }
 
 .display-title {
-  font-family: var(--font-serif), "Times New Roman", Times, serif;
   font-size: var(--text-display-lg);
-  font-weight: 500;
-  letter-spacing: -0.02em; /* Less tight for serif */
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 0.9;
   margin: 0;
 }
 
 .section-header {
-  font-family: var(--font-serif), "Times New Roman", Times, serif;
   font-size: var(--text-display-sm);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1;
   margin: 0;
 }
 
 .mono-amount {
-  font-family: var(--font-mono), monospace;
   font-size: var(--text-mono-md);
   font-variant-numeric: tabular-nums;
 }
 
 .mono-amount-lg {
-  font-family: var(--font-mono), monospace;
   font-size: var(--text-mono-lg);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -386,20 +381,25 @@ tbody tr:hover {
   gap: 20px;
 }
 
-.dashboard-nav-hamburger {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--foreground);
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
+/* ─── Responsive Utilities ─── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 80px;
+  gap: 16px;
 }
 
-.dashboard-nav-mobile {
-  padding: 0 0 16px;
-  border-top: var(--border-rule);
+.responsive-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 /* ─── Dashboard Content ─── */
@@ -532,28 +532,8 @@ tbody tr:hover {
     --space-block: 32px;
   }
 
-  .dashboard-nav {
-    padding: 0 24px;
-  }
-
-  .dashboard-nav-inner {
-    height: 56px;
-  }
-
-  .dashboard-nav-links {
-    display: none;
-  }
-
-  .dashboard-nav-right {
-    display: none;
-  }
-
-  .dashboard-nav-hamburger {
-    display: block;
-  }
-
   .dashboard-content {
-    padding: 24px;
+    padding: 24px 16px;
   }
 
   .display-hero {
@@ -564,17 +544,23 @@ tbody tr:hover {
     font-size: 2rem;
   }
 
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    gap: 12px;
+  }
+
+  .responsive-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .responsive-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
   .stat-cards-grid {
     grid-template-columns: 1fr !important;
-  }
-
-  .vat-deadline-banner {
-    flex-direction: column !important;
-    text-align: center !important;
-  }
-
-  .vat-deadline-banner > div {
-    text-align: center !important;
   }
 
   /* Tables: horizontal scroll on mobile */

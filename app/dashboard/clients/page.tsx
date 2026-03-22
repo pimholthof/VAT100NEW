@@ -35,25 +35,14 @@ export default function ClientsPage() {
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: 80,
-        }}
-      >
+      <div className="page-header">
         <h1 className="display-title">
           Klanten
         </h1>
         <Link
           href="/dashboard/clients/new"
+          className="label-strong"
           style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-label)",
-            fontWeight: 500,
-            letterSpacing: "0.10em",
-            textTransform: "uppercase",
             padding: "14px 28px",
             border: "0.5px solid rgba(13,13,11,0.25)",
             background: "transparent",

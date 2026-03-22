@@ -134,7 +134,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             Bedrijfsgegevens
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="responsive-grid-2">
             <FieldGroup label="KVK-nummer">
               <input
                 type="text"
@@ -165,7 +165,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             />
           </FieldGroup>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 16 }}>
+          <div className="responsive-grid-2" style={{ gridTemplateColumns: "1fr 2fr" }}>
             <FieldGroup label="Postcode">
               <input
                 type="text"
@@ -193,7 +193,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             Bankgegevens
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="responsive-grid-2">
             <FieldGroup label="IBAN">
               <input
                 type="text"

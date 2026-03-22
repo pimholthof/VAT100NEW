@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { m as motion , AnimatePresence } from "framer-motion";
+import { m as motion, AnimatePresence } from "framer-motion";
 import {
   getBankConnections,
   getBankTransactions,
@@ -53,7 +53,6 @@ const selectStyle: React.CSSProperties = {
   borderBottom: "var(--border-input)",
   background: "transparent",
   color: "var(--foreground)",
-  fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
   fontWeight: 300,
   outline: "none",
@@ -202,26 +201,8 @@ export default function BankPage() {
   return (
     <div>
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 48,
-        }}
-      >
-        <h1
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-lg)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 1,
-            margin: 0,
-          }}
-        >
-          Bank
-        </h1>
+      <div className="page-header" style={{ marginBottom: 48 }}>
+        <h1 className="display-title">Bank</h1>
       </div>
 
       {/* Return Status Feedback */}
@@ -277,57 +258,19 @@ export default function BankPage() {
 
       {/* Section 1: Connected accounts */}
       <div style={{ marginBottom: 48 }}>
-        <h2
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-md)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 1,
-            margin: "0 0 24px",
-          }}
-        >
-          Rekeningen
-        </h2>
+        <h2 className="section-header" style={{ margin: "0 0 24px" }}>Rekeningen</h2>
 
         {connectionsLoading ? (
           <SkeletonBlock />
         ) : connections.length === 0 ? (
-          <div
-            style={{
-              border: "none",
-              borderTop: "var(--border-rule)",
-              borderBottom: "var(--border-rule)",
-              padding: 64,
-              textAlign: "center",
-              background: "rgba(13, 13, 11, 0.02)",
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-lg)",
-                fontWeight: 300,
-                margin: "0 0 24px",
-                opacity: 0.6,
-              }}
-            >
+          <div style={{ borderTop: "var(--border-rule)", borderBottom: "var(--border-rule)", padding: 48, textAlign: "center", background: "rgba(13, 13, 11, 0.02)" }}>
+            <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "0 0 24px", opacity: 0.6 }}>
               Nog geen bankrekening gekoppeld. Koppel je bank om transacties automatisch te verwerken.
             </p>
             <button
               onClick={() => setIsSelectorOpen(true)}
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-lg)",
-                fontWeight: 500,
-                letterSpacing: "0.08em",
-                padding: "16px 32px",
-                border: "none",
-                background: "var(--foreground)",
-                color: "var(--background)",
-                cursor: "pointer",
-                textTransform: "uppercase",
-              }}
+              className="label-strong"
+              style={{ padding: "16px 32px", border: "none", background: "var(--foreground)", color: "var(--background)", cursor: "pointer" }}
             >
               Koppel bankrekening
             </button>
@@ -343,75 +286,24 @@ export default function BankPage() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 12,
                 }}
               >
-                <div>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-body), sans-serif",
-                      fontSize: "var(--text-body-lg)",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {conn.institution_name}
-                  </span>
-                  {conn.iban && (
-                    <span
-                      style={{
-                        fontFamily: "var(--font-body), sans-serif",
-                        fontSize: "var(--text-body-md)",
-                        fontWeight: 300,
-                        marginLeft: 12,
-                        opacity: 0.5,
-                      }}
-                    >
-                      {conn.iban}
-                    </span>
-                  )}
-                  <span
-                    style={{
-                      fontFamily: "var(--font-body), sans-serif",
-                      fontSize: "var(--text-body-xs)",
-                      fontWeight: 400,
-                      letterSpacing: "0.05em",
-                      marginLeft: 12,
-                      opacity: 0.4,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {conn.status}
-                  </span>
-                  {conn.last_synced_at && (
-                    <span
-                      style={{
-                        fontFamily: "var(--font-body), sans-serif",
-                        fontSize: "var(--text-body-xs)",
-                        fontWeight: 300,
-                        marginLeft: 12,
-                        opacity: 0.4,
-                      }}
-                    >
-                      Laatst gesynchroniseerd: {formatDate(conn.last_synced_at)}
-                    </span>
-                  )}
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+                  <span style={{ fontSize: "var(--text-body-lg)", fontWeight: 500 }}>{conn.institution_name}</span>
+                  {conn.iban && <span style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.5 }}>{conn.iban}</span>}
+                  <span className="label" style={{ opacity: 0.4 }}>{conn.status}</span>
+                  {conn.last_synced_at && <span style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4 }}>Laatst: {formatDate(conn.last_synced_at)}</span>}
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <button
                     onClick={() => syncMutation.mutate(conn.id)}
                     disabled={syncMutation.isPending}
-                    style={{
-                      fontFamily: "var(--font-body), sans-serif",
-                      fontSize: "var(--text-body-xs)",
-                      fontWeight: 500,
-                      letterSpacing: "0.02em",
-                      background: "none",
-                      border: "0.5px solid rgba(13, 13, 11, 0.25)",
-                      color: "var(--foreground)",
-                      padding: "6px 12px",
-                      cursor: "pointer",
-                    }}
+                    className="label-strong"
+                    style={{ background: "none", border: "0.5px solid rgba(13, 13, 11, 0.25)", color: "var(--foreground)", padding: "6px 12px", cursor: "pointer" }}
                   >
-                    {syncMutation.isPending ? "Bezig..." : "Synchroniseren"}
+                    {syncMutation.isPending ? "Bezig..." : "Sync"}
                   </button>
                   <button
                     onClick={() => {
@@ -419,18 +311,8 @@ export default function BankPage() {
                         deleteMutation.mutate(conn.id);
                       }
                     }}
-                    style={{
-                      fontFamily: "var(--font-body), sans-serif",
-                      fontSize: "var(--text-body-xs)",
-                      fontWeight: 500,
-                      letterSpacing: "0.02em",
-                      background: "none",
-                      border: "none",
-                      color: "var(--foreground)",
-                      opacity: 0.6,
-                      cursor: "pointer",
-                      padding: 0,
-                    }}
+                    className="label"
+                    style={{ background: "none", border: "none", color: "var(--foreground)", opacity: 0.6, cursor: "pointer", padding: 0 }}
                   >
                     Verwijder
                   </button>
@@ -440,18 +322,8 @@ export default function BankPage() {
             <div style={{ marginTop: 24 }}>
               <button
                 onClick={() => setIsSelectorOpen(true)}
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-body-md)",
-                  fontWeight: 500,
-                  letterSpacing: "0.05em",
-                  padding: "12px 20px",
-                  border: "0.5px solid rgba(13, 13, 11, 0.25)",
-                  background: "transparent",
-                  color: "var(--foreground)",
-                  cursor: "pointer",
-                  textTransform: "uppercase",
-                }}
+                className="label-strong"
+                style={{ padding: "12px 20px", border: "0.5px solid rgba(13, 13, 11, 0.25)", background: "transparent", color: "var(--foreground)", cursor: "pointer" }}
               >
                 + Andere rekening koppelen
               </button>
@@ -462,174 +334,86 @@ export default function BankPage() {
 
       {/* Section 2: Transactions */}
       <div style={{ marginBottom: 48 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 24,
-          }}
-        >
-          <h2
-            style={{
-              fontFamily: "var(--font-display), sans-serif",
-              fontSize: "var(--text-display-md)",
-              fontWeight: 700,
-              letterSpacing: "var(--tracking-display)",
-              lineHeight: 1,
-              margin: 0,
-            }}
-          >
-            Transacties
-          </h2>
+        <div className="page-header" style={{ marginBottom: 24 }}>
+          <h2 className="section-header" style={{ margin: 0 }}>Transacties</h2>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{
-              ...selectStyle,
-              width: "auto",
-              minWidth: 160,
-              borderBottom: "none",
-              border: "0.5px solid rgba(13, 13, 11, 0.25)",
-              padding: "8px 12px",
-            }}
+            style={{ ...selectStyle, width: "auto", minWidth: 160, borderBottom: "none", border: "0.5px solid rgba(13, 13, 11, 0.25)", padding: "8px 12px" }}
           >
             {monthOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         </div>
 
         {/* Auto-categorization banner */}
         {!transactionsLoading && uncategorizedCount > 0 && (
-          <div
-            style={{
-              borderLeft: "2px solid var(--foreground)",
-              padding: "12px 16px",
-              marginBottom: 24,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-lg)",
-                fontWeight: 300,
-              }}
-            >
+          <div style={{ borderLeft: "2px solid var(--foreground)", padding: "12px 16px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+            <span style={{ fontSize: "var(--text-body-lg)", fontWeight: 300 }}>
               {uncategorizedCount} transactie{uncategorizedCount !== 1 ? "s" : ""} wacht{uncategorizedCount === 1 ? "" : "en"} op categorisatie
             </span>
             <button
-              onClick={() =>
-                autoCategorizeMutation.mutate(
-                  uncategorizedTransactions.map((tx) => tx.id)
-                )
-              }
+              onClick={() => autoCategorizeMutation.mutate(uncategorizedTransactions.map((tx) => tx.id))}
               disabled={autoCategorizeMutation.isPending}
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-lg)",
-                fontWeight: 500,
-                letterSpacing: "0.05em",
-                padding: "12px 20px",
-                border: "none",
-                background: "var(--foreground)",
-                color: "var(--background)",
-                cursor: "pointer",
-              }}
+              className="label-strong"
+              style={{ padding: "12px 20px", border: "none", background: "var(--foreground)", color: "var(--background)", cursor: "pointer" }}
             >
-              {autoCategorizeMutation.isPending
-                ? "Bezig met categoriseren..."
-                : "Categoriseer automatisch"}
+              {autoCategorizeMutation.isPending ? "Bezig..." : "Categoriseer automatisch"}
             </button>
           </div>
         )}
 
-        {/* Tabs for To-Do vs Auto-Processed */}
+        {/* Tabs */}
         <div style={{ display: "flex", gap: "24px", marginBottom: "24px", borderBottom: "0.5px solid rgba(13,13,11,0.12)" }}>
-           <button
-             onClick={() => setActiveTab("todo")}
-             style={{
-               background: "none",
-               border: "none",
-               borderBottom: activeTab === "todo" ? "2px solid var(--foreground)" : "2px solid transparent",
-               padding: "0 0 8px 0",
-               fontFamily: "var(--font-body), sans-serif",
-               fontSize: "var(--text-body-lg)",
-               fontWeight: activeTab === "todo" ? 500 : 300,
-               color: "var(--foreground)",
-               opacity: activeTab === "todo" ? 1 : 0.5,
-               cursor: "pointer",
-             }}
-           >
-             Actie vereist ({uncategorizedCount})
-           </button>
-           <button
-             onClick={() => setActiveTab("auto")}
-             style={{
-               background: "none",
-               border: "none",
-               borderBottom: activeTab === "auto" ? "2px solid var(--foreground)" : "2px solid transparent",
-               padding: "0 0 8px 0",
-               fontFamily: "var(--font-body), sans-serif",
-               fontSize: "var(--text-body-lg)",
-               fontWeight: activeTab === "auto" ? 500 : 300,
-               color: "var(--foreground)",
-               opacity: activeTab === "auto" ? 1 : 0.5,
-               cursor: "pointer",
-             }}
-           >
-             Verwerkt ({categorizedCount})
-           </button>
+          <button
+            onClick={() => setActiveTab("todo")}
+            style={{
+              background: "none", border: "none",
+              borderBottom: activeTab === "todo" ? "2px solid var(--foreground)" : "2px solid transparent",
+              padding: "0 0 8px 0",
+              fontSize: "var(--text-body-lg)",
+              fontWeight: activeTab === "todo" ? 500 : 300,
+              color: "var(--foreground)",
+              opacity: activeTab === "todo" ? 1 : 0.5,
+              cursor: "pointer",
+            }}
+          >
+            Actie vereist ({uncategorizedCount})
+          </button>
+          <button
+            onClick={() => setActiveTab("auto")}
+            style={{
+              background: "none", border: "none",
+              borderBottom: activeTab === "auto" ? "2px solid var(--foreground)" : "2px solid transparent",
+              padding: "0 0 8px 0",
+              fontSize: "var(--text-body-lg)",
+              fontWeight: activeTab === "auto" ? 500 : 300,
+              color: "var(--foreground)",
+              opacity: activeTab === "auto" ? 1 : 0.5,
+              cursor: "pointer",
+            }}
+          >
+            Verwerkt ({categorizedCount})
+          </button>
         </div>
 
         {transactionsLoading ? (
           <SkeletonTable />
         ) : displayTransactions.length === 0 ? (
-          <div
-            style={{
-              border: "none",
-              borderTop: "var(--border-rule)",
-              borderBottom: "var(--border-rule)",
-              padding: 48,
-              textAlign: "center",
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "var(--font-body), sans-serif",
-                fontSize: "var(--text-body-lg)",
-                fontWeight: 300,
-                margin: 0,
-              }}
-            >
+          <div style={{ borderTop: "var(--border-rule)", borderBottom: "var(--border-rule)", padding: 48, textAlign: "center" }}>
+            <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: 0 }}>
               Inbox Zero. Geen transacties meer in deze lijst.
             </p>
           </div>
         ) : (
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-md)",
-            }}
-          >
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--text-body-md)" }}>
             <thead>
-              <tr
-                style={{
-                  borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-                  textAlign: "left",
-                }}
-              >
+              <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
                 <Th>Datum</Th>
                 <Th>Omschrijving</Th>
                 <Th>Tegenpartij</Th>
-                <Th>Categorie (Swipe/Selecteer)</Th>
+                <Th>Categorie</Th>
                 <Th style={{ textAlign: "right" }}>Bedrag</Th>
               </tr>
             </thead>
@@ -639,9 +423,7 @@ export default function BankPage() {
                   key={tx.id}
                   style={{
                     borderBottom: "var(--border)",
-                    borderLeft: aiCategorized.has(tx.id)
-                      ? "2px solid var(--foreground)"
-                      : "2px solid transparent",
+                    borderLeft: aiCategorized.has(tx.id) ? "2px solid var(--foreground)" : "2px solid transparent",
                   }}
                 >
                   <Td>{formatDate(tx.booking_date)}</Td>
@@ -652,28 +434,18 @@ export default function BankPage() {
                       value={tx.category ?? ""}
                       onChange={(e) => {
                         if (e.target.value) {
-                          categorizeMutation.mutate({
-                            id: tx.id,
-                            category: e.target.value,
-                          });
+                          categorizeMutation.mutate({ id: tx.id, category: e.target.value });
                         }
                       }}
                       style={selectStyle}
                     >
                       <option value="">—</option>
                       {TRANSACTION_CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
+                        <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
                   </Td>
-                  <Td
-                    style={{
-                      textAlign: "right",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
+                  <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
                     {formatCurrency(Number(tx.amount))}
                   </Td>
                 </tr>
@@ -685,31 +457,9 @@ export default function BankPage() {
 
       {/* Section 3: Summary */}
       {!isLoading && transactions.length > 0 && (
-        <div
-          style={{
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
-            paddingTop: 24,
-          }}
-        >
-          <h2
-            style={{
-              fontFamily: "var(--font-display), sans-serif",
-              fontSize: "var(--text-display-md)",
-              fontWeight: 700,
-              letterSpacing: "var(--tracking-display)",
-              lineHeight: 1,
-              margin: "0 0 24px",
-            }}
-          >
-            Samenvatting
-          </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 24,
-            }}
-          >
+        <div style={{ borderTop: "0.5px solid rgba(13,13,11,0.15)", paddingTop: 24 }}>
+          <h2 className="section-header" style={{ margin: "0 0 24px" }}>Samenvatting</h2>
+          <div className="responsive-grid-3">
             <SummaryItem label="Inkomsten" amount={totals.income} />
             <SummaryItem label="Uitgaven" amount={totals.expenses} />
             <SummaryItem label="Netto" amount={totals.net} />
@@ -723,26 +473,8 @@ export default function BankPage() {
 function SummaryItem({ label, amount }: { label: string; amount: number }) {
   return (
     <div>
-      <div
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "var(--text-body-sm)",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          marginBottom: 8,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontFamily: "var(--font-display), sans-serif",
-          fontSize: "var(--text-display-md)",
-          fontWeight: 700,
-          letterSpacing: "var(--tracking-display)",
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
+      <div style={{ fontSize: "var(--text-body-sm)", fontWeight: 500, letterSpacing: "0.02em", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: "var(--text-display-md)", fontWeight: 700, letterSpacing: "var(--tracking-display)", fontVariantNumeric: "tabular-nums" }}>
         {formatCurrency(amount)}
       </div>
     </div>
@@ -752,12 +484,7 @@ function SummaryItem({ label, amount }: { label: string; amount: number }) {
 function SkeletonBlock() {
   return (
     <div style={{ opacity: 0.12 }}>
-      <div
-        style={{
-          borderBottom: "1px solid rgba(13, 13, 11, 0.08)",
-          padding: "16px 0",
-        }}
-      >
+      <div style={{ borderBottom: "1px solid rgba(13, 13, 11, 0.08)", padding: "16px 0" }}>
         <div className="skeleton" style={{ width: "40%", height: 14 }} />
       </div>
     </div>
