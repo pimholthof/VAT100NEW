@@ -79,32 +79,7 @@ export function SafeToSpendRing({
         />
       </svg>
 
-      {/* Center content slot */}
-      <div
-        style={{
-          position: "absolute",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          transform: "rotate(0deg)"
-        }}
-      >
-        <span className="label" style={{ marginBottom: 4 }}>Safe to Spend</span>
-        <motion.span
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5 }}
-          style={{
-            fontFamily: "var(--font-mono), monospace",
-            fontSize: "var(--text-mono-md)",
-            fontWeight: 400,
-            letterSpacing: "-0.05em",
-            color: "var(--foreground)"
-          }}
-        >
-          {Math.round(percentage * 100)}%
-        </motion.span>
-      </div>
+      {/* Center content slot - removed hardcoded labels to avoid overlap in FiscalPulse */}
     </div>
   );
 }

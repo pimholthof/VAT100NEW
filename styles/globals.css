@@ -358,10 +358,9 @@ tbody tr:hover {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(10, 10, 10, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
-  padding: 0 80px;
+  background: var(--background);
+  border-bottom: var(--border-light);
+  padding: 0 40px;
 }
 
 .dashboard-nav-inner {
@@ -406,8 +405,8 @@ tbody tr:hover {
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 120px 10vw; /* Massive fluid padding */
-  max-width: 1800px; /* allow it to grow large */
+  padding: 80px 4vw; /* Reduced from 10vw to stop the "sliver" look */
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.3s ease;

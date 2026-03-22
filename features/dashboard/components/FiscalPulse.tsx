@@ -80,8 +80,8 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
           transform: "translate(-50%, -50%)",
           textAlign: "center"
         }}>
-          <p className="label" style={{ margin: 0 }}>Ratio</p>
-          <p className="display-hero" style={{ fontSize: "2.5rem", margin: 0 }}>{Math.round(ratio * 100)}%</p>
+          <p className="label" style={{ margin: 0, opacity: 0.4 }}>Ratio</p>
+          <p className="display-hero" style={{ fontSize: "2.8rem", margin: "4px 0 0" }}>{Math.round(ratio * 100)}%</p>
         </div>
       </div>
     </motion.div>

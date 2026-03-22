@@ -291,7 +291,6 @@ function ActionCard({
             letterSpacing: "0.05em",
             cursor: "pointer",
             transition: "all 0.2s ease",
-            boxShadow: "0 0 20px -5px var(--color-accent)"
           }}
         >
           {actionLabel[action.type] ?? "OK"}

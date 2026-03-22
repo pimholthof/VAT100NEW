@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { animate, useMotionValue, useTransform, motion } from "framer-motion";
+import { animate, useMotionValue, useTransform, m as motion } from "framer-motion";
 
 /**
  * AnimatedNumber — Smoothly counts up/down to a target value.
