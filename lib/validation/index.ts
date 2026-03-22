@@ -4,6 +4,7 @@ import { z } from "zod";
 
 const trimmedString = z.string().trim();
 const optionalString = trimmedString.nullable().optional();
+export const uuidSchema = z.string().uuid("Ongeldig ID");
 
 // ─── Client ───
 

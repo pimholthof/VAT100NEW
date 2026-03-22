@@ -83,11 +83,20 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   const now = new Date();
   const userId = user.id;
 
-  // Trigger Agents in background (don't block the core dashboard load)
-  // These will populate the action_feed for the separate ActionFeed component
-  runReconciliationAgent(userId, supabase).catch(console.error);
-  runAnticipationAgent(userId, supabase).catch(console.error);
-  runInvestmentAgent(userId, supabase).catch(console.error);
+  // Trigger Agents in background — throttled to max once per 15 minutes
+  // Check the most recent action_feed entry to determine if agents ran recently
+  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000).toISOString();
+  const { count: recentAgentRuns } = await supabase
+    .from("action_feed")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", fifteenMinutesAgo);
+
+  if ((recentAgentRuns ?? 0) === 0) {
+    runReconciliationAgent(userId, supabase).catch(console.error);
+    runAnticipationAgent(userId, supabase).catch(console.error);
+    runInvestmentAgent(userId, supabase).catch(console.error);
+  }
 
   // Date ranges
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)

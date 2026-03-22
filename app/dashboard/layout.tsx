@@ -26,7 +26,7 @@ export default async function DashboardLayout({
         studioName={profile?.studio_name ?? undefined}
       />
       <DashboardTransition>
-        <main className="dashboard-content">{children}</main>
+        <main id="main" className="dashboard-content">{children}</main>
       </DashboardTransition>
     </div>
   );
