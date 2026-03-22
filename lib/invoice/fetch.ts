@@ -13,6 +13,7 @@ export async function fetchInvoiceData(
     .from("invoices")
     .select("*")
     .eq("id", invoiceId)
+    .eq("user_id", user.id)
     .single();
 
   if (invoiceError || !invoice) return { error: "Factuur niet gevonden" };

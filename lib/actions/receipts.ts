@@ -149,8 +149,8 @@ export async function uploadReceiptImage(
   const file = formData.get("file") as File | null;
   if (!file) return { error: "Geen bestand geselecteerd." };
 
-  if (!file.type.startsWith("image/")) {
-    return { error: "Alleen afbeeldingen zijn toegestaan." };
+  if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+    return { error: "Alleen afbeeldingen en PDF's zijn toegestaan." };
   }
 
   if (file.size > 10 * 1024 * 1024) {
@@ -158,7 +158,13 @@ export async function uploadReceiptImage(
   }
 
   // Sanitize filename: extract extension, use UUID to prevent path traversal
-  const ext = (file.name.split(".").pop() ?? "jpg").replace(/[^a-zA-Z0-9]/g, "");
+  const ext = (file.name.split(".").pop() ?? "jpg").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+
+  const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "pdf"]);
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return { error: "Bestandstype niet toegestaan." };
+  }
+
   const safeFilename = `${crypto.randomUUID()}.${ext}`;
   const storagePath = `${user.id}/${receiptId}/${safeFilename}`;
 
@@ -331,6 +337,23 @@ export async function processReceiptWebhook(payload: {
 }, externalSupabase?: ReturnType<typeof createServiceClient>): Promise<ActionResult<{ status: string; receiptId: string }>> {
   const supabase = externalSupabase || createServiceClient();
   const { userId, vendorName, amount, vatAmount, receiptDate, storagePath } = payload;
+
+  // Valideer userId als UUID
+  const uuidResult = z.string().uuid("Ongeldige user ID.").safeParse(userId);
+  if (!uuidResult.success) {
+    return { error: "Ongeldige user ID." };
+  }
+
+  // Verifieer dat de gebruiker bestaat
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", userId)
+    .single();
+
+  if (profileError || !profile) {
+    return { error: "Gebruiker niet gevonden." };
+  }
 
   const { data: receipt, error: receiptError } = await supabase
     .from("receipts")

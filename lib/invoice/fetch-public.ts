@@ -14,6 +14,14 @@ export async function fetchInvoiceByToken(
 
   if (invoiceError || !invoice) return { error: "Factuur niet gevonden" };
 
+  // Controleer of het share token verlopen is
+  if (
+    invoice.share_token_expires_at &&
+    new Date(invoice.share_token_expires_at) < new Date()
+  ) {
+    return { error: "Deellink is verlopen" };
+  }
+
   const [linesResult, clientResult, profileResult] = await Promise.all([
     supabase
       .from("invoice_lines")

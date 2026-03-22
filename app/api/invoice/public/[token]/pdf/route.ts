@@ -3,11 +3,20 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
 import { InvoicePDF } from "@/components/invoice/InvoicePDF";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
+  const ip = getClientIp(_request);
+  if (!rateLimit(`public-pdf:${ip}`, 60_000, 10)) {
+    return NextResponse.json(
+      { error: "Te veel verzoeken. Probeer het later opnieuw." },
+      { status: 429 }
+    );
+  }
+
   const { token } = await params;
   const result = await fetchInvoiceByToken(token);
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAuth } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase/service";
+
 import type {
   ActionResult,
   BankConnection,
@@ -212,8 +212,7 @@ export async function createRequisition(
     });
 
     // Sla de requisition op in bank_connections met status "pending"
-    const supabase = createServiceClient();
-    const { error: dbError } = await supabase.from("bank_connections").insert({
+    const { error: dbError } = await auth.supabase.from("bank_connections").insert({
       user_id: user.id,
       institution_id: v.data!.institution_id,
       institution_name: v.data!.institution_id, // Wordt later bijgewerkt
@@ -259,24 +258,23 @@ export async function getRequisitionStatus(
       `/requisitions/${v.data!.requisition_id}/`
     );
 
-    // Werk de status bij in de database
+    // Werk de status bij in de database (via authenticated client + user_id check)
     if (requisition.status === "LN" && requisition.accounts.length > 0) {
-      const supabase = createServiceClient();
-
       // Haal account details op voor IBAN
       for (const accountId of requisition.accounts) {
         const account = await gcFetch<GCAccount>(
           `/accounts/${accountId}/`
         );
 
-        await supabase
+        await auth.supabase
           .from("bank_connections")
           .update({
             status: "linked",
             account_id: accountId,
             iban: account.iban ?? null,
           })
-          .eq("requisition_id", requisition.id);
+          .eq("requisition_id", requisition.id)
+          .eq("user_id", auth.user.id);
       }
     }
 
@@ -311,9 +309,8 @@ export async function importTransactions(
   if (v.error) return { error: v.error };
 
   try {
-    // Zoek de connectie op
-    const supabase = createServiceClient();
-    const { data: connection, error: connError } = await supabase
+    // Zoek de connectie op (via authenticated client)
+    const { data: connection, error: connError } = await auth.supabase
       .from("bank_connections")
       .select("*")
       .eq("user_id", user.id)
@@ -338,7 +335,7 @@ export async function importTransactions(
 
     // Filter dubbele transacties op transaction_id
     const existingTxIds = new Set<string>();
-    const { data: existingTx } = await supabase
+    const { data: existingTx } = await auth.supabase
       .from("bank_transactions")
       .select("transaction_id")
       .eq("user_id", user.id)
@@ -370,14 +367,14 @@ export async function importTransactions(
       return { error: null, data: { imported: 0 } };
     }
 
-    const { error: insertError } = await supabase
+    const { error: insertError } = await auth.supabase
       .from("bank_transactions")
       .insert(newTransactions);
 
     if (insertError) return { error: insertError.message };
 
     // Werk last_synced_at bij
-    await supabase
+    await auth.supabase
       .from("bank_connections")
       .update({ last_synced_at: new Date().toISOString() })
       .eq("id", connection.id);
@@ -447,9 +444,8 @@ export async function disconnectBank(
     // Als de GoCardless verwijdering faalt, verwijder alsnog lokaal
   }
 
-  // Verwijder uit database
-  const serviceClient = createServiceClient();
-  const { error: deleteError } = await serviceClient
+  // Verwijder uit database (via authenticated client)
+  const { error: deleteError } = await supabase
     .from("bank_connections")
     .delete()
     .eq("id", v.data!.connection_id)

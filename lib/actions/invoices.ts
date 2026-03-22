@@ -300,23 +300,33 @@ export async function generateShareToken(
   // Verify ownership
   const { data: invoice } = await supabase
     .from("invoices")
-    .select("share_token")
+    .select("share_token, share_token_expires_at")
     .eq("id", invoiceId)
     .eq("user_id", user.id)
     .single();
 
   if (!invoice) return { error: "Factuur niet gevonden." };
 
-  // Return existing token if already generated
+  // Return existing token if already generated and not expired
   if (invoice.share_token) {
-    return { error: null, data: invoice.share_token };
+    const expiresAt = invoice.share_token_expires_at
+      ? new Date(invoice.share_token_expires_at)
+      : null;
+    if (!expiresAt || expiresAt > new Date()) {
+      return { error: null, data: invoice.share_token };
+    }
   }
 
   const token = crypto.randomUUID().replace(/-/g, "");
+  const tokenExpiresAt = new Date();
+  tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 90);
 
   const { error } = await supabase
     .from("invoices")
-    .update({ share_token: token })
+    .update({
+      share_token: token,
+      share_token_expires_at: tokenExpiresAt.toISOString(),
+    })
     .eq("id", invoiceId)
     .eq("user_id", user.id);
 

@@ -76,6 +76,14 @@ export async function GET(request: Request) {
     );
   }
 
+  // Valideer dat ref een geldig UUID-formaat heeft
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(ref)) {
+    return NextResponse.redirect(
+      `${redirectTarget}?error=invalid_ref`
+    );
+  }
+
   try {
     const supabase = createServiceClient();
 
@@ -115,6 +123,15 @@ export async function GET(request: Request) {
     }
 
     const requisition: GCRequisition = await reqRes.json();
+
+    // Cross-valideer: de reference in GoCardless moet overeenkomen met de
+    // user_id van de connection. Dit voorkomt dat een aanvaller een andere
+    // user_id als ref parameter kan meegeven.
+    if (requisition.reference !== connection.user_id) {
+      return NextResponse.redirect(
+        `${redirectTarget}?error=invalid_ref`
+      );
+    }
 
     // Status "LN" = linked
     if (requisition.status === "LN" && requisition.accounts.length > 0) {

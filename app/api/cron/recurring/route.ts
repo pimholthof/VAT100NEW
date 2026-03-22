@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processRecurringInvoices } from "@/lib/actions/recurring";
+import { verifyBearerSecret } from "@/lib/auth/verify-secret";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
+  const ip = getClientIp(request);
+  if (!rateLimit(`cron-recurring:${ip}`, 60_000, 30)) {
+    return NextResponse.json({ error: "Te veel verzoeken" }, { status: 429 });
+  }
 
-  if (!process.env.CRON_SECRET || authHeader !== expectedToken) {
+  const authHeader = request.headers.get("authorization");
+  if (!verifyBearerSecret(authHeader, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: "Niet geautoriseerd" }, { status: 401 });
   }
 
