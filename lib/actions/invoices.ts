@@ -100,15 +100,23 @@ export async function createInvoice(
   if (!invoice) return { error: "Factuurnummer kon niet worden gegenereerd." };
 
   if (input.lines.length > 0) {
-    const lineRows = input.lines.map((line, index) => ({
-      invoice_id: invoice.id,
-      description: line.description,
-      quantity: line.quantity,
-      unit: line.unit,
-      rate: line.rate,
-      amount: Math.round(line.quantity * line.rate * 100) / 100,
-      sort_order: index,
-    }));
+    const lineRows = input.lines.map((line, index) => {
+      const amount = Math.round(line.quantity * line.rate * 100) / 100;
+      const lineVatRate = line.vat_rate ?? input.vat_rate;
+      const lineVatAmount = Math.round(amount * (lineVatRate / 100) * 100) / 100;
+      return {
+        invoice_id: invoice.id,
+        description: line.description,
+        quantity: line.quantity,
+        unit: line.unit,
+        rate: line.rate,
+        amount,
+        vat_rate: lineVatRate,
+        vat_amount: lineVatAmount,
+        amount_inc_vat: Math.round((amount + lineVatAmount) * 100) / 100,
+        sort_order: index,
+      };
+    });
 
     const { error: linesError } = await supabase
       .from("invoice_lines")
@@ -184,15 +192,23 @@ export async function updateInvoice(
   if (deleteError) return { error: deleteError.message };
 
   if (input.lines.length > 0) {
-    const lineRows = input.lines.map((line, index) => ({
-      invoice_id: id,
-      description: line.description,
-      quantity: line.quantity,
-      unit: line.unit,
-      rate: line.rate,
-      amount: Math.round(line.quantity * line.rate * 100) / 100,
-      sort_order: index,
-    }));
+    const lineRows = input.lines.map((line, index) => {
+      const amount = Math.round(line.quantity * line.rate * 100) / 100;
+      const lineVatRate = line.vat_rate ?? input.vat_rate;
+      const lineVatAmount = Math.round(amount * (lineVatRate / 100) * 100) / 100;
+      return {
+        invoice_id: id,
+        description: line.description,
+        quantity: line.quantity,
+        unit: line.unit,
+        rate: line.rate,
+        amount,
+        vat_rate: lineVatRate,
+        vat_amount: lineVatAmount,
+        amount_inc_vat: Math.round((amount + lineVatAmount) * 100) / 100,
+        sort_order: index,
+      };
+    });
 
     const { error: linesError } = await supabase
       .from("invoice_lines")
@@ -212,9 +228,14 @@ export async function updateInvoiceStatus(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  const updateData: Record<string, unknown> = { status };
+  if (status === "paid") {
+    updateData.paid_at = new Date().toISOString().split("T")[0];
+  }
+
   const { error } = await supabase
     .from("invoices")
-    .update({ status })
+    .update(updateData)
     .eq("id", id)
     .eq("user_id", user.id);
 

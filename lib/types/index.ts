@@ -54,6 +54,9 @@ export interface InvoiceLine {
   unit: InvoiceUnit;
   rate: number;
   amount: number;
+  vat_rate: number;
+  vat_amount: number;
+  amount_inc_vat: number;
   sort_order: number;
 }
 
@@ -72,7 +75,9 @@ export interface Invoice {
   total_inc_vat: number;
   notes: string | null;
   share_token: string | null;
+  paid_at: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 // ─── Composed types for rendering ───
@@ -97,6 +102,7 @@ export interface InvoiceLineInput {
   quantity: number;
   unit: InvoiceUnit;
   rate: number;
+  vat_rate: VatRate;
 }
 
 export interface InvoiceInput {
@@ -285,7 +291,7 @@ export interface SafeToSpendData {
 
 // ─── Banking / GoCardless types ───
 
-export type BankConnectionStatus = "pending" | "linked" | "expired" | "revoked";
+export type BankConnectionStatus = "pending" | "active" | "expired" | "error";
 
 export interface BankConnection {
   id: string;
@@ -296,15 +302,16 @@ export interface BankConnection {
   account_id: string | null;
   iban: string | null;
   status: BankConnectionStatus;
-  created_at: string;
   last_synced_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BankTransaction {
   id: string;
   user_id: string;
-  connection_id: string;
-  transaction_id: string;
+  bank_connection_id: string;
+  external_id: string;
   booking_date: string;
   amount: number;
   currency: string;
@@ -312,9 +319,13 @@ export interface BankTransaction {
   counterpart_name: string | null;
   counterpart_iban: string | null;
   category: string | null;
-  matched_invoice_id: string | null;
-  matched_receipt_id: string | null;
+  is_income: boolean;
+  linked_invoice_id: string | null;
+  linked_receipt_id: string | null;
+  ai_confidence: number | null;
+  ai_category_suggestion: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface GoCardlessInstitution {
@@ -323,4 +334,89 @@ export interface GoCardlessInstitution {
   bic: string;
   logo: string;
   countries: string[];
+}
+
+// ─── Credit note types ───
+
+export type CreditNoteStatus = "draft" | "sent";
+
+export interface CreditNote {
+  id: string;
+  user_id: string;
+  invoice_id: string;
+  credit_number: string;
+  reason: string;
+  amount_ex_vat: number;
+  vat_amount: number;
+  amount_inc_vat: number;
+  vat_rate: number;
+  issue_date: string;
+  status: CreditNoteStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreditNoteInput {
+  invoice_id: string;
+  credit_number: string;
+  reason: string;
+  amount_ex_vat: number;
+  vat_rate: VatRate;
+}
+
+// ─── Payment types ───
+
+export type PaymentMethod = "bank" | "contant" | "creditcard" | "overig";
+
+export interface Payment {
+  id: string;
+  user_id: string;
+  invoice_id: string;
+  amount: number;
+  payment_date: string;
+  bank_transaction_id: string | null;
+  method: PaymentMethod | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentInput {
+  invoice_id: string;
+  amount: number;
+  payment_date: string;
+  method: PaymentMethod | null;
+  notes: string | null;
+}
+
+// ─── Tax rate types ───
+
+export interface TaxRate {
+  id: string;
+  fiscal_year: number;
+  bracket_order: number;
+  bracket_start: number;
+  bracket_end: number | null;
+  rate: number;
+  zelfstandigenaftrek: number;
+  mkb_vrijstelling_rate: number;
+  heffingskorting_max: number;
+  heffingskorting_afbouw_start: number;
+  heffingskorting_afbouw_rate: number;
+  created_at: string;
+}
+
+// ─── Audit log types ───
+
+export type AuditAction = "insert" | "update" | "delete";
+
+export interface AuditLogEntry {
+  id: string;
+  user_id: string;
+  table_name: string;
+  record_id: string;
+  action: AuditAction;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
+  created_at: string;
 }

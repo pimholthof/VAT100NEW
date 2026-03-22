@@ -13,6 +13,7 @@ function createEmptyLine(): InvoiceLineInput {
     quantity: 1,
     unit: "uren",
     rate: 0,
+    vat_rate: 21,
   };
 }
 

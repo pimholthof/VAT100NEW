@@ -36,16 +36,32 @@ export function calculateVat(subtotalExVat: number, vatRate: number): VatTotals 
 
 /**
  * Calculates VAT totals from invoice line items.
+ * Supports per-line VAT rates. Falls back to the invoice-level vatRate
+ * if a line has no vat_rate property.
  */
 export function calculateLineTotals(
-  lines: { quantity: number; rate: number }[],
+  lines: { quantity: number; rate: number; vat_rate?: number }[],
   vatRate: number
 ): VatTotals {
-  const subtotal = lines.reduce(
-    (sum, line) => sum + line.quantity * line.rate,
-    0
-  );
-  return calculateVat(subtotal, vatRate);
+  let subtotal = 0;
+  let totalVat = 0;
+
+  for (const line of lines) {
+    const lineAmount = Math.round(line.quantity * line.rate * 100) / 100;
+    const lineVatRate = line.vat_rate ?? vatRate;
+    const lineVat = Math.round(lineAmount * (lineVatRate / 100) * 100) / 100;
+    subtotal += lineAmount;
+    totalVat += lineVat;
+  }
+
+  subtotal = Math.round(subtotal * 100) / 100;
+  totalVat = Math.round(totalVat * 100) / 100;
+
+  return {
+    subtotalExVat: subtotal,
+    vatAmount: totalVat,
+    totalIncVat: Math.round((subtotal + totalVat) * 100) / 100,
+  };
 }
 
 // ─── Formatting ───

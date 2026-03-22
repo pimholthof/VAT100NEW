@@ -158,7 +158,7 @@ export async function GET(request: Request) {
       await supabase
         .from("bank_connections")
         .update({
-          status: "linked",
+          status: "active",
           account_id: accountId,
           iban,
           institution_name: institutionName,

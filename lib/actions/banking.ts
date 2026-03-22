@@ -272,7 +272,7 @@ export async function getRequisitionStatus(
         await supabase
           .from("bank_connections")
           .update({
-            status: "linked",
+            status: "active",
             account_id: accountId,
             iban: account.iban ?? null,
           })
@@ -318,7 +318,7 @@ export async function importTransactions(
       .select("*")
       .eq("user_id", user.id)
       .eq("account_id", v.data!.account_id)
-      .eq("status", "linked")
+      .eq("status", "active")
       .single();
 
     if (connError || !connection) {
@@ -340,13 +340,13 @@ export async function importTransactions(
     const existingTxIds = new Set<string>();
     const { data: existingTx } = await supabase
       .from("bank_transactions")
-      .select("transaction_id")
+      .select("external_id")
       .eq("user_id", user.id)
-      .eq("connection_id", connection.id);
+      .eq("bank_connection_id", connection.id);
 
     if (existingTx) {
       for (const tx of existingTx) {
-        existingTxIds.add(tx.transaction_id);
+        existingTxIds.add(tx.external_id);
       }
     }
 
@@ -354,8 +354,8 @@ export async function importTransactions(
       .filter((tx) => !existingTxIds.has(tx.transactionId))
       .map((tx) => ({
         user_id: user.id,
-        connection_id: connection.id,
-        transaction_id: tx.transactionId,
+        bank_connection_id: connection.id,
+        external_id: tx.transactionId,
         booking_date: tx.bookingDate,
         amount: parseFloat(tx.transactionAmount.amount),
         currency: tx.transactionAmount.currency,

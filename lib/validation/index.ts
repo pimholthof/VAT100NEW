@@ -31,6 +31,7 @@ const invoiceLineSchema = z.object({
   quantity: z.number().positive("Aantal moet positief zijn"),
   unit: z.enum(["uren", "dagen", "stuks"]),
   rate: z.number().min(0, "Tarief mag niet negatief zijn"),
+  vat_rate: z.union([z.literal(0), z.literal(9), z.literal(21)]).default(21),
 });
 
 // ─── Invoice ───
@@ -157,6 +158,30 @@ export const disconnectBankSchema = z.object({
 });
 
 export type DisconnectBankSchema = z.infer<typeof disconnectBankSchema>;
+
+// ─── Credit Note ───
+
+export const creditNoteSchema = z.object({
+  invoice_id: z.string().uuid("Ongeldig factuur ID"),
+  credit_number: trimmedString.min(1, "Creditnotanummer is verplicht"),
+  reason: trimmedString.min(1, "Reden is verplicht"),
+  amount_ex_vat: z.number().min(0, "Bedrag mag niet negatief zijn"),
+  vat_rate: z.union([z.literal(0), z.literal(9), z.literal(21)]),
+});
+
+export type CreditNoteSchema = z.infer<typeof creditNoteSchema>;
+
+// ─── Payment ───
+
+export const paymentSchema = z.object({
+  invoice_id: z.string().uuid("Ongeldig factuur ID"),
+  amount: z.number().positive("Bedrag moet positief zijn"),
+  payment_date: z.string().min(1, "Betaaldatum is verplicht"),
+  method: z.enum(["bank", "contant", "creditcard", "overig"]).nullable().optional(),
+  notes: optionalString,
+});
+
+export type PaymentSchema = z.infer<typeof paymentSchema>;
 
 // ─── Helpers ───
 

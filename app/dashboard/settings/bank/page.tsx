@@ -277,7 +277,7 @@ function BankAccountCard({
         </div>
 
         <div className="flex gap-2">
-          {account.status === "linked" && account.account_id && (
+          {account.status === "active" && account.account_id && (
             <ButtonSecondary
               onClick={onSync}
               disabled={isSyncing}

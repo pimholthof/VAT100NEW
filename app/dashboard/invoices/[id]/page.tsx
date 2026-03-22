@@ -55,6 +55,7 @@ export default function EditInvoicePage() {
           quantity: l.quantity,
           unit: l.unit,
           rate: l.rate,
+          vat_rate: (l.vat_rate ?? inv.vat_rate) as VatRate,
         })),
       });
     }
