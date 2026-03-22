@@ -2,6 +2,7 @@
 
 import { requireAuth, createClient } from "@/lib/supabase/server";
 import type { ActionResult, ActionFeedItem } from "@/lib/types";
+import { uuidSchema } from "@/lib/validation";
 import { sendReminder } from "@/features/invoices/actions";
 import * as Sentry from "@sentry/nextjs";
 
@@ -33,15 +34,19 @@ export async function resolveActionItem(
   category?: string,
   draftContent?: string
 ): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(itemId);
+  if (!idCheck.success) return { error: "Ongeldig actie-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // 1. Get the item to perform the specific action
+  // 1. Get the item to perform the specific action (filter by user_id for security)
   const { data: item } = await supabase
     .from("action_feed")
     .select("*")
     .eq("id", itemId)
+    .eq("user_id", user.id)
     .single();
 
   if (!item) return { error: "Actie niet gevonden." };
@@ -66,7 +71,8 @@ export async function resolveActionItem(
     await supabase
       .from("bank_transactions")
       .update({ category })
-      .eq("id", item.related_transaction_id);
+      .eq("id", item.related_transaction_id)
+      .eq("user_id", user.id);
   }
 
   if (error) return { error: error.message };
@@ -77,6 +83,9 @@ export async function resolveActionItem(
  * Ignore an action item (user decided this is irrelevant).
  */
 export async function ignoreActionItem(itemId: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(itemId);
+  if (!idCheck.success) return { error: "Ongeldig actie-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -176,10 +185,9 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
           // Autonomous match
           await supabase
             .from("bank_transactions")
-            .update({ 
+            .update({
               category: matchingReceipt.category || "Algemeen",
-              receipt_id: matchingReceipt.id,
-              reconciled_at: new Date().toISOString()
+              linked_receipt_id: matchingReceipt.id,
             })
             .eq("id", tx.id);
           

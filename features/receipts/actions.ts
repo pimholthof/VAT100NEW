@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requireAuth } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult, Receipt, ReceiptInput } from "@/lib/types";
-import { receiptSchema, validate } from "@/lib/validation";
+import { receiptSchema, uuidSchema, validate } from "@/lib/validation";
 import { calculateVat } from "@/lib/format";
 
 export async function getReceipts(): Promise<ActionResult<Receipt[]>> {
@@ -117,6 +117,9 @@ export async function updateReceipt(
 }
 
 export async function deleteReceipt(id: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -190,6 +193,9 @@ export async function getReceiptImageUrl(
 export async function scanReceiptWithAI(
   receiptId: string
 ): Promise<ActionResult<Partial<ReceiptInput & { cost_code: number | null; confidence: number }>>> {
+  const idCheck = uuidSchema.safeParse(receiptId);
+  if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -236,7 +242,7 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-6",
       max_tokens: 1024,
       system: systemPrompt,
       messages: [
