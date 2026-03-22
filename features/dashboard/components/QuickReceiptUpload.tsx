@@ -129,13 +129,13 @@ export function QuickReceiptUpload() {
       onClick={() => status === "idle" && fileRef.current?.click()}
       style={{
         border: isDragging
-          ? "2px solid var(--foreground)"
-          : "1px dashed rgba(13,13,11,0.2)",
+          ? "2px solid var(--color-black)"
+          : "var(--border-light)",
         padding: 24,
         textAlign: "center",
         cursor: status === "idle" ? "pointer" : "default",
         transition: "all 0.2s ease",
-        background: isDragging ? "rgba(13,13,11,0.02)" : "transparent",
+        background: isDragging ? "rgba(0,0,0,0.02)" : "transparent",
         marginBottom: "var(--space-section)",
       }}
     >

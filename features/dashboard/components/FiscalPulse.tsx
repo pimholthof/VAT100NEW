@@ -39,16 +39,16 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
       <div className="vertical-label">Fiscale Index</div>
       
       <div style={{ flex: 1 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 20 }}>Netto Liquiditeit</p>
+        <p className="label" style={{ marginBottom: 20 }}>Netto Liquiditeit</p>
         <div style={{ position: "relative" }}>
           <AnimatedNumber 
             value={safeToSpend} 
             style={{
-              fontFamily: `"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif`,
+              fontFamily: `var(--font-serif), "Times New Roman", Times, serif`,
               fontSize: "clamp(4rem, 12vw, 10rem)",
-              fontWeight: 700,
+              fontWeight: 500,
               lineHeight: 0.8,
-              letterSpacing: "-0.06em",
+              letterSpacing: "-0.02em",
               color: "var(--foreground)"
             }}
           />
@@ -56,10 +56,10 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
             position: "absolute", 
             bottom: -48, 
             left: 0, 
-            fontSize: 12, 
-            opacity: 0.3,
-            letterSpacing: "0.3em",
-            textTransform: "uppercase"
+            fontSize: "var(--text-label)",
+            letterSpacing: "var(--tracking-label)",
+            textTransform: "uppercase",
+            fontWeight: 500
           }}>
             Beschikbaar Kapitaal / {formatCurrency(currentBalance)}
           </p>
@@ -80,8 +80,8 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
           transform: "translate(-50%, -50%)",
           textAlign: "center"
         }}>
-          <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, margin: 0 }}>RATIO</p>
-          <p className="display-sm" style={{ margin: 0, fontWeight: 500 }}>{Math.round(ratio * 100)}%</p>
+          <p className="label" style={{ margin: 0 }}>Ratio</p>
+          <p className="display-hero" style={{ fontSize: "2.5rem", margin: 0 }}>{Math.round(ratio * 100)}%</p>
         </div>
       </div>
     </motion.div>

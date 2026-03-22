@@ -1,7 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Playfair_Display } from "next/font/google";
 import { Providers } from "./providers";
 import "@/styles/globals.css";
 import { CommandMenu } from "@/components/ui/CommandMenu";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   themeColor: "#f4f4f4",
@@ -31,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" className="light" style={{ colorScheme: "light" }}>
+    <html lang="nl" className={`light ${playfair.variable}`} style={{ colorScheme: "light" }}>
       <body>
         <Providers>
           {children}

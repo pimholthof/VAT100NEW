@@ -5,10 +5,10 @@
   /* Baseline unit */
   --u: 8px;
 
-  /* Colors — Rockmen Editorial */
-  --color-black: #222222; /* Soft Off-Black */
-  --color-white: #F4F4F4; /* Premium Off-White Paper */
-  --color-accent: #6366F1; /* Retaining Indigo for critical errors if needed, but rarely used */
+  /* Colors — High-End Editorial Brutalism */
+  --color-black: #000000; /* Pure Black Ink */
+  --color-white: #FAF9F6; /* Premium Off-White Paper */
+  --color-accent: #A51C30; /* Crimson Red */
 
   /* Foreground / Background — FORCE ROCKMEN LIGHT MODE */
   --foreground: var(--color-black);
@@ -20,16 +20,18 @@
     --foreground: var(--color-black);
     --background: var(--color-white);
   }
+}
 
+:root {
   /* Borders — Minimal structure */
-  --border-light: 0.5px solid rgba(34, 34, 34, 0.1); /* Subtle dark border on light bg */
-  --border-dark: 0.5px solid rgba(34, 34, 34, 0.2);
+  --border-light: 0.5px solid var(--color-black); /* Thin hair line */
+  --border-dark: 0.5px solid var(--color-black);
   --border: var(--border-light);
 
   /* Refined components */
-  --border-rule: 0.5px solid rgba(0, 0, 0, 0.04);
-  --border-input: 0.5px solid rgba(0, 0, 0, 0.08);
-  --border-input-focus: 0.5px solid var(--color-black);
+  --border-rule: 0.5px solid var(--color-black);
+  --border-input: 1px solid var(--color-black);
+  --border-input-focus: 2px solid var(--color-black);
 
   /* Typography Scale — Extreme Outspoken Scale */
   --text-display-hero: clamp(6rem, 16vw, 14rem); /* Massive hero */
@@ -44,7 +46,7 @@
   --text-body-xs: 10px;
 
   /* Monospace */
-  --text-mono-lg: 2rem;
+  --text-mono-lg: 2.5rem;
   --text-mono-md: 13px;
   --text-mono-sm: 12px;
 
@@ -54,7 +56,7 @@
   /* Spacing & Leading */
   --tracking-display: -0.04em;
   --tracking-tight: -0.01em;
-  --tracking-label: 0.06em;
+  --tracking-label: 0.2em; /* High tracking for editorial labels */
   
   --radius: 0; /* Strict 0px radius for premium architectural feel */
 }
@@ -146,15 +148,12 @@ tbody tr:hover {
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.05);
+  background: var(--color-white);
+  border: 0.5px solid var(--color-black);
   position: relative;
   overflow: hidden;
+  box-shadow: none;
 }
-
 .glass::before {
   content: "";
   position: absolute;
@@ -270,7 +269,7 @@ tbody tr:hover {
 .label {
   font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-label);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   opacity: 0.6; /* Higher opacity for legibility due to tiny size */
@@ -282,33 +281,32 @@ tbody tr:hover {
   font-weight: 700;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .display-hero {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-serif), "Times New Roman", Times, serif;
   font-size: var(--text-display-hero);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 0.85;
   margin: 0;
 }
 
 .display-title {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-serif), "Times New Roman", Times, serif;
   font-size: var(--text-display-lg);
-  font-weight: 700;
-  letter-spacing: var(--tracking-display);
+  font-weight: 500;
+  letter-spacing: -0.02em; /* Less tight for serif */
   line-height: 0.9;
   margin: 0;
 }
 
 .section-header {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-serif), "Times New Roman", Times, serif;
   font-size: var(--text-display-sm);
-  font-weight: 700;
-  letter-spacing: var(--tracking-display);
-  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   line-height: 1;
   margin: 0;
 }
@@ -322,13 +320,13 @@ tbody tr:hover {
 .mono-amount-lg {
   font-family: var(--font-mono), monospace;
   font-size: var(--text-mono-lg);
-  font-weight: 300;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .editorial-divider {
-  border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-top: 0.5px solid var(--color-black);
 }
 
 .table-action {

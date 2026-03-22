@@ -63,11 +63,9 @@ export function ActionFeed() {
         }}
       >
         <p
+          className="display-title"
           style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-lg)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
+            fontSize: "var(--text-display-md)",
             margin: 0,
             textTransform: "uppercase",
           }}

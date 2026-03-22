@@ -33,17 +33,17 @@ export function StatCard({
       <div className="vertical-label">{label}</div>
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        <p className="label" style={{ margin: "0 0 12px", opacity: 0.2 }}>
+        <p className="label" style={{ margin: "0 0 12px" }}>
           Concept / {label}
         </p>
         <p
           className="display-hero"
           style={{
-            fontSize: "3.5rem",
-            fontWeight: 400,
+            fontSize: "var(--text-display-md)",
+            fontWeight: 500,
             lineHeight: 0.9,
             margin: 0,
-            letterSpacing: "-0.05em",
+            letterSpacing: "-0.02em",
           }}
         >
           {numericValue !== undefined ? (
@@ -60,11 +60,11 @@ export function StatCard({
           <p
             className="mono-amount"
             style={{
-              fontSize: "10px",
+              fontSize: "var(--text-label)",
               margin: 0,
-              opacity: 0.3,
               textTransform: "uppercase",
-              letterSpacing: "0.1em"
+              letterSpacing: "var(--tracking-label)",
+              fontWeight: 500
             }}
           >
             {sub}

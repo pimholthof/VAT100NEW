@@ -88,11 +88,11 @@ export function CommandMenu() {
         style={{
           width: "100%",
           maxWidth: 640,
-          background: "rgba(255, 255, 255, 0.95)",
-          border: "var(--border)",
+          background: "var(--background)",
+          border: "1px solid var(--color-black)",
           borderRadius: 0,
           overflow: "hidden",
-          boxShadow: "0 32px 64px -12px rgba(0,0,0,0.1)",
+          boxShadow: "none",
         }}
       >
         <Command
@@ -228,15 +228,17 @@ export function CommandMenu() {
               {chatMessages.map((msg, i) => (
                 <div key={i} style={{
                   alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  background: msg.role === 'user' ? 'rgba(13,13,11,0.06)' : 'transparent',
+                  background: msg.role === 'user' ? 'var(--color-black)' : 'transparent',
+                  color: msg.role === 'user' ? 'var(--color-white)' : 'var(--color-black)',
                   padding: '12px 16px',
-                   borderRadius: 0,
+                  borderRadius: 0,
                   maxWidth: '85%',
                   whiteSpace: 'pre-wrap',
                   fontFamily: "var(--font-geist), sans-serif",
-                  fontSize: "var(--text-body-md)"
+                  fontSize: "var(--text-body-md)",
+                  border: msg.role === 'ai' ? 'var(--border-light)' : 'none'
                 }}>
-                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 AI</strong>}
+                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 AI CFO</strong>}
                   {msg.content}
                 </div>
               ))}
