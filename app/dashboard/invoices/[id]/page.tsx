@@ -10,8 +10,8 @@ import {
   sendInvoice,
   sendReminder,
   generateShareToken,
-} from "@/lib/actions/invoices";
-import { InvoiceForm } from "@/components/invoice/InvoiceForm";
+} from "@/features/invoices/actions";
+import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
 import {
   ButtonPrimary,

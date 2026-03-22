@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { processReceiptWebhook } from "@/lib/actions/receipts";
+import { processReceiptWebhook } from "@/features/receipts/actions";
 
 /**
  * Agent 1: Receipt Catcher (Webhook Endpoint)

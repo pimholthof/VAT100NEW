@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion , AnimatePresence } from "framer-motion";
 import {
   getBankConnections,
   getBankTransactions,
@@ -14,8 +14,8 @@ import {
   completeBankConnection,
   autoCategorizeTransactions,
   learnFromCorrection,
-} from "@/lib/actions/banking";
-import { InstitutionSelector } from "@/components/dashboard/InstitutionSelector";
+} from "@/features/banking/actions";
+import { InstitutionSelector } from "@/features/dashboard/components/InstitutionSelector";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
 import { Th, Td, SkeletonTable } from "@/components/ui";

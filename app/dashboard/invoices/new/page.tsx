@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useInvoiceStore } from "@/lib/store/invoice";
-import { InvoiceForm } from "@/components/invoice/InvoiceForm";
+import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
 
 export default function NewInvoicePage() {
   const resetForm = useInvoiceStore((s) => s.resetForm);

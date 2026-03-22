@@ -10,7 +10,7 @@ import {
   scanReceiptWithAI,
   getReceiptImageUrl,
   markReceiptAiProcessed,
-} from "@/lib/actions/receipts";
+} from "@/features/receipts/actions";
 import {
   KOSTENSOORTEN,
   getGroepen,

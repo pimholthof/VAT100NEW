@@ -1,6 +1,6 @@
 "use client";
 
-import { ClientForm } from "@/components/client/ClientForm";
+import { ClientForm } from "@/features/clients/components/ClientForm";
 import { PageHeader } from "@/components/ui";
 
 export default function NewClientPage() {

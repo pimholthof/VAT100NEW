@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
-import { InvoicePDF } from "@/components/invoice/InvoicePDF";
+import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 
 export async function GET(
   _request: NextRequest,

@@ -1,4 +1,4 @@
-import { getDashboardData } from "@/lib/actions/dashboard";
+import { getDashboardData } from "@/features/dashboard/actions";
 import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {

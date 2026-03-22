@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
-import { InvoicePDF } from "@/components/invoice/InvoicePDF";
+import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import type { InvoiceData } from "@/lib/types";
 import { escapeHtml } from "@/lib/format";
 import { buildInvoiceEmailHtml } from "./template";

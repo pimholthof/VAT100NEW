@@ -9,7 +9,7 @@ import {
   getClientStats,
   getClientInvoices,
   updateClient,
-} from "@/lib/actions/clients";
+} from "@/features/clients/actions";
 import type { ClientInput } from "@/lib/types";
 import {
   DetailCell,

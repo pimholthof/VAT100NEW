@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@supabase/supabase-js";
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -18,9 +17,6 @@ export async function POST(request: NextRequest) {
     // 1. Manually fetch the user context to feed to the LLM (Naive RAG / Context Injection)
     // Note: In production we would use pgvector and similarity search. 
     // Here we inject an aggregated summary for the MVP.
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    
     // We can't easily use cookies in API routes without complex setup
     // So for the sake of MVP we will use the service role or a simplified approach
     // If not authenticated, we'll just mock the data fetch or use anon

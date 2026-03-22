@@ -2,7 +2,7 @@
 
 import { requireAuth, createClient } from "@/lib/supabase/server";
 import type { ActionResult, ActionFeedItem } from "@/lib/types";
-import { sendReminder } from "./invoices";
+import { sendReminder } from "@/features/invoices/actions";
 import * as Sentry from "@sentry/nextjs";
 
 /**

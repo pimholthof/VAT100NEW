@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m as motion  } from "framer-motion";
 
 interface SafeToSpendRingProps {
   percentage: number; // 0 to 1 (e.g., 0.65 for 65%)

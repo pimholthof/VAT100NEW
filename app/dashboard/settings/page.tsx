@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getProfile, updateProfile } from "@/lib/actions/profile";
+import { getProfile, updateProfile } from "@/features/profile/actions";
 import type { Profile } from "@/lib/types";
 import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage } from "@/components/ui";
 

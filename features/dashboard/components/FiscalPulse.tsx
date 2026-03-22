@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m as motion  } from "framer-motion";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { SafeToSpendRing } from "./SafeToSpendRing";
 import { formatCurrency } from "@/lib/format";

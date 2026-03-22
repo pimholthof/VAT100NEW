@@ -33,7 +33,7 @@ export function CommandMenu() {
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [chatMode]);
 
   const runCommand = useCallback((command: () => unknown) => {
     setOpen(false);
@@ -55,7 +55,7 @@ export function CommandMenu() {
       });
       const data = await res.json();
       setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error }]);
-    } catch (e) {
+    } catch {
       setChatMessages(prev => [...prev, { role: 'ai', content: "Systeem onderbroken. We herstellen de verbinding." }]);
     } finally {
       setIsChatLoading(false);

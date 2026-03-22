@@ -1,6 +1,6 @@
 "use client";
 
-import { ReceiptForm } from "@/components/receipt/ReceiptForm";
+import { ReceiptForm } from "@/features/receipts/components/ReceiptForm";
 import { PageHeader } from "@/components/ui";
 
 export default function NewReceiptPage() {

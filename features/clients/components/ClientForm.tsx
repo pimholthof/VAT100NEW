@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createNewClient, updateClient } from "@/lib/actions/clients";
+import { createNewClient, updateClient } from "@/features/clients/actions";
 import type { Client, ClientInput } from "@/lib/types";
 import {
   FieldGroup,

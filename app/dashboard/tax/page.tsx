@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getBtwOverview } from "@/lib/actions/tax";
-import { getDashboardData } from "@/lib/actions/dashboard";
-import type { QuarterStats } from "@/lib/actions/tax";
+import { getBtwOverview } from "@/features/tax/actions";
+import { getDashboardData } from "@/features/dashboard/actions";
+import type { QuarterStats } from "@/features/tax/actions";
 import { StatCard, SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
 

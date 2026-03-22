@@ -5,9 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getReceipt, getReceiptImageUrl } from "@/lib/actions/receipts";
+import { getReceipt, getReceiptImageUrl } from "@/features/receipts/actions";
 import { getKostensoortByCode } from "@/lib/constants/costs";
-import { ReceiptForm } from "@/components/receipt/ReceiptForm";
+import { ReceiptForm } from "@/features/receipts/components/ReceiptForm";
 import { DetailCell, ButtonSecondary, PageHeader } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 

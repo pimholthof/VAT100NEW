@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { m as motion  } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/lib/actions/receipts";
+import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/features/receipts/actions";
 
 /**
  * QuickReceiptUpload — A drag-and-drop "snap & go" receipt uploader
@@ -59,7 +59,7 @@ export function QuickReceiptUpload() {
 
       // 4. Update receipt with AI data
       if (scanResult.data) {
-        const { updateReceipt } = await import("@/lib/actions/receipts");
+        const { updateReceipt } = await import("@/features/receipts/actions");
         await updateReceipt(receiptId, {
           vendor_name: scanResult.data.vendor_name ?? null,
           amount_ex_vat: scanResult.data.amount_ex_vat ?? null,
@@ -69,7 +69,7 @@ export function QuickReceiptUpload() {
           receipt_date: scanResult.data.receipt_date ?? null,
         });
 
-        const { markReceiptAiProcessed } = await import("@/lib/actions/receipts");
+        const { markReceiptAiProcessed } = await import("@/features/receipts/actions");
         await markReceiptAiProcessed(receiptId);
       }
 

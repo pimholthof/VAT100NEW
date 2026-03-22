@@ -8,16 +8,18 @@ import {
   createInvoice,
   updateInvoice,
   generateInvoiceNumber,
-} from "@/lib/actions/invoices";
-import { getClients } from "@/lib/actions/clients";
+} from "@/features/invoices/actions";
+import { getClients } from "@/features/clients/actions";
 import { InvoiceLineRow } from "./InvoiceLineRow";
 import { ClientQuickCreate } from "./ClientQuickCreate";
+import { InvoiceMetadata } from "./InvoiceMetadata";
+import { InvoiceTotals } from "./InvoiceTotals";
 import type { VatRate } from "@/lib/types";
 import {
   inputStyle,
   ErrorMessage,
 } from "@/components/ui";
-import { motion } from "framer-motion";
+import { m as motion  } from "framer-motion";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { playSound } from "@/lib/utils/sound";
 
@@ -36,20 +38,10 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const setClientId = useInvoiceStore((s) => s.setClientId);
   const invoiceNumber = useInvoiceStore((s) => s.invoiceNumber);
   const setInvoiceNumber = useInvoiceStore((s) => s.setInvoiceNumber);
-  const issueDate = useInvoiceStore((s) => s.issueDate);
-  const setIssueDate = useInvoiceStore((s) => s.setIssueDate);
-  const dueDate = useInvoiceStore((s) => s.dueDate);
-  const setDueDate = useInvoiceStore((s) => s.setDueDate);
-  const vatRate = useInvoiceStore((s) => s.vatRate);
-  const setVatRate = useInvoiceStore((s) => s.setVatRate);
-  const notes = useInvoiceStore((s) => s.notes);
-  const setNotes = useInvoiceStore((s) => s.setNotes);
   const lines = useInvoiceStore((s) => s.lines);
   const addLine = useInvoiceStore((s) => s.addLine);
   const updateLine = useInvoiceStore((s) => s.updateLine);
   const removeLine = useInvoiceStore((s) => s.removeLine);
-  const moveLine = useInvoiceStore((s) => s.moveLine);
-  const totals = useInvoiceStore((s) => s.totals);
   const lastSavedAt = useInvoiceStore((s) => s.lastSavedAt);
   const markSaved = useInvoiceStore((s) => s.markSaved);
   const toInput = useInvoiceStore((s) => s.toInput);
@@ -222,7 +214,6 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               totalLines={lines.length}
               onUpdate={updateLine}
               onRemove={removeLine}
-              onMove={moveLine}
             />
           ))}
           <button
@@ -249,68 +240,10 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       </div>
 
       {/* ── Metadata: Precision lines ── */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "1fr 1fr 1fr", 
-        gap: 60, 
-        padding: "40px 0",
-        borderTop: "var(--border-rule)",
-        borderBottom: "var(--border-rule)",
-        marginBottom: 80
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p className="label">REF</p>
-          <input
-            type="text"
-            value={invoiceNumber}
-            onChange={(e) => setInvoiceNumber(e.target.value)}
-            style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
-          />
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p className="label">DATE</p>
-          <input
-            type="date"
-            value={issueDate}
-            onChange={(e) => setIssueDate(e.target.value)}
-            style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
-          />
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p className="label">TAX ({vatRate}%)</p>
-          <select
-            value={vatRate}
-            onChange={(e) => setVatRate(Number(e.target.value) as VatRate)}
-            style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
-          >
-            <option value={21}>High (21%)</option>
-            <option value={9}>Low (9%)</option>
-            <option value={0}>Zero (0%)</option>
-          </select>
-        </div>
-      </div>
+      <InvoiceMetadata />
 
       {/* ── The Monolith: Total ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 100 }}>
-        <div>
-          <p className="label" style={{ opacity: 0.1, marginBottom: 8 }}>GRAND TOTAL</p>
-          <AnimatedNumber 
-            value={totals.total} 
-            isCurrency={true}
-            style={{
-              fontSize: "6rem",
-              fontWeight: 400,
-              lineHeight: 0.8,
-              letterSpacing: "-0.06em",
-              color: "var(--foreground)"
-            }}
-          />
-        </div>
-        <div style={{ textAlign: "right", opacity: 0.4 }}>
-          <p className="mono-amount" style={{ fontSize: 11, marginBottom: 4 }}>Sub: {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totals.subtotal)}</p>
-          <p className="mono-amount" style={{ fontSize: 11 }}>Tax: {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totals.vatAmount)}</p>
-        </div>
-      </div>
+      <InvoiceTotals />
 
       {/* ── Actions: The VanMoof Unlock ── */}
       <div style={{ display: "flex", gap: 24 }}>
@@ -367,67 +300,4 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   );
 }
 
-// ─── Reusable sub-components ───
-
-function LabelCell({ children }: { children?: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        fontFamily: "var(--font-body), sans-serif",
-        fontSize: "var(--text-label)",
-        fontWeight: 500,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        opacity: 0.4,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function TotalRow({
-  label,
-  value,
-  bold,
-}: {
-  label: string;
-  value: number;
-  bold?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        gap: 32,
-        padding: "4px 0",
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "var(--font-body), sans-serif",
-          fontSize: "11px",
-          fontWeight: 300,
-          opacity: bold ? 1 : 0.4,
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          fontFamily: "var(--font-mono), monospace",
-          fontSize: bold ? "14px" : "12px",
-          fontWeight: bold ? 500 : 400,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {new Intl.NumberFormat("nl-NL", {
-          style: "currency",
-          currency: "EUR",
-        }).format(value)}
-      </span>
-    </div>
-  );
-}
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { formatCurrency } from "@/lib/format";
-import type { CashflowSummary } from "@/lib/actions/dashboard";
+import type { CashflowSummary } from "@/features/dashboard/actions";
 import type { SafeToSpendData } from "@/lib/types";
 
 interface FinancialInsightsProps {

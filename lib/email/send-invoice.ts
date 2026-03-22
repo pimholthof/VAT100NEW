@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
-import { InvoicePDF } from "@/components/invoice/InvoicePDF";
+import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 import { escapeHtml } from "@/lib/format";

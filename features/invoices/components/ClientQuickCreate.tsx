@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { createNewClient } from "@/lib/actions/clients";
+import { createNewClient } from "@/features/clients/actions";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import {
   inputStyle,

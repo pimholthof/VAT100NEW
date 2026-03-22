@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
-import { InvoiceHTML } from "@/components/invoice/InvoiceHTML";
-import { SendEmailButton } from "@/components/invoice/SendEmailButton";
+import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
+import { SendEmailButton } from "@/features/invoices/components/SendEmailButton";
 
 export default async function InvoicePreviewPage({
   params,

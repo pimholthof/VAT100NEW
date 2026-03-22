@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl">
+    <html lang="nl" className="light" style={{ colorScheme: "light" }}>
       <body>
         <Providers>
           {children}

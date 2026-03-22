@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m as motion  } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 export function DashboardTransition({ children }: { children: React.ReactNode }) {

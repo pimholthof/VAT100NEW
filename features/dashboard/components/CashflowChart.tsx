@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useMemo } from "react";
-import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
+import { m as motion , useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/format";
-import type { CashflowSummary } from "@/lib/actions/dashboard";
+import type { CashflowSummary } from "@/features/dashboard/actions";
 
 export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
   const { monthlyRevenue } = cashflow; // Focus on revenue for the primary line
@@ -46,7 +46,7 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
     const scrollX = (x / rect.width) * width;
     
     // Find nearest point
-    const closest = points.reduce((prev, curr, idx) => {
+    const closest = points.reduce((prev, curr) => {
       return Math.abs(curr.x - scrollX) < Math.abs(prev.x - scrollX) ? curr : prev;
     }, points[0]);
 

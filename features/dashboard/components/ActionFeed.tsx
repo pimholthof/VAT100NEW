@@ -1,13 +1,13 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion , AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/format";
 import {
   getActionFeedItems,
   resolveActionItem,
   ignoreActionItem,
-} from "@/lib/actions/action-feed";
+} from "@/features/dashboard/action-feed";
 import type { ActionFeedItem } from "@/lib/types";
 import { playSound } from "@/lib/utils/sound";
 

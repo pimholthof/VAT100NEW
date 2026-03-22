@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
-import { InvoiceHTML } from "@/components/invoice/InvoiceHTML";
+import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
 
 export default async function PublicInvoicePage({
   params,

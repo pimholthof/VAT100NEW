@@ -13,6 +13,13 @@
   /* Foreground / Background — FORCE ROCKMEN LIGHT MODE */
   --foreground: var(--color-black);
   --background: var(--color-white);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: var(--color-black);
+    --background: var(--color-white);
+  }
 
   /* Borders — Minimal structure */
   --border-light: 0.5px solid rgba(34, 34, 34, 0.1); /* Subtle dark border on light bg */

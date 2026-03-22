@@ -10,7 +10,6 @@ interface InvoiceLineRowProps {
   totalLines: number;
   onUpdate: (id: string, field: keyof InvoiceLineInput, value: string | number) => void;
   onRemove: (id: string) => void;
-  onMove: (id: string, direction: "up" | "down") => void;
 }
 
 const units: { value: InvoiceUnit; label: string }[] = [
@@ -21,11 +20,9 @@ const units: { value: InvoiceUnit; label: string }[] = [
 
 export const InvoiceLineRow = memo(function InvoiceLineRow({
   line,
-  index,
   totalLines,
   onUpdate,
   onRemove,
-  onMove,
 }: InvoiceLineRowProps) {
   const amount = Math.round(line.quantity * line.rate * 100) / 100;
 

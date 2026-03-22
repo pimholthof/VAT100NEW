@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { sendInvoice } from "@/lib/actions/invoices";
+import { sendInvoice } from "@/features/invoices/actions";
 
 export function SendEmailButton({
   invoiceId,

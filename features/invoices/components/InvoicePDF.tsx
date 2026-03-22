@@ -4,7 +4,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import type { InvoiceData } from "@/lib/types";
 

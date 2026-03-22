@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { processOverdueInvoices } from "@/lib/actions/invoices";
+import { processOverdueInvoices } from "@/features/invoices/actions";
 
 /**
  * Cron: Overdue Invoice Handler (daily 06:00)

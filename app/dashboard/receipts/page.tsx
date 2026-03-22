@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getReceipts, deleteReceipt } from "@/lib/actions/receipts";
+import { getReceipts, deleteReceipt } from "@/features/receipts/actions";
 import { getKostensoortByCode } from "@/lib/constants/costs";
 import type { Receipt } from "@/lib/types";
 import { Th, Td, SkeletonTable } from "@/components/ui";
