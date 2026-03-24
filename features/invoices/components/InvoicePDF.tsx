@@ -6,6 +6,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { InvoiceData } from "@/lib/types";
+import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 
 // ─── Design tokens ───
 
@@ -260,6 +261,12 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
   const { invoice, lines, client, profile } = data;
   const isCreditNote = invoice.is_credit_note;
 
+  const paymentDays = calculatePaymentDays({
+    issueDate: invoice.issue_date,
+    dueDate: invoice.due_date,
+    defaultDays: 30,
+  });
+
   return (
     <Document>
       <Page size="A4" style={s.page}>
@@ -406,9 +413,7 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
             <View style={s.footerCol}>
               <Text style={s.footerLabel}>Betaaltermijn</Text>
               <Text style={s.footerValue}>
-                {invoice.due_date
-                  ? `${Math.max(0, Math.ceil((new Date(invoice.due_date).getTime() - new Date(invoice.issue_date).getTime()) / (1000 * 60 * 60 * 24)))} dagen`
-                  : "30 dagen"}
+                {paymentDays} dagen
               </Text>
             </View>
           </View>

@@ -1,4 +1,5 @@
 import type { InvoiceData } from "@/lib/types";
+import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 
 // ─── Helpers ───
 
@@ -30,16 +31,11 @@ function unitLabel(unit: string): string {
 export function InvoiceHTML({ data }: { data: InvoiceData }) {
   const { invoice, lines, client, profile } = data;
 
-  const paymentDays = invoice.due_date
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(invoice.due_date).getTime() -
-            new Date(invoice.issue_date).getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : 30;
+  const paymentDays = calculatePaymentDays({
+    issueDate: invoice.issue_date,
+    dueDate: invoice.due_date,
+    defaultDays: 30,
+  });
 
   return (
     <div style={page}>

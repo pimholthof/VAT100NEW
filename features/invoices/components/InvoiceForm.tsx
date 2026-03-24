@@ -10,18 +10,13 @@ import {
   generateInvoiceNumber,
 } from "@/features/invoices/actions";
 import { getClients } from "@/features/clients/actions";
-import { InvoiceLineRow } from "./InvoiceLineRow";
-import { ClientQuickCreate } from "./ClientQuickCreate";
 import { InvoiceMetadata } from "./InvoiceMetadata";
 import { InvoiceTotals } from "./InvoiceTotals";
-import type { VatRate } from "@/lib/types";
-import {
-  inputStyle,
-  ErrorMessage,
-} from "@/components/ui";
+import { ErrorMessage } from "@/components/ui";
 import { m as motion  } from "framer-motion";
-import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import { playSound } from "@/lib/utils/sound";
+import { InvoiceRecipientSection } from "./InvoiceRecipientSection";
+import { InvoiceLinesSection } from "./InvoiceLinesSection";
+import { InvoiceFormActions } from "./InvoiceFormActions";
 
 interface InvoiceFormProps {
   invoiceId?: string;
@@ -142,102 +137,24 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       )}
 
       {/* ── Recipient: Large and focused ── */}
-      <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>RECIPIENT</p>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
-          <select
-            value={clientId}
-            onChange={(e) => {
-              setClientId(e.target.value);
-              playSound("tink");
-            }}
-            style={{ 
-              ...inputStyle, 
-              fontSize: "2.5rem", 
-              fontWeight: 400, 
-              letterSpacing: "-0.04em",
-              border: "none",
-              padding: 0,
-              width: "auto",
-              minWidth: 300,
-              background: "transparent"
-            }}
-          >
-            <option value="">
-              {clientsLoading ? "Loading..." : hasClientError ? clientErrorMessage : "Select Client"}
-            </option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => {
-              setShowNewClient(!showNewClient);
-              playSound("glass-ping");
-            }}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 10,
-              textTransform: "uppercase",
-              letterSpacing: "0.2em",
-              opacity: 0.3
-            }}
-          >
-            {showNewClient ? "[-] CLOSE" : "[+] NEW"}
-          </button>
-        </div>
-        {showNewClient && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            style={{ overflow: "hidden", marginTop: 24 }}
-          >
-            <ClientQuickCreate onClose={() => setShowNewClient(false)} />
-          </motion.div>
-        )}
-      </div>
+      <InvoiceRecipientSection
+        clientId={clientId}
+        setClientId={setClientId}
+        clients={clients}
+        clientsLoading={clientsLoading}
+        hasClientError={hasClientError}
+        clientErrorMessage={clientErrorMessage}
+        showNewClient={showNewClient}
+        setShowNewClient={setShowNewClient}
+      />
 
       {/* ── The Sum: Invoicing as Expression ── */}
-      <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>EXPRESSION</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {lines.map((line, index) => (
-            <InvoiceLineRow
-              key={line.id}
-              line={line}
-              index={index}
-              totalLines={lines.length}
-              onUpdate={updateLine}
-              onRemove={removeLine}
-            />
-          ))}
-          <button
-            type="button"
-            onClick={() => {
-              addLine();
-              playSound("tink");
-            }}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 10,
-              textAlign: "left",
-              padding: "12px 0",
-              opacity: 0.2,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase"
-            }}
-          >
-            + ADD LINE
-          </button>
-        </div>
-      </div>
+      <InvoiceLinesSection
+        lines={lines}
+        addLine={addLine}
+        updateLine={updateLine}
+        removeLine={removeLine}
+      />
 
       {/* ── Metadata: Precision lines ── */}
       <InvoiceMetadata />
@@ -246,50 +163,11 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       <InvoiceTotals />
 
       {/* ── Actions: The VanMoof Unlock ── */}
-      <div style={{ display: "flex", gap: 24 }}>
-        <button
-          onClick={() => {
-            handleSave(false);
-            playSound("glass-ping");
-          }}
-          disabled={saving}
-          style={{
-            flex: 1,
-            padding: "24px",
-            background: "rgba(0,0,0,0.03)",
-            border: "var(--border-rule)",
-            fontSize: 11,
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.2em",
-            cursor: "pointer"
-          }}
-        >
-          {saving ? "..." : "Save Draft"}
-        </button>
-        <button
-          onClick={() => {
-            handleSave(true);
-            playSound("glass-ping");
-          }}
-          disabled={saving}
-          style={{
-            flex: 2,
-            padding: "24px",
-            background: "var(--foreground)",
-            color: "var(--background)",
-            border: "none",
-            fontSize: 11,
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.2em",
-            cursor: "pointer",
-            boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
-          }}
-        >
-          {saving ? "..." : "Issue & Preview"}
-        </button>
-      </div>
+      <InvoiceFormActions
+        saving={saving}
+        onSaveDraft={() => handleSave(false)}
+        onIssueAndPreview={() => handleSave(true)}
+      />
 
       {lastSavedAt && (
         <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, marginTop: 40, textAlign: "center" }}>

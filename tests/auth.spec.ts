@@ -8,8 +8,9 @@ test('login page renders correctly', async ({ page }) => {
 
   // Expect login form to be visible
   await expect(page.locator('form')).toBeVisible();
-  await expect(page.getByPlaceholder('e-mailadres')).toBeVisible();
-  await expect(page.locator('button[type="submit"]')).toContainText('Inloggen');
+  await expect(page.getByLabel('E-mail')).toBeVisible();
+  await expect(page.getByLabel('Wachtwoord')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Toegang' })).toBeVisible();
 });
 
 test('unauthenticated users are redirected from dashboard to login', async ({ page }) => {
