@@ -64,6 +64,23 @@ export const receiptSchema = z.object({
 
 export type ReceiptSchema = z.infer<typeof receiptSchema>;
 
+// ─── Quote ───
+
+export const quoteSchema = z.object({
+  client_id: z.string().min(1, "Klant is verplicht"),
+  quote_number: trimmedString.min(1, "Offertenummer is verplicht"),
+  status: z.enum(["draft", "sent", "accepted", "invoiced", "rejected"]),
+  issue_date: z.string().min(1, "Offertedatum is verplicht"),
+  valid_until: z.string().nullable(),
+  vat_rate: z.union([z.literal(0), z.literal(9), z.literal(21)]),
+  notes: optionalString,
+  lines: z
+    .array(invoiceLineSchema)
+    .min(1, "Minimaal één offerteregel is verplicht"),
+});
+
+export type QuoteSchema = z.infer<typeof quoteSchema>;
+
 // ─── Profile ───
 
 export const profileSchema = z.object({

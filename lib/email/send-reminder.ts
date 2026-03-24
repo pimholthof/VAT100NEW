@@ -14,9 +14,43 @@ function getResend() {
   return _resend;
 }
 
+/**
+ * Escalation step templates for payment reminders.
+ * Step 1: Friendly reminder
+ * Step 2: Formal demand (aanmaning)
+ * Step 3: Final warning / collection threat (incasso)
+ */
+function getReminderTemplate(step: number, invoiceNum: string, senderName: string): {
+  subject: string;
+  intro: string;
+  closing: string;
+} {
+  switch (step) {
+    case 2:
+      return {
+        subject: `Aanmaning: Factuur ${invoiceNum} — ${senderName}`,
+        intro: `Ondanks eerdere herinnering(en) staat factuur <strong>${invoiceNum}</strong> nog steeds open. Wij verzoeken u dringend het openstaande bedrag binnen 7 dagen te voldoen.`,
+        closing: "Bij uitblijven van betaling behouden wij ons het recht voor om incassomaatregelen te treffen, waarbij eventuele bijkomende kosten voor uw rekening komen.",
+      };
+    case 3:
+      return {
+        subject: `Laatste waarschuwing: Factuur ${invoiceNum} — ${senderName}`,
+        intro: `Dit is de laatste waarschuwing betreffende factuur <strong>${invoiceNum}</strong>. Wij hebben eerder meerdere herinneringen verzonden zonder resultaat.`,
+        closing: "Indien het volledige bedrag niet binnen 5 werkdagen op onze rekening staat, zullen wij de vordering overdragen aan een incassobureau. Alle bijkomende kosten (incassokosten, rente, administratiekosten) komen voor uw rekening.",
+      };
+    default:
+      return {
+        subject: `Herinnering: Factuur ${invoiceNum} — ${senderName}`,
+        intro: `Graag herinneren wij u aan de openstaande factuur <strong>${invoiceNum}</strong>.`,
+        closing: "Mocht u deze factuur reeds betaald hebben, dan kunt u deze herinnering als niet verzonden beschouwen.",
+      };
+  }
+}
+
 export async function sendReminderEmail(
   data: InvoiceData,
-  customMessage?: string
+  customMessage?: string,
+  step: number = 1
 ): Promise<{ error: string | null }> {
   const { invoice, client, profile } = data;
 
@@ -26,7 +60,6 @@ export async function sendReminderEmail(
 
   const senderName = escapeHtml(profile.studio_name || profile.full_name);
 
-  // Generate PDF buffer
   const element = createElement(InvoicePDF, { data });
   const pdfBuffer = await renderToBuffer(
     element as unknown as Parameters<typeof renderToBuffer>[0]
@@ -35,7 +68,6 @@ export async function sendReminderEmail(
   const filename = `factuur-${invoice.invoice_number}.pdf`;
   const invoiceNum = escapeHtml(invoice.invoice_number);
 
-  // Build IBAN block if available
   const ibanHtml = profile.iban
     ? `<p style="font-size:14px;line-height:1.6;margin:0 0 24px;color:#666;">
         U kunt het bedrag overmaken naar:<br>
@@ -45,20 +77,21 @@ export async function sendReminderEmail(
       </p>`
     : undefined;
 
+  const template = getReminderTemplate(step, invoiceNum, senderName);
+
   const htmlBody = buildInvoiceEmailHtml(data, {
-    introParagraph: customMessage 
+    introParagraph: customMessage
       ? escapeHtml(customMessage).replace(/\n/g, "<br>")
-      : `Graag herinneren wij u aan de openstaande factuur <strong>${invoiceNum}</strong>.`,
+      : template.intro,
     amountLabel: "Openstaand bedrag",
     extraHtml: ibanHtml,
-    closingText:
-      "Mocht u deze factuur reeds betaald hebben, dan kunt u deze herinnering als niet verzonden beschouwen.",
+    closingText: template.closing,
   });
 
   const { error: sendError } = await getResend().emails.send({
     from: process.env.EMAIL_FROM!,
     to: client.email,
-    subject: `Herinnering: Factuur ${invoice.invoice_number} — ${profile.studio_name || profile.full_name}`,
+    subject: template.subject,
     html: htmlBody,
     attachments: [
       {

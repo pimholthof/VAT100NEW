@@ -203,6 +203,22 @@ export default function BankPage() {
       {/* Header */}
       <div className="page-header" style={{ marginBottom: 48 }}>
         <h1 className="display-title">Bank</h1>
+        <a
+          href="/api/export/transactions"
+          download
+          className="label-strong"
+          style={{
+            padding: "14px 24px",
+            border: "0.5px solid rgba(13,13,11,0.25)",
+            background: "transparent",
+            color: "var(--foreground)",
+            textDecoration: "none",
+            display: "inline-block",
+            transition: "opacity 0.2s ease",
+          }}
+        >
+          Exporteer CSV
+        </a>
       </div>
 
       {/* Return Status Feedback */}

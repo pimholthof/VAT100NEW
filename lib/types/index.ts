@@ -15,6 +15,7 @@ export interface Profile {
   postal_code: string | null;
   iban: string | null;
   bic: string | null;
+  logo_path: string | null;
   created_at: string;
 }
 
@@ -66,6 +67,8 @@ export interface Invoice {
   total_inc_vat: number;
   notes: string | null;
   share_token: string | null;
+  is_credit_note: boolean;
+  original_invoice_id: string | null;
   created_at: string;
 }
 
@@ -204,6 +207,62 @@ export interface ActionFeedItem {
   ai_confidence: number | null;
   created_at: string;
   resolved_at: string | null;
+}
+
+// ─── Quote types ───
+
+export type QuoteStatus = "draft" | "sent" | "accepted" | "invoiced" | "rejected";
+
+export interface Quote {
+  id: string;
+  user_id: string;
+  client_id: string;
+  quote_number: string;
+  status: QuoteStatus;
+  issue_date: string;
+  valid_until: string | null;
+  vat_rate: number;
+  subtotal_ex_vat: number;
+  vat_amount: number;
+  total_inc_vat: number;
+  notes: string | null;
+  share_token: string | null;
+  converted_invoice_id: string | null;
+  created_at: string;
+}
+
+export interface QuoteLine {
+  id: string;
+  quote_id: string;
+  description: string;
+  quantity: number;
+  unit: InvoiceUnit;
+  rate: number;
+  amount: number;
+  sort_order: number;
+}
+
+export interface QuoteWithDetails extends Quote {
+  lines: QuoteLine[];
+  client: Client;
+}
+
+export interface QuoteData {
+  quote: Quote;
+  lines: QuoteLine[];
+  client: Client;
+  profile: Profile;
+}
+
+export interface QuoteInput {
+  client_id: string;
+  quote_number: string;
+  status: QuoteStatus;
+  issue_date: string;
+  valid_until: string | null;
+  vat_rate: VatRate;
+  notes: string | null;
+  lines: InvoiceLineInput[];
 }
 
 // ─── Safe-to-Spend types ───
