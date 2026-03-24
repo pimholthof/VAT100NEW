@@ -258,6 +258,7 @@ const s = StyleSheet.create({
 
 export function InvoicePDF({ data }: { data: InvoiceData }) {
   const { invoice, lines, client, profile } = data;
+  const isCreditNote = invoice.is_credit_note;
 
   return (
     <Document>
@@ -265,6 +266,11 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
         {/* ── Header ── */}
         <View style={s.header}>
           <Text style={s.vat100Mark}>VAT100</Text>
+          {isCreditNote && (
+            <Text style={{ fontSize: 14, fontFamily: "Helvetica", fontWeight: 500, letterSpacing: 0.1 * 14, color: "#A51C30", marginTop: 8 }}>
+              CREDITNOTA
+            </Text>
+          )}
         </View>
 
         {/* ── Meta Row ── */}
@@ -290,11 +296,11 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
           </View>
           <View style={s.metaCol}>
             <View style={s.metaLine}>
-              <Text style={s.metaLabel}>Factuurnr</Text>
+              <Text style={s.metaLabel}>{isCreditNote ? "Creditnotanr" : "Factuurnr"}</Text>
               <Text style={s.metaValue}>{invoice.invoice_number}</Text>
             </View>
             <View style={s.metaLine}>
-              <Text style={s.metaLabel}>Factuurdatum</Text>
+              <Text style={s.metaLabel}>{isCreditNote ? "Datum" : "Factuurdatum"}</Text>
               <Text style={s.metaValue}>{formatDate(invoice.issue_date)}</Text>
             </View>
             {invoice.due_date && (

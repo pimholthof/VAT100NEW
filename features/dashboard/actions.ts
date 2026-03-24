@@ -2,7 +2,7 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
-import { runReconciliationAgent, runAnticipationAgent, runInvestmentAgent } from "./action-feed";
+import { runReconciliationAgent, runAnticipationAgent, runInvestmentAgent, runPaymentDetectionAgent } from "./action-feed";
 
 export interface DashboardStats {
   revenueThisMonth: number;
@@ -94,6 +94,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
 
   if ((recentAgentRuns ?? 0) === 0) {
     runReconciliationAgent(userId, supabase).catch(console.error);
+    runPaymentDetectionAgent(userId, supabase).catch(console.error);
     runAnticipationAgent(userId, supabase).catch(console.error);
     runInvestmentAgent(userId, supabase).catch(console.error);
   }

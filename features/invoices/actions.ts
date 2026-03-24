@@ -241,19 +241,50 @@ export async function deleteInvoice(id: string): Promise<ActionResult> {
   return { error: null };
 }
 
-export async function getInvoices(): Promise<ActionResult<InvoiceWithClient[]>> {
+export async function getInvoices(filters?: {
+  search?: string;
+  status?: InvoiceStatus;
+  dateFrom?: string;
+  dateTo?: string;
+}): Promise<ActionResult<InvoiceWithClient[]>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("invoices")
     .select("*, client:clients(name)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  if (filters?.status) {
+    query = query.eq("status", filters.status);
+  }
+  if (filters?.dateFrom) {
+    query = query.gte("issue_date", filters.dateFrom);
+  }
+  if (filters?.dateTo) {
+    query = query.lte("issue_date", filters.dateTo);
+  }
+
+  const { data, error } = await query;
+
   if (error) return { error: error.message };
-  return { error: null, data: (data ?? []) as unknown as InvoiceWithClient[] };
+
+  let results = (data ?? []) as unknown as InvoiceWithClient[];
+
+  // Client-side search filtering (across invoice_number, client name, amount)
+  if (filters?.search) {
+    const q = filters.search.toLowerCase();
+    results = results.filter(
+      (inv) =>
+        inv.invoice_number.toLowerCase().includes(q) ||
+        inv.client?.name?.toLowerCase().includes(q) ||
+        String(inv.total_inc_vat).includes(q)
+    );
+  }
+
+  return { error: null, data: results };
 }
 
 export async function getInvoice(
@@ -465,8 +496,92 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
     });
   }
 
-  return { 
-    error: null, 
-    data: { updated: overdueInvoices?.length ?? 0, results } 
+  return {
+    error: null,
+    data: { updated: overdueInvoices?.length ?? 0, results }
   };
+}
+
+/**
+ * Create a credit note for an existing invoice.
+ * Copies the invoice with negative amounts and links to the original.
+ */
+export async function createCreditNote(
+  invoiceId: string
+): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Fetch original invoice with lines
+  const originalResult = await getInvoice(invoiceId);
+  if (originalResult.error || !originalResult.data) {
+    return { error: originalResult.error ?? "Factuur niet gevonden." };
+  }
+
+  const original = originalResult.data;
+
+  if (original.is_credit_note) {
+    return { error: "Kan geen creditnota maken van een creditnota." };
+  }
+
+  // Generate credit note number
+  const { data: nextNumber, error: rpcError } = await supabase.rpc(
+    "generate_invoice_number",
+    { p_user_id: user.id }
+  );
+  if (rpcError) return { error: rpcError.message };
+
+  const creditNoteNumber = `CN-${(nextNumber as string).replace(/^0+/, "") || nextNumber}`;
+
+  // Create the credit note with negative amounts
+  const { data: creditNote, error: insertError } = await supabase
+    .from("invoices")
+    .insert({
+      user_id: user.id,
+      client_id: original.client_id,
+      invoice_number: creditNoteNumber,
+      status: "sent",
+      issue_date: new Date().toISOString().split("T")[0],
+      due_date: null,
+      vat_rate: original.vat_rate,
+      subtotal_ex_vat: -Math.abs(original.subtotal_ex_vat),
+      vat_amount: -Math.abs(original.vat_amount),
+      total_inc_vat: -Math.abs(original.total_inc_vat),
+      notes: `Creditnota voor factuur ${original.invoice_number}`,
+      is_credit_note: true,
+      original_invoice_id: invoiceId,
+    })
+    .select("id")
+    .single();
+
+  if (insertError) return { error: insertError.message };
+  if (!creditNote) return { error: "Creditnota kon niet worden aangemaakt." };
+
+  // Copy lines with negative amounts
+  if (original.lines.length > 0) {
+    const lineRows = original.lines.map((line, index) => ({
+      invoice_id: creditNote.id,
+      description: line.description,
+      quantity: line.quantity,
+      unit: line.unit,
+      rate: -Math.abs(line.rate),
+      amount: -Math.abs(line.amount),
+      sort_order: index,
+    }));
+
+    const { error: linesError } = await supabase
+      .from("invoice_lines")
+      .insert(lineRows);
+
+    if (linesError) {
+      await supabase.from("invoices").delete().eq("id", creditNote.id);
+      return { error: linesError.message };
+    }
+  }
+
+  return { error: null, data: creditNote.id };
 }

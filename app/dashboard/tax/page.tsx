@@ -47,11 +47,29 @@ export default function TaxPage() {
   return (
     <div>
       {/* Title */}
-      <div style={{ marginBottom: 80 }}>
-        <h1 className="display-title">Belasting</h1>
-        <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
-          Alles over je BTW en inkomstenbelasting
-        </p>
+      <div className="page-header" style={{ marginBottom: 80 }}>
+        <div>
+          <h1 className="display-title">Belasting</h1>
+          <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
+            Alles over je BTW en inkomstenbelasting
+          </p>
+        </div>
+        <a
+          href="/api/export/btw"
+          download
+          className="label-strong"
+          style={{
+            padding: "14px 24px",
+            border: "0.5px solid rgba(13,13,11,0.25)",
+            background: "transparent",
+            color: "var(--foreground)",
+            textDecoration: "none",
+            display: "inline-block",
+            transition: "opacity 0.2s ease",
+          }}
+        >
+          Exporteer CSV
+        </a>
       </div>
 
       {/* Jaar Prognose */}

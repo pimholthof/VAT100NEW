@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import {
@@ -10,6 +10,7 @@ import {
   sendInvoice,
   sendReminder,
   generateShareToken,
+  createCreditNote,
 } from "@/features/invoices/actions";
 import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
@@ -22,6 +23,7 @@ import { STATUS_LABELS } from "@/lib/constants/status";
 
 export default function EditInvoicePage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const loadInvoice = useInvoiceStore((s) => s.loadInvoice);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
@@ -31,6 +33,7 @@ export default function EditInvoicePage() {
   const [localShareToken, setLocalShareToken] = useState<string | null>(null);
   const [shareLoading, setShareLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [creditNoteLoading, setCreditNoteLoading] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoice", params.id],
@@ -120,6 +123,20 @@ export default function EditInvoicePage() {
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCreateCreditNote = async () => {
+    if (!confirm("Weet je zeker dat je een creditnota wilt aanmaken voor deze factuur?")) return;
+    setCreditNoteLoading(true);
+    setStatusMsg(null);
+    const res = await createCreditNote(params.id);
+    if (res.error) {
+      setStatusMsg(res.error);
+    } else if (res.data) {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      router.push(`/dashboard/invoices/${res.data}`);
+    }
+    setCreditNoteLoading(false);
   };
 
   if (isLoading) {
@@ -236,6 +253,14 @@ export default function EditInvoicePage() {
                 {emailSending ? "Verzenden..." : "Verstuur per e-mail"}
               </ButtonPrimary>
             )}
+          {currentStatus !== "draft" && !result?.data?.is_credit_note && (
+            <ButtonSecondary
+              onClick={handleCreateCreditNote}
+              disabled={creditNoteLoading}
+            >
+              {creditNoteLoading ? "Aanmaken..." : "Creditnota aanmaken"}
+            </ButtonSecondary>
+          )}
         </div>
       </div>
       {statusMsg && (

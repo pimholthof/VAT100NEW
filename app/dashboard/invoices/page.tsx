@@ -1,18 +1,37 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient } from "@/features/invoices/actions";
 import type { InvoiceStatus } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Th, Td } from "@/components/ui";
+import { Th, Td, SearchFilter } from "@/components/ui";
+
+const STATUS_OPTIONS = [
+  { value: "draft", label: "Concept" },
+  { value: "sent", label: "Verzonden" },
+  { value: "paid", label: "Betaald" },
+  { value: "overdue", label: "Te laat" },
+];
 
 export default function InvoicesPage() {
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const handleSearch = useCallback((q: string) => setSearch(q), []);
+  const handleFilter = useCallback((f: Record<string, string>) => {
+    setStatusFilter(f.status ?? "");
+  }, []);
 
   const { data: result, isLoading } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: () => getInvoices(),
+    queryKey: ["invoices", search, statusFilter],
+    queryFn: () =>
+      getInvoices({
+        search: search || undefined,
+        status: (statusFilter as InvoiceStatus) || undefined,
+      }),
   });
 
   const deleteMutation = useMutation({
@@ -42,21 +61,49 @@ export default function InvoicesPage() {
           </h1>
           <p className="label" style={{ opacity: 0.3 }}>{invoices.length} FACTUREN</p>
         </div>
-        <Link
-          href="/dashboard/invoices/new"
-          className="label-strong"
-          style={{
-            padding: "16px 32px",
-            background: "var(--foreground)",
-            color: "var(--background)",
-            textDecoration: "none",
-            display: "inline-block",
-            transition: "opacity 0.2s ease",
-          }}
-        >
-          + Nieuwe factuur
-        </Link>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <a
+            href="/api/export/invoices"
+            download
+            className="label-strong"
+            style={{
+              padding: "16px 24px",
+              border: "0.5px solid rgba(13,13,11,0.25)",
+              background: "transparent",
+              color: "var(--foreground)",
+              textDecoration: "none",
+              display: "inline-block",
+              transition: "opacity 0.2s ease",
+            }}
+          >
+            Exporteer CSV
+          </a>
+          <Link
+            href="/dashboard/invoices/new"
+            className="label-strong"
+            style={{
+              padding: "16px 32px",
+              background: "var(--foreground)",
+              color: "var(--background)",
+              textDecoration: "none",
+              display: "inline-block",
+              transition: "opacity 0.2s ease",
+            }}
+          >
+            + Nieuwe factuur
+          </Link>
+        </div>
       </div>
+
+      {/* Search & Filter */}
+      <SearchFilter
+        placeholder="Zoek op nummer, klant of bedrag..."
+        filters={[
+          { key: "status", label: "Alle statussen", options: STATUS_OPTIONS },
+        ]}
+        onSearch={handleSearch}
+        onFilterChange={handleFilter}
+      />
 
       {isLoading ? (
         <div>
@@ -71,15 +118,17 @@ export default function InvoicesPage() {
       ) : invoices.length === 0 ? (
         <div style={{ paddingTop: "var(--space-block)" }}>
           <p className="empty-state">
-            Nog geen facturen
+            {search || statusFilter ? "Geen facturen gevonden" : "Nog geen facturen"}
           </p>
-          <Link
-            href="/dashboard/invoices/new"
-            className="table-action"
-            style={{ opacity: 0.4 }}
-          >
-            Maak je eerste factuur
-          </Link>
+          {!search && !statusFilter && (
+            <Link
+              href="/dashboard/invoices/new"
+              className="table-action"
+              style={{ opacity: 0.4 }}
+            >
+              Maak je eerste factuur
+            </Link>
+          )}
         </div>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -149,8 +198,8 @@ export default function InvoicesPage() {
                   </select>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <span 
-                    style={{ 
+                  <span
+                    style={{
                       fontSize: 14,
                       fontWeight: 500,
                       fontVariantNumeric: "tabular-nums",

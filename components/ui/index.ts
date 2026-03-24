@@ -14,3 +14,4 @@ export {
 export { SkeletonTable } from "./SkeletonTable";
 export { ErrorMessage } from "./ErrorMessage";
 export { PageHeader } from "./PageHeader";
+export { SearchFilter } from "./SearchFilter";

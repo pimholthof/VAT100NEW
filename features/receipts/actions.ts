@@ -7,19 +7,50 @@ import type { ActionResult, Receipt, ReceiptInput } from "@/lib/types";
 import { receiptSchema, uuidSchema, validate } from "@/lib/validation";
 import { calculateVat } from "@/lib/format";
 
-export async function getReceipts(): Promise<ActionResult<Receipt[]>> {
+export async function getReceipts(filters?: {
+  search?: string;
+  category?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}): Promise<ActionResult<Receipt[]>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("receipts")
     .select("*")
     .eq("user_id", user.id)
     .order("receipt_date", { ascending: false });
 
+  if (filters?.category) {
+    query = query.eq("category", filters.category);
+  }
+  if (filters?.dateFrom) {
+    query = query.gte("receipt_date", filters.dateFrom);
+  }
+  if (filters?.dateTo) {
+    query = query.lte("receipt_date", filters.dateTo);
+  }
+
+  const { data, error } = await query;
+
   if (error) return { error: error.message };
-  return { error: null, data: data ?? [] };
+
+  let results = (data ?? []) as Receipt[];
+
+  // Client-side search filtering (vendor name, amount)
+  if (filters?.search) {
+    const q = filters.search.toLowerCase();
+    results = results.filter(
+      (r) =>
+        r.vendor_name?.toLowerCase().includes(q) ||
+        String(r.amount_inc_vat).includes(q) ||
+        String(r.amount_ex_vat).includes(q)
+    );
+  }
+
+  return { error: null, data: results };
 }
 
 export async function getReceipt(
