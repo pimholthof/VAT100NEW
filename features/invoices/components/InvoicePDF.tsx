@@ -10,38 +10,43 @@ import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 
 // ─── Design tokens ───
 
-const COLOR = "#0D0D0B";
-const MARGIN = 56; // 7 × 8px baseline
+const COLOR = "#0A0A0A";
+const ACCENT = "#A51C30";
+const MARGIN = 56;
 
-const LABEL: {
-  fontSize: number;
-  letterSpacing: number;
-  color: string;
-  fontFamily: string;
-  fontWeight: number;
-} = {
-  fontSize: 10,
-  letterSpacing: 0.02 * 10,
-  color: "rgba(13,13,11,0.5)",
+const LABEL = {
+  fontSize: 9,
+  letterSpacing: 0.15 * 9,
+  color: "rgba(10,10,10,0.4)",
   fontFamily: "Helvetica",
-  fontWeight: 400,
+  fontWeight: 700,
+  textTransform: "uppercase" as const,
 };
 
-const VALUE: {
-  fontSize: number;
-  fontFamily: string;
-  fontWeight: number;
-  color: string;
-} = {
-  fontSize: 12,
+const VALUE = {
+  fontSize: 11,
   fontFamily: "Helvetica",
-  fontWeight: 300,
+  fontWeight: 400,
+  color: COLOR,
+};
+
+const HERO = {
+  fontFamily: "Courier",
+  fontWeight: 900,
+  fontSize: 140,
+  letterSpacing: -0.03 * 140,
   color: COLOR,
 };
 
 const RULE = {
-  borderBottomWidth: 0.5,
+  borderBottomWidth: 1,
   borderBottomColor: COLOR,
+  borderBottomStyle: "solid" as const,
+};
+
+const RULE_THIN = {
+  borderBottomWidth: 0.5,
+  borderBottomColor: "rgba(10,10,10,0.2)",
   borderBottomStyle: "solid" as const,
 };
 
@@ -81,177 +86,202 @@ const s = StyleSheet.create({
     paddingLeft: MARGIN,
     paddingRight: MARGIN,
     fontFamily: "Helvetica",
-    fontWeight: 300,
+    fontWeight: 400,
     color: COLOR,
     backgroundColor: "#FFFFFF",
   },
 
-  // Header
+  // Header - Massive brutalist
   header: {
-    marginBottom: 24,
-  },
-  vat100Mark: {
-    fontFamily: "Courier",
-    fontWeight: 700,
-    fontSize: 120,
-    lineHeight: 0.85,
-    letterSpacing: 0.02 * 120,
-    color: COLOR,
-  },
-
-  // Meta row
-  metaRow: {
-    flexDirection: "row",
     marginBottom: 48,
-    gap: 24,
-  },
-  metaCol: {
-    flex: 1,
-  },
-  metaLine: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 2,
+    alignItems: "flex-end",
+    ...RULE,
+    paddingBottom: 16,
+  },
+  vat100Mark: {
+    ...HERO,
+    lineHeight: 0.85,
+  },
+  docType: {
+    fontSize: 11,
+    fontFamily: "Helvetica",
+    fontWeight: 700,
+    letterSpacing: 0.2 * 11,
+    color: ACCENT,
+    textTransform: "uppercase",
+  },
+
+  // Asymmetric meta grid
+  metaGrid: {
+    flexDirection: "row",
+    marginBottom: 64,
+    gap: 48,
+  },
+  metaLeft: {
+    width: "55%",
+  },
+  metaRight: {
+    flex: 1,
+  },
+  metaBlock: {
+    marginBottom: 32,
   },
   metaLabel: {
     ...LABEL,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   metaValue: {
     ...VALUE,
+    lineHeight: 1.4,
   },
-  // Parties
-  partiesRow: {
+  metaValueLarge: {
+    fontSize: 24,
+    fontFamily: "Helvetica",
+    fontWeight: 700,
+    letterSpacing: -0.02 * 24,
+    color: COLOR,
+  },
+
+  // Party section - brutalist asymmetric
+  partiesSection: {
     flexDirection: "row",
-    marginBottom: 48,
+    marginBottom: 64,
+    gap: 40,
   },
-  partyCol: {
+  partyBlock: {
     flex: 1,
   },
   partyLabel: {
     ...LABEL,
-    marginBottom: 6,
+    marginBottom: 12,
   },
   partyName: {
-    fontSize: 12,
+    fontSize: 16,
     fontFamily: "Helvetica",
-    fontWeight: 500,
+    fontWeight: 700,
     color: COLOR,
-    marginBottom: 2,
+    letterSpacing: -0.01 * 16,
+    marginBottom: 4,
   },
   partyDetail: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: "Helvetica",
-    fontWeight: 300,
-    color: "rgba(13,13,11,0.5)",
+    fontWeight: 400,
+    color: "rgba(10,10,10,0.5)",
+    lineHeight: 1.5,
   },
 
-  // Table
+  // Table - editorial grid
+  tableSection: {
+    marginBottom: 48,
+  },
   tableHeader: {
     flexDirection: "row",
     ...RULE,
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   tableHeaderCell: {
     ...LABEL,
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 8,
+    paddingVertical: 12,
+    ...RULE_THIN,
   },
   tableRowLast: {
     flexDirection: "row",
+    paddingVertical: 12,
     ...RULE,
-    paddingVertical: 8,
   },
   tableCell: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: "Helvetica",
-    fontWeight: 300,
-    color: "rgba(13,13,11,0.7)",
+    fontWeight: 400,
+    color: COLOR,
+    lineHeight: 1.4,
   },
 
-  // Column widths
-  colDesc: { width: "46%" },
+  // Column widths - asymmetric
+  colDesc: { width: "50%" },
   colQty: { width: "10%" },
-  colRate: { width: "16%", textAlign: "right" },
-  colAmount: { width: "16%", textAlign: "right" },
-  colPad: { width: "12%" },
+  colRate: { width: "15%", textAlign: "right" },
+  colAmount: { width: "20%", textAlign: "right" },
+  colPad: { width: "5%" },
 
-  // Totals
-  totalsContainer: {
+  // Totals - editorial style
+  totalsSection: {
     alignItems: "flex-end",
-    marginTop: 8,
+    marginTop: 32,
+  },
+  totalsGrid: {
+    width: 280,
   },
   totalsRow: {
     flexDirection: "row",
-    width: 220,
     justifyContent: "space-between",
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   totalsLabel: {
-    fontSize: 10,
-    fontFamily: "Helvetica",
-    fontWeight: 300,
-    color: "rgba(13,13,11,0.35)",
+    ...LABEL,
+    fontSize: 8,
+    color: "rgba(10,10,10,0.4)",
   },
   totalsValue: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: "Helvetica",
-    fontWeight: 300,
-    color: "rgba(13,13,11,0.35)",
+    fontWeight: 400,
+    color: "rgba(10,10,10,0.5)",
     textAlign: "right",
   },
   totalRow: {
     flexDirection: "row",
-    width: 220,
     justifyContent: "space-between",
-    paddingVertical: 6,
-    borderTopWidth: 0.5,
+    paddingVertical: 12,
+    marginTop: 8,
+    borderTopWidth: 2,
     borderTopColor: COLOR,
-    marginTop: 4,
   },
   totalLabel: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: "Helvetica",
-    fontWeight: 500,
+    fontWeight: 700,
+    letterSpacing: 0.1 * 11,
     color: COLOR,
+    textTransform: "uppercase",
   },
   totalValue: {
-    fontSize: 14,
+    fontSize: 20,
     fontFamily: "Helvetica",
-    fontWeight: 500,
+    fontWeight: 700,
+    letterSpacing: -0.02 * 20,
     color: COLOR,
     textAlign: "right",
   },
 
-  // Footer
+  // Footer - minimal technical
   footer: {
     position: "absolute",
     bottom: MARGIN,
     left: MARGIN,
     right: MARGIN,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    ...RULE_THIN,
+    paddingTop: 16,
   },
+  footerCol: {},
   footerLabel: {
-    fontSize: 9,
-    fontFamily: "Helvetica",
-    fontWeight: 400,
-    color: "rgba(13,13,11,0.4)",
-    letterSpacing: 0.02 * 9,
-    marginBottom: 2,
+    ...LABEL,
+    fontSize: 7,
+    marginBottom: 4,
   },
   footerValue: {
     fontSize: 9,
     fontFamily: "Helvetica",
-    fontWeight: 300,
+    fontWeight: 400,
     color: COLOR,
-    marginBottom: 8,
-  },
-  footerRow: {
-    flexDirection: "row",
-  },
-  footerCol: {
-    marginRight: 40,
   },
 });
 
@@ -273,45 +303,44 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
         {/* ── Header ── */}
         <View style={s.header}>
           <Text style={s.vat100Mark}>VAT100</Text>
-          {isCreditNote && (
-            <Text style={{ fontSize: 14, fontFamily: "Helvetica", fontWeight: 500, letterSpacing: 0.1 * 14, color: "#A51C30", marginTop: 8 }}>
-              CREDITNOTA
-            </Text>
-          )}
+          <Text style={s.docType}>
+            {isCreditNote ? "CREDITNOTA" : "FACTUUR"}
+          </Text>
         </View>
 
-        {/* ── Meta Row ── */}
-        <View style={s.metaRow}>
-          <View style={s.metaCol}>
-            <Text style={s.partyName}>
-              {profile.studio_name || profile.full_name}
-            </Text>
-            {profile.kvk_number && (
-              <Text style={s.partyDetail}>KVK {profile.kvk_number}</Text>
-            )}
-            {profile.btw_number && (
-              <Text style={s.partyDetail}>BTW {profile.btw_number}</Text>
-            )}
-            {profile.address && (
-              <Text style={s.partyDetail}>{profile.address}</Text>
-            )}
-            {(profile.postal_code || profile.city) && (
-              <Text style={s.partyDetail}>
-                {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
-              </Text>
-            )}
-          </View>
-          <View style={s.metaCol}>
-            <View style={s.metaLine}>
-              <Text style={s.metaLabel}>{isCreditNote ? "Creditnotanr" : "Factuurnr"}</Text>
-              <Text style={s.metaValue}>{invoice.invoice_number}</Text>
+        {/* ── Asymmetric Meta Grid ── */}
+        <View style={s.metaGrid}>
+          <View style={s.metaLeft}>
+            <View style={s.metaBlock}>
+              <Text style={s.metaLabel}>Van</Text>
+              <Text style={s.metaValueLarge}>{profile.studio_name || profile.full_name}</Text>
+              {profile.kvk_number && (
+                <Text style={s.metaValue}>KVK {profile.kvk_number}</Text>
+              )}
+              {profile.btw_number && (
+                <Text style={s.metaValue}>BTW {profile.btw_number}</Text>
+              )}
+              {profile.address && (
+                <Text style={s.metaValue}>{profile.address}</Text>
+              )}
+              {(profile.postal_code || profile.city) && (
+                <Text style={s.metaValue}>
+                  {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
+                </Text>
+              )}
             </View>
-            <View style={s.metaLine}>
-              <Text style={s.metaLabel}>{isCreditNote ? "Datum" : "Factuurdatum"}</Text>
+          </View>
+          <View style={s.metaRight}>
+            <View style={s.metaBlock}>
+              <Text style={s.metaLabel}>{isCreditNote ? "Creditnotanr" : "Factuurnr"}</Text>
+              <Text style={s.metaValueLarge}>{invoice.invoice_number}</Text>
+            </View>
+            <View style={s.metaBlock}>
+              <Text style={s.metaLabel}>Datum</Text>
               <Text style={s.metaValue}>{formatDate(invoice.issue_date)}</Text>
             </View>
             {invoice.due_date && (
-              <View style={s.metaLine}>
+              <View style={s.metaBlock}>
                 <Text style={s.metaLabel}>Vervaldatum</Text>
                 <Text style={s.metaValue}>{formatDate(invoice.due_date)}</Text>
               </View>
@@ -320,8 +349,8 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
         </View>
 
         {/* ── Parties ── */}
-        <View style={s.partiesRow}>
-          <View style={s.partyCol}>
+        <View style={s.partiesSection}>
+          <View style={s.partyBlock}>
             <Text style={s.partyLabel}>Aan</Text>
             <Text style={s.partyName}>{client.name}</Text>
             {client.contact_name && (
@@ -340,82 +369,83 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
             )}
           </View>
           {invoice.notes && (
-            <View style={s.partyCol}>
+            <View style={s.partyBlock}>
               <Text style={s.partyLabel}>Omschrijving</Text>
               <Text style={s.partyDetail}>{invoice.notes}</Text>
             </View>
           )}
         </View>
 
-        {/* ── Table Header ── */}
-        <View style={s.tableHeader}>
-          <Text style={[s.tableHeaderCell, s.colDesc]}>Omschrijving</Text>
-          <Text style={[s.tableHeaderCell, s.colQty]}>Aantal</Text>
-          <Text style={[s.tableHeaderCell, s.colRate]}>Tarief</Text>
-          <Text style={[s.tableHeaderCell, s.colAmount]}>Bedrag</Text>
-          <Text style={s.colPad} />
-        </View>
-
-        {/* ── Table Rows ── */}
-        {lines.map((line, i) => (
-          <View style={i === lines.length - 1 ? s.tableRowLast : s.tableRow} key={line.id}>
-            <Text style={[s.tableCell, s.colDesc]}>{line.description}</Text>
-            <Text style={[s.tableCell, s.colQty]}>
-              {line.quantity} {unitLabel(line.unit).toLowerCase()}
-            </Text>
-            <Text style={[s.tableCell, s.colRate]}>
-              {formatCurrency(line.rate)}
-            </Text>
-            <Text style={[s.tableCell, s.colAmount]}>
-              {formatCurrency(line.amount)}
-            </Text>
+        {/* ── Table ── */}
+        <View style={s.tableSection}>
+          <View style={s.tableHeader}>
+            <Text style={[s.tableHeaderCell, s.colDesc]}>Omschrijving</Text>
+            <Text style={[s.tableHeaderCell, s.colQty]}>Aantal</Text>
+            <Text style={[s.tableHeaderCell, s.colRate]}>Tarief</Text>
+            <Text style={[s.tableHeaderCell, s.colAmount]}>Bedrag</Text>
             <Text style={s.colPad} />
           </View>
-        ))}
+
+          {lines.map((line, i) => (
+            <View style={i === lines.length - 1 ? s.tableRowLast : s.tableRow} key={line.id}>
+              <Text style={[s.tableCell, s.colDesc]}>{line.description}</Text>
+              <Text style={[s.tableCell, s.colQty]}>
+                {line.quantity} {unitLabel(line.unit).toLowerCase()}
+              </Text>
+              <Text style={[s.tableCell, s.colRate]}>
+                {formatCurrency(line.rate)}
+              </Text>
+              <Text style={[s.tableCell, s.colAmount]}>
+                {formatCurrency(line.amount)}
+              </Text>
+              <Text style={s.colPad} />
+            </View>
+          ))}
+        </View>
 
         {/* ── Totals ── */}
-        <View style={s.totalsContainer}>
-          <View style={s.totalsRow}>
-            <Text style={s.totalsLabel}>Subtotaal excl. BTW</Text>
-            <Text style={s.totalsValue}>
-              {formatCurrency(invoice.subtotal_ex_vat)}
-            </Text>
-          </View>
-          <View style={s.totalsRow}>
-            <Text style={s.totalsLabel}>BTW {invoice.vat_rate ?? 21}%</Text>
-            <Text style={s.totalsValue}>
-              {formatCurrency(invoice.vat_amount)}
-            </Text>
-          </View>
-          <View style={s.totalRow}>
-            <Text style={s.totalLabel}>Totaal incl. BTW</Text>
-            <Text style={s.totalValue}>
-              {formatCurrency(invoice.total_inc_vat)}
-            </Text>
+        <View style={s.totalsSection}>
+          <View style={s.totalsGrid}>
+            <View style={s.totalsRow}>
+              <Text style={s.totalsLabel}>Subtotaal excl. BTW</Text>
+              <Text style={s.totalsValue}>
+                {formatCurrency(invoice.subtotal_ex_vat)}
+              </Text>
+            </View>
+            <View style={s.totalsRow}>
+              <Text style={s.totalsLabel}>BTW {invoice.vat_rate ?? 21}%</Text>
+              <Text style={s.totalsValue}>
+                {formatCurrency(invoice.vat_amount)}
+              </Text>
+            </View>
+            <View style={s.totalRow}>
+              <Text style={s.totalLabel}>Totaal</Text>
+              <Text style={s.totalValue}>
+                {formatCurrency(invoice.total_inc_vat)}
+              </Text>
+            </View>
           </View>
         </View>
 
         {/* ── Footer ── */}
         <View style={s.footer}>
-          <View style={s.footerRow}>
-            {profile.iban && (
-              <View style={s.footerCol}>
-                <Text style={s.footerLabel}>IBAN</Text>
-                <Text style={s.footerValue}>{profile.iban}</Text>
-              </View>
-            )}
-            {profile.bic && (
-              <View style={s.footerCol}>
-                <Text style={s.footerLabel}>BIC</Text>
-                <Text style={s.footerValue}>{profile.bic}</Text>
-              </View>
-            )}
+          {profile.iban && (
             <View style={s.footerCol}>
-              <Text style={s.footerLabel}>Betaaltermijn</Text>
-              <Text style={s.footerValue}>
-                {paymentDays} dagen
-              </Text>
+              <Text style={s.footerLabel}>IBAN</Text>
+              <Text style={s.footerValue}>{profile.iban}</Text>
             </View>
+          )}
+          {profile.bic && (
+            <View style={s.footerCol}>
+              <Text style={s.footerLabel}>BIC</Text>
+              <Text style={s.footerValue}>{profile.bic}</Text>
+            </View>
+          )}
+          <View style={s.footerCol}>
+            <Text style={s.footerLabel}>Betaaltermijn</Text>
+            <Text style={s.footerValue}>
+              {paymentDays} dagen
+            </Text>
           </View>
         </View>
       </Page>

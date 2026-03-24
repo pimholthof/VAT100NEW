@@ -30,7 +30,7 @@ export default function SettingsPage() {
     return (
       <div>
         <h1 className="display-title" style={{ margin: "0 0 80px" }}>
-          Instellingen
+          Jouw gegevens
         </h1>
         <ErrorMessage>{result.error}</ErrorMessage>
       </div>
@@ -85,7 +85,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
   return (
     <div>
       <h1 className="display-title" style={{ margin: "0 0 80px" }}>
-        Instellingen
+        Jouw instellingen
       </h1>
 
       {mutation.data?.error && (
@@ -96,7 +96,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
 
       {success && (
         <ErrorMessage style={{ marginBottom: 24 }}>
-          Instellingen opgeslagen.
+          Opgeslagen!
         </ErrorMessage>
       )}
 
@@ -112,7 +112,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Je volledige naam"
+              placeholder="Jouw naam"
               style={inputStyle}
             />
           </FieldGroup>
@@ -122,7 +122,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               type="text"
               value={studioName}
               onChange={(e) => setStudioName(e.target.value)}
-              placeholder="Naam van je studio of bedrijf"
+              placeholder="Naam van je studio"
               style={inputStyle}
             />
           </FieldGroup>
@@ -155,12 +155,12 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             </FieldGroup>
           </div>
 
-          <FieldGroup label="Adres">
+          <FieldGroup label="Straat + huisnummer">
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Straatnaam en huisnummer"
+              placeholder="Straatnaam 123"
               style={inputStyle}
             />
           </FieldGroup>
@@ -175,12 +175,12 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 style={inputStyle}
               />
             </FieldGroup>
-            <FieldGroup label="Stad">
+            <FieldGroup label="Plaats">
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Stad"
+                placeholder="Amsterdam"
                 style={inputStyle}
               />
             </FieldGroup>
@@ -226,7 +226,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             onClick={handleSave}
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "Opslaan..." : "Opslaan"}
+            {mutation.isPending ? "Bezig..." : "Opslaan"}
           </ButtonPrimary>
         </div>
       </div>

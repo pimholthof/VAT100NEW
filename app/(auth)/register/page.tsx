@@ -92,8 +92,8 @@ export default function RegisterPage() {
             margin: 0,
           }}
         >
-          Systeem
-          <br/>Toegang
+          Account
+          <br/>Aanmaken
         </h1>
         <p
           className="label"
@@ -104,7 +104,7 @@ export default function RegisterPage() {
             opacity: 0.4,
           }}
         >
-          Start je dossier
+          Begin met je administratie
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 36 }}>
@@ -163,7 +163,7 @@ export default function RegisterPage() {
               transition: "opacity 0.15s ease",
             }}
           >
-            {pending ? "Systeem configureren..." : "Account Aanmaken"}
+            {pending ? "Even wachten..." : "Account aanmaken"}
           </button>
         </form>
 
@@ -174,7 +174,7 @@ export default function RegisterPage() {
             opacity: 0.4,
           }}
         >
-          Al een dossier?{" "}
+          Al een account?{" "}
           <Link
             href="/login"
             style={{

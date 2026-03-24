@@ -75,24 +75,24 @@ export function DashboardNav({
               
               {/* Navigation Column 1 */}
               <div className="dashboard-drawer-col">
-                <span className="label mb-4">Index</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">OVERZICHT</Link>
-                <Link href="/dashboard/quotes" onClick={() => setIsDrawerOpen(false)} className="drawer-link">OFFERTES</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">FACTUREN</Link>
-                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">KLANTEN</Link>
+                <span className="label mb-4">Menu</span>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">Overzicht</Link>
+                <Link href="/dashboard/quotes" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Offertes</Link>
+                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
+                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
               </div>
 
               {/* Navigation Column 2 */}
               <div className="dashboard-drawer-col">
-                <span className="label mb-4">Systemen</span>
-                <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="drawer-link">TRANSACTIES</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">BELASTING</Link>
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">INSTELLINGEN</Link>
+                <span className="label mb-4">Geld</span>
+                <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Transacties</Link>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
               </div>
 
               {/* Action Column */}
               <div className="dashboard-drawer-col dashboard-drawer-col-end">
-                <span className="label mb-4">Sessie</span>
+                <span className="label mb-4">Account</span>
                 {isMobile && studioName && (
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
@@ -101,7 +101,7 @@ export function DashboardNav({
                   onClick={handleLogout}
                   className="drawer-logout"
                 >
-                  VERLATEN
+                  Uitloggen
                 </button>
               </div>
 

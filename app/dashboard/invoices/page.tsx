@@ -76,7 +76,7 @@ export default function InvoicesPage() {
               transition: "opacity 0.2s ease",
             }}
           >
-            Exporteer CSV
+            Download lijst
           </a>
           <Link
             href="/dashboard/invoices/new"
