@@ -71,13 +71,7 @@ export default function DashboardClient({
           },
         },
       }}
-      className="dashboard-content"
-      style={{ 
-        display: "flex",
-        flexDirection: "column",
-        gap: 48,
-        paddingBottom: 120
-      }}
+      className="dashboard-content-inner"
     >
       {/* ── TOP ROW: QUICK ACTION + METRICS ── */}
       {!isLoading && (

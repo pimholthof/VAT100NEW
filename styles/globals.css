@@ -5,6 +5,11 @@
   /* Baseline unit */
   --u: 8px;
 
+  /* Spacing */
+  --space-hero: 120px;
+  --space-section: 80px;
+  --space-block: 48px;
+
   /* Colors — High-End Editorial Brutalism */
   --color-black: #000000; /* Pure Black Ink */
   --color-white: #FAF9F6; /* Premium Off-White Paper */
@@ -355,7 +360,7 @@ tbody tr:hover {
   z-index: 1000;
   background: var(--background);
   border-bottom: var(--border-light);
-  padding: 0 40px;
+  padding: 0 var(--space-block);
 }
 
 .dashboard-nav-inner {
@@ -363,6 +368,60 @@ tbody tr:hover {
   align-items: center;
   justify-content: space-between;
   height: 120px; /* Taller nav header */
+}
+
+.dashboard-nav-header {
+  padding: var(--space-block) 0;
+}
+
+.dashboard-nav-brand {
+  font-size: clamp(3rem, 6vw, 6rem);
+  letter-spacing: -0.05em;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.dashboard-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.dashboard-nav-menu {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  color: var(--foreground);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.dashboard-nav-menu[data-open="true"] {
+  border-bottom-color: var(--foreground);
+}
+
+.dashboard-drawer {
+  overflow: hidden;
+  background: var(--background);
+  border-bottom: var(--border-light);
+}
+
+.dashboard-drawer-inner {
+  padding: var(--space-block) 0 var(--space-section);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+.dashboard-drawer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-drawer-col-end {
+  align-items: flex-end;
 }
 
 .dashboard-nav-links {
@@ -379,6 +438,53 @@ tbody tr:hover {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+/* Drawer Links */
+.drawer-link {
+  font-size: var(--text-display-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+  margin: 0;
+  text-decoration: none;
+  color: var(--foreground);
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+}
+
+.drawer-link:hover {
+  opacity: 0.8;
+}
+
+.drawer-link-active {
+  opacity: 1;
+}
+
+.drawer-logout {
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.5;
+  color: var(--foreground);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-logout:hover {
+  opacity: 0.7;
+}
+
+/* Mobile drawer links */
+@media (max-width: 768px) {
+  .drawer-link {
+    font-size: 1.5rem;
+  }
 }
 
 /* ─── Responsive Utilities ─── */
@@ -405,11 +511,18 @@ tbody tr:hover {
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 80px 4vw; /* Reduced from 10vw to stop the "sliver" look */
+  padding: var(--space-section) var(--space-block);
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.3s ease;
+}
+
+.dashboard-content-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-block);
+  padding-bottom: 120px;
 }
 
 @keyframes fadeIn {
@@ -534,6 +647,31 @@ tbody tr:hover {
 
   .dashboard-content {
     padding: 24px 16px;
+  }
+
+  .dashboard-nav {
+    padding: 0 16px;
+  }
+
+  .dashboard-nav-header {
+    padding: 16px 0;
+  }
+
+  .dashboard-nav-brand {
+    font-size: 2rem;
+  }
+
+  .dashboard-nav-actions {
+    gap: 12px;
+  }
+
+  .dashboard-drawer-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .dashboard-drawer-col-end {
+    align-items: flex-start;
   }
 
   .display-hero {
