@@ -3,7 +3,7 @@
 import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth } from "@/lib/supabase/server";
-import { gocardless } from "@/lib/banking/gocardless";
+import { gocardless, checkGoCardlessRateLimit } from "@/lib/banking/gocardless";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
@@ -126,6 +126,10 @@ export async function initiateBankConnection(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  if (checkGoCardlessRateLimit(user.id)) {
+    return { error: "Te veel bankverzoeken. Probeer het over een minuut opnieuw." };
+  }
+
   try {
     const reference = crypto.randomUUID();
     const requisition = await gocardless.createRequisition({
@@ -221,6 +225,10 @@ export async function syncTransactions(
   }
 
   if (!connection.account_id) return { error: "Bankrekening ID ontbreekt." };
+
+  if (checkGoCardlessRateLimit(user.id)) {
+    return { error: "Te veel bankverzoeken. Probeer het over een minuut opnieuw." };
+  }
 
   try {
     // 2. Fetch transactions from GoCardless

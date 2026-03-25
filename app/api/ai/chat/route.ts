@@ -1,62 +1,108 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@/lib/supabase/server";
+import * as Sentry from "@sentry/nextjs";
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Simple in-memory rate limiter (per IP, 10 requests per minute)
+// Rate limiter per user ID (10 requests per minute)
+// Note: in-memory — works per serverless instance. For distributed
+// rate limiting, migrate to Redis or Supabase-based counter.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
+const MAX_QUERY_LENGTH = 2000;
 
-function isRateLimited(ip: string): boolean {
+function isRateLimited(key: string): boolean {
   const now = Date.now();
-  const entry = rateLimitMap.get(ip);
+  const entry = rateLimitMap.get(key);
   if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
     return false;
   }
   entry.count++;
   return entry.count > RATE_LIMIT;
 }
 
+// Prevent unbounded memory growth from rate limit map
+function pruneRateLimitMap() {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.resetAt) rateLimitMap.delete(key);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-    if (isRateLimited(ip)) {
+    // 1. Authenticate user
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Niet ingelogd." },
+        { status: 401 }
+      );
+    }
+
+    // 2. Rate limit per user (not IP — more reliable in serverless)
+    if (isRateLimited(user.id)) {
       return NextResponse.json(
         { error: "Te veel verzoeken. Probeer het over een minuut opnieuw." },
         { status: 429 }
       );
     }
 
-    const { query } = await request.json();
+    // Periodic cleanup to prevent memory leak
+    if (rateLimitMap.size > 1000) pruneRateLimitMap();
+
+    // 3. Parse and validate input
+    const body = await request.json();
+    const query = typeof body?.query === "string" ? body.query.trim() : "";
 
     if (!query) {
-      return NextResponse.json({ error: "Geen vraag gesteld" }, { status: 400 });
+      return NextResponse.json({ error: "Geen vraag gesteld." }, { status: 400 });
     }
 
-    // 1. Manually fetch the user context to feed to the LLM (Naive RAG / Context Injection)
-    // Note: In production we would use pgvector and similarity search. 
-    // Here we inject an aggregated summary for the MVP.
-    // We can't easily use cookies in API routes without complex setup
-    // So for the sake of MVP we will use the service role or a simplified approach
-    // If not authenticated, we'll just mock the data fetch or use anon
-    
-    // However, since it's an MVP, let's just make it a general financial assistant first
-    // combined with whatever we can get. 
-    
-    // For now, we simulate pulling the current context
-    const contextStr = `
-(Let op: dit is momenteel een demo-omgeving. Je antwoordt als VAT100 AI Assistant.
-Je bent een slimme, proactieve CFO / boekhoud-assistent.
-Geef korte, bondige, en behulpzame antwoorden in het Nederlands.
-Je kunt uitleggen wat er allemaal mogelijk is wegens de "Liquid" architectuur.)
-`;
+    if (query.length > MAX_QUERY_LENGTH) {
+      return NextResponse.json(
+        { error: `Vraag is te lang (max ${MAX_QUERY_LENGTH} tekens).` },
+        { status: 400 }
+      );
+    }
 
-    const systemPrompt = `Je bent de VAT100 Autonome CFO Assistent. 
+    // 4. Fetch real user context for the AI
+    const [
+      { data: profile },
+      { count: invoiceCount },
+      { count: receiptCount },
+      { data: openInvoices },
+    ] = await Promise.all([
+      supabase.from("profiles").select("full_name, studio_name").eq("id", user.id).single(),
+      supabase.from("invoices").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("receipts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase
+        .from("invoices")
+        .select("total_inc_vat")
+        .eq("user_id", user.id)
+        .in("status", ["sent", "overdue"]),
+    ]);
+
+    const openAmount = (openInvoices ?? []).reduce(
+      (sum, inv) => sum + (Number(inv.total_inc_vat) || 0), 0
+    );
+    const displayName = profile?.studio_name || profile?.full_name || "gebruiker";
+
+    const contextStr = `
+Gebruiker: ${displayName}
+Totaal facturen: ${invoiceCount ?? 0}
+Totaal bonnetjes: ${receiptCount ?? 0}
+Openstaand bedrag: €${openAmount.toFixed(2)}`;
+
+    const systemPrompt = `Je bent de VAT100 Autonome CFO Assistent.
 Je helpt zzp'ers en freelancers met inzicht in hun cashflow, facturen en bonnetjes.
 Houd je antwoorden professioneel, zeer beknopt, to-the-point en behulpzaam. Vermijd markdown formatting tenzij nodig (zoals opsommingen of vetgedrukt).
 Context van de gebruiker:\n${contextStr}`;
@@ -74,13 +120,13 @@ Context van de gebruiker:\n${contextStr}`;
     });
 
     const textContent = response.content.find((c) => c.type === "text");
-    
-    return NextResponse.json({ 
-      text: textContent?.type === "text" ? textContent.text : "Ik kon helaas geen antwoord formuleren." 
+
+    return NextResponse.json({
+      text: textContent?.type === "text" ? textContent.text : "Ik kon helaas geen antwoord formuleren."
     });
 
   } catch (error) {
-    console.error("Error in AI Chat:", error);
+    Sentry.captureException(error, { tags: { route: "api/ai/chat" } });
     return NextResponse.json(
       { error: "Er is een fout opgetreden bij de verwerking van je vraag." },
       { status: 500 }

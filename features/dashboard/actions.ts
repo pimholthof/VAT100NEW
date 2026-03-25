@@ -3,6 +3,7 @@
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
 import { runReconciliationAgent, runAnticipationAgent, runInvestmentAgent, runPaymentDetectionAgent } from "./action-feed";
+import * as Sentry from "@sentry/nextjs";
 
 export interface DashboardStats {
   revenueThisMonth: number;
@@ -93,10 +94,10 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     .gte("created_at", fifteenMinutesAgo);
 
   if ((recentAgentRuns ?? 0) === 0) {
-    runReconciliationAgent(userId, supabase).catch(console.error);
-    runPaymentDetectionAgent(userId, supabase).catch(console.error);
-    runAnticipationAgent(userId, supabase).catch(console.error);
-    runInvestmentAgent(userId, supabase).catch(console.error);
+    runReconciliationAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "reconciliation" } }));
+    runPaymentDetectionAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "payment_detection" } }));
+    runAnticipationAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "anticipation" } }));
+    runInvestmentAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "investment" } }));
   }
 
   // Date ranges
