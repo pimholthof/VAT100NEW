@@ -32,7 +32,24 @@ export function ReceiptUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
 
-  const handleFileSelect = (file: File) => {
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleFileSelect = async (file: File) => {
+    setValidationError(null);
+
+    // Valideer magic bytes om te controleren of het echt een afbeelding is
+    const header = await file.slice(0, 4).arrayBuffer();
+    const bytes = new Uint8Array(header);
+    const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
+    const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+    const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49; // RIFF
+    const isHeic = bytes[0] === 0x00 && bytes[1] === 0x00 && bytes[2] === 0x00;
+
+    if (!isJpeg && !isPng && !isWebp && !isHeic) {
+      setValidationError("Ongeldig bestandstype. Upload een JPEG, PNG of WebP afbeelding.");
+      return;
+    }
+
     setSelectedFile(file);
     const reader = new FileReader();
     reader.onload = (e) => setFilePreview(e.target?.result as string);
@@ -49,8 +66,8 @@ export function ReceiptUpload({
 
   return (
     <div style={{ maxWidth: 600 }}>
-      {uploadError && (
-        <ErrorMessage style={{ marginBottom: 24 }}>{uploadError}</ErrorMessage>
+      {(uploadError || validationError) && (
+        <ErrorMessage style={{ marginBottom: 24 }}>{uploadError || validationError}</ErrorMessage>
       )}
 
       <div

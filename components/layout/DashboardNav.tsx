@@ -48,7 +48,7 @@ export function DashboardNav({
               href="/dashboard"
               className="display-hero" 
               style={{ 
-                fontSize: isMobile ? "2rem" : "clamp(3rem, 6vw, 6rem)", 
+                fontSize: isMobile ? "1.5rem" : "clamp(2rem, 4vw, 3.5rem)",
                 letterSpacing: "-0.05em", 
                 color: "var(--foreground)", 
                 textDecoration: "none" 

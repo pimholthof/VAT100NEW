@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getBtwOverview } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
 import type { QuarterStats } from "@/features/tax/actions";
 import { StatCard, SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
+import { inputStyle } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
 
 export default function TaxPage() {
+  const [selectedQuarter, setSelectedQuarter] = useState<string | null>(null);
+
   const { data: result, isLoading } = useQuery({
     queryKey: ["btw-overview"],
     queryFn: () => getBtwOverview(),
@@ -19,7 +23,9 @@ export default function TaxPage() {
   });
 
   const quarters = result?.data ?? [];
-  const current = quarters.length > 0 ? quarters[0] : null;
+  const current = selectedQuarter
+    ? quarters.find((q) => q.quarter === selectedQuarter) ?? null
+    : quarters.length > 0 ? quarters[0] : null;
   const safeToSpend = dashResult?.data?.safeToSpend;
   const vatDeadline = dashResult?.data?.vatDeadline;
 
@@ -142,9 +148,33 @@ export default function TaxPage() {
       {/* Hero: Netto BTW dit kwartaal */}
       {!isLoading && current && (
         <div style={{ marginBottom: "var(--space-section)" }}>
-          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
-            {current.netVat >= 0 ? "Te betalen dit kwartaal" : "Te vorderen dit kwartaal"}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+            <p className="label" style={{ margin: 0, opacity: 0.3 }}>
+              {current.netVat >= 0 ? "Te betalen" : "Te vorderen"}
+            </p>
+            {quarters.length > 1 && (
+              <select
+                value={selectedQuarter ?? quarters[0]?.quarter ?? ""}
+                onChange={(e) => setSelectedQuarter(e.target.value)}
+                aria-label="Selecteer kwartaal"
+                style={{
+                  ...inputStyle,
+                  width: "auto",
+                  padding: "4px 8px",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  border: "0.5px solid rgba(13,13,11,0.15)",
+                  background: "transparent",
+                }}
+              >
+                {quarters.map((q) => (
+                  <option key={q.quarter} value={q.quarter}>
+                    {q.quarter}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <p style={{ fontSize: "var(--text-display-xl)", fontWeight: 700, lineHeight: 0.85, letterSpacing: "var(--tracking-display)", margin: 0 }}>
             {formatCurrency(Math.abs(current.netVat))}
           </p>

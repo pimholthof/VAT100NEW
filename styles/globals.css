@@ -333,6 +333,12 @@ tbody tr:hover {
   color: var(--foreground);
   text-decoration: none;
   transition: opacity 0.15s ease;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
 }
 
 .table-action:hover {

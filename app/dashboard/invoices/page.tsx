@@ -156,6 +156,18 @@ export default function InvoicesPage() {
                     }}
                   >
                     {invoice.invoice_number}
+                    {invoice.is_credit_note && (
+                      <span style={{
+                        marginLeft: 8,
+                        fontSize: 9,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: "var(--color-accent)",
+                      }}>
+                        Credit
+                      </span>
+                    )}
                   </Link>
                 </Td>
                 <Td>{invoice.client?.name ?? "—"}</Td>
@@ -232,7 +244,6 @@ export default function InvoicesPage() {
                           border: "none",
                           cursor: "pointer",
                           opacity: 0.3,
-                          padding: 0,
                         }}
                       >
                         Verwijder

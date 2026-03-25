@@ -183,7 +183,6 @@ export default function ReceiptsPage() {
                           border: "none",
                           cursor: "pointer",
                           opacity: 0.3,
-                          padding: 0,
                         }}
                       >
                         Verwijder
