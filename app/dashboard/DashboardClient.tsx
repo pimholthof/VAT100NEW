@@ -14,10 +14,7 @@ import {
   StatCard,
   SkeletonTable,
 } from "@/components/ui";
-import { ActionFeed } from "@/features/dashboard/components/ActionFeed";
 import { FiscalPulse } from "@/features/dashboard/components/FiscalPulse";
-import { QuickReceiptUpload } from "@/features/dashboard/components/QuickReceiptUpload";
-import { CashflowChart } from "@/features/dashboard/components/CashflowChart";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
 
 
@@ -37,7 +34,6 @@ export default function DashboardClient({
   const stats = data?.stats;
 
   const upcomingInvoices = data?.upcomingInvoices;
-  const cashflow = data?.cashflow;
   const safeToSpend = data?.safeToSpend;
   const vatDeadline = data?.vatDeadline;
 
@@ -103,46 +99,44 @@ export default function DashboardClient({
       }}
       className="dashboard-content-inner dashboard-home"
     >
-      {/* ── TOP ROW: QUICK ACTION + METRICS ── */}
+      {/* ── HERO ── */}
       {!isLoading && (
         <div className="dashboard-home-hero">
-          <motion.div variants={itemVariants} className="brutalist-panel brutalist-panel-padded dashboard-home-hero-copy">
-            <div>
-              <p className="label" style={{ margin: 0 }}>Vandaag</p>
-              <h1 className="dashboard-home-title">Alles wat je studio vandaag nodig heeft.</h1>
-              <p className="dashboard-home-intro">{heroMessage}</p>
+          <motion.div variants={itemVariants} className="brutalist-panel dashboard-home-hero-copy">
+            <p className="label" style={{ margin: 0 }}>Vandaag</p>
+            <h1 className="dashboard-home-title">Alles wat je vandaag nodig hebt.</h1>
+            <p className="dashboard-home-intro">{heroMessage}</p>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="dashboard-home-hero-stats">
+            <div className="dashboard-home-meta-item">
+              <span className="label">Vrij besteedbaar</span>
+              <span className="dashboard-home-meta-value">
+                {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
+              </span>
+              <p className="dashboard-home-meta-sub">
+                Saldo {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "nog niet beschikbaar"}
+              </p>
             </div>
 
-            <div className="dashboard-home-hero-meta">
-              <div className="dashboard-home-meta-item">
-                <span className="label">Vrij besteedbaar</span>
-                <span className="dashboard-home-meta-value">
-                  {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
-                </span>
-                <p className="dashboard-home-meta-sub">
-                  Saldo {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "nog niet beschikbaar"}
-                </p>
-              </div>
+            <div className="dashboard-home-meta-item">
+              <span className="label">BTW deadline</span>
+              <span className="dashboard-home-meta-value">
+                {vatDeadline ? `${vatDeadline.daysRemaining} dagen` : "—"}
+              </span>
+              <p className="dashboard-home-meta-sub">
+                {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : "Geen deadline gevonden"}
+              </p>
+            </div>
 
-              <div className="dashboard-home-meta-item">
-                <span className="label">BTW deadline</span>
-                <span className="dashboard-home-meta-value">
-                  {vatDeadline ? `${vatDeadline.daysRemaining} dagen` : "—"}
-                </span>
-                <p className="dashboard-home-meta-sub">
-                  {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : "Geen deadline gevonden"}
-                </p>
-              </div>
-
-              <div className="dashboard-home-meta-item">
-                <span className="label">Openstaand bedrag</span>
-                <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
-                <p className="dashboard-home-meta-sub">
-                  {urgentInvoiceCount > 0
-                    ? `${urgentInvoiceCount} achterstallig`
-                    : `${upcomingInvoices?.length ?? 0} facturen op korte termijn`}
-                </p>
-              </div>
+            <div className="dashboard-home-meta-item">
+              <span className="label">Openstaand bedrag</span>
+              <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
+              <p className="dashboard-home-meta-sub">
+                {urgentInvoiceCount > 0
+                  ? `${urgentInvoiceCount} achterstallig`
+                  : `${upcomingInvoices?.length ?? 0} facturen op korte termijn`}
+              </p>
             </div>
           </motion.div>
         </div>
@@ -195,49 +189,6 @@ export default function DashboardClient({
             currentBalance={safeToSpend.currentBalance} 
             isLoading={isLoading}
           />
-        </motion.div>
-      )}
-
-      {/* ── ACTION FEED ── */}
-      {(!isLoading || cashflow) && (
-        <div className="dashboard-home-analysis-grid">
-          {!isLoading && (
-            <motion.div 
-              variants={itemVariants}
-              className="flex flex-col relative brutalist-panel"
-            >
-              <div className="vertical-label brutalist-label">AI-assistent</div>
-              <div className="brutalist-panel-header">
-                <p className="label" style={{ margin: 0 }}>Wat je nog moet checken</p>
-                <p className="dashboard-home-panel-copy">Taken, suggesties en herinneringen die nog een keuze van je nodig hebben.</p>
-              </div>
-              <div className="brutalist-panel-content dashboard-home-feed-content">
-                <ActionFeed />
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── CASHFLOW ── */}
-          {cashflow && (
-            <motion.div 
-              variants={itemVariants}
-              className="brutalist-panel brutalist-panel-padded"
-            >
-              <div className="brutalist-panel-header minimal">
-                <p className="label" style={{ margin: 0 }}>Geld in kas</p>
-                <p className="dashboard-home-panel-copy">Een snelle blik op je omzetritme over de afgelopen zes maanden.</p>
-              </div>
-              <CashflowChart cashflow={cashflow} />
-            </motion.div>
-          )}
-        </div>
-      )}
-
-      {!isLoading && (
-        <motion.div variants={itemVariants} className="dashboard-home-upload-row">
-          <div className="dashboard-home-upload-card">
-            <QuickReceiptUpload />
-          </div>
         </motion.div>
       )}
 
