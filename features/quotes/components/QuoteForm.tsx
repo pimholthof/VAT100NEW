@@ -40,6 +40,8 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
   const addLine = useQuoteStore((s) => s.addLine);
   const updateLine = useQuoteStore((s) => s.updateLine);
   const removeLine = useQuoteStore((s) => s.removeLine);
+  const notes = useQuoteStore((s) => s.notes);
+  const setNotes = useQuoteStore((s) => s.setNotes);
   const lastSavedAt = useQuoteStore((s) => s.lastSavedAt);
   const markSaved = useQuoteStore((s) => s.markSaved);
   const toInput = useQuoteStore((s) => s.toInput);
@@ -155,7 +157,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Recipient */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>RECIPIENT</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>ONTVANGER</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
           <select
             value={clientId}
@@ -177,7 +179,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
           >
             <option value="">
-              {clientsLoading ? "Loading..." : hasClientError ? clientErrorMessage : "Select Client"}
+              {clientsLoading ? "Laden..." : hasClientError ? clientErrorMessage : "Selecteer klant"}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -191,7 +193,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
             style={{ background: "none", border: "none", cursor: "pointer", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.2em", opacity: 0.3 }}
           >
-            {showNewClient ? "[-] CLOSE" : "[+] NEW"}
+            {showNewClient ? "[-] SLUITEN" : "[+] NIEUW"}
           </button>
         </div>
         {showNewClient && (
@@ -221,7 +223,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Lines */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>EXPRESSION</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>REGELS</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {lines.map((line, index) => (
             <InvoiceLineRow
@@ -241,17 +243,39 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
             style={{ background: "none", border: "none", cursor: "pointer", fontSize: 10, textAlign: "left", padding: "12px 0", opacity: 0.2, letterSpacing: "0.1em", textTransform: "uppercase" }}
           >
-            + ADD LINE
+            + REGEL TOEVOEGEN
           </button>
         </div>
       </div>
 
       {/* Metadata & Totals (reuse invoice components) */}
       <InvoiceMetadata />
+
+      {/* Notities */}
+      <div style={{ marginBottom: 40 }}>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>NOTITIES</p>
+        <textarea
+          value={notes}
+          onChange={(e) => {
+            setNotes(e.target.value);
+            invoiceSetNotes(e.target.value);
+          }}
+          placeholder="Optionele notities (zichtbaar op offerte)"
+          rows={3}
+          style={{
+            ...inputStyle,
+            resize: "vertical",
+            minHeight: 60,
+            fontSize: 13,
+            opacity: 0.6,
+          }}
+        />
+      </div>
+
       <InvoiceTotals />
 
       {/* Actions */}
-      <div style={{ display: "flex", gap: 24 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
         <button
           onClick={() => {
             handleSave("draft");

@@ -28,6 +28,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
 
   return (
     <div
+      className="invoice-line-grid"
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 100px 140px 100px",
@@ -41,13 +42,15 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         type="text"
         value={line.description}
         onChange={(e) => onUpdate(line.id, "description", e.target.value)}
-        placeholder="Line Description"
+        placeholder="Omschrijving"
         style={{ ...cellInputStyle, fontSize: 14, fontWeight: 400 }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <input
           type="number"
           value={line.quantity}
+          min="0"
+          step="0.5"
           onChange={(e) =>
             onUpdate(line.id, "quantity", parseFloat(e.target.value) || 0)
           }
@@ -70,6 +73,8 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         <input
           type="number"
           value={line.rate}
+          min="0"
+          step="0.01"
           onChange={(e) =>
             onUpdate(line.id, "rate", parseFloat(e.target.value) || 0)
           }

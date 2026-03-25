@@ -54,7 +54,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
       setErrorMsg(result.error);
     } else if (result.data) {
       setClientId(result.data.id);
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      await queryClient.invalidateQueries({ queryKey: ["clients"] });
       onClose();
     }
   };

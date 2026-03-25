@@ -6,8 +6,32 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Simple in-memory rate limiter (per IP, 10 requests per minute)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60_000;
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT;
+}
+
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+    if (isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: "Te veel verzoeken. Probeer het over een minuut opnieuw." },
+        { status: 429 }
+      );
+    }
+
     const { query } = await request.json();
 
     if (!query) {

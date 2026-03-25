@@ -42,6 +42,8 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const addLine = useInvoiceStore((s) => s.addLine);
   const updateLine = useInvoiceStore((s) => s.updateLine);
   const removeLine = useInvoiceStore((s) => s.removeLine);
+  const notes = useInvoiceStore((s) => s.notes);
+  const setNotes = useInvoiceStore((s) => s.setNotes);
   const lastSavedAt = useInvoiceStore((s) => s.lastSavedAt);
   const markSaved = useInvoiceStore((s) => s.markSaved);
   const toInput = useInvoiceStore((s) => s.toInput);
@@ -73,7 +75,11 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     if (!s.isDirty || !s.clientId || !s.invoiceNumber) return;
 
     if (invoiceId) {
-      await updateInvoice(invoiceId, s.toInput("draft"));
+      const result = await updateInvoice(invoiceId, s.toInput("draft"));
+      if (result.error) {
+        setError(`Auto-save mislukt: ${result.error}`);
+        return;
+      }
     } else {
       return;
     }
@@ -143,7 +149,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* ── Recipient: Large and focused ── */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>RECIPIENT</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>ONTVANGER</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
           <select
             value={clientId}
@@ -164,7 +170,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             }}
           >
             <option value="">
-              {clientsLoading ? "Loading..." : hasClientError ? clientErrorMessage : "Select Client"}
+              {clientsLoading ? "Laden..." : hasClientError ? clientErrorMessage : "Selecteer klant"}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
@@ -188,7 +194,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               opacity: 0.3
             }}
           >
-            {showNewClient ? "[-] CLOSE" : "[+] NEW"}
+            {showNewClient ? "[-] SLUITEN" : "[+] NIEUW"}
           </button>
         </div>
         {showNewClient && (
@@ -204,7 +210,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* ── The Sum: Invoicing as Expression ── */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>EXPRESSION</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>REGELS</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {lines.map((line, index) => (
             <InvoiceLineRow
@@ -234,7 +240,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               textTransform: "uppercase"
             }}
           >
-            + ADD LINE
+            + REGEL TOEVOEGEN
           </button>
         </div>
       </div>
@@ -242,11 +248,29 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       {/* ── Metadata: Precision lines ── */}
       <InvoiceMetadata />
 
+      {/* ── Notities ── */}
+      <div style={{ marginBottom: 40 }}>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>NOTITIES</p>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Optionele notities (zichtbaar op factuur)"
+          rows={3}
+          style={{
+            ...inputStyle,
+            resize: "vertical",
+            minHeight: 60,
+            fontSize: 13,
+            opacity: 0.6,
+          }}
+        />
+      </div>
+
       {/* ── The Monolith: Total ── */}
       <InvoiceTotals />
 
       {/* ── Actions: The VanMoof Unlock ── */}
-      <div style={{ display: "flex", gap: 24 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
         <button
           onClick={() => {
             handleSave(false);
@@ -265,7 +289,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             cursor: "pointer"
           }}
         >
-          {saving ? "..." : "Save Draft"}
+          {saving ? "..." : "Bewaar concept"}
         </button>
         <button
           onClick={() => {
@@ -287,7 +311,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
           }}
         >
-          {saving ? "..." : "Issue & Preview"}
+          {saving ? "..." : "Verstuur & Bekijk"}
         </button>
       </div>
 

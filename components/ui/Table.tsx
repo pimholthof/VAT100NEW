@@ -1,5 +1,13 @@
 import React from "react";
 
+export function TableWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      {children}
+    </div>
+  );
+}
+
 export function Th({
   children,
   style,

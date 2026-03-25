@@ -115,7 +115,7 @@ export default function OnboardingPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <label htmlFor="iban" className="label">IBAN</label>
-                <input id="iban" name="iban" type="text" required placeholder="NL00BANK0000000000" autoComplete="off" style={monoInputStyle} />
+                <input id="iban" name="iban" type="text" required placeholder="NL00BANK0000000000" pattern="[A-Z]{2}[0-9]{2}[A-Z]{4}[0-9]{10}" title="bijv. NL00BANK0000000000" autoComplete="off" style={monoInputStyle} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <label htmlFor="bic" className="label">BIC</label>
@@ -126,6 +126,7 @@ export default function OnboardingPage() {
 
           {error && (
             <div
+              role="alert"
               style={{
                 padding: 16,
                 background: "rgba(13,13,11,0.02)",

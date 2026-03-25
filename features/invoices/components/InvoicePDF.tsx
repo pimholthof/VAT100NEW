@@ -334,7 +334,7 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
           </View>
           {invoice.notes && (
             <View style={s.partyCol}>
-              <Text style={s.partyLabel}>Omschrijving</Text>
+              <Text style={s.partyLabel}>Notities</Text>
               <Text style={s.partyDetail}>{invoice.notes}</Text>
             </View>
           )}

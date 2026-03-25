@@ -1,6 +1,32 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
 import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
+import { formatCurrency } from "@/lib/format";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const result = await fetchInvoiceByToken(token);
+  if (result.error || !result.data) {
+    return { title: "Factuur niet gevonden — VAT100" };
+  }
+  const { invoice, profile } = result.data;
+  const title = `Factuur ${invoice.invoice_number} — ${profile.studio_name || profile.full_name}`;
+  const description = `Factuur ter waarde van ${formatCurrency(invoice.total_inc_vat)}`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
+  };
+}
 
 export default async function PublicInvoicePage({
   params,
@@ -23,7 +49,9 @@ export default async function PublicInvoicePage({
           Download PDF
         </a>
       </div>
-      <InvoiceHTML data={result.data} />
+      <div style={{ width: "100%", maxWidth: "595px", overflowX: "auto" }}>
+        <InvoiceHTML data={result.data} />
+      </div>
     </div>
   );
 }
@@ -46,7 +74,7 @@ const toolbar: React.CSSProperties = {
 };
 
 const downloadButton: React.CSSProperties = {
-  fontFamily: '"Barlow", Arial, Helvetica, sans-serif',
+  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
   fontSize: "13px",
   fontWeight: 500,
   letterSpacing: "0.05em",

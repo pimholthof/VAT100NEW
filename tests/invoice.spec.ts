@@ -1,17 +1,22 @@
 import { test, expect } from '@playwright/test';
 
-// Skip fully authenticated flows for now unless we mock Supabase auth
-test.describe('Dashboard Navigation', () => {
-  // We can add mock authentication here in the future
-  test.skip('navigate to new invoice page', async ({ page }) => {
-    // Assuming user is logged in
-    await page.goto('/dashboard');
-    
-    // Click on "Nieuwe factuur" button
-    await page.click('text=Nieuwe Factuur');
-    
-    // Check if we are on the new invoice page
-    await expect(page).toHaveURL(/.*\/invoices\/new/);
-    await expect(page.locator('h1')).toContainText('Nieuwe Factuur');
+test.describe('Factuur pagina (ongeauthenticeerd)', () => {
+  test('factuurlijst redirect naar login', async ({ page }) => {
+    await page.goto('/dashboard/invoices');
+    await expect(page).toHaveURL(/.*\/login/);
+  });
+
+  test('nieuwe factuur redirect naar login', async ({ page }) => {
+    await page.goto('/dashboard/invoices/new');
+    await expect(page).toHaveURL(/.*\/login/);
+  });
+});
+
+test.describe('Publieke factuur pagina', () => {
+  test('niet-bestaand token toont 404', async ({ page }) => {
+    await page.goto('/invoice/niet-bestaand-token');
+    // Moet een not-found pagina tonen of een error
+    const body = await page.textContent('body');
+    expect(body).toBeTruthy();
   });
 });

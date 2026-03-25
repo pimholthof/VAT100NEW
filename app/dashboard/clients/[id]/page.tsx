@@ -17,6 +17,7 @@ import {
   FieldGroup,
   Th,
   Td,
+  TableWrapper,
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
@@ -83,6 +84,18 @@ export default function ClientDetailPage() {
   const handleSave = async () => {
     if (!name.trim()) {
       setError("Bedrijfsnaam is verplicht.");
+      return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Ongeldig e-mailadres.");
+      return;
+    }
+    if (kvkNumber && !/^\d{8}$/.test(kvkNumber.replace(/\s/g, ""))) {
+      setError("KVK-nummer moet 8 cijfers zijn.");
+      return;
+    }
+    if (btwNumber && !/^NL\d{9}B\d{2}$/i.test(btwNumber.replace(/[\s.]/g, ""))) {
+      setError("BTW-nummer moet het formaat NL123456789B01 hebben.");
       return;
     }
 
@@ -346,10 +359,11 @@ export default function ClientDetailPage() {
           Nog geen facturen voor deze klant.
         </p>
       ) : (
-        <table
+        <TableWrapper><table
           style={{
             width: "100%",
             borderCollapse: "collapse",
+            minWidth: 500,
           }}
         >
           <thead>
@@ -417,7 +431,7 @@ export default function ClientDetailPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></TableWrapper>
       )}
     </div>
   );

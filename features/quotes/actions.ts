@@ -388,3 +388,85 @@ export async function convertQuoteToInvoice(
 
   return { error: null, data: invoiceResult.data };
 }
+
+export async function duplicateQuote(
+  sourceId: string
+): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(sourceId);
+  if (!idCheck.success) return { error: "Ongeldig offerte-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { data: source, error: fetchError } = await supabase
+    .from("quotes")
+    .select("*, lines:quote_lines(*)")
+    .eq("id", sourceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError || !source) return { error: "Offerte niet gevonden." };
+
+  const { data: newNumber, error: rpcError } = await supabase.rpc(
+    "generate_quote_number",
+    { p_user_id: user.id }
+  );
+  if (rpcError) return { error: rpcError.message };
+
+  const today = new Date().toISOString().split("T")[0];
+  const validUntil = new Date();
+  validUntil.setDate(validUntil.getDate() + 30);
+
+  const { data: newQuote, error: insertError } = await supabase
+    .from("quotes")
+    .insert({
+      user_id: user.id,
+      client_id: source.client_id,
+      quote_number: newNumber as string,
+      status: "draft",
+      issue_date: today,
+      valid_until: validUntil.toISOString().split("T")[0],
+      vat_rate: source.vat_rate,
+      notes: source.notes,
+      subtotal_ex_vat: source.subtotal_ex_vat,
+      vat_amount: source.vat_amount,
+      total_inc_vat: source.total_inc_vat,
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !newQuote) return { error: insertError?.message ?? "Kon offerte niet dupliceren." };
+
+  const lines = (source.lines ?? []) as Array<{
+    description: string;
+    quantity: number;
+    unit: string;
+    rate: number;
+    amount: number;
+    sort_order: number;
+  }>;
+
+  if (lines.length > 0) {
+    const lineRows = lines.map((line) => ({
+      quote_id: newQuote.id,
+      description: line.description,
+      quantity: line.quantity,
+      unit: line.unit,
+      rate: line.rate,
+      amount: line.amount,
+      sort_order: line.sort_order,
+    }));
+
+    const { error: linesError } = await supabase
+      .from("quote_lines")
+      .insert(lineRows);
+
+    if (linesError) {
+      await supabase.from("quotes").delete().eq("id", newQuote.id);
+      return { error: linesError.message };
+    }
+  }
+
+  return { error: null, data: newQuote.id };
+}

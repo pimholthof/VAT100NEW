@@ -138,7 +138,7 @@ export function QuotePDF({ data }: { data: QuoteData }) {
           </View>
           {quote.notes && (
             <View style={s.partyCol}>
-              <Text style={s.partyLabel}>Omschrijving</Text>
+              <Text style={s.partyLabel}>Notities</Text>
               <Text style={s.partyDetail}>{quote.notes}</Text>
             </View>
           )}

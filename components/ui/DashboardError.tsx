@@ -8,7 +8,7 @@ export default function DashboardError({
   reset: () => void;
 }) {
   return (
-    <div style={{ padding: "48px 0" }}>
+    <div role="alert" style={{ padding: "48px 0" }}>
       <div
         style={{
           padding: "12px 16px",

@@ -87,7 +87,14 @@ export default function DashboardClient({
           </motion.div>
 
           {stats && (
-            <div className="responsive-grid-2">
+            <div className="responsive-grid-3">
+              <motion.div variants={itemVariants}>
+                <StatCard
+                  label="Omzet deze maand"
+                  value={formatCurrency(stats.revenueThisMonth)}
+                  numericValue={stats.revenueThisMonth}
+                />
+              </motion.div>
               <motion.div variants={itemVariants}>
                 <StatCard
                   label="Openstaand"

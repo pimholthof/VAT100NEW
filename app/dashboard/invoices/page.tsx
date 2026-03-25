@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient } from "@/features/invoices/actions";
 import type { InvoiceStatus } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Th, Td, SearchFilter } from "@/components/ui";
+import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Concept" },
@@ -19,6 +19,7 @@ export default function InvoicesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
   const handleFilter = useCallback((f: Record<string, string>) => {
@@ -131,7 +132,7 @@ export default function InvoicesPage() {
           )}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "var(--border-rule)", textAlign: "left" }}>
               <Th>Ref</Th>
@@ -156,6 +157,18 @@ export default function InvoicesPage() {
                     }}
                   >
                     {invoice.invoice_number}
+                    {invoice.is_credit_note && (
+                      <span style={{
+                        marginLeft: 8,
+                        fontSize: 9,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: "var(--color-accent)",
+                      }}>
+                        Credit
+                      </span>
+                    )}
                   </Link>
                 </Td>
                 <Td>{invoice.client?.name ?? "—"}</Td>
@@ -167,6 +180,8 @@ export default function InvoicesPage() {
                 <Td>
                   <select
                     value={invoice.status}
+                    aria-label={`Status ${invoice.invoice_number}`}
+                    aria-busy={statusMutation.isPending && statusMutation.variables?.id === invoice.id}
                     onChange={(e) =>
                       statusMutation.mutate({
                         id: invoice.id,
@@ -203,7 +218,8 @@ export default function InvoicesPage() {
                       fontSize: 14,
                       fontWeight: 500,
                       fontVariantNumeric: "tabular-nums",
-                      opacity: invoice.status === "paid" ? 0.3 : 1
+                      opacity: invoice.status === "paid" ? 0.3 : 1,
+                      color: invoice.status === "overdue" ? "var(--color-accent)" : "var(--foreground)",
                     }}
                   >
                     {formatCurrency(invoice.total_inc_vat)}
@@ -219,18 +235,13 @@ export default function InvoicesPage() {
                     </Link>
                     {invoice.status === "draft" && (
                       <button
-                        onClick={() => {
-                          if (confirm("Weet je zeker dat je deze factuur wilt verwijderen?")) {
-                            deleteMutation.mutate(invoice.id);
-                          }
-                        }}
+                        onClick={() => setDeleteTarget(invoice.id)}
                         className="table-action"
                         style={{
                           background: "none",
                           border: "none",
                           cursor: "pointer",
                           opacity: 0.3,
-                          padding: 0,
                         }}
                       >
                         Verwijder
@@ -241,8 +252,20 @@ export default function InvoicesPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></TableWrapper>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Factuur verwijderen"
+        message="Weet je zeker dat je deze factuur wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+        confirmLabel="Verwijderen"
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

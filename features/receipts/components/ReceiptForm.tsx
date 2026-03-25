@@ -176,7 +176,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           setConfidence(result.data.confidence);
       }
     } catch {
-      setScanError("AI-analyse mislukt. Vul de velden handmatig in.");
+      setScanError("AI-analyse kon de bon niet verwerken. Controleer of de afbeelding scherp en leesbaar is, en vul de velden handmatig in.");
     }
 
     setStep("form");
@@ -363,6 +363,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           <input
             type="number"
             step="0.01"
+            min="0"
             value={amountExVat}
             onChange={(e) => setAmountExVat(e.target.value)}
             placeholder="0,00"

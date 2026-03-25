@@ -9,8 +9,10 @@ import {
   updateInvoiceStatus,
   sendInvoice,
   sendReminder,
+  deleteInvoice,
   generateShareToken,
   createCreditNote,
+  duplicateInvoice,
 } from "@/features/invoices/actions";
 import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
@@ -18,6 +20,7 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
+  ConfirmDialog,
 } from "@/components/ui";
 import { STATUS_LABELS } from "@/lib/constants/status";
 
@@ -34,6 +37,10 @@ export default function EditInvoicePage() {
   const [shareLoading, setShareLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [creditNoteLoading, setCreditNoteLoading] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
+  const [showCreditNoteConfirm, setShowCreditNoteConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoice", params.id],
@@ -126,7 +133,7 @@ export default function EditInvoicePage() {
   };
 
   const handleCreateCreditNote = async () => {
-    if (!confirm("Weet je zeker dat je een creditnota wilt aanmaken voor deze factuur?")) return;
+    setShowCreditNoteConfirm(false);
     setCreditNoteLoading(true);
     setStatusMsg(null);
     const res = await createCreditNote(params.id);
@@ -255,11 +262,47 @@ export default function EditInvoicePage() {
             )}
           {currentStatus !== "draft" && !result?.data?.is_credit_note && (
             <ButtonSecondary
-              onClick={handleCreateCreditNote}
+              onClick={() => setShowCreditNoteConfirm(true)}
               disabled={creditNoteLoading}
             >
               {creditNoteLoading ? "Aanmaken..." : "Creditnota aanmaken"}
             </ButtonSecondary>
+          )}
+          <ButtonSecondary
+            onClick={async () => {
+              setDuplicating(true);
+              const res = await duplicateInvoice(params.id);
+              if (res.error) {
+                setStatusMsg(res.error);
+              } else if (res.data) {
+                router.push(`/dashboard/invoices/${res.data}`);
+              }
+              setDuplicating(false);
+            }}
+            disabled={duplicating}
+          >
+            {duplicating ? "Dupliceren..." : "Dupliceer factuur"}
+          </ButtonSecondary>
+          {currentStatus === "draft" && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deleting}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "var(--text-label)",
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                opacity: 0.3,
+                padding: "14px 0",
+                color: "var(--color-accent)",
+              }}
+            >
+              {deleting ? "Verwijderen..." : "Verwijder"}
+            </button>
           )}
         </div>
       </div>
@@ -318,6 +361,34 @@ export default function EditInvoicePage() {
       <div style={{ marginTop: 24 }}>
         <InvoiceForm invoiceId={params.id} />
       </div>
+
+      <ConfirmDialog
+        open={showCreditNoteConfirm}
+        title="Creditnota aanmaken"
+        message="Weet je zeker dat je een creditnota wilt aanmaken voor deze factuur? Dit maakt een nieuwe negatieve factuur aan."
+        confirmLabel="Creditnota aanmaken"
+        onConfirm={handleCreateCreditNote}
+        onCancel={() => setShowCreditNoteConfirm(false)}
+      />
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Factuur verwijderen"
+        message="Weet je zeker dat je deze conceptfactuur wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+        confirmLabel="Verwijderen"
+        onConfirm={async () => {
+          setShowDeleteConfirm(false);
+          setDeleting(true);
+          const res = await deleteInvoice(params.id);
+          if (res.error) {
+            setStatusMsg(res.error);
+            setDeleting(false);
+          } else {
+            router.push("/dashboard/invoices");
+          }
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

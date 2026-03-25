@@ -66,10 +66,13 @@ export default async function InvoicePreviewPage({
       {/* Toolbar */}
       <div
         style={{
-          width: "595px",
+          width: "100%",
+          maxWidth: "595px",
           display: "flex",
+          flexWrap: "wrap",
           justifyContent: "space-between",
           alignItems: "center",
+          gap: 12,
           marginBottom: "24px",
         }}
       >
@@ -130,6 +133,9 @@ export default async function InvoicePreviewPage({
       <div
         style={{
           border: "var(--border-rule)",
+          width: "100%",
+          maxWidth: "595px",
+          overflowX: "auto",
         }}
       >
         <InvoiceHTML data={data} />

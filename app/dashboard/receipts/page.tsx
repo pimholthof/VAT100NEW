@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getReceipts, deleteReceipt } from "@/features/receipts/actions";
 import { getKostensoortByCode, KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { Receipt } from "@/lib/types";
-import { Th, Td, SkeletonTable, SearchFilter } from "@/components/ui";
+import { Th, Td, SkeletonTable, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 const CATEGORY_OPTIONS = KOSTENSOORTEN.map((k) => ({
@@ -18,6 +18,7 @@ export default function ReceiptsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
   const handleFilter = useCallback((f: Record<string, string>) => {
@@ -115,7 +116,7 @@ export default function ReceiptsPage() {
           )}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th style={{ width: 24 }}></Th>
@@ -173,9 +174,7 @@ export default function ReceiptsPage() {
                       </Link>
                       <button
                         onClick={() => {
-                          if (confirm("Weet je zeker dat je deze bon wilt verwijderen?")) {
-                            deleteMutation.mutate(receipt.id);
-                          }
+                          setDeleteTarget(receipt.id);
                         }}
                         className="table-action"
                         style={{
@@ -183,7 +182,6 @@ export default function ReceiptsPage() {
                           border: "none",
                           cursor: "pointer",
                           opacity: 0.3,
-                          padding: 0,
                         }}
                       >
                         Verwijder
@@ -194,8 +192,20 @@ export default function ReceiptsPage() {
               );
             })}
           </tbody>
-        </table>
+        </table></TableWrapper>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Bon verwijderen"
+        message="Weet je zeker dat je deze bon wilt verwijderen?"
+        confirmLabel="Verwijderen"
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

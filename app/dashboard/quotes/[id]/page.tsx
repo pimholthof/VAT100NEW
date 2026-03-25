@@ -9,10 +9,12 @@ import {
   updateQuoteStatus,
   generateQuoteShareToken,
   convertQuoteToInvoice,
+  duplicateQuote,
+  deleteQuote,
 } from "@/features/quotes/actions";
 import { QuoteForm } from "@/features/quotes/components/QuoteForm";
 import type { QuoteStatus, VatRate } from "@/lib/types";
-import { ButtonPrimary, ButtonSecondary, ErrorMessage } from "@/components/ui";
+import { ButtonPrimary, ButtonSecondary, ErrorMessage, ConfirmDialog } from "@/components/ui";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Concept",
@@ -33,6 +35,9 @@ export default function EditQuotePage() {
   const [localShareToken, setLocalShareToken] = useState<string | null>(null);
   const [shareLoading, setShareLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["quote", params.id],
@@ -219,8 +224,8 @@ export default function EditQuotePage() {
         )}
       </div>
 
-      {/* PDF link */}
-      <div style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", padding: "16px 0", marginBottom: 24 }}>
+      {/* PDF link + dupliceer */}
+      <div style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", padding: "16px 0", marginBottom: 24, display: "flex", gap: 16 }}>
         <a
           href={`/api/quote/${params.id}/pdf`}
           target="_blank"
@@ -229,11 +234,66 @@ export default function EditQuotePage() {
         >
           Bekijk PDF
         </a>
+        <ButtonSecondary
+          onClick={async () => {
+            setDuplicating(true);
+            const res = await duplicateQuote(params.id);
+            if (res.error) {
+              setStatusMsg(res.error);
+            } else if (res.data) {
+              router.push(`/dashboard/quotes/${res.data}`);
+            }
+            setDuplicating(false);
+          }}
+          disabled={duplicating}
+        >
+          {duplicating ? "Dupliceren..." : "Dupliceer offerte"}
+        </ButtonSecondary>
+        {currentStatus === "draft" && (
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleting}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "var(--text-label)",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              opacity: 0.3,
+              padding: "14px 0",
+              color: "var(--color-accent)",
+            }}
+          >
+            {deleting ? "Verwijderen..." : "Verwijder"}
+          </button>
+        )}
       </div>
 
       <div style={{ marginTop: 24 }}>
         <QuoteForm quoteId={params.id} />
       </div>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Offerte verwijderen"
+        message="Weet je zeker dat je deze offerte wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+        confirmLabel="Verwijderen"
+        onConfirm={async () => {
+          setShowDeleteConfirm(false);
+          setDeleting(true);
+          const res = await deleteQuote(params.id);
+          if (res.error) {
+            setStatusMsg(res.error);
+            setDeleting(false);
+          } else {
+            router.push("/dashboard/quotes");
+          }
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

@@ -6,12 +6,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { m as motion , AnimatePresence } from "framer-motion";
 import { getClients, deleteClient } from "@/features/clients/actions";
 import type { Client } from "@/lib/types";
-import { Th, Td, ErrorMessage } from "@/components/ui";
+import { Th, Td, ErrorMessage, TableWrapper, ConfirmDialog } from "@/components/ui";
 
 export default function ClientsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   // Debounce search to avoid excessive server calls
   useEffect(() => {
@@ -108,7 +109,7 @@ export default function ClientsPage() {
           )}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 500 }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Bedrijfsnaam</Th>
@@ -155,9 +156,7 @@ export default function ClientsPage() {
                       </Link>
                       <button
                         onClick={() => {
-                          if (confirm("Weet je zeker dat je deze klant wilt verwijderen?")) {
-                            deleteMutation.mutate(client.id);
-                          }
+                          setDeleteTarget(client.id);
                         }}
                         className="table-action"
                         style={{
@@ -176,7 +175,7 @@ export default function ClientsPage() {
               ))}
             </AnimatePresence>
           </motion.tbody>
-        </table>
+        </table></TableWrapper>
       )}
 
       {deleteMutation.data?.error && (
@@ -184,6 +183,18 @@ export default function ClientsPage() {
           {deleteMutation.data.error}
         </ErrorMessage>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Klant verwijderen"
+        message="Weet je zeker dat je deze klant wilt verwijderen? Dit is alleen mogelijk als er geen facturen aan gekoppeld zijn."
+        confirmLabel="Verwijderen"
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

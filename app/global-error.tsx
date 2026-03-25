@@ -23,7 +23,7 @@ export default function GlobalError({
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            fontFamily: "Arial, Helvetica, sans-serif",
+            fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
             padding: 40,
           }}
         >

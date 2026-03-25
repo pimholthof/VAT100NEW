@@ -336,9 +336,16 @@ export async function generateShareToken(
 
   const token = crypto.randomUUID().replace(/-/g, "");
 
+  // Token verloopt na 90 dagen
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 90);
+
   const { error } = await supabase
     .from("invoices")
-    .update({ share_token: token })
+    .update({
+      share_token: token,
+      share_token_expires_at: expiresAt.toISOString(),
+    })
     .eq("id", invoiceId)
     .eq("user_id", user.id);
 
@@ -347,6 +354,12 @@ export async function generateShareToken(
 }
 
 export async function sendReminder(invoiceId: string, customMessage?: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+  if (customMessage && customMessage.length > 2000) {
+    return { error: "Bericht mag maximaal 2000 tekens zijn." };
+  }
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -584,4 +597,88 @@ export async function createCreditNote(
   }
 
   return { error: null, data: creditNote.id };
+}
+
+export async function duplicateInvoice(
+  sourceId: string
+): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(sourceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Fetch the source invoice with lines
+  const { data: source, error: fetchError } = await supabase
+    .from("invoices")
+    .select("*, lines:invoice_lines(*)")
+    .eq("id", sourceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError || !source) return { error: "Factuur niet gevonden." };
+
+  // Generate a new invoice number
+  const { data: newNumber, error: rpcError } = await supabase.rpc(
+    "generate_invoice_number",
+    { p_user_id: user.id }
+  );
+  if (rpcError) return { error: rpcError.message };
+
+  const today = new Date().toISOString().split("T")[0];
+
+  // Create the duplicate as a draft
+  const { data: newInvoice, error: insertError } = await supabase
+    .from("invoices")
+    .insert({
+      user_id: user.id,
+      client_id: source.client_id,
+      invoice_number: newNumber as string,
+      status: "draft",
+      issue_date: today,
+      due_date: null,
+      vat_rate: source.vat_rate,
+      notes: source.notes,
+      subtotal_ex_vat: source.subtotal_ex_vat,
+      vat_amount: source.vat_amount,
+      total_inc_vat: source.total_inc_vat,
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !newInvoice) return { error: insertError?.message ?? "Kon factuur niet dupliceren." };
+
+  // Copy lines
+  const lines = (source.lines ?? []) as Array<{
+    description: string;
+    quantity: number;
+    unit: string;
+    rate: number;
+    amount: number;
+    sort_order: number;
+  }>;
+
+  if (lines.length > 0) {
+    const lineRows = lines.map((line) => ({
+      invoice_id: newInvoice.id,
+      description: line.description,
+      quantity: line.quantity,
+      unit: line.unit,
+      rate: line.rate,
+      amount: line.amount,
+      sort_order: line.sort_order,
+    }));
+
+    const { error: linesError } = await supabase
+      .from("invoice_lines")
+      .insert(lineRows);
+
+    if (linesError) {
+      await supabase.from("invoices").delete().eq("id", newInvoice.id);
+      return { error: linesError.message };
+    }
+  }
+
+  return { error: null, data: newInvoice.id };
 }
