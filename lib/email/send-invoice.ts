@@ -44,9 +44,14 @@ export async function sendInvoiceEmail(
   const invoiceNum = escapeHtml(invoice.invoice_number);
   const filename = `factuur-${invoice.invoice_number}.pdf`;
 
+  const notesHtml = invoice.notes
+    ? `<p style="font-size:14px;line-height:1.6;margin:0 0 24px;color:#666;font-style:italic;">${escapeHtml(invoice.notes).replace(/\n/g, "<br>")}</p>`
+    : undefined;
+
   const htmlBody = buildInvoiceEmailHtml(data, {
     introParagraph: `Hierbij ontvangt u factuur <strong>${invoiceNum}</strong> van ${senderName}.`,
     amountLabel: "Totaal incl. BTW",
+    extraHtml: notesHtml,
   });
 
   const { error: sendError } = await getResend().emails.send({
