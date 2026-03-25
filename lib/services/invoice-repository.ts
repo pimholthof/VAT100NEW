@@ -23,6 +23,7 @@ export type InvoiceWithClientName = {
   total_inc_vat: number;
   notes: string | null;
   share_token: string | null;
+  is_credit_note: boolean | null;
   created_at: string;
   client: { name: string } | null;
 };

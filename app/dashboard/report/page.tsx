@@ -46,7 +46,10 @@ export default async function ReportPage() {
   );
 }
 
-function calculateYearlyStats(invoices: any[], quotes: any[]) {
+type ReportInvoice = { is_credit_note?: boolean; total_inc_vat?: number; vat_amount?: number; status?: string };
+type ReportQuote = { total_inc_vat?: number };
+
+function calculateYearlyStats(invoices: ReportInvoice[], quotes: ReportQuote[]) {
   const totalRevenue = invoices
     .filter(inv => !inv.is_credit_note)
     .reduce((sum, inv) => sum + (inv.total_inc_vat || 0), 0);

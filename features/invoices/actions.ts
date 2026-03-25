@@ -238,6 +238,44 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
 }
 
 /**
+ * Duplicate an invoice as a new draft.
+ */
+export async function duplicateInvoice(
+  invoiceId: string
+): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  try {
+    const original = await getInvoiceInService(supabase, user.id, invoiceId);
+    const newNumber = await generateInvoiceNumberInService(supabase, user.id);
+    const newId = await createInvoiceInService(supabase, user.id, {
+      client_id: original.client_id,
+      invoice_number: newNumber,
+      status: "draft",
+      issue_date: new Date().toISOString().split("T")[0],
+      due_date: null,
+      vat_rate: original.vat_rate as import("@/lib/types").VatRate,
+      notes: original.notes ?? null,
+      lines: original.lines.map((l) => ({
+        id: crypto.randomUUID(),
+        description: l.description,
+        quantity: l.quantity,
+        unit: l.unit as import("@/lib/types").InvoiceUnit,
+        rate: l.rate,
+      })),
+    });
+    return { error: null, data: newId };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/**
  * Create a credit note for an existing invoice.
  * Copies the invoice with negative amounts and links to the original.
  */
