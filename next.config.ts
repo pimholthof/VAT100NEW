@@ -19,13 +19,17 @@ export default withSentryConfig(
     project: "vat100",
     silent: !process.env.CI,
     widenClientFileUpload: true,
-    reactComponentAnnotation: {
-      enabled: true,
-    },
     sourcemaps: {
       disable: true,
     },
-    disableLogger: true,
-    automaticVercelMonitors: true,
+    webpack: {
+      reactComponentAnnotation: {
+        enabled: true,
+      },
+      treeshake: {
+        removeDebugLogging: true,
+      },
+      automaticVercelMonitors: true,
+    },
   }
 );
