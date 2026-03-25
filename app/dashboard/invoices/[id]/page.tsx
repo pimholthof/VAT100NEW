@@ -9,6 +9,7 @@ import {
   updateInvoiceStatus,
   sendInvoice,
   sendReminder,
+  deleteInvoice,
   generateShareToken,
   createCreditNote,
   duplicateInvoice,
@@ -38,6 +39,8 @@ export default function EditInvoicePage() {
   const [creditNoteLoading, setCreditNoteLoading] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [showCreditNoteConfirm, setShowCreditNoteConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoice", params.id],
@@ -280,6 +283,27 @@ export default function EditInvoicePage() {
           >
             {duplicating ? "Dupliceren..." : "Dupliceer factuur"}
           </ButtonSecondary>
+          {currentStatus === "draft" && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deleting}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "var(--text-label)",
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                opacity: 0.3,
+                padding: "14px 0",
+                color: "var(--color-accent)",
+              }}
+            >
+              {deleting ? "Verwijderen..." : "Verwijder"}
+            </button>
+          )}
         </div>
       </div>
       {statusMsg && (
@@ -345,6 +369,25 @@ export default function EditInvoicePage() {
         confirmLabel="Creditnota aanmaken"
         onConfirm={handleCreateCreditNote}
         onCancel={() => setShowCreditNoteConfirm(false)}
+      />
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Factuur verwijderen"
+        message="Weet je zeker dat je deze conceptfactuur wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+        confirmLabel="Verwijderen"
+        onConfirm={async () => {
+          setShowDeleteConfirm(false);
+          setDeleting(true);
+          const res = await deleteInvoice(params.id);
+          if (res.error) {
+            setStatusMsg(res.error);
+            setDeleting(false);
+          } else {
+            router.push("/dashboard/invoices");
+          }
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
       />
     </div>
   );

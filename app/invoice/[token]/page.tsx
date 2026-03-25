@@ -23,7 +23,9 @@ export default async function PublicInvoicePage({
           Download PDF
         </a>
       </div>
-      <InvoiceHTML data={result.data} />
+      <div style={{ width: "100%", maxWidth: "595px", overflowX: "auto" }}>
+        <InvoiceHTML data={result.data} />
+      </div>
     </div>
   );
 }
@@ -46,7 +48,7 @@ const toolbar: React.CSSProperties = {
 };
 
 const downloadButton: React.CSSProperties = {
-  fontFamily: '"Barlow", Arial, Helvetica, sans-serif',
+  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
   fontSize: "13px",
   fontWeight: 500,
   letterSpacing: "0.05em",

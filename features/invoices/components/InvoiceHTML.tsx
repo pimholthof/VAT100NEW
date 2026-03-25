@@ -109,7 +109,7 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
         </div>
         {invoice.notes && (
           <div style={partyCol}>
-            <div style={label}>Omschrijving</div>
+            <div style={label}>Notities</div>
             <div style={partyDetail}>{invoice.notes}</div>
           </div>
         )}
@@ -209,7 +209,7 @@ const page: React.CSSProperties = {
   width: "595px",
   minHeight: "842px",
   padding: "56px",
-  fontFamily: '"Barlow", Arial, Helvetica, sans-serif',
+  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
   fontWeight: 300,
   color: COLOR,
   backgroundColor: "#FFFFFF",
