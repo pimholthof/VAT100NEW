@@ -1,6 +1,32 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
 import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
+import { formatCurrency } from "@/lib/format";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const result = await fetchInvoiceByToken(token);
+  if (result.error || !result.data) {
+    return { title: "Factuur niet gevonden — VAT100" };
+  }
+  const { invoice, profile } = result.data;
+  const title = `Factuur ${invoice.invoice_number} — ${profile.studio_name || profile.full_name}`;
+  const description = `Factuur ter waarde van ${formatCurrency(invoice.total_inc_vat)}`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
+  };
+}
 
 export default async function PublicInvoicePage({
   params,

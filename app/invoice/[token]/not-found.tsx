@@ -4,7 +4,10 @@ export default function InvoiceNotFound() {
       <div style={card}>
         <h1 style={heading}>Factuur niet gevonden</h1>
         <p style={text}>
-          Deze link is ongeldig of de factuur is niet meer beschikbaar.
+          Deze link is ongeldig, verlopen, of de factuur is niet meer beschikbaar.
+        </p>
+        <p style={{ ...text, marginTop: 24, opacity: 0.4 }}>
+          Neem contact op met de afzender als je denkt dat dit een vergissing is.
         </p>
       </div>
     </div>
@@ -17,6 +20,7 @@ const wrapper: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  padding: 24,
 };
 
 const card: React.CSSProperties = {
@@ -27,7 +31,7 @@ const card: React.CSSProperties = {
 };
 
 const heading: React.CSSProperties = {
-  fontFamily: '"Barlow", Arial, Helvetica, sans-serif',
+  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
   fontSize: "24px",
   fontWeight: 700,
   color: "#0D0D0B",
@@ -35,7 +39,7 @@ const heading: React.CSSProperties = {
 };
 
 const text: React.CSSProperties = {
-  fontFamily: '"Barlow", Arial, Helvetica, sans-serif',
+  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
   fontSize: "14px",
   fontWeight: 300,
   color: "rgba(13,13,11,0.6)",

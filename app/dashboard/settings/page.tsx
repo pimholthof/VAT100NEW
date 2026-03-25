@@ -78,8 +78,29 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
     },
   });
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const handleSave = () => {
     setSuccess(false);
+    setValidationError(null);
+
+    if (!fullName.trim()) {
+      setValidationError("Naam is verplicht.");
+      return;
+    }
+    if (kvkNumber && !/^\d{8}$/.test(kvkNumber.replace(/\s/g, ""))) {
+      setValidationError("KVK-nummer moet 8 cijfers zijn.");
+      return;
+    }
+    if (btwNumber && !/^NL\d{9}B\d{2}$/i.test(btwNumber.replace(/[\s.]/g, ""))) {
+      setValidationError("BTW-nummer moet het formaat NL123456789B01 hebben.");
+      return;
+    }
+    if (iban && !/^[A-Z]{2}\d{2}[A-Z]{4}\d{10}$/i.test(iban.replace(/\s/g, ""))) {
+      setValidationError("IBAN formaat is ongeldig.");
+      return;
+    }
+
     mutation.mutate();
   };
 
@@ -89,9 +110,9 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         Instellingen
       </h1>
 
-      {mutation.data?.error && (
+      {(mutation.data?.error || validationError) && (
         <ErrorMessage style={{ marginBottom: 24 }}>
-          {mutation.data.error}
+          {validationError || mutation.data?.error}
         </ErrorMessage>
       )}
 

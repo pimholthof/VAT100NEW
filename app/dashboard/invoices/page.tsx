@@ -218,7 +218,8 @@ export default function InvoicesPage() {
                       fontSize: 14,
                       fontWeight: 500,
                       fontVariantNumeric: "tabular-nums",
-                      opacity: invoice.status === "paid" ? 0.3 : 1
+                      opacity: invoice.status === "paid" ? 0.3 : 1,
+                      color: invoice.status === "overdue" ? "var(--color-accent)" : "var(--foreground)",
                     }}
                   >
                     {formatCurrency(invoice.total_inc_vat)}

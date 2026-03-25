@@ -165,7 +165,8 @@ export default function QuotesPage() {
                 <Td style={{ textAlign: "right" }}>
                   <span style={{
                     fontSize: 14, fontWeight: 500, fontVariantNumeric: "tabular-nums",
-                    opacity: quote.status === "invoiced" || quote.status === "rejected" ? 0.3 : 1
+                    opacity: quote.status === "invoiced" || quote.status === "rejected" ? 0.3 : 1,
+                    color: quote.status === "accepted" ? "rgba(0,128,0,0.7)" : quote.status === "rejected" ? "var(--color-accent)" : "var(--foreground)",
                   }}>
                     {formatCurrency(quote.total_inc_vat)}
                   </span>
