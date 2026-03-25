@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getProfile, updateProfile } from "@/features/profile/actions";
+import { getProfile, updateProfile, uploadLogo, deleteLogo, getLogoUrl } from "@/features/profile/actions";
 import type { Profile } from "@/lib/types";
-import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage } from "@/components/ui";
+import { FieldGroup, inputStyle, ButtonPrimary, ButtonSecondary, ErrorMessage } from "@/components/ui";
 
 export default function SettingsPage() {
   const { data: result, isLoading } = useQuery({
@@ -128,6 +129,9 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
           </FieldGroup>
         </div>
 
+        {/* Logo */}
+        <LogoUpload logoPath={profile?.logo_path ?? null} />
+
         {/* Bedrijfsgegevens */}
         <div style={{ marginBottom: "var(--space-block)" }}>
           <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
@@ -230,6 +234,150 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
           </ButtonPrimary>
         </div>
       </div>
+    </div>
+  );
+}
+
+function LogoUpload({ logoPath }: { logoPath: string | null }) {
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (logoPath) {
+      getLogoUrl().then((res) => {
+        if (res.data) setLogoUrl(res.data);
+      });
+    }
+  }, [logoPath]);
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    setError(null);
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await uploadLogo(formData);
+    if (res.error) {
+      setError(res.error);
+    } else {
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      // Haal nieuwe signed URL op
+      const urlRes = await getLogoUrl();
+      if (urlRes.data) setLogoUrl(urlRes.data);
+    }
+    setUploading(false);
+  };
+
+  const handleDelete = async () => {
+    setUploading(true);
+    setError(null);
+    const res = await deleteLogo();
+    if (res.error) {
+      setError(res.error);
+    } else {
+      setLogoUrl(null);
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+    }
+    setUploading(false);
+  };
+
+  return (
+    <div style={{ marginBottom: "var(--space-block)" }}>
+      <p
+        className="label-strong"
+        style={{
+          margin: "0 0 28px",
+          paddingTop: 12,
+          borderTop: "0.5px solid rgba(13,13,11,0.15)",
+        }}
+      >
+        Logo
+      </p>
+
+      {error && <ErrorMessage style={{ marginBottom: 16 }}>{error}</ErrorMessage>}
+
+      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+        {logoUrl ? (
+          <div
+            style={{
+              position: "relative",
+              width: 80,
+              height: 80,
+              border: "0.5px solid rgba(13,13,11,0.1)",
+            }}
+          >
+            <Image
+              src={logoUrl}
+              alt="Bedrijfslogo"
+              fill
+              style={{ objectFit: "contain" }}
+              unoptimized
+            />
+          </div>
+        ) : (
+          <div
+            style={{
+              width: 80,
+              height: 80,
+              border: "0.5px dashed rgba(13,13,11,0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 10,
+              opacity: 0.3,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Geen logo
+          </div>
+        )}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/svg+xml"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleUpload(file);
+            }}
+          />
+          <ButtonSecondary
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? "Uploaden..." : logoUrl ? "Wijzig logo" : "Upload logo"}
+          </ButtonSecondary>
+          {logoUrl && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={uploading}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "var(--text-label)",
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                opacity: 0.3,
+                padding: 0,
+                color: "var(--foreground)",
+              }}
+            >
+              Verwijder
+            </button>
+          )}
+        </div>
+      </div>
+      <p style={{ fontSize: 11, opacity: 0.3, marginTop: 12 }}>
+        PNG, JPG of SVG — max 2MB. Wordt getoond op facturen en offertes.
+      </p>
     </div>
   );
 }

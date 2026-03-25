@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQuotes, deleteQuote, updateQuoteStatus, type QuoteWithClient } from "@/features/quotes/actions";
 import type { QuoteStatus } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Th, Td, SearchFilter, TableWrapper } from "@/components/ui";
+import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Concept" },
@@ -28,6 +28,7 @@ export default function QuotesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
   const handleFilter = useCallback((f: Record<string, string>) => {
@@ -177,9 +178,7 @@ export default function QuotesPage() {
                     {quote.status === "draft" && (
                       <button
                         onClick={() => {
-                          if (confirm("Weet je zeker dat je deze offerte wilt verwijderen?")) {
-                            deleteMutation.mutate(quote.id);
-                          }
+                          setDeleteTarget(quote.id);
                         }}
                         className="table-action"
                         style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}
@@ -194,6 +193,18 @@ export default function QuotesPage() {
           </tbody>
         </table></TableWrapper>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Offerte verwijderen"
+        message="Weet je zeker dat je deze offerte wilt verwijderen?"
+        confirmLabel="Verwijderen"
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

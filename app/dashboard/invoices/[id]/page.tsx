@@ -19,6 +19,7 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
+  ConfirmDialog,
 } from "@/components/ui";
 import { STATUS_LABELS } from "@/lib/constants/status";
 
@@ -36,6 +37,7 @@ export default function EditInvoicePage() {
   const [copied, setCopied] = useState(false);
   const [creditNoteLoading, setCreditNoteLoading] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [showCreditNoteConfirm, setShowCreditNoteConfirm] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoice", params.id],
@@ -128,7 +130,7 @@ export default function EditInvoicePage() {
   };
 
   const handleCreateCreditNote = async () => {
-    if (!confirm("Weet je zeker dat je een creditnota wilt aanmaken voor deze factuur?")) return;
+    setShowCreditNoteConfirm(false);
     setCreditNoteLoading(true);
     setStatusMsg(null);
     const res = await createCreditNote(params.id);
@@ -257,7 +259,7 @@ export default function EditInvoicePage() {
             )}
           {currentStatus !== "draft" && !result?.data?.is_credit_note && (
             <ButtonSecondary
-              onClick={handleCreateCreditNote}
+              onClick={() => setShowCreditNoteConfirm(true)}
               disabled={creditNoteLoading}
             >
               {creditNoteLoading ? "Aanmaken..." : "Creditnota aanmaken"}
@@ -335,6 +337,15 @@ export default function EditInvoicePage() {
       <div style={{ marginTop: 24 }}>
         <InvoiceForm invoiceId={params.id} />
       </div>
+
+      <ConfirmDialog
+        open={showCreditNoteConfirm}
+        title="Creditnota aanmaken"
+        message="Weet je zeker dat je een creditnota wilt aanmaken voor deze factuur? Dit maakt een nieuwe negatieve factuur aan."
+        confirmLabel="Creditnota aanmaken"
+        onConfirm={handleCreateCreditNote}
+        onCancel={() => setShowCreditNoteConfirm(false)}
+      />
     </div>
   );
 }

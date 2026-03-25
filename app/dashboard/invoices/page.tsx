@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient } from "@/features/invoices/actions";
 import type { InvoiceStatus } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Th, Td, SearchFilter, TableWrapper } from "@/components/ui";
+import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Concept" },
@@ -19,6 +19,7 @@ export default function InvoicesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
   const handleFilter = useCallback((f: Record<string, string>) => {
@@ -233,11 +234,7 @@ export default function InvoicesPage() {
                     </Link>
                     {invoice.status === "draft" && (
                       <button
-                        onClick={() => {
-                          if (confirm("Weet je zeker dat je deze factuur wilt verwijderen?")) {
-                            deleteMutation.mutate(invoice.id);
-                          }
-                        }}
+                        onClick={() => setDeleteTarget(invoice.id)}
                         className="table-action"
                         style={{
                           background: "none",
@@ -256,6 +253,18 @@ export default function InvoicesPage() {
           </tbody>
         </table></TableWrapper>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Factuur verwijderen"
+        message="Weet je zeker dat je deze factuur wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+        confirmLabel="Verwijderen"
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

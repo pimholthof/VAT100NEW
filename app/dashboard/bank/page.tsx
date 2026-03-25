@@ -18,7 +18,7 @@ import {
 import { InstitutionSelector } from "@/features/dashboard/components/InstitutionSelector";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
-import { Th, Td, SkeletonTable, TableWrapper } from "@/components/ui";
+import { Th, Td, SkeletonTable, TableWrapper, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 const TRANSACTION_CATEGORIES = [
@@ -65,6 +65,7 @@ export default function BankPage() {
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0].value);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const [deleteConnTarget, setDeleteConnTarget] = useState<string | null>(null);
 
   const { data: connectionsResult, isLoading: connectionsLoading } = useQuery({
     queryKey: ["bank-connections"],
@@ -322,11 +323,7 @@ export default function BankPage() {
                     {syncMutation.isPending ? "Bezig..." : "Sync"}
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm("Weet je zeker dat je deze bankverbinding wilt verwijderen?")) {
-                        deleteMutation.mutate(conn.id);
-                      }
-                    }}
+                    onClick={() => setDeleteConnTarget(conn.id)}
                     className="label"
                     style={{ background: "none", border: "none", color: "var(--foreground)", opacity: 0.6, cursor: "pointer", padding: 0 }}
                   >
@@ -482,6 +479,18 @@ export default function BankPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteConnTarget}
+        title="Bankverbinding verwijderen"
+        message="Weet je zeker dat je deze bankverbinding wilt verwijderen? Alle gekoppelde transacties worden ook verwijderd."
+        confirmLabel="Verwijderen"
+        onConfirm={() => {
+          if (deleteConnTarget) deleteMutation.mutate(deleteConnTarget);
+          setDeleteConnTarget(null);
+        }}
+        onCancel={() => setDeleteConnTarget(null)}
+      />
     </div>
   );
 }
