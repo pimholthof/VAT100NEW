@@ -363,6 +363,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           <input
             type="number"
             step="0.01"
+            min="0"
             value={amountExVat}
             onChange={(e) => setAmountExVat(e.target.value)}
             placeholder="0,00"
