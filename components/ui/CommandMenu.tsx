@@ -76,6 +76,9 @@ export function CommandMenu() {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Commandomenu"
       style={{
         position: "fixed",
         top: 0,

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
 
@@ -28,6 +28,7 @@ export function DashboardNav({
   studioName?: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -99,18 +100,18 @@ export function DashboardNav({
               {/* Navigation Column 1 */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <span className="label" style={{ marginBottom: 16 }}>Index</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)" }}>OVERZICHT</Link>
-                <Link href="/dashboard/quotes" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>OFFERTES</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>FACTUREN</Link>
-                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>KLANTEN</Link>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} aria-current={pathname === "/dashboard" ? "page" : undefined} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: pathname === "/dashboard" ? 1 : 0.4 }}>OVERZICHT</Link>
+                <Link href="/dashboard/quotes" onClick={() => setIsDrawerOpen(false)} aria-current={pathname.startsWith("/dashboard/quotes") ? "page" : undefined} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: pathname.startsWith("/dashboard/quotes") ? 1 : 0.4 }}>OFFERTES</Link>
+                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} aria-current={pathname.startsWith("/dashboard/invoices") ? "page" : undefined} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: pathname.startsWith("/dashboard/invoices") ? 1 : 0.4 }}>FACTUREN</Link>
+                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} aria-current={pathname.startsWith("/dashboard/clients") ? "page" : undefined} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: pathname.startsWith("/dashboard/clients") ? 1 : 0.4 }}>KLANTEN</Link>
               </div>
 
               {/* Navigation Column 2 */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <span className="label" style={{ marginBottom: 16 }}>Systemen</span>
-                <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>TRANSACTIES</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>BELASTING</Link>
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>INSTELLINGEN</Link>
+                <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} aria-current={pathname.startsWith("/dashboard/bank") ? "page" : undefined} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: pathname.startsWith("/dashboard/bank") ? 1 : 0.4 }}>TRANSACTIES</Link>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} aria-current={pathname.startsWith("/dashboard/tax") ? "page" : undefined} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: pathname.startsWith("/dashboard/tax") ? 1 : 0.4 }}>BELASTING</Link>
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} aria-current={pathname.startsWith("/dashboard/settings") ? "page" : undefined} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: pathname.startsWith("/dashboard/settings") ? 1 : 0.4 }}>INSTELLINGEN</Link>
               </div>
 
               {/* Action Column */}

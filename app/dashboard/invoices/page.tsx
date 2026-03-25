@@ -167,6 +167,8 @@ export default function InvoicesPage() {
                 <Td>
                   <select
                     value={invoice.status}
+                    aria-label={`Status ${invoice.invoice_number}`}
+                    aria-busy={statusMutation.isPending && statusMutation.variables?.id === invoice.id}
                     onChange={(e) =>
                       statusMutation.mutate({
                         id: invoice.id,
