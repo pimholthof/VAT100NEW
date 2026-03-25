@@ -96,9 +96,20 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
       )}
 
       {success && (
-        <ErrorMessage style={{ marginBottom: 24 }}>
+        <p
+          role="status"
+          aria-live="polite"
+          style={{
+            padding: 16,
+            marginBottom: 24,
+            background: "rgba(0,128,0,0.04)",
+            borderLeft: "2px solid rgba(0,128,0,0.3)",
+            fontSize: 11,
+            fontWeight: 400,
+          }}
+        >
           Instellingen opgeslagen.
-        </ErrorMessage>
+        </p>
       )}
 
       <div style={{ maxWidth: 480 }}>

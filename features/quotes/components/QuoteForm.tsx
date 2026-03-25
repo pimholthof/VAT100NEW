@@ -40,6 +40,8 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
   const addLine = useQuoteStore((s) => s.addLine);
   const updateLine = useQuoteStore((s) => s.updateLine);
   const removeLine = useQuoteStore((s) => s.removeLine);
+  const notes = useQuoteStore((s) => s.notes);
+  const setNotes = useQuoteStore((s) => s.setNotes);
   const lastSavedAt = useQuoteStore((s) => s.lastSavedAt);
   const markSaved = useQuoteStore((s) => s.markSaved);
   const toInput = useQuoteStore((s) => s.toInput);
@@ -248,10 +250,32 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Metadata & Totals (reuse invoice components) */}
       <InvoiceMetadata />
+
+      {/* Notities */}
+      <div style={{ marginBottom: 40 }}>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>NOTITIES</p>
+        <textarea
+          value={notes}
+          onChange={(e) => {
+            setNotes(e.target.value);
+            invoiceSetNotes(e.target.value);
+          }}
+          placeholder="Optionele notities (zichtbaar op offerte)"
+          rows={3}
+          style={{
+            ...inputStyle,
+            resize: "vertical",
+            minHeight: 60,
+            fontSize: 13,
+            opacity: 0.6,
+          }}
+        />
+      </div>
+
       <InvoiceTotals />
 
       {/* Actions */}
-      <div style={{ display: "flex", gap: 24 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
         <button
           onClick={() => {
             handleSave("draft");

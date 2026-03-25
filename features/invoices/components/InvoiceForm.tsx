@@ -270,7 +270,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       <InvoiceTotals />
 
       {/* ── Actions: The VanMoof Unlock ── */}
-      <div style={{ display: "flex", gap: 24 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
         <button
           onClick={() => {
             handleSave(false);

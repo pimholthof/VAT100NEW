@@ -66,6 +66,27 @@ export function DashboardNav({
             {!isMobile && (
               <span className="label" style={{ opacity: 0.4 }}>{studioName}</span>
             )}
+            {!isMobile && (
+              <button
+                onClick={() => {
+                  // Trigger command menu
+                  window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+                }}
+                className="label"
+                style={{
+                  background: "rgba(0,0,0,0.03)",
+                  border: "0.5px solid rgba(0,0,0,0.08)",
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  opacity: 0.4,
+                  fontSize: 10,
+                  color: "var(--foreground)",
+                }}
+                title="Zoeken (⌘K)"
+              >
+                ⌘K
+              </button>
+            )}
             <button
               onClick={() => setIsDrawerOpen(!isDrawerOpen)}
               className="label-strong"

@@ -86,6 +86,18 @@ export default function ClientDetailPage() {
       setError("Bedrijfsnaam is verplicht.");
       return;
     }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Ongeldig e-mailadres.");
+      return;
+    }
+    if (kvkNumber && !/^\d{8}$/.test(kvkNumber.replace(/\s/g, ""))) {
+      setError("KVK-nummer moet 8 cijfers zijn.");
+      return;
+    }
+    if (btwNumber && !/^NL\d{9}B\d{2}$/i.test(btwNumber.replace(/[\s.]/g, ""))) {
+      setError("BTW-nummer moet het formaat NL123456789B01 hebben.");
+      return;
+    }
 
     setSaving(true);
     setError(null);
