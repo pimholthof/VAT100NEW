@@ -5,7 +5,7 @@ import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
 import type { QuarterStats } from "@/features/tax/actions";
 import type { Bespaartip, DepreciationRow } from "@/lib/tax/dutch-tax-2026";
-import { StatCard, SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
+import { SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 
@@ -31,20 +31,16 @@ export default function TaxPage() {
   const vatDeadline = dashResult?.data?.vatDeadline;
 
   const now = new Date();
-  const yearBtw = quarters
-    .filter((q) => q.quarter.includes(String(now.getFullYear())))
-    .reduce((sum, q) => sum + q.netVat, 0);
-
   const isLoading = btwLoading || taxLoading;
 
   return (
     <div>
-      {/* Title */}
+      {/* ══ HEADER ══ */}
       <div className="page-header" style={{ marginBottom: 80 }}>
         <div>
           <h1 className="display-title">Belasting</h1>
           <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
-            Real-time inzicht in je IB, BTW, aftrekposten en besparingen
+            Overzicht van je geschatte inkomstenbelasting en BTW
           </p>
         </div>
         <a
@@ -65,78 +61,112 @@ export default function TaxPage() {
         </a>
       </div>
 
-      {/* ── Sectie 1: Jaarprognose Hero ── */}
+      {/* ══════════════════════════════════════════════════
+          ZONE 1: INKOMSTENBELASTING
+      ══════════════════════════════════════════════════ */}
+
+      <h2 className="section-header" style={{ margin: "0 0 8px" }}>
+        Inkomstenbelasting {now.getFullYear()}
+      </h2>
+      <p className="label" style={{ margin: "0 0 24px", opacity: 0.4 }}>
+        Schatting op basis van je huidige omzet en kosten
+      </p>
+
+      {/* Hero: geschatte inkomstenbelasting */}
       {isLoading ? (
-        <div className="stat-cards-grid responsive-grid-3" style={{ marginBottom: "var(--space-section)" }}>
-          <SkeletonCard /><SkeletonCard /><SkeletonCard />
-        </div>
+        <SkeletonCard />
       ) : projection ? (
-        <div
-          className="stat-cards-grid responsive-grid-3"
-          style={{
-            background: "rgba(13,13,11,0.08)",
-            border: "0.5px solid rgba(13,13,11,0.08)",
-            marginBottom: "var(--space-section)",
-            gap: 1,
-          }}
-        >
-          <YearCard
-            label={`Te betalen IB ${now.getFullYear()}`}
-            value={formatCurrency(Math.round(projection.nettoIB))}
-            sublabel={`Effectief tarief: ${projection.effectiefTarief.toFixed(1)}%`}
-          />
-          <YearCard
-            label={`BTW totaal ${now.getFullYear()}`}
-            value={formatCurrency(Math.round(yearBtw))}
-            sublabel={`${quarters.filter((q) => q.quarter.includes(String(now.getFullYear()))).length} kwartalen`}
-          />
-          <YearCard
-            label="Jaarprognose IB"
-            value={formatCurrency(Math.round(projection.prognoseJaarIB))}
-            sublabel={`Bij prognose omzet ${formatCurrency(Math.round(projection.prognoseJaarOmzet))}`}
-          />
+        <div style={{ marginBottom: "var(--space-section)" }}>
+          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+            Geschatte inkomstenbelasting {now.getFullYear()}
+          </p>
+          <p style={{
+            fontSize: "var(--text-display-xl)",
+            fontWeight: 700,
+            lineHeight: 0.85,
+            letterSpacing: "var(--tracking-display)",
+            margin: 0,
+          }}>
+            {formatCurrency(Math.round(projection.nettoIB))}
+          </p>
+          <p style={{
+            fontSize: "var(--text-body-sm)",
+            fontWeight: 300,
+            opacity: 0.45,
+            margin: "12px 0 0",
+          }}>
+            Gemiddeld belastingpercentage: {projection.effectiefTarief.toFixed(1)}%
+          </p>
         </div>
       ) : null}
 
-      {/* ── Sectie 2: Belastingberekening Breakdown ── */}
+      {/* Jaarprognose */}
+      {projection && (
+        <div style={{
+          marginBottom: "var(--space-section)",
+          padding: "20px 24px",
+          background: "rgba(13,13,11,0.02)",
+          border: "0.5px solid rgba(13,13,11,0.06)",
+        }}>
+          <p className="label" style={{ margin: "0 0 12px", opacity: 0.4 }}>
+            Jaarprognose — als je in dit tempo doorgaat
+          </p>
+          <div style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
+            <ProjectionStat label="Verwachte jaaromzet" value={formatCurrency(Math.round(projection.prognoseJaarOmzet))} />
+            <ProjectionStat label="Verwachte jaarkosten" value={formatCurrency(Math.round(projection.prognoseJaarKosten))} />
+            <ProjectionStat label="Verwachte inkomstenbelasting" value={formatCurrency(Math.round(projection.prognoseJaarIB))} />
+          </div>
+        </div>
+      )}
+
+      {/* Berekening */}
       {projection && (
         <div style={{ marginBottom: "var(--space-section)" }}>
-          <h2 className="section-header" style={{ margin: "0 0 16px" }}>
-            Berekening inkomstenbelasting {now.getFullYear()}
-          </h2>
-          <div style={{ background: "var(--background)", border: "0.5px solid rgba(13,13,11,0.08)", padding: 24 }}>
+          <div style={{
+            background: "var(--background)",
+            border: "0.5px solid rgba(13,13,11,0.08)",
+            padding: 24,
+          }}>
             <BreakdownSection title="Winstberekening">
-              <BreakdownLine label="Omzet (ex BTW)" value={projection.brutoOmzet} />
+              <BreakdownLine label="Omzet (excl. BTW)" value={projection.brutoOmzet} />
               <BreakdownLine label="Kosten" value={-projection.kosten} negative />
               <BreakdownLine label="Afschrijvingen" value={-projection.afschrijvingen} negative />
-              <BreakdownTotal label="Bruto winst" value={projection.brutoWinst} />
+              <BreakdownTotal label="Winst voor aftrekposten" value={projection.brutoWinst} />
             </BreakdownSection>
 
             <BreakdownSection title="Aftrekposten">
-              <BreakdownLine label={`Zelfstandigenaftrek`} value={-projection.zelfstandigenaftrek} negative />
-              <BreakdownLine label={`MKB-winstvrijstelling (${(TAX_CONSTANTS.mkbVrijstellingRate * 100).toFixed(1)}%)`} value={-projection.mkbVrijstelling} negative />
+              <BreakdownLine label="Aftrek voor zelfstandigen" value={-projection.zelfstandigenaftrek} negative />
+              <BreakdownLine
+                label={`Winstvrijstelling kleine ondernemers (${(TAX_CONSTANTS.mkbVrijstellingRate * 100).toFixed(1)}%)`}
+                value={-projection.mkbVrijstelling}
+                negative
+              />
               {projection.kia > 0 && (
-                <BreakdownLine label={`KIA (${(TAX_CONSTANTS.kiaTier1Rate * 100)}% over ${formatCurrency(projection.totalInvestments)})`} value={-projection.kia} negative />
+                <BreakdownLine
+                  label={`Investeringsaftrek (${(TAX_CONSTANTS.kiaTier1Rate * 100)}% over ${formatCurrency(projection.totalInvestments)})`}
+                  value={-projection.kia}
+                  negative
+                />
               )}
-              <BreakdownTotal label="Belastbaar inkomen" value={projection.belastbaarInkomen} />
+              <BreakdownTotal label="Inkomen waarover je belasting betaalt" value={projection.belastbaarInkomen} />
             </BreakdownSection>
 
             <BreakdownSection title="Belasting">
-              <BreakdownLine label="Inkomstenbelasting (box 1)" value={projection.inkomstenbelasting} />
-              <BreakdownLine label="Algemene heffingskorting" value={-projection.algemeneHeffingskorting} negative />
-              <BreakdownLine label="Arbeidskorting" value={-projection.arbeidskorting} negative />
-              <BreakdownTotal label="Te betalen IB" value={projection.nettoIB} highlight />
+              <BreakdownLine label="Inkomstenbelasting" value={projection.inkomstenbelasting} />
+              <BreakdownLine label="Belastingkorting (algemeen)" value={-projection.algemeneHeffingskorting} negative />
+              <BreakdownLine label="Belastingkorting (arbeid)" value={-projection.arbeidskorting} negative />
+              <BreakdownTotal label="Geschatte inkomstenbelasting" value={projection.nettoIB} highlight />
             </BreakdownSection>
           </div>
         </div>
       )}
 
-      {/* ── Sectie 3: Bespaartips ── */}
+      {/* Tips om belasting te besparen */}
       {projection && projection.bespaartips.length > 0 && (
         <div style={{ marginBottom: "var(--space-section)" }}>
-          <h2 className="section-header" style={{ margin: "0 0 16px" }}>
-            Bespaartips
-          </h2>
+          <h3 className="section-header" style={{ margin: "0 0 16px" }}>
+            Tips om belasting te besparen
+          </h3>
           <div className="responsive-grid-2" style={{ gap: 1, background: "rgba(13,13,11,0.08)" }}>
             {projection.bespaartips.map((tip, i) => (
               <TipCard key={i} tip={tip} />
@@ -145,59 +175,12 @@ export default function TaxPage() {
         </div>
       )}
 
-      {/* ── Sectie 4: Aftrekposten overzicht ── */}
-      {projection && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <h2 className="section-header" style={{ margin: "0 0 16px" }}>
-            Jouw aftrekposten
-          </h2>
-          <div className="responsive-grid-3">
-            <DeductionItem
-              label="Zelfstandigenaftrek"
-              value={formatCurrency(TAX_CONSTANTS.zelfstandigenaftrek)}
-              note="1.225+ uur per jaar"
-            />
-            <DeductionItem
-              label="MKB-winstvrijstelling"
-              value={formatCurrency(Math.round(projection.mkbVrijstelling))}
-              note={`${(TAX_CONSTANTS.mkbVrijstellingRate * 100).toFixed(1)}% van winst na aftrek`}
-            />
-            <DeductionItem
-              label="KIA (investeringsaftrek)"
-              value={formatCurrency(Math.round(projection.kia))}
-              note={projection.totalInvestments > 0
-                ? `Over ${formatCurrency(projection.totalInvestments)} investeringen`
-                : `Vanaf ${formatCurrency(TAX_CONSTANTS.kiaMinTotal)} aan investeringen`}
-            />
-            <DeductionItem
-              label="Algemene heffingskorting"
-              value={formatCurrency(Math.round(projection.algemeneHeffingskorting))}
-              note={`Max ${formatCurrency(TAX_CONSTANTS.ahkMax)}`}
-            />
-            <DeductionItem
-              label="Arbeidskorting"
-              value={formatCurrency(Math.round(projection.arbeidskorting))}
-              note={`Max ${formatCurrency(TAX_CONSTANTS.akMax)}`}
-            />
-            <DeductionItem
-              label="Terug te vragen BTW"
-              value={formatCurrency(
-                quarters
-                  .filter((q) => q.quarter.includes(String(now.getFullYear())))
-                  .reduce((sum, q) => sum + q.inputVat, 0)
-              )}
-              note="Via je bonnetjes"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ── Sectie 5: Investeringen & Afschrijvingen ── */}
+      {/* Investeringen & afschrijvingen */}
       {projection && projection.afschrijvingDetails.length > 0 && (
         <div style={{ marginBottom: "var(--space-section)" }}>
-          <h2 className="section-header" style={{ margin: "0 0 16px" }}>
+          <h3 className="section-header" style={{ margin: "0 0 16px" }}>
             Investeringen & afschrijvingen
-          </h2>
+          </h3>
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
             <thead>
               <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
@@ -232,57 +215,50 @@ export default function TaxPage() {
         </div>
       )}
 
-      {/* ── BTW Deadline ── */}
-      {vatDeadline && (
-        <div className="page-header" style={{ marginBottom: "var(--space-section)", padding: 20, border: "0.5px solid rgba(13,13,11,0.08)" }}>
-          <div>
-            <p className="label" style={{ opacity: 0.5, margin: "0 0 4px" }}>Volgende BTW-aangifte</p>
-            <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 500, margin: 0 }}>
-              {vatDeadline.quarter} — uiterlijk {vatDeadline.deadline}
-            </p>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <p style={{ fontSize: "var(--text-display-md)", fontWeight: 700, letterSpacing: "var(--tracking-display)", margin: "0 0 4px" }}>
-              {vatDeadline.daysRemaining}d
-            </p>
-            <p className="label" style={{ opacity: 0.5, margin: 0 }}>
-              {formatCurrency(vatDeadline.estimatedAmount)}
-            </p>
-          </div>
-        </div>
-      )}
+      {/* ══════════════════════════════════════════════════
+          ZONE 2: BTW (OMZETBELASTING)
+      ══════════════════════════════════════════════════ */}
 
-      {/* ── Hero: Netto BTW dit kwartaal ── */}
-      {!btwLoading && current && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
-            {current.netVat >= 0 ? "BTW te betalen dit kwartaal" : "BTW terug te vorderen"}
+      <div style={{
+        borderTop: "0.5px solid rgba(13,13,11,0.08)",
+        paddingTop: "var(--space-section)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        flexWrap: "wrap",
+        gap: 8,
+        margin: "0 0 24px",
+      }}>
+        <h2 className="section-header" style={{ margin: 0 }}>BTW (omzetbelasting)</h2>
+        {vatDeadline && (
+          <p className="label" style={{ margin: 0, opacity: 0.5 }}>
+            Volgende aangifte: {vatDeadline.quarter} — {vatDeadline.daysRemaining} dagen
           </p>
-          <p style={{ fontSize: "var(--text-display-xl)", fontWeight: 700, lineHeight: 0.85, letterSpacing: "var(--tracking-display)", margin: 0 }}>
+        )}
+      </div>
+
+      {/* Hero: netto BTW dit kwartaal */}
+      {btwLoading ? (
+        <SkeletonCard />
+      ) : current ? (
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+            {current.netVat >= 0 ? "Te betalen dit kwartaal" : "Terug te vorderen dit kwartaal"}
+          </p>
+          <p style={{
+            fontSize: "var(--text-display-xl)",
+            fontWeight: 700,
+            lineHeight: 0.85,
+            letterSpacing: "var(--tracking-display)",
+            margin: 0,
+          }}>
             {formatCurrency(Math.abs(current.netVat))}
           </p>
         </div>
-      )}
-
-      {/* ── Stat cards ── */}
-      {btwLoading ? (
-        <div className="editorial-divider" style={{ marginBottom: "var(--space-block)" }}>
-          <div className="stat-cards-grid responsive-grid-3">
-            <SkeletonCard /><SkeletonCard /><SkeletonCard />
-          </div>
-        </div>
-      ) : current ? (
-        <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
-          <div className="stat-cards-grid responsive-grid-3">
-            <StatCard label="Output BTW" value={formatCurrency(current.outputVat)} />
-            <StatCard label="Aftrekbare BTW" value={formatCurrency(current.inputVat)} />
-            <StatCard label="Aantal facturen" value={String(current.invoiceCount)} />
-          </div>
-        </div>
       ) : null}
 
-      {/* ── Kwartaaloverzicht ── */}
-      <h2 className="section-header" style={{ margin: "0 0 16px" }}>Kwartaaloverzicht</h2>
+      {/* Kwartaaloverzicht */}
+      <h3 className="section-header" style={{ margin: "0 0 16px" }}>Kwartaaloverzicht</h3>
 
       {btwLoading ? (
         <SkeletonTable columns="1fr 1fr 1fr 1fr 1fr 1fr" rows={4} headerWidths={[60, 80, 70, 70, 60, 50]} bodyWidths={[50, 70, 60, 60, 50, 40]} />
@@ -293,7 +269,7 @@ export default function TaxPage() {
               <Th>Kwartaal</Th>
               <Th style={{ textAlign: "right" }}>Omzet</Th>
               <Th style={{ textAlign: "right" }}>BTW ontvangen</Th>
-              <Th style={{ textAlign: "right" }}>BTW terug</Th>
+              <Th style={{ textAlign: "right" }}>BTW terugvraagbaar</Th>
               <Th style={{ textAlign: "right" }}>Netto BTW</Th>
               <Th>Status</Th>
             </tr>
@@ -315,44 +291,18 @@ export default function TaxPage() {
         <p className="empty-state">Nog geen gegevens</p>
       )}
 
-      {/* ── Disclaimer ── */}
+      {/* ══ DISCLAIMER ══ */}
       <div style={{ padding: 20, background: "rgba(13,13,11,0.02)", fontSize: 11, fontWeight: 400, lineHeight: 1.6 }}>
-        Dit overzicht is indicatief. Doe je BTW-aangifte via het portaal van de Belastingdienst.
-        Bewaar je facturen en bonnen minimaal 7 jaar.
-        Berekeningen zijn gebaseerd op tarieven {TAX_CONSTANTS.year}:
-        {" "}box 1 schijven {TAX_CONSTANTS.box1Brackets.map(b => `${(b.rate * 100).toFixed(2)}%`).join(" / ")},
-        {" "}zelfstandigenaftrek €{TAX_CONSTANTS.zelfstandigenaftrek.toLocaleString("nl-NL")},
-        {" "}MKB-winstvrijstelling {(TAX_CONSTANTS.mkbVrijstellingRate * 100).toFixed(1)}%.
-        {" "}Heffingskortingen (AHK + arbeidskorting), KIA en afschrijvingen zijn meegenomen.
-        {" "}Afschrijvingen uitgaan van 5 jaar lineair, restwaarde €0.
+        Dit is een schatting op basis van je facturen en bonnetjes.
+        Doe je officiële BTW-aangifte via de Belastingdienst.
+        Bewaar je administratie minimaal 7 jaar.
+        Berekeningen op basis van belastingtarieven {TAX_CONSTANTS.year}.
       </div>
     </div>
   );
 }
 
 // ─── Subcomponenten ───
-
-function YearCard({ label, value, sublabel }: { label: string; value: string; sublabel: string }) {
-  return (
-    <div style={{ background: "var(--background)", padding: 20 }}>
-      <p className="label" style={{ margin: "0 0 8px", opacity: 0.55 }}>{label}</p>
-      <p style={{ fontSize: "var(--text-display-sm)", fontWeight: 700, letterSpacing: "var(--tracking-display)", margin: "0 0 4px" }}>
-        {value}
-      </p>
-      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.45, margin: 0 }}>{sublabel}</p>
-    </div>
-  );
-}
-
-function DeductionItem({ label, value, note }: { label: string; value: string; note: string }) {
-  return (
-    <div>
-      <p className="label" style={{ margin: "0 0 4px", opacity: 0.55 }}>{label}</p>
-      <p className="mono-amount" style={{ margin: "0 0 2px" }}>{value}</p>
-      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4, margin: 0 }}>{note}</p>
-    </div>
-  );
-}
 
 function TipCard({ tip }: { tip: Bespaartip }) {
   return (
@@ -390,9 +340,18 @@ function DepreciationTableRow({ row }: { row: DepreciationRow }) {
 
 // ─── Breakdown componenten ───
 
+function ProjectionStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.5, margin: "0 0 4px" }}>{label}</p>
+      <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-body-lg)" }}>{value}</p>
+    </div>
+  );
+}
+
 function BreakdownSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div style={{ marginBottom: 24 }}>
       <p className="label" style={{ margin: "0 0 10px", opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10 }}>
         {title}
       </p>
