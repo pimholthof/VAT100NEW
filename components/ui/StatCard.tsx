@@ -1,5 +1,5 @@
 import React from "react";
-import { m as motion } from "framer-motion";
+import { m as motion  } from "framer-motion";
 import { AnimatedNumber } from "./AnimatedNumber";
 
 export function StatCard({
@@ -7,35 +7,41 @@ export function StatCard({
   value,
   sub,
   numericValue,
+  isCurrency = true,
 }: {
   label: string;
   value: string;
   sub?: string;
   numericValue?: number;
+  isCurrency?: boolean;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      style={{
-        padding: "28px 32px",
-        display: "flex",
-        flexDirection: "column",
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      style={{ 
+        padding: "28px", 
+        display: "flex", 
+        flexDirection: "column", 
         justifyContent: "space-between",
-        minHeight: 160,
+        gap: 24,
+        minHeight: 200,
         position: "relative",
-        overflow: "visible",
-        border: "0.5px solid rgba(0,0,0,0.06)",
-        background: "var(--background)",
-        transition: "border-color 0.3s ease",
+        overflow: "visible", // To allow vertical label to bleed out if needed
+        border: "var(--border-light)",
+        background: "var(--card-surface, var(--dashboard-surface, var(--background)))",
+        borderRadius: "var(--card-radius, var(--dashboard-surface-radius, 0px))"
       }}
     >
+      <div className="vertical-label">{label}</div>
+
       <div style={{ position: "relative", zIndex: 1 }}>
-        <p className="label" style={{ margin: "0 0 16px", opacity: 0.35 }}>
-          {label}
+        <p className="label" style={{ margin: "0 0 12px" }}>
+          Concept / {label}
         </p>
         <p
+          className="display-hero"
           style={{
             fontSize: "var(--text-display-md)",
             fontWeight: 500,
@@ -45,7 +51,7 @@ export function StatCard({
           }}
         >
           {numericValue !== undefined ? (
-            <AnimatedNumber value={numericValue} isCurrency={true} />
+            <AnimatedNumber value={numericValue} isCurrency={isCurrency} />
           ) : (
             value
           )}
@@ -53,13 +59,16 @@ export function StatCard({
       </div>
 
       {sub && (
-        <div style={{ marginTop: 20 }}>
-          <div style={{ width: 32, height: 0.5, background: "rgba(0,0,0,0.08)", marginBottom: 10 }} />
+        <div style={{ marginTop: "auto" }}>
+          <div style={{ width: 40, height: 1, background: "rgba(0,0,0,0.05)", marginBottom: 12 }} />
           <p
-            className="label"
+            className="mono-amount"
             style={{
+              fontSize: "var(--text-label)",
               margin: 0,
-              opacity: 0.3,
+              textTransform: "uppercase",
+              letterSpacing: "var(--tracking-label)",
+              fontWeight: 500
             }}
           >
             {sub}
@@ -72,9 +81,9 @@ export function StatCard({
 
 export function SkeletonCard() {
   return (
-    <div style={{ padding: "28px 32px", minHeight: 160 }}>
-      <div className="skeleton" style={{ width: "40%", height: 10, marginBottom: 20 }} />
-      <div className="skeleton" style={{ width: "70%", height: 28 }} />
+    <div style={{ padding: "36px 0 28px", opacity: 0.12 }}>
+      <div className="skeleton" style={{ width: "60%", height: 9, marginBottom: 16 }} />
+      <div className="skeleton" style={{ width: "80%", height: 28 }} />
     </div>
   );
 }

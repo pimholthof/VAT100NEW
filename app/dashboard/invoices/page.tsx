@@ -75,7 +75,7 @@ export default function InvoicesPage() {
             download
             className="btn-secondary"
           >
-            Exporteer CSV
+            Download lijst
           </a>
           <Link
             href="/dashboard/invoices/new"

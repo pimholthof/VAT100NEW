@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getProfile, updateProfile, uploadLogo, deleteLogo, getLogoUrl } from "@/features/profile/actions";
+import { getProfile, updateProfile } from "@/features/profile/actions";
 import type { Profile } from "@/lib/types";
-import { FieldGroup, inputStyle, ButtonPrimary, ButtonSecondary, ErrorMessage } from "@/components/ui";
+import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage } from "@/components/ui";
 
 export default function SettingsPage() {
   const { data: result, isLoading } = useQuery({
@@ -31,7 +30,7 @@ export default function SettingsPage() {
     return (
       <div>
         <h1 className="display-title" style={{ margin: "0 0 80px" }}>
-          Instellingen
+          Jouw gegevens
         </h1>
         <ErrorMessage>{result.error}</ErrorMessage>
       </div>
@@ -78,59 +77,27 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
     },
   });
 
-  const [validationError, setValidationError] = useState<string | null>(null);
-
   const handleSave = () => {
     setSuccess(false);
-    setValidationError(null);
-
-    if (!fullName.trim()) {
-      setValidationError("Naam is verplicht.");
-      return;
-    }
-    if (kvkNumber && !/^\d{8}$/.test(kvkNumber.replace(/\s/g, ""))) {
-      setValidationError("KVK-nummer moet 8 cijfers zijn.");
-      return;
-    }
-    if (btwNumber && !/^NL\d{9}B\d{2}$/i.test(btwNumber.replace(/[\s.]/g, ""))) {
-      setValidationError("BTW-nummer moet het formaat NL123456789B01 hebben.");
-      return;
-    }
-    if (iban && !/^[A-Z]{2}\d{2}[A-Z]{4}\d{10}$/i.test(iban.replace(/\s/g, ""))) {
-      setValidationError("IBAN formaat is ongeldig.");
-      return;
-    }
-
     mutation.mutate();
   };
 
   return (
     <div>
       <h1 className="display-title" style={{ margin: "0 0 80px" }}>
-        Instellingen
+        Jouw instellingen
       </h1>
 
-      {(mutation.data?.error || validationError) && (
+      {mutation.data?.error && (
         <ErrorMessage style={{ marginBottom: 24 }}>
-          {validationError || mutation.data?.error}
+          {mutation.data.error}
         </ErrorMessage>
       )}
 
       {success && (
-        <p
-          role="status"
-          aria-live="polite"
-          style={{
-            padding: 16,
-            marginBottom: 24,
-            background: "rgba(0,128,0,0.04)",
-            borderLeft: "2px solid rgba(0,128,0,0.3)",
-            fontSize: 11,
-            fontWeight: 400,
-          }}
-        >
-          Instellingen opgeslagen.
-        </p>
+        <ErrorMessage style={{ marginBottom: 24 }}>
+          Opgeslagen!
+        </ErrorMessage>
       )}
 
       <div style={{ maxWidth: 480 }}>
@@ -145,7 +112,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Je volledige naam"
+              placeholder="Jouw naam"
               style={inputStyle}
             />
           </FieldGroup>
@@ -155,14 +122,11 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               type="text"
               value={studioName}
               onChange={(e) => setStudioName(e.target.value)}
-              placeholder="Naam van je studio of bedrijf"
+              placeholder="Naam van je studio"
               style={inputStyle}
             />
           </FieldGroup>
         </div>
-
-        {/* Logo */}
-        <LogoUpload logoPath={profile?.logo_path ?? null} />
 
         {/* Bedrijfsgegevens */}
         <div style={{ marginBottom: "var(--space-block)" }}>
@@ -191,12 +155,12 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             </FieldGroup>
           </div>
 
-          <FieldGroup label="Adres">
+          <FieldGroup label="Straat + huisnummer">
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Straatnaam en huisnummer"
+              placeholder="Straatnaam 123"
               style={inputStyle}
             />
           </FieldGroup>
@@ -211,12 +175,12 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 style={inputStyle}
               />
             </FieldGroup>
-            <FieldGroup label="Stad">
+            <FieldGroup label="Plaats">
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Stad"
+                placeholder="Amsterdam"
                 style={inputStyle}
               />
             </FieldGroup>
@@ -262,154 +226,10 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             onClick={handleSave}
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "Opslaan..." : "Opslaan"}
+            {mutation.isPending ? "Bezig..." : "Opslaan"}
           </ButtonPrimary>
         </div>
       </div>
-    </div>
-  );
-}
-
-function LogoUpload({ logoPath }: { logoPath: string | null }) {
-  const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (logoPath) {
-      getLogoUrl().then((res) => {
-        if (res.data) setLogoUrl(res.data);
-      });
-    }
-  }, [logoPath]);
-
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    setError(null);
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await uploadLogo(formData);
-    if (res.error) {
-      setError(res.error);
-    } else {
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
-      // Haal nieuwe signed URL op
-      const urlRes = await getLogoUrl();
-      if (urlRes.data) setLogoUrl(urlRes.data);
-    }
-    setUploading(false);
-  };
-
-  const handleDelete = async () => {
-    setUploading(true);
-    setError(null);
-    const res = await deleteLogo();
-    if (res.error) {
-      setError(res.error);
-    } else {
-      setLogoUrl(null);
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    }
-    setUploading(false);
-  };
-
-  return (
-    <div style={{ marginBottom: "var(--space-block)" }}>
-      <p
-        className="label-strong"
-        style={{
-          margin: "0 0 28px",
-          paddingTop: 12,
-          borderTop: "0.5px solid rgba(13,13,11,0.15)",
-        }}
-      >
-        Logo
-      </p>
-
-      {error && <ErrorMessage style={{ marginBottom: 16 }}>{error}</ErrorMessage>}
-
-      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-        {logoUrl ? (
-          <div
-            style={{
-              position: "relative",
-              width: 80,
-              height: 80,
-              border: "0.5px solid rgba(13,13,11,0.1)",
-            }}
-          >
-            <Image
-              src={logoUrl}
-              alt="Bedrijfslogo"
-              fill
-              style={{ objectFit: "contain" }}
-              unoptimized
-            />
-          </div>
-        ) : (
-          <div
-            style={{
-              width: 80,
-              height: 80,
-              border: "0.5px dashed rgba(13,13,11,0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 10,
-              opacity: 0.3,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Geen logo
-          </div>
-        )}
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/svg+xml"
-            style={{ display: "none" }}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleUpload(file);
-            }}
-          />
-          <ButtonSecondary
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-          >
-            {uploading ? "Uploaden..." : logoUrl ? "Wijzig logo" : "Upload logo"}
-          </ButtonSecondary>
-          {logoUrl && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={uploading}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "var(--text-label)",
-                fontWeight: 500,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                opacity: 0.3,
-                padding: 0,
-                color: "var(--foreground)",
-              }}
-            >
-              Verwijder
-            </button>
-          )}
-        </div>
-      </div>
-      <p style={{ fontSize: 11, opacity: 0.3, marginTop: 12 }}>
-        PNG, JPG of SVG — max 2MB. Wordt getoond op facturen en offertes.
-      </p>
     </div>
   );
 }

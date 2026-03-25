@@ -1,8 +1,7 @@
 "use client";
 
-import { m as motion } from "framer-motion";
+import { m as motion  } from "framer-motion";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import { SafeToSpendRing } from "./SafeToSpendRing";
 import { formatCurrency } from "@/lib/format";
 
 interface FiscalPulseProps {
@@ -14,75 +13,54 @@ interface FiscalPulseProps {
 export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPulseProps) {
   if (isLoading) {
     return (
-      <div style={{ padding: "48px", height: 280, border: "0.5px solid rgba(0,0,0,0.06)" }}>
-        <div className="skeleton" style={{ width: "30%", height: 10, marginBottom: 24 }} />
-        <div className="skeleton" style={{ width: "60%", height: 48 }} />
-      </div>
+      <div style={{ padding: "80px 100px", height: 320, opacity: 0.1, border: "var(--border-light)", borderRadius: "var(--dashboard-surface-radius, 14px)" }} />
     );
   }
 
-  const ratio = currentBalance > 0 ? safeToSpend / currentBalance : 0;
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      style={{
-        padding: "clamp(32px, 6vw, 80px) clamp(24px, 5vw, 80px)",
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      style={{ 
+        padding: "80px 100px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: "clamp(24px, 4vw, 80px)",
         position: "relative",
-        minHeight: 240,
-        border: "0.5px solid rgba(0,0,0,0.06)",
-        background: "var(--background)",
-        flexWrap: "wrap",
+        minHeight: 320,
+        border: "var(--border-light)",
+        background: "var(--dashboard-surface, var(--background))",
+        borderRadius: "var(--dashboard-surface-radius, 14px)"
       }}
     >
-      <div style={{ flex: 1, minWidth: 200 }}>
-        <p className="label" style={{ marginBottom: 20, opacity: 0.3 }}>Netto Liquiditeit</p>
-        <div>
-          <AnimatedNumber
-            value={safeToSpend}
+      <div className="vertical-label">Jouw balans</div>
+      
+      <div style={{ flex: 1 }}>
+        <p className="label" style={{ marginBottom: 20 }}>Wat je vrij kunt besteden</p>
+        <div style={{ position: "relative" }}>
+          <AnimatedNumber 
+            value={safeToSpend} 
             style={{
-              fontSize: "clamp(3rem, 10vw, 8rem)",
+              
+              fontSize: "clamp(4rem, 12vw, 10rem)",
               fontWeight: 500,
-              lineHeight: 0.85,
-              letterSpacing: "-0.03em",
-              color: "var(--foreground)",
+              lineHeight: 0.8,
+              letterSpacing: "-0.02em",
+              color: "var(--foreground)"
             }}
           />
-          <p className="label" style={{
-            marginTop: 16,
-            opacity: 0.25,
+          <p className="mono-amount" style={{ 
+            position: "absolute", 
+            bottom: -48, 
+            left: 0, 
+            fontSize: "var(--text-label)",
+            letterSpacing: "var(--tracking-label)",
+            textTransform: "uppercase",
+            fontWeight: 500
           }}>
-            Beschikbaar / {formatCurrency(currentBalance)} saldo
+            Vrij te besteden / {formatCurrency(currentBalance)}
           </p>
-        </div>
-      </div>
-
-      <div style={{ position: "relative", flexShrink: 0 }}>
-        <SafeToSpendRing
-          percentage={ratio}
-          size={180}
-          strokeWidth={1.5}
-        />
-        <div style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          textAlign: "center",
-        }}>
-          <p className="label" style={{ margin: 0, opacity: 0.3 }}>Ratio</p>
-          <p style={{
-            fontSize: "2.2rem",
-            fontWeight: 600,
-            margin: "4px 0 0",
-            letterSpacing: "-0.02em",
-          }}>{Math.round(ratio * 100)}%</p>
         </div>
       </div>
     </motion.div>

@@ -63,7 +63,7 @@ export default function OnboardingPage() {
             opacity: 0.4,
           }}
         >
-          Vul je bedrijfsgegevens aan
+          Vul je bedrijfsgegevens in
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
@@ -155,7 +155,7 @@ export default function OnboardingPage() {
               transition: "opacity 0.15s ease",
             }}
           >
-            {pending ? "Bezig..." : "Opslaan & doorgaan"}
+            {pending ? "Bezig..." : "Opslaan en doorgaan"}
           </button>
         </form>
       </div>

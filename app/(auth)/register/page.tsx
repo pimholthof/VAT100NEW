@@ -4,17 +4,17 @@ import { register } from "../actions";
 import Link from "next/link";
 import { useState } from "react";
 
-const inputStyle: React.CSSProperties = {
+const textInputStyle: React.CSSProperties = {
+  fontFamily: "var(--font-body), sans-serif",
   fontSize: "13px",
-  fontWeight: 400,
+  fontWeight: 300,
   padding: "14px 0",
   border: "none",
-  borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+  borderBottom: "0.5px solid rgba(13,13,11,0.12)",
   background: "transparent",
   color: "var(--foreground)",
   outline: "none",
   width: "100%",
-  transition: "border-color 0.2s ease",
 };
 
 export default function RegisterPage() {
@@ -26,8 +26,11 @@ export default function RegisterPage() {
     setError(null);
 
     const form = e.currentTarget;
-    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
-    const confirm = (form.elements.namedItem("confirm_password") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement)
+      .value;
+    const confirm = (
+      form.elements.namedItem("confirm_password") as HTMLInputElement
+    ).value;
 
     if (password !== confirm) {
       setError("Wachtwoorden komen niet overeen.");
@@ -47,7 +50,7 @@ export default function RegisterPage() {
   return (
     <div
       style={{
-        minHeight: "100dvh",
+        minHeight: "100vh",
         display: "grid",
         alignItems: "center",
         justifyItems: "center",
@@ -61,14 +64,15 @@ export default function RegisterPage() {
         aria-hidden="true"
         style={{
           position: "absolute",
-          bottom: -60,
-          right: -40,
-          fontSize: "min(20rem, 35vw)",
-          fontWeight: 800,
-          letterSpacing: "-0.05em",
+          top: -40,
+          left: -20,
+          fontFamily: "var(--font-display), sans-serif",
+          fontSize: "min(14rem, 28vw)",
+          fontWeight: 700,
+          letterSpacing: "var(--tracking-display)",
           lineHeight: 0.85,
           color: "var(--foreground)",
-          opacity: 0.02,
+          opacity: 0.04,
           pointerEvents: "none",
           userSelect: "none",
           whiteSpace: "nowrap",
@@ -77,64 +81,64 @@ export default function RegisterPage() {
         VAT100
       </div>
 
-      <div style={{ width: "100%", maxWidth: 320, position: "relative", zIndex: 1 }}>
+      <div style={{ width: "100%", maxWidth: 340, position: "relative", zIndex: 1 }}>
         <h1
           style={{
-            fontSize: "clamp(3rem, 10vw, 6rem)",
-            fontWeight: 800,
-            letterSpacing: "-0.04em",
+            fontFamily: "var(--font-display), sans-serif",
+            fontSize: "var(--text-display-xl)",
+            fontWeight: 700,
+            letterSpacing: "var(--tracking-display)",
             lineHeight: 0.85,
             margin: 0,
           }}
         >
-          Systeem
-          <br />Toegang
+          Account
+          <br/>Aanmaken
         </h1>
         <p
           className="label"
           style={{
-            marginTop: 20,
-            marginBottom: 64,
-            opacity: 0.3,
+            marginTop: 24,
+            marginBottom: 72,
+            letterSpacing: "var(--tracking-caps)",
+            opacity: 0.4,
           }}
         >
-          Start je dossier
+          Begin met je administratie
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 36 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="full_name" className="label" style={{ opacity: 0.35 }}>Volledige naam</label>
-            <input id="full_name" name="full_name" type="text" required autoComplete="name" style={inputStyle} />
+            <label htmlFor="full_name" className="label">Volledige naam</label>
+            <input id="full_name" name="full_name" type="text" required autoComplete="name" style={textInputStyle} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="studio_name" className="label" style={{ opacity: 0.35 }}>Studionaam</label>
-            <input id="studio_name" name="studio_name" type="text" required placeholder="bijv. Studio Kowalski" autoComplete="organization" style={inputStyle} />
+            <label htmlFor="studio_name" className="label">Studionaam</label>
+            <input id="studio_name" name="studio_name" type="text" required placeholder="bijv. Maya Kowalski Studio" autoComplete="organization" style={textInputStyle} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="email" className="label" style={{ opacity: 0.35 }}>E-mail</label>
-            <input id="email" name="email" type="email" required autoComplete="email" style={inputStyle} />
+            <label htmlFor="email" className="label">E-mail</label>
+            <input id="email" name="email" type="email" required autoComplete="email" style={{ ...textInputStyle }} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="password" className="label" style={{ opacity: 0.35 }}>Wachtwoord</label>
-            <input id="password" name="password" type="password" required minLength={6} autoComplete="new-password" style={inputStyle} />
+            <label htmlFor="password" className="label">Wachtwoord</label>
+            <input id="password" name="password" type="password" required minLength={6} autoComplete="new-password" style={textInputStyle} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="confirm_password" className="label" style={{ opacity: 0.35 }}>Wachtwoord bevestigen</label>
-            <input id="confirm_password" name="confirm_password" type="password" required minLength={6} autoComplete="new-password" style={inputStyle} />
+            <label htmlFor="confirm_password" className="label">Wachtwoord bevestigen</label>
+            <input id="confirm_password" name="confirm_password" type="password" required minLength={6} autoComplete="new-password" style={textInputStyle} />
           </div>
 
           {error && (
             <div
-              role="alert"
               style={{
-                padding: "12px 16px",
-                background: "rgba(165, 28, 48, 0.04)",
-                borderLeft: "2px solid var(--color-accent)",
-                fontSize: "12px",
+                padding: 16,
+                background: "rgba(13,13,11,0.02)",
+                fontSize: "11px",
               }}
             >
               {error}
@@ -144,13 +148,22 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={pending}
-            className="btn-primary"
             style={{
-              padding: "20px",
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-label)",
+              fontWeight: 500,
+              letterSpacing: "0.10em",
+              textTransform: "uppercase",
+              padding: 24,
+              border: "none",
+              background: "var(--foreground)",
+              color: "var(--background)",
+              cursor: "pointer",
               width: "100%",
+              transition: "opacity 0.15s ease",
             }}
           >
-            {pending ? "Systeem configureren..." : "Account Aanmaken"}
+            {pending ? "Even wachten..." : "Account aanmaken"}
           </button>
         </form>
 
@@ -158,18 +171,18 @@ export default function RegisterPage() {
           className="label"
           style={{
             marginTop: 40,
-            opacity: 0.3,
+            opacity: 0.4,
           }}
         >
-          Al een dossier?{" "}
+          Al een account?{" "}
           <Link
             href="/login"
             style={{
-              fontWeight: 600,
+              fontWeight: 500,
               color: "var(--foreground)",
               textDecoration: "none",
               opacity: 1,
-              borderBottom: "0.5px solid rgba(0,0,0,0.2)",
+              borderBottom: "0.5px solid rgba(13,13,11,0.3)",
               paddingBottom: 1,
             }}
           >

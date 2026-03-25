@@ -4,7 +4,7 @@ import type {
   InvoiceLineInput,
   VatRate,
 } from "@/lib/types";
-import { calculateLineTotals } from "@/lib/format";
+import { calculateInvoiceTotals } from "@/lib/logic/invoice-calculations";
 
 function createEmptyLine(): InvoiceLineInput {
   return {
@@ -23,7 +23,7 @@ interface InvoiceTotals {
 }
 
 function calcTotals(lines: InvoiceLineInput[], vatRate: VatRate): InvoiceTotals {
-  const vat = calculateLineTotals(lines, vatRate);
+  const vat = calculateInvoiceTotals(lines, vatRate);
   return {
     subtotal: vat.subtotalExVat,
     vatAmount: vat.vatAmount,

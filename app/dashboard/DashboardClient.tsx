@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { m as motion, type Variants } from "framer-motion";
+import { m as motion , type Variants } from "framer-motion";
 import {
   getDashboardData,
   type DashboardData,
@@ -20,6 +20,8 @@ import { QuickReceiptUpload } from "@/features/dashboard/components/QuickReceipt
 import { CashflowChart } from "@/features/dashboard/components/CashflowChart";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
 
+
+
 export default function DashboardClient({
   initialResult,
 }: {
@@ -33,28 +35,59 @@ export default function DashboardClient({
 
   const data = dashboardResult?.data;
   const stats = data?.stats;
+
   const upcomingInvoices = data?.upcomingInvoices;
   const cashflow = data?.cashflow;
   const safeToSpend = data?.safeToSpend;
+  const vatDeadline = data?.vatDeadline;
+
+  const urgentInvoiceCount = upcomingInvoices?.filter((invoice) => invoice.days_overdue > 0).length ?? 0;
+  const upcomingInvoiceAmount = upcomingInvoices?.reduce((sum, invoice) => sum + invoice.total_inc_vat, 0) ?? 0;
+  const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.days_overdue <= 0);
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 16 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
+
+  const heroMessage = urgentInvoiceCount > 0
+    ? `${urgentInvoiceCount} fact${urgentInvoiceCount === 1 ? "uur is" : "uren zijn"} te laat en vragen vandaag aandacht.`
+    : nextInvoiceDue
+      ? `De volgende betaaldeadline is voor ${nextInvoiceDue.client_name} op ${new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))}.`
+      : "Je hebt op dit moment geen facturen die op korte termijn aandacht nodig hebben.";
 
   useEffect(() => {
     const startHum = () => {
-      import("@/lib/utils/sound").then(({ playAmbient }) => playAmbient());
-      window.removeEventListener("click", startHum);
-      window.removeEventListener("keydown", startHum);
+      import('@/lib/utils/sound').then(({ playAmbient }) => playAmbient());
+      window.removeEventListener('click', startHum);
+      window.removeEventListener('keydown', startHum);
     };
-    window.addEventListener("click", startHum);
-    window.addEventListener("keydown", startHum);
+    window.addEventListener('click', startHum);
+    window.addEventListener('keydown', startHum);
     return () => {
-      window.removeEventListener("click", startHum);
-      window.removeEventListener("keydown", startHum);
+      window.removeEventListener('click', startHum);
+      window.removeEventListener('keydown', startHum);
     };
   }, []);
+
+  if (dashboardResult?.error) {
+    return (
+      <div className="brutalist-panel brutalist-panel-padded">
+        <p className="label" style={{ margin: 0 }}>Dashboard</p>
+        <p
+          style={{
+            fontSize: "var(--text-display-sm)",
+            fontWeight: 600,
+            lineHeight: 1.1,
+            margin: "12px 0 0",
+            maxWidth: "24rem",
+          }}
+        >
+          {dashboardResult.error}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -64,113 +97,156 @@ export default function DashboardClient({
         hidden: {},
         show: {
           transition: {
-            staggerChildren: 0.08,
+            staggerChildren: 0.12,
           },
         },
       }}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--space-section, 48px)",
-        paddingBottom: 80,
-      }}
+      className="dashboard-content-inner dashboard-home"
     >
-      {/* Quick Upload + Metrics */}
+      {/* ── TOP ROW: QUICK ACTION + METRICS ── */}
       {!isLoading && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <motion.div variants={itemVariants}>
-            <QuickReceiptUpload />
-          </motion.div>
-
-          {stats && (
-            <div className="responsive-grid-3">
-              <motion.div variants={itemVariants}>
-                <StatCard
-                  label="Omzet deze maand"
-                  value={formatCurrency(stats.revenueThisMonth)}
-                  numericValue={stats.revenueThisMonth}
-                />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <StatCard
-                  label="Openstaand"
-                  value={String(stats.openInvoiceCount)}
-                  numericValue={stats.openInvoiceCount}
-                  sub={formatCurrency(stats.openInvoiceAmount)}
-                />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <StatCard
-                  label="BTW-Reserve"
-                  value={formatCurrency(stats.vatToPay)}
-                  numericValue={stats.vatToPay}
-                  sub="Q-Prognose"
-                />
-              </motion.div>
+        <div className="dashboard-home-hero">
+          <motion.div variants={itemVariants} className="brutalist-panel brutalist-panel-padded dashboard-home-hero-copy">
+            <div>
+              <p className="label" style={{ margin: 0 }}>Vandaag</p>
+              <h1 className="dashboard-home-title">Alles wat je studio vandaag nodig heeft.</h1>
+              <p className="dashboard-home-intro">{heroMessage}</p>
             </div>
-          )}
+
+            <div className="dashboard-home-hero-meta">
+              <div className="dashboard-home-meta-item">
+                <span className="label">Vrij besteedbaar</span>
+                <span className="dashboard-home-meta-value">
+                  {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
+                </span>
+                <p className="dashboard-home-meta-sub">
+                  Saldo {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "nog niet beschikbaar"}
+                </p>
+              </div>
+
+              <div className="dashboard-home-meta-item">
+                <span className="label">BTW deadline</span>
+                <span className="dashboard-home-meta-value">
+                  {vatDeadline ? `${vatDeadline.daysRemaining} dagen` : "—"}
+                </span>
+                <p className="dashboard-home-meta-sub">
+                  {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : "Geen deadline gevonden"}
+                </p>
+              </div>
+
+              <div className="dashboard-home-meta-item">
+                <span className="label">Openstaand bedrag</span>
+                <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
+                <p className="dashboard-home-meta-sub">
+                  {urgentInvoiceCount > 0
+                    ? `${urgentInvoiceCount} achterstallig`
+                    : `${upcomingInvoices?.length ?? 0} facturen op korte termijn`}
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       )}
 
-      {/* Fiscal Pulse */}
+      {stats && !isLoading && (
+        <div className="dashboard-home-kpi-grid">
+          <motion.div variants={itemVariants}>
+            <StatCard
+              label="Omzet deze maand"
+              value={formatCurrency(stats.revenueThisMonth)}
+              numericValue={stats.revenueThisMonth}
+              sub="Betaald deze maand"
+            />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <StatCard
+              label="Openstaande facturen"
+              value={String(stats.openInvoiceCount)}
+              numericValue={stats.openInvoiceCount}
+              isCurrency={false}
+              sub={formatCurrency(stats.openInvoiceAmount)}
+            />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <StatCard
+              label="Bonnetjes verwerkt"
+              value={String(stats.receiptsThisMonth)}
+              numericValue={stats.receiptsThisMonth}
+              isCurrency={false}
+              sub="Deze maand"
+            />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <StatCard
+              label="BTW apart zetten"
+              value={formatCurrency(stats.vatToPay)}
+              numericValue={stats.vatToPay}
+              sub={vatDeadline ? vatDeadline.deadline : "Dit kwartaal"}
+            />
+          </motion.div>
+        </div>
+      )}
+
+      {/* ── FISCAL PULSE ── */}
       {safeToSpend && !isLoading && (
         <motion.div variants={itemVariants}>
-          <FiscalPulse
-            safeToSpend={safeToSpend.safeToSpend}
-            currentBalance={safeToSpend.currentBalance}
+          <FiscalPulse 
+            safeToSpend={safeToSpend.safeToSpend} 
+            currentBalance={safeToSpend.currentBalance} 
             isLoading={isLoading}
           />
         </motion.div>
       )}
 
-      {/* Action Feed */}
-      {!isLoading && (
-        <motion.div
-          variants={itemVariants}
-          style={{
-            background: "var(--background)",
-            height: 380,
-            border: "0.5px solid rgba(0,0,0,0.06)",
-            display: "flex",
-            flexDirection: "column",
-            position: "relative",
-          }}
-        >
-          <div style={{ padding: "20px 24px", borderBottom: "0.5px solid rgba(0,0,0,0.04)" }}>
-            <p className="label" style={{ opacity: 0.3 }}>Anticipatieprotocol</p>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 20px" }}>
-            <ActionFeed />
-          </div>
-        </motion.div>
-      )}
+      {/* ── ACTION FEED ── */}
+      {(!isLoading || cashflow) && (
+        <div className="dashboard-home-analysis-grid">
+          {!isLoading && (
+            <motion.div 
+              variants={itemVariants}
+              className="flex flex-col relative brutalist-panel"
+            >
+              <div className="vertical-label brutalist-label">AI-assistent</div>
+              <div className="brutalist-panel-header">
+                <p className="label" style={{ margin: 0 }}>Wat je nog moet checken</p>
+                <p className="dashboard-home-panel-copy">Taken, suggesties en herinneringen die nog een keuze van je nodig hebben.</p>
+              </div>
+              <div className="brutalist-panel-content dashboard-home-feed-content">
+                <ActionFeed />
+              </div>
+            </motion.div>
+          )}
 
-      {/* Cashflow */}
-      {cashflow && (
-        <motion.div
-          variants={itemVariants}
-          style={{ padding: 24, border: "0.5px solid rgba(0,0,0,0.06)" }}
-        >
-          <div style={{ marginBottom: 28 }}>
-            <p className="label" style={{ opacity: 0.3 }}>Liquiditeit / Prognose</p>
-          </div>
-          <CashflowChart cashflow={cashflow} />
-        </motion.div>
-      )}
-
-      {/* Open Invoices */}
-      <motion.div variants={itemVariants}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 20,
-          marginBottom: 32,
-        }}>
-          <h2 className="section-header" style={{ opacity: 0.4, whiteSpace: "nowrap" }}>
-            Openstaand
-          </h2>
-          <span style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.04)" }} />
+          {/* ── CASHFLOW ── */}
+          {cashflow && (
+            <motion.div 
+              variants={itemVariants}
+              className="brutalist-panel brutalist-panel-padded"
+            >
+              <div className="brutalist-panel-header minimal">
+                <p className="label" style={{ margin: 0 }}>Geld in kas</p>
+                <p className="dashboard-home-panel-copy">Een snelle blik op je omzetritme over de afgelopen zes maanden.</p>
+              </div>
+              <CashflowChart cashflow={cashflow} />
+            </motion.div>
+          )}
         </div>
+      )}
+
+      {!isLoading && (
+        <motion.div variants={itemVariants} className="dashboard-home-upload-row">
+          <div className="dashboard-home-upload-card">
+            <QuickReceiptUpload />
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── OPEN INVOICES ── */}
+      <motion.div variants={itemVariants}>
+        <h2 className="brutalist-section-title">
+          <span>Openstaande facturen</span>
+          <span className="brutalist-rule" />
+        </h2>
         {isLoading ? (
           <SkeletonTable />
         ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
@@ -179,6 +255,7 @@ export default function DashboardClient({
           <p className="empty-state">Geen openstaande facturen</p>
         )}
       </motion.div>
+
     </motion.div>
   );
 }

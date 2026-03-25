@@ -3,6 +3,7 @@
 import { memo } from "react";
 import type { InvoiceLineInput, InvoiceUnit } from "@/lib/types";
 import { playSound } from "@/lib/utils/sound";
+import { calculateInvoiceLineAmount } from "@/lib/logic/invoice-calculations";
 
 interface InvoiceLineRowProps {
   line: InvoiceLineInput;
@@ -24,7 +25,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
   onUpdate,
   onRemove,
 }: InvoiceLineRowProps) {
-  const amount = Math.round(line.quantity * line.rate * 100) / 100;
+  const amount = calculateInvoiceLineAmount(line);
 
   return (
     <div

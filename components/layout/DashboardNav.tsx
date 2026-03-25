@@ -2,10 +2,8 @@
 
 import { useState, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useInvoiceStore } from "@/lib/store/invoice";
-import { useQuoteStore } from "@/lib/store/quote";
 import { m as motion, AnimatePresence } from "framer-motion";
 
 function useIsMobile(breakpoint = 768) {
@@ -24,101 +22,41 @@ function useIsMobile(breakpoint = 768) {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "OVERZICHT", match: (p: string) => p === "/dashboard" },
-  { href: "/dashboard/quotes", label: "OFFERTES", match: (p: string) => p.startsWith("/dashboard/quotes") },
-  { href: "/dashboard/invoices", label: "FACTUREN", match: (p: string) => p.startsWith("/dashboard/invoices") },
-  { href: "/dashboard/clients", label: "KLANTEN", match: (p: string) => p.startsWith("/dashboard/clients") },
-] as const;
-
-const SYSTEM_ITEMS = [
-  { href: "/dashboard/bank", label: "TRANSACTIES", match: (p: string) => p.startsWith("/dashboard/bank") },
-  { href: "/dashboard/tax", label: "BELASTING", match: (p: string) => p.startsWith("/dashboard/tax") },
-  { href: "/dashboard/settings", label: "INSTELLINGEN", match: (p: string) => p.startsWith("/dashboard/settings") },
-  { href: "/dashboard/receipts", label: "BONNEN", match: (p: string) => p.startsWith("/dashboard/receipts") },
-] as const;
-
 export function DashboardNav({
   studioName,
 }: {
   studioName?: string;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
 
   async function handleLogout() {
-    useInvoiceStore.getState().resetForm();
-    useQuoteStore.getState().resetForm();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
   }
 
-  const closeDrawer = () => setIsDrawerOpen(false);
-
   return (
-    <div style={{ position: "sticky", top: 0, zIndex: 1000, background: "var(--background)" }}>
-      <header style={{ padding: isMobile ? "0 20px" : "0 48px" }}>
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          height: isMobile ? 64 : 80,
-          borderBottom: isDrawerOpen ? "none" : "0.5px solid rgba(0,0,0,0.06)",
-        }}>
-          <Link
-            href="/dashboard"
-            style={{
-              fontSize: isMobile ? "1.25rem" : "1.5rem",
-              fontWeight: 800,
-              letterSpacing: "-0.05em",
-              color: "var(--foreground)",
-              textDecoration: "none",
-            }}
-          >
-            VAT100
-          </Link>
+    <div className="dashboard-nav">
+      <header className="dashboard-nav-header">
+        <div className="dashboard-nav-inner">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="display-hero dashboard-nav-brand">
+              VAT100
+            </Link>
+          </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 24 }}>
-            {!isMobile && studioName && (
-              <span className="label" style={{ opacity: 0.3 }}>{studioName}</span>
-            )}
+          <div className="dashboard-nav-actions">
             {!isMobile && (
-              <button
-                onClick={() => {
-                  window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
-                }}
-                className="label"
-                style={{
-                  background: "rgba(0,0,0,0.02)",
-                  border: "0.5px solid rgba(0,0,0,0.06)",
-                  padding: "5px 10px",
-                  cursor: "pointer",
-                  opacity: 0.35,
-                  fontSize: 10,
-                  color: "var(--foreground)",
-                }}
-                title="Zoeken (⌘K)"
-              >
-                ⌘K
-              </button>
+              <span className="label opacity-40">{studioName}</span>
             )}
             <button
               onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-              className="label-strong"
-              style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: "4px 0",
-                borderBottom: isDrawerOpen ? "1px solid var(--foreground)" : "1px solid transparent",
-                transition: "border-color 0.2s ease",
-                color: "var(--foreground)",
-              }}
+              className="label-strong dashboard-nav-menu"
+              data-open={isDrawerOpen}
             >
-              {isDrawerOpen ? "SLUITEN" : "MENU"}
+              {isDrawerOpen ? "CLOSE" : "MENU"}
             </button>
           </div>
         </div>
@@ -130,92 +68,44 @@ export function DashboardNav({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            style={{
-              overflow: "hidden",
-              background: "var(--background)",
-              borderBottom: "0.5px solid rgba(0,0,0,0.06)",
-            }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="dashboard-drawer"
           >
-            <nav style={{
-              padding: isMobile ? "32px 20px 40px" : "48px 48px 56px",
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
-              gap: isMobile ? "36px" : "48px",
-            }}>
-              {/* Column 1: Index */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <span className="label" style={{ marginBottom: 12, opacity: 0.3 }}>Index</span>
-                {NAV_ITEMS.map(item => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={closeDrawer}
-                    aria-current={item.match(pathname) ? "page" : undefined}
-                    style={{
-                      fontSize: isMobile ? "1.5rem" : "2rem",
-                      fontWeight: 700,
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1.1,
-                      textDecoration: "none",
-                      color: "var(--foreground)",
-                      opacity: item.match(pathname) ? 1 : 0.25,
-                      transition: "opacity 0.2s ease",
-                    }}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+            <div className="dashboard-drawer-inner">
+              
+              {/* Navigation Column 1 */}
+              <div className="dashboard-drawer-col">
+                <span className="label mb-4">Menu</span>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">Overzicht</Link>
+                <Link href="/dashboard/quotes" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Offertes</Link>
+                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
+                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
               </div>
 
-              {/* Column 2: Systemen */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <span className="label" style={{ marginBottom: 12, opacity: 0.3 }}>Systemen</span>
-                {SYSTEM_ITEMS.map(item => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={closeDrawer}
-                    aria-current={item.match(pathname) ? "page" : undefined}
-                    style={{
-                      fontSize: isMobile ? "1.5rem" : "2rem",
-                      fontWeight: 700,
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1.1,
-                      textDecoration: "none",
-                      color: "var(--foreground)",
-                      opacity: item.match(pathname) ? 1 : 0.25,
-                      transition: "opacity 0.2s ease",
-                    }}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+              {/* Navigation Column 2 */}
+              <div className="dashboard-drawer-col">
+                <span className="label mb-4">Geld</span>
+                <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Transacties</Link>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
               </div>
 
-              {/* Column 3: Sessie */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: isMobile ? "flex-start" : "flex-end" }}>
-                <span className="label" style={{ marginBottom: 12, opacity: 0.3 }}>Sessie</span>
+              {/* Action Column */}
+              <div className="dashboard-drawer-col dashboard-drawer-col-end">
+                <span className="label mb-4">Account</span>
                 {isMobile && studioName && (
-                  <span className="label" style={{ opacity: 0.3 }}>{studioName}</span>
+                  <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="label-strong"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                    opacity: 0.4,
-                    color: "var(--foreground)",
-                  }}
+                  className="drawer-logout"
                 >
-                  VERLATEN
+                  Uitloggen
                 </button>
               </div>
-            </nav>
+
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

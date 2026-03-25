@@ -1,10 +1,14 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { m as motion } from "framer-motion";
+import { m as motion  } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/features/receipts/actions";
 
+/**
+ * QuickReceiptUpload — A drag-and-drop "snap & go" receipt uploader
+ * for the dashboard. Drop a photo → AI extracts data → receipt is created.
+ */
 export function QuickReceiptUpload() {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -17,6 +21,7 @@ export function QuickReceiptUpload() {
       setStatus("uploading");
       setMessage("SYSTEEM INITIALISEREN...");
 
+      // 1. Create a placeholder receipt
       const receiptResult = await createReceipt({
         vendor_name: null,
         amount_ex_vat: 0,
@@ -32,6 +37,7 @@ export function QuickReceiptUpload() {
 
       const receiptId = receiptResult.data.id;
 
+      // 2. Upload the image
       const formData = new FormData();
       formData.append("file", file);
       const uploadResult = await uploadReceiptImage(receiptId, formData);
@@ -39,16 +45,19 @@ export function QuickReceiptUpload() {
         throw new Error(uploadResult.error);
       }
 
+      // 3. Scan with AI
       setStatus("scanning");
-      setMessage("VISION AI EXTRAGEERT DATA...");
+      setMessage("Bezig met scannen...");
       const scanResult = await scanReceiptWithAI(receiptId);
 
       if (scanResult.error) {
+        // Receipt is still saved, just not AI-enriched
         setStatus("done");
-        setMessage("DOCUMENT OPGESLAGEN (EXTRACTIE MISLUKT).");
+        setMessage("Bon opgeslagen (AI kon niet alles lezen).");
         return;
       }
 
+      // 4. Update receipt with AI data
       if (scanResult.data) {
         const { updateReceipt } = await import("@/features/receipts/actions");
         await updateReceipt(receiptId, {
@@ -68,7 +77,7 @@ export function QuickReceiptUpload() {
       setMessage(
         scanResult.data?.vendor_name
           ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
-          : "DOCUMENT GEREGISTREERD."
+          : "Bon verwerkt."
       );
     },
     onError: (err) => {
@@ -78,6 +87,7 @@ export function QuickReceiptUpload() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
+      // Auto-reset after 4 seconds
       setTimeout(() => {
         setStatus("idle");
         setMessage("");
@@ -89,7 +99,7 @@ export function QuickReceiptUpload() {
     (file: File) => {
       if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
         setStatus("error");
-        setMessage("ALLEEN AFBEELDING OF PDF TOEGESTAAN.");
+        setMessage("Alleen afbeeldingen of PDF's. Probeer opnieuw.");
         return;
       }
       processMutation.mutate(file);
@@ -119,13 +129,17 @@ export function QuickReceiptUpload() {
       onClick={() => status === "idle" && fileRef.current?.click()}
       style={{
         border: isDragging
-          ? "1.5px solid var(--color-black)"
-          : "0.5px solid rgba(0,0,0,0.06)",
-        padding: "20px 24px",
+          ? "2px solid var(--color-black)"
+          : "var(--border-light)",
+        padding: 24,
         textAlign: "center",
         cursor: status === "idle" ? "pointer" : "default",
         transition: "all 0.2s ease",
-        background: isDragging ? "rgba(0,0,0,0.01)" : "transparent",
+        background: isDragging
+          ? "var(--dashboard-surface-strong, rgba(0,0,0,0.04))"
+          : "var(--dashboard-surface, rgba(0,0,0,0.02))",
+        borderRadius: "var(--dashboard-surface-radius, 14px)",
+        marginBottom: "var(--quick-upload-margin-bottom, var(--space-section))",
       }}
     >
       <input
@@ -141,15 +155,25 @@ export function QuickReceiptUpload() {
       />
 
       {status === "idle" && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-          <p className="label" style={{ margin: 0, opacity: 0.3 }}>
-            Drop document voor AI-verwerking
+        <>
+          <p
+            style={{
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-body-md)",
+              fontWeight: 500,
+              margin: "0 0 4px",
+            }}
+          >
+            Sleep je bon hierheen
           </p>
-        </div>
+          <p className="label" style={{ opacity: 0.5, margin: 0 }}>
+            Foto of PDF wordt automatisch uitgelezen
+          </p>
+        </>
       )}
 
       {(status === "uploading" || status === "scanning") && (
-        <div style={{ position: "relative", overflow: "hidden", margin: "-20px -24px", padding: "20px 24px" }}>
+        <div style={{ position: "relative", overflow: "hidden", margin: "-24px", padding: "24px" }}>
           {status === "scanning" && (
             <motion.div
               initial={{ top: "0%" }}
@@ -159,26 +183,49 @@ export function QuickReceiptUpload() {
                 position: "absolute",
                 left: 0,
                 right: 0,
-                height: "1.5px",
+                height: "2px",
                 background: "linear-gradient(to right, transparent, var(--color-accent), transparent)",
                 zIndex: 10,
+                boxShadow: "0 0 15px var(--color-accent)",
               }}
             />
           )}
-          <p className="label" style={{ margin: 0, opacity: 0.5 }}>
+          <p
+            style={{
+              fontFamily: "var(--font-body), sans-serif",
+              fontSize: "var(--text-body-md)",
+              fontWeight: 400,
+              margin: 0,
+              opacity: 0.7,
+            }}
+          >
             {message}
           </p>
         </div>
       )}
 
       {status === "done" && (
-        <p style={{ fontSize: 13, fontWeight: 500, margin: 0 }}>
+        <p
+          style={{
+            fontSize: "var(--text-mono-md)",
+            fontWeight: 400,
+            margin: 0,
+          }}
+        >
           {message}
         </p>
       )}
 
       {status === "error" && (
-        <p style={{ fontSize: 12, fontWeight: 400, margin: 0, opacity: 0.6, color: "var(--color-accent)" }}>
+        <p
+          style={{
+            fontFamily: "var(--font-body), sans-serif",
+            fontSize: "var(--text-body-md)",
+            fontWeight: 400,
+            margin: 0,
+            opacity: 0.7,
+          }}
+        >
           {message}
         </p>
       )}
