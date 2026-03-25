@@ -42,6 +42,8 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const addLine = useInvoiceStore((s) => s.addLine);
   const updateLine = useInvoiceStore((s) => s.updateLine);
   const removeLine = useInvoiceStore((s) => s.removeLine);
+  const notes = useInvoiceStore((s) => s.notes);
+  const setNotes = useInvoiceStore((s) => s.setNotes);
   const lastSavedAt = useInvoiceStore((s) => s.lastSavedAt);
   const markSaved = useInvoiceStore((s) => s.markSaved);
   const toInput = useInvoiceStore((s) => s.toInput);
@@ -245,6 +247,24 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* ── Metadata: Precision lines ── */}
       <InvoiceMetadata />
+
+      {/* ── Notities ── */}
+      <div style={{ marginBottom: 40 }}>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>NOTITIES</p>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Optionele notities (zichtbaar op factuur)"
+          rows={3}
+          style={{
+            ...inputStyle,
+            resize: "vertical",
+            minHeight: 60,
+            fontSize: 13,
+            opacity: 0.6,
+          }}
+        />
+      </div>
 
       {/* ── The Monolith: Total ── */}
       <InvoiceTotals />

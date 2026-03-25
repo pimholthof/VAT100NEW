@@ -557,6 +557,11 @@ tbody tr:hover {
     gap: 12px;
   }
 
+  .invoice-line-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
   .responsive-grid-3 {
     grid-template-columns: 1fr;
   }

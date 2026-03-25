@@ -13,15 +13,15 @@ export function InvoiceMetadata() {
   const setVatRate = useInvoiceStore((s) => s.setVatRate);
 
   return (
-    <div style={{ 
-      display: "grid", 
-      gridTemplateColumns: "1fr 1fr 1fr", 
-      gap: 60, 
-      padding: "40px 0",
-      borderTop: "var(--border-rule)",
-      borderBottom: "var(--border-rule)",
-      marginBottom: 80
-    }}>
+    <div
+      className="responsive-grid-3"
+      style={{
+        gap: 60,
+        padding: "40px 0",
+        borderTop: "var(--border-rule)",
+        borderBottom: "var(--border-rule)",
+        marginBottom: 80
+      }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <p className="label">REFERENTIE</p>
         <input

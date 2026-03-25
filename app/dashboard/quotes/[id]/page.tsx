@@ -9,6 +9,7 @@ import {
   updateQuoteStatus,
   generateQuoteShareToken,
   convertQuoteToInvoice,
+  duplicateQuote,
 } from "@/features/quotes/actions";
 import { QuoteForm } from "@/features/quotes/components/QuoteForm";
 import type { QuoteStatus, VatRate } from "@/lib/types";
@@ -33,6 +34,7 @@ export default function EditQuotePage() {
   const [localShareToken, setLocalShareToken] = useState<string | null>(null);
   const [shareLoading, setShareLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["quote", params.id],
@@ -219,8 +221,8 @@ export default function EditQuotePage() {
         )}
       </div>
 
-      {/* PDF link */}
-      <div style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", padding: "16px 0", marginBottom: 24 }}>
+      {/* PDF link + dupliceer */}
+      <div style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", padding: "16px 0", marginBottom: 24, display: "flex", gap: 16 }}>
         <a
           href={`/api/quote/${params.id}/pdf`}
           target="_blank"
@@ -229,6 +231,21 @@ export default function EditQuotePage() {
         >
           Bekijk PDF
         </a>
+        <ButtonSecondary
+          onClick={async () => {
+            setDuplicating(true);
+            const res = await duplicateQuote(params.id);
+            if (res.error) {
+              setStatusMsg(res.error);
+            } else if (res.data) {
+              router.push(`/dashboard/quotes/${res.data}`);
+            }
+            setDuplicating(false);
+          }}
+          disabled={duplicating}
+        >
+          {duplicating ? "Dupliceren..." : "Dupliceer offerte"}
+        </ButtonSecondary>
       </div>
 
       <div style={{ marginTop: 24 }}>

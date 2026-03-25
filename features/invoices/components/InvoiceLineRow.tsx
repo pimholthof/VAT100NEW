@@ -28,6 +28,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
 
   return (
     <div
+      className="invoice-line-grid"
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 100px 140px 100px",
