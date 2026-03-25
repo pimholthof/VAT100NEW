@@ -1,229 +1,103 @@
-# VAT100 Verbeterplan — Stapsgewijze Roadmap
+# VAT100 Verbeterplan — Micro-stappen
 
-## Huidige Staat (Maart 2026)
-
-**Wat werkt:**
-- Authenticatie (login/register/onboarding) met Supabase Auth
-- Facturen CRUD met regels, PDF-generatie, e-mail verzending
-- Offertes CRUD met conversie naar factuur
-- Bonnetjes upload met AI-verwerking (Anthropic)
-- Klantenbeheer
-- Dashboard met cashflow chart, fiscal pulse, action feed
-- Bank connectie via GoCardless Open Banking
-- BTW-aangifte overzicht en export (CSV)
-- Terugkerende facturen (cron)
-- Openbare factuur-link (share token)
-- Herinneringen (herinnering/aanmaning/incasso)
-- Command menu met AI-chat
-- Sentry error tracking, PWA ondersteuning
-
-**Wat ontbreekt of verbeterd moet worden:**
-- Build draait niet (dependencies niet geïnstalleerd)
-- Geen tests behalve `format.test.ts`, `validation.test.ts`, en 2 Playwright specs
-- Taalfouten (Engelse tekst op plekken waar NL moet)
-- Accessibility gaps (ARIA attributen, focus management)
-- Type safety issues (`any` types, ongevalideerde API responses)
-- Formulier validatie onvolledig (email, KVK, BTW format)
-- Geen input constraints (negatieve bedragen mogelijk)
-- Geen optimistic UI / loading feedback op sommige plekken
-- Geen E2E test pipeline
+Elk item is 1 bestand, 1 wijziging, ~15 minuten werk.
 
 ---
 
-## Fase 1: Fundament Repareren (Stabiliteit)
+## Sprint 1: Taal & Tekst (5 min per stuk)
 
-### Stap 1.1 — Build & Dependencies Fixen
-- [ ] `npm install` uitvoeren en verifiëren
-- [ ] `npm run build` laten slagen
-- [ ] Eventuele TypeScript errors oplossen
-- [ ] ESLint warnings opruimen
-
-### Stap 1.2 — Taalcorrectie (NL Compliance)
-- [ ] `InvoiceForm.tsx`: "Select Client" → "Selecteer klant"
-- [ ] `InvoiceMetadata.tsx`: "High/Low/Zero" → "Hoog (21%)/Laag (9%)/Nul (0%)"
-- [ ] `QuoteForm.tsx`: Engelse placeholders naar NL
-- [ ] Alle componenten doorlopen op resterend Engels
-
-### Stap 1.3 — Type Safety Verbeteren
-- [ ] `CommandMenu.tsx`: ChatMessage interface definiëren, `any` types verwijderen
-- [ ] API response validatie met Zod schemas toevoegen
-- [ ] Alle `any` types in codebase identificeren en fixen
+- [ ] **1a** `InvoiceForm.tsx` — "Select Client" → "Selecteer klant"
+- [ ] **1b** `InvoiceMetadata.tsx` — "High/Low/Zero" → "Hoog (21%)/Laag (9%)/Nul (0%)"
+- [ ] **1c** `QuoteForm.tsx` — Engelse placeholders → NL
+- [ ] **1d** Scan alle overige componenten op Engels → fix per bestand
 
 ---
 
-## Fase 2: Formulier Kwaliteit & Validatie
+## Sprint 2: Input veiligheid (1 bestand per keer)
 
-### Stap 2.1 — Input Constraints
-- [ ] `InvoiceLineRow.tsx`: `min="0"` op quantity en rate inputs
-- [ ] `ReceiptForm.tsx`: bedrag inputs begrenzen
-- [ ] Alle numerieke inputs reviewen op min/max/step
-
-### Stap 2.2 — Formulier Validatie Uitbreiden
-- [ ] `ClientForm.tsx`: Email format validatie toevoegen
-- [ ] `ClientForm.tsx`: KVK (8 cijfers) en BTW (NL + 9 cijfers + B01) format checks
-- [ ] IBAN validatie in onboarding/profile
-- [ ] Zod schema's voor alle formulieren (client-side + server-side)
-
-### Stap 2.3 — Error Handling Verbeteren
-- [ ] `ReceiptForm.tsx`: Specifiekere foutmeldingen bij AI-analyse
-- [ ] `InvoiceForm.tsx`: Auto-save error feedback aan gebruiker tonen
-- [ ] Consistente error patterns in alle server actions
+- [ ] **2a** `InvoiceLineRow.tsx` — `min="0"` op quantity input
+- [ ] **2b** `InvoiceLineRow.tsx` — `min="0"` op rate input
+- [ ] **2c** `ReceiptForm.tsx` — `min="0"` op bedrag inputs
+- [ ] **2d** `ClientForm.tsx` — email format check toevoegen
+- [ ] **2e** `ClientForm.tsx` — KVK format check (8 cijfers)
+- [ ] **2f** `ClientForm.tsx` — BTW nummer format check
 
 ---
 
-## Fase 3: Accessibility (A11y)
+## Sprint 3: Type safety (1 fix per keer)
 
-### Stap 3.1 — Modal & Dialog Accessibility
-- [ ] `CommandMenu.tsx`: `role="dialog"`, `aria-modal="true"`, focus trap toevoegen
-- [ ] Alle modals/dialogs reviewen op ARIA compliance
-
-### Stap 3.2 — Form Accessibility
-- [ ] `aria-invalid` op formuliervelden met errors
-- [ ] `aria-describedby` koppelen aan foutmeldingen
-- [ ] `aria-busy` op muterende selects (invoice status wijzigen)
-- [ ] Focus management na form submissions
-
-### Stap 3.3 — Interactie Feedback
-- [ ] `DashboardError.tsx`: `role="alert"` toevoegen
-- [ ] Loading states voorzien van `aria-live="polite"` regions
-- [ ] Skip-to-content link in dashboard layout
+- [ ] **3a** `CommandMenu.tsx` — `ChatMessage` interface maken, `any` weg
+- [ ] **3b** `CommandMenu.tsx` — API response type valideren
+- [ ] **3c** Zoek alle `any` types → lijst maken
+- [ ] **3d** Fix `any` types één voor één (per bestand)
 
 ---
 
-## Fase 4: UX Verfijning
+## Sprint 4: Accessibility basics (1 component per keer)
 
-### Stap 4.1 — Loading & Optimistic States
-- [ ] `ClientQuickCreate.tsx`: Optimistic UI bij client aanmaken
-- [ ] Invoice status wijziging: optimistic update met rollback
-- [ ] Skeleton loading voor alle lijstpagina's consistent maken
-
-### Stap 4.2 — Dashboard Verfijning
-- [ ] `DashboardClient.tsx`: Event listener cleanup bij unmount fixen
-- [ ] Action feed: swipe-to-dismiss op mobiel
-- [ ] Fiscal Pulse: kwartaal-switcher toevoegen
-- [ ] Cashflow chart: tooltip met bedrag details
-
-### Stap 4.3 — Factuur Workflow
-- [ ] Factuur dupliceren functionaliteit
-- [ ] Bulk status wijziging (meerdere facturen markeren als betaald)
-- [ ] Factuur preview in-page (zonder navigatie)
-- [ ] Credit nota: visueel onderscheiden van reguliere factuur
-
-### Stap 4.4 — Responsive Design
-- [ ] `DashboardNav.tsx`: Font scaling consistentie fixen
-- [ ] Mobiele navigatie verfijnen (bottom nav of hamburger)
-- [ ] Tabel componenten horizontaal scrollbaar op mobiel
-- [ ] Touch targets minimaal 44x44px
+- [ ] **4a** `CommandMenu.tsx` — `role="dialog"` + `aria-modal="true"` toevoegen
+- [ ] **4b** `DashboardError.tsx` — `role="alert"` toevoegen
+- [ ] **4c** `DashboardNav.tsx` — `aria-current="page"` op actieve link
+- [ ] **4d** Dashboard `layout.tsx` — skip-to-content link toevoegen
+- [ ] **4e** Invoice status select — `aria-busy` tijdens mutatie
 
 ---
 
-## Fase 5: Testing
+## Sprint 5: Kleine bug fixes (1 fix per keer)
 
-### Stap 5.1 — Unit Tests (Vitest)
-- [ ] Server actions testen met gemockte Supabase client
-- [ ] `lib/format.ts`: test coverage uitbreiden
-- [ ] `lib/validation/`: alle validatie regels testen
-- [ ] `lib/export/csv.ts`: output format testen
-- [ ] Invoice number generation logic testen
-
-### Stap 5.2 — Component Tests
-- [ ] `InvoiceForm`: render, line toevoegen/verwijderen, berekeningen
-- [ ] `ReceiptUpload`: drag-drop, file validatie, error states
-- [ ] `ClientForm`: validatie feedback, submit flow
-- [ ] `CommandMenu`: keyboard navigatie, zoeken
-
-### Stap 5.3 — E2E Tests (Playwright)
-- [ ] Auth flow: registratie → onboarding → dashboard
-- [ ] Factuur flow: aanmaken → verzenden → betaald markeren
-- [ ] Offerte flow: aanmaken → accepteren → omzetten naar factuur
-- [ ] Bonnetje flow: uploaden → AI verwerking → opslaan
-- [ ] BTW export flow
+- [ ] **5a** `DashboardClient.tsx` — event listener cleanup in useEffect return
+- [ ] **5b** `ClientQuickCreate.tsx` — wacht op invalidateQueries voor submit
+- [ ] **5c** `InvoiceForm.tsx` — auto-save error tonen aan gebruiker
+- [ ] **5d** `ReceiptForm.tsx` — specifiekere AI-foutmelding
 
 ---
 
-## Fase 6: Performance & Security
+## Sprint 6: Tests toevoegen (1 test file per keer)
 
-### Stap 6.1 — Performance
-- [ ] React Query cache strategie reviewen (staleTime, gcTime)
-- [ ] Grote lijsten: virtualisatie of paginering toevoegen
-- [ ] Image optimalisatie voor logo's en bonnetje previews
-- [ ] Bundle size analyse en dynamic imports waar nodig
-
-### Stap 6.2 — Security Hardening
-- [ ] Rate limiting op API routes (chat, PDF generatie)
-- [ ] CSRF bescherming verifiëren op server actions
-- [ ] Share token: expiry datum toevoegen
-- [ ] File upload: magic byte validatie naast MIME type
-- [ ] Content Security Policy headers configureren
-
-### Stap 6.3 — Monitoring & Observability
-- [ ] Sentry: custom breadcrumbs voor belangrijke acties
-- [ ] Server action error logging structureren
-- [ ] Uptime monitoring voor cron jobs
+- [ ] **6a** `lib/format.test.ts` — 3 extra edge case tests toevoegen
+- [ ] **6b** `lib/validation/validation.test.ts` — email validatie tests
+- [ ] **6c** `lib/export/csv.test.ts` — nieuw: CSV output testen
+- [ ] **6d** `features/invoices/actions.test.ts` — nieuw: createInvoice mock test
+- [ ] **6e** `features/clients/actions.test.ts` — nieuw: createClient mock test
 
 ---
 
-## Fase 7: Feature Completeness
+## Sprint 7: Responsive fixes (1 component per keer)
 
-### Stap 7.1 — Bank Reconciliatie Verfijnen
-- [ ] Automatische matching verbeteren (AI confidence threshold)
-- [ ] Handmatige match UI: factuur/bonnetje koppelen aan transactie
-- [ ] Categorisatie regels beheer scherm
-- [ ] Bank sync status indicator in dashboard
-
-### Stap 7.2 — BTW Aangifte
-- [ ] Kwartaal selectie met vergelijking vorig jaar
-- [ ] ICP (intracommunautaire prestaties) ondersteuning
-- [ ] Kleineondernemersregeling (KOR) toggle
-- [ ] PDF export van BTW aangifte overzicht
-
-### Stap 7.3 — Rapportage
-- [ ] Winst & verlies overzicht
-- [ ] Omzet per klant grafiek
-- [ ] Jaaroverzicht voor belastingaangifte
-- [ ] Ouderdomsanalyse openstaande facturen
-
-### Stap 7.4 — Communicatie
-- [ ] Factuur herinneringen automatiseren (schema instellen)
-- [ ] Email templates aanpasbaar maken
-- [ ] Notificaties: in-app + optioneel email digest
+- [ ] **7a** `DashboardNav.tsx` — font scaling consistent maken
+- [ ] **7b** `Table.tsx` — horizontaal scrollbaar op mobiel
+- [ ] **7c** Factuur lijst pagina — touch targets 44x44px
+- [ ] **7d** Receipt lijst pagina — touch targets 44x44px
 
 ---
 
-## Fase 8: Polish & Launch Readiness
+## Sprint 8: UX kleine verbeteringen
 
-### Stap 8.1 — Design System Afronden
-- [ ] Glass effect consistent toepassen
-- [ ] Animaties reviewen op "Rams-inspired" soberheid
-- [ ] Dark mode overwegen (of bewust uitsluiten als design keuze)
-- [ ] Print stylesheet voor facturen/offertes
-
-### Stap 8.2 — Onboarding Ervaring
-- [ ] Stapsgewijze onboarding wizard (progress indicator)
-- [ ] Voorbeeld data optie voor nieuwe gebruikers
-- [ ] Contextual help tooltips bij eerste gebruik
-- [ ] Lege state designs voor alle lijsten
-
-### Stap 8.3 — Productie Gereedheid
-- [ ] Environment variabelen documenteren
-- [ ] Database backup strategie
-- [ ] Supabase migrations testen op schone database
-- [ ] PWA: offline fallback pagina
-- [ ] Meta tags en Open Graph voor publieke factuur pagina's
+- [ ] **8a** Lege state tekst voor factuurlijst ("Nog geen facturen")
+- [ ] **8b** Lege state tekst voor klantenlijst
+- [ ] **8c** Lege state tekst voor bonnetjeslijst
+- [ ] **8d** Loading skeleton consistent maken op alle lijstpagina's
 
 ---
 
-## Prioritering Samenvatting
+## Sprint 9: Security quick wins
 
-| Fase | Impact | Effort | Prioriteit |
-|------|--------|--------|------------|
-| 1. Fundament | Kritiek | Klein | Nu |
-| 2. Validatie | Hoog | Klein | Week 1 |
-| 3. A11y | Hoog | Medium | Week 1-2 |
-| 4. UX | Medium | Medium | Week 2-3 |
-| 5. Testing | Hoog | Groot | Week 2-4 |
-| 6. Performance | Medium | Medium | Week 3-4 |
-| 7. Features | Hoog | Groot | Week 4-8 |
-| 8. Polish | Medium | Medium | Week 6-8 |
+- [ ] **9a** Share token — expiry veld toevoegen aan DB schema
+- [ ] **9b** Share token — expiry check in `fetch-public.ts`
+- [ ] **9c** File upload — magic byte check toevoegen in `ReceiptUpload.tsx`
+- [ ] **9d** API rate limit — simpele in-memory limiter op `/api/ai/chat`
 
-Elke stap is zo klein gehouden dat deze in 1-2 uur implementeerbaar is. Het plan kan parallel uitgevoerd worden: Fase 5 (testing) loopt mee met elke andere fase.
+---
+
+## Sprint 10: Feature afronding
+
+- [ ] **10a** Factuur dupliceren — server action toevoegen
+- [ ] **10b** Factuur dupliceren — knop in UI
+- [ ] **10c** Credit nota — visuele markering in lijst (rood/label)
+- [ ] **10d** BTW pagina — kwartaal selector dropdown
+
+---
+
+## Volgorde
+
+Start bij Sprint 1, werk naar beneden. Elke sprint is onafhankelijk — je kunt er ook doorheen springen. De nummering (1a, 1b, ...) geeft de volgorde binnen een sprint.
