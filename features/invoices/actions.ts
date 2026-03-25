@@ -20,18 +20,39 @@ export type InvoiceWithClient = Invoice & {
   client: { name: string } | null;
 };
 
+async function queryNextInvoiceNumber(
+  supabase: NonNullable<Awaited<ReturnType<typeof requireAuth>>["supabase"]>,
+  userId: string
+): Promise<string> {
+  const { data } = await supabase
+    .from("invoices")
+    .select("invoice_number")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  let maxNum = 0;
+  for (const row of data ?? []) {
+    const digits = (row.invoice_number as string).replace(/[^0-9]/g, "");
+    if (digits) {
+      const n = parseInt(digits, 10);
+      if (n > maxNum) maxNum = n;
+    }
+  }
+  return String(maxNum + 1).padStart(4, "0");
+}
+
 export async function generateInvoiceNumber(): Promise<ActionResult<string>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { data, error } = await supabase.rpc("generate_invoice_number", {
-    p_user_id: user.id,
-  });
-
-  if (error) return { error: error.message };
-
-  return { error: null, data: data as string };
+  try {
+    const number = await queryNextInvoiceNumber(supabase, user.id);
+    return { error: null, data: number };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Kon factuurnummer niet genereren." };
+  }
 }
 
 export async function createInvoice(
@@ -88,13 +109,7 @@ export async function createInvoice(
       return { error: insertError.message };
     }
 
-    // Regenerate invoice number via the atomic DB function
-    const { data: newNumber, error: rpcError } = await supabase.rpc(
-      "generate_invoice_number",
-      { p_user_id: user.id }
-    );
-    if (rpcError) return { error: rpcError.message };
-    invoiceNumber = newNumber as string;
+    invoiceNumber = await queryNextInvoiceNumber(supabase, user.id);
   }
 
   if (!invoice) return { error: "Factuurnummer kon niet worden gegenereerd." };
@@ -542,13 +557,8 @@ export async function createCreditNote(
   }
 
   // Generate credit note number
-  const { data: nextNumber, error: rpcError } = await supabase.rpc(
-    "generate_invoice_number",
-    { p_user_id: user.id }
-  );
-  if (rpcError) return { error: rpcError.message };
-
-  const creditNoteNumber = `CN-${(nextNumber as string).replace(/^0+/, "") || nextNumber}`;
+  const nextNumber = await queryNextInvoiceNumber(supabase, user.id);
+  const creditNoteNumber = `CN-${nextNumber.replace(/^0+/, "") || nextNumber}`;
 
   // Create the credit note with negative amounts
   const { data: creditNote, error: insertError } = await supabase
@@ -620,11 +630,7 @@ export async function duplicateInvoice(
   if (fetchError || !source) return { error: "Factuur niet gevonden." };
 
   // Generate a new invoice number
-  const { data: newNumber, error: rpcError } = await supabase.rpc(
-    "generate_invoice_number",
-    { p_user_id: user.id }
-  );
-  if (rpcError) return { error: rpcError.message };
+  const newNumber = await queryNextInvoiceNumber(supabase, user.id);
 
   const today = new Date().toISOString().split("T")[0];
 
