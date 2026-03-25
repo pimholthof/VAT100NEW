@@ -18,7 +18,7 @@ import {
 import { InstitutionSelector } from "@/features/dashboard/components/InstitutionSelector";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
-import { Th, Td, SkeletonTable } from "@/components/ui";
+import { Th, Td, SkeletonTable, TableWrapper } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 const TRANSACTION_CATEGORIES = [
@@ -423,7 +423,7 @@ export default function BankPage() {
             </p>
           </div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--text-body-md)" }}>
+          <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--text-body-md)", minWidth: 700 }}>
             <thead>
               <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
                 <Th>Datum</Th>
@@ -467,7 +467,7 @@ export default function BankPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></TableWrapper>
         )}
       </div>
 

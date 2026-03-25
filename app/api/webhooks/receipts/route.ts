@@ -6,8 +6,18 @@ import { processReceiptWebhook } from "@/features/receipts/actions";
  */
 export async function POST(request: Request) {
   try {
+    // Verify webhook secret
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) {
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
+    }
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const payload = await request.json();
-    
+
     if (!payload.userId || (!payload.amount && payload.amount !== 0)) {
       return NextResponse.json(
         { error: "userId and amount are required" },

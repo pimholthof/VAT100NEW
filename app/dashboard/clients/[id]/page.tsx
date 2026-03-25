@@ -17,6 +17,7 @@ import {
   FieldGroup,
   Th,
   Td,
+  TableWrapper,
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
@@ -346,10 +347,11 @@ export default function ClientDetailPage() {
           Nog geen facturen voor deze klant.
         </p>
       ) : (
-        <table
+        <TableWrapper><table
           style={{
             width: "100%",
             borderCollapse: "collapse",
+            minWidth: 500,
           }}
         >
           <thead>
@@ -417,7 +419,7 @@ export default function ClientDetailPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></TableWrapper>
       )}
     </div>
   );

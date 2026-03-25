@@ -135,6 +135,7 @@ export default function RegisterPage() {
 
           {error && (
             <div
+              role="alert"
               style={{
                 padding: 16,
                 background: "rgba(13,13,11,0.02)",
