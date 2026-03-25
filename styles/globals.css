@@ -9,8 +9,10 @@
   --color-black: #000000; /* Pure Black Ink */
   --color-white: #FAF9F6; /* Premium Off-White Paper */
   --color-accent: #A51C30; /* Crimson Red */
+  --color-success: #1a7a3a; /* Subtle green for paid/success */
+  --color-warning: #b45309; /* Warm amber for overdue */
 
-  /* Foreground / Background — FORCE ROCKMEN LIGHT MODE */
+  /* Foreground / Background — FORCE LIGHT MODE */
   --foreground: var(--color-black);
   --background: var(--color-white);
 }
@@ -24,17 +26,17 @@
 
 :root {
   /* Borders — Minimal structure */
-  --border-light: 0.5px solid var(--color-black); /* Thin hair line */
+  --border-light: 0.5px solid rgba(0, 0, 0, 0.08);
   --border-dark: 0.5px solid var(--color-black);
   --border: var(--border-light);
 
   /* Refined components */
-  --border-rule: 0.5px solid var(--color-black);
-  --border-input: 1px solid var(--color-black);
-  --border-input-focus: 2px solid var(--color-black);
+  --border-rule: 0.5px solid rgba(0, 0, 0, 0.06);
+  --border-input: 1px solid rgba(0, 0, 0, 0.12);
+  --border-input-focus: 1.5px solid var(--color-black);
 
-  /* Typography Scale — Extreme Outspoken Scale */
-  --text-display-hero: clamp(6rem, 16vw, 14rem); /* Massive hero */
+  /* Typography Scale — Precise & Outspoken */
+  --text-display-hero: clamp(6rem, 16vw, 14rem);
   --text-display-xl: 8rem;
   --text-display-lg: 5rem;
   --text-display-md: 2.5rem;
@@ -56,12 +58,25 @@
   /* Spacing & Leading */
   --tracking-display: -0.04em;
   --tracking-tight: -0.01em;
-  --tracking-label: 0.2em; /* High tracking for editorial labels */
-  
-  --radius: 0; /* Strict 0px radius for premium architectural feel */
-}
+  --tracking-label: 0.14em;
 
-/* Force light mode — no dark mode swap */
+  --radius: 0; /* Strict 0px radius */
+
+  /* Spacing system */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+  --space-3xl: 80px;
+  --space-section: 48px;
+  --space-block: 32px;
+
+  /* Easing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
 
 /* ─── Tailwind theme integration ─── */
 @theme inline {
@@ -70,10 +85,10 @@
   --color-black: var(--color-black);
   --color-white: var(--color-white);
   --color-accent: var(--color-accent);
-  
+
   --font-geist: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  
+
   --radius-sm: 0;
   --radius-md: 0;
   --radius-lg: 0;
@@ -110,6 +125,37 @@ body {
   color: var(--background);
 }
 
+/* ─── Focus-visible — Accessibility ring ─── */
+:focus-visible {
+  outline: 2px solid var(--color-black);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-black) !important;
+}
+
+/* ─── Scrollbar — Minimal ─── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
 /* ─── Global transitions ─── */
 input, select, textarea {
   transition: border-color 0.2s ease;
@@ -120,11 +166,16 @@ input:focus, select:focus, textarea:focus {
 }
 
 button {
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.15s var(--ease-out-expo);
 }
 
 button:hover:not(:disabled) {
   opacity: 0.7;
+}
+
+button:active:not(:disabled) {
+  opacity: 0.5;
+  transform: scale(0.98);
 }
 
 button:disabled {
@@ -133,11 +184,15 @@ button:disabled {
 }
 
 tbody tr {
-  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.15s var(--ease-out-expo);
 }
 
 tbody tr:hover {
-  background: rgba(0, 0, 0, 0.01);
+  background: rgba(0, 0, 0, 0.015);
+}
+
+a {
+  transition: opacity 0.15s ease;
 }
 
 /* ─── Dashboard Shell ─── */
@@ -145,15 +200,23 @@ tbody tr:hover {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
+/* ─── Glass Panels ─── */
 .glass {
   background: var(--color-white);
-  border: 0.5px solid var(--color-black);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: hidden;
   box-shadow: none;
+  transition: border-color 0.3s ease;
 }
+
+.glass:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
 .glass::before {
   content: "";
   position: absolute;
@@ -164,7 +227,7 @@ tbody tr:hover {
   background: linear-gradient(
     to right,
     transparent,
-    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.04),
     transparent
   );
   transform: skewX(-25deg);
@@ -242,37 +305,39 @@ tbody tr:hover {
   100% { background-position: -200% 0%; }
 }
 
-/* ─── Deviant / Experimental Classes ─── */
+/* ─── Vertical Label ─── */
 .vertical-label {
   writing-mode: vertical-rl;
   text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  opacity: 0.3;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  opacity: 0.15;
   position: absolute;
-  right: -20px;
+  right: -18px;
   top: 50%;
   transform: translateY(-50%) rotate(180deg);
   pointer-events: none;
+  font-weight: 500;
 }
 
+/* ─── Tilted Canvas (Experimental) ─── */
 .tilted-canvas {
   transform: perspective(1000px) rotateX(1deg) rotateY(-0.5deg);
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.8s var(--ease-out-expo);
 }
 
 .tilted-canvas:hover {
   transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
 }
 
-/* ─── Reusable Typography Classes ─── */
+/* ─── Typography Classes ─── */
 .label {
   font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-label);
   font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  opacity: 0.6; /* Higher opacity for legibility due to tiny size */
+  opacity: 0.5;
 }
 
 .label-strong {
@@ -321,9 +386,42 @@ tbody tr:hover {
 }
 
 .editorial-divider {
-  border-top: 0.5px solid var(--color-black);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
 }
 
+/* ─── Status Badges ─── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 0;
+}
+
+.status-badge::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-badge--draft { opacity: 0.35; }
+.status-badge--draft::before { background: var(--color-black); }
+
+.status-badge--sent { opacity: 0.6; }
+.status-badge--sent::before { background: var(--color-black); }
+
+.status-badge--paid { opacity: 0.4; color: var(--color-success); }
+.status-badge--paid::before { background: var(--color-success); }
+
+.status-badge--overdue { opacity: 1; color: var(--color-accent); }
+.status-badge--overdue::before { background: var(--color-accent); }
+
+/* ─── Table Action Links ─── */
 .table-action {
   font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-label);
@@ -342,16 +440,19 @@ tbody tr:hover {
 }
 
 .table-action:hover {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
+/* ─── Empty State ─── */
 .empty-state {
   font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-display-md);
   font-weight: 700;
   line-height: 1;
-  opacity: 0.08;
-  padding: var(--space-block) 0;
+  opacity: 0.06;
+  padding: var(--space-3xl) 0;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
 }
 
 /* ─── Top Navigation ─── */
@@ -368,13 +469,13 @@ tbody tr:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 120px; /* Taller nav header */
+  height: 120px;
 }
 
 .dashboard-nav-links {
   display: flex;
   align-items: center;
-  gap: 60px; /* wider gaps */
+  gap: 60px;
 }
 
 .dashboard-nav-links a:hover {
@@ -387,31 +488,32 @@ tbody tr:hover {
   gap: 20px;
 }
 
-/* ─── Responsive Utilities ─── */
+/* ─── Page Header ─── */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 80px;
+  margin-bottom: var(--space-2xl);
   gap: 16px;
 }
 
+/* ─── Responsive Grids ─── */
 .responsive-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 1px; /* Hairline gap creates architectural grid lines */
 }
 
 .responsive-grid-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 1px;
 }
 
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: 80px 4vw; /* Reduced from 10vw to stop the "sliver" look */
+  padding: var(--space-3xl) 4vw;
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
@@ -425,24 +527,24 @@ tbody tr:hover {
 
 /* ── Stagger animation for dashboard sections ── */
 @keyframes slideUp {
-  0% { opacity: 0; transform: translateY(16px); }
+  0% { opacity: 0; transform: translateY(12px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 
 .dashboard-content > * {
-  animation: slideUp 0.4s ease both;
+  animation: slideUp 0.4s var(--ease-out-expo) both;
 }
 
 .dashboard-content > *:nth-child(1) { animation-delay: 0s; }
-.dashboard-content > *:nth-child(2) { animation-delay: 0.06s; }
-.dashboard-content > *:nth-child(3) { animation-delay: 0.12s; }
-.dashboard-content > *:nth-child(4) { animation-delay: 0.18s; }
-.dashboard-content > *:nth-child(5) { animation-delay: 0.24s; }
-.dashboard-content > *:nth-child(6) { animation-delay: 0.30s; }
-.dashboard-content > *:nth-child(7) { animation-delay: 0.36s; }
-.dashboard-content > *:nth-child(8) { animation-delay: 0.42s; }
-.dashboard-content > *:nth-child(9) { animation-delay: 0.48s; }
-.dashboard-content > *:nth-child(10) { animation-delay: 0.54s; }
+.dashboard-content > *:nth-child(2) { animation-delay: 0.05s; }
+.dashboard-content > *:nth-child(3) { animation-delay: 0.1s; }
+.dashboard-content > *:nth-child(4) { animation-delay: 0.15s; }
+.dashboard-content > *:nth-child(5) { animation-delay: 0.2s; }
+.dashboard-content > *:nth-child(6) { animation-delay: 0.25s; }
+.dashboard-content > *:nth-child(7) { animation-delay: 0.3s; }
+.dashboard-content > *:nth-child(8) { animation-delay: 0.35s; }
+.dashboard-content > *:nth-child(9) { animation-delay: 0.4s; }
+.dashboard-content > *:nth-child(10) { animation-delay: 0.45s; }
 
 /* ── Stat Card hover ── */
 .stat-cards-grid > div {
@@ -459,7 +561,7 @@ tbody tr:hover {
   100% { opacity: 1; transform: translateX(0); }
 }
 
-/* ── Smooth number pulse (for value changes) ── */
+/* ── Smooth number pulse ── */
 @keyframes numberPulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.02); }
@@ -468,19 +570,19 @@ tbody tr:hover {
 
 /* ─── Skeleton Loaders ─── */
 .skeleton {
-  background: rgba(255, 255, 255, 0.05);
-  animation: skeleton-pulse 2s ease-in-out infinite;
+  background: rgba(0, 0, 0, 0.04);
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
 }
 
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
 }
 
 /* ── Upload zone pulse ── */
 @keyframes uploadPulse {
-  0%, 100% { border-color: rgba(13, 13, 11, 0.2); }
-  50% { border-color: rgba(13, 13, 11, 0.5); }
+  0%, 100% { border-color: rgba(0, 0, 0, 0.08); }
+  50% { border-color: rgba(0, 0, 0, 0.2); }
 }
 
 .upload-processing {
@@ -498,13 +600,87 @@ tbody tr:hover {
   bottom: -2px;
   left: 0;
   width: 0;
-  height: 1.5px;
+  height: 1px;
   background: var(--foreground);
-  transition: width 0.2s ease;
+  transition: width 0.25s var(--ease-out-expo);
 }
 
 .dashboard-nav-links a:hover::after {
   width: 100%;
+}
+
+/* ─── Action Buttons (inline) ─── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border: none;
+  background: var(--foreground);
+  color: var(--background);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.8;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border: 0.5px solid rgba(0, 0, 0, 0.15);
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(0, 0, 0, 0.4);
+  opacity: 0.8;
+}
+
+/* ─── Form Elements ─── */
+.input-field {
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-field:focus {
+  border-bottom-color: var(--color-black);
+}
+
+.input-field::placeholder {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+/* ─── Divider ─── */
+.divider {
+  width: 100%;
+  height: 0.5px;
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
 }
 
 /* ── Tablet (≤1024px) ── */
@@ -513,16 +689,21 @@ tbody tr:hover {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
+  .responsive-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .dashboard-content {
-    padding: 60px 40px;
+    padding: 48px 32px;
   }
 
   :root {
     --text-display-hero: 8rem;
     --text-display-xl: 4rem;
     --text-display-lg: 2.5rem;
-    --space-hero: 80px;
-    --space-section: 64px;
+    --space-3xl: 64px;
+    --space-2xl: 48px;
+    --space-section: 40px;
   }
 }
 
@@ -533,9 +714,10 @@ tbody tr:hover {
     --text-display-xl: 3rem;
     --text-display-lg: 2rem;
     --text-display-md: 1.5rem;
-    --space-hero: 48px;
-    --space-section: 40px;
-    --space-block: 32px;
+    --space-3xl: 40px;
+    --space-2xl: 32px;
+    --space-section: 32px;
+    --space-block: 24px;
   }
 
   .dashboard-content {
@@ -553,7 +735,7 @@ tbody tr:hover {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 40px;
+    margin-bottom: var(--space-xl);
     gap: 12px;
   }
 
@@ -588,6 +770,15 @@ tbody tr:hover {
   }
 }
 
+/* ─── Small mobile (≤480px) ─── */
+@media (max-width: 480px) {
+  :root {
+    --text-display-hero: 3rem;
+    --text-display-lg: 1.75rem;
+    --text-display-md: 1.25rem;
+  }
+}
+
 /* ─── Skip-to-content ─── */
 .skip-to-content {
   position: absolute;
@@ -611,4 +802,3 @@ tbody tr:hover {
   padding: 8px 16px;
   font-size: 14px;
 }
-

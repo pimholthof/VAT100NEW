@@ -4,6 +4,19 @@ import { login } from "../actions";
 import Link from "next/link";
 import { useState } from "react";
 
+const inputStyle: React.CSSProperties = {
+  fontSize: "13px",
+  fontWeight: 400,
+  padding: "14px 0",
+  border: "none",
+  borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+  background: "transparent",
+  color: "var(--color-black)",
+  outline: "none",
+  width: "100%",
+  transition: "border-color 0.2s ease",
+};
+
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -25,7 +38,7 @@ export default function LoginPage() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "grid",
         gridTemplateColumns: "1fr",
         alignItems: "center",
@@ -35,20 +48,19 @@ export default function LoginPage() {
         overflow: "hidden",
       }}
     >
-      {/* Giant background logo watermark */}
+      {/* Background watermark */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
-          top: -40,
-          left: -20,
-          
-          fontSize: "min(14rem, 28vw)",
-          fontWeight: 700,
-          letterSpacing: "var(--tracking-display)",
+          bottom: -60,
+          right: -40,
+          fontSize: "min(20rem, 35vw)",
+          fontWeight: 800,
+          letterSpacing: "-0.05em",
           lineHeight: 0.85,
           color: "var(--color-black)",
-          opacity: 0.05,
+          opacity: 0.02,
           pointerEvents: "none",
           userSelect: "none",
           whiteSpace: "nowrap",
@@ -57,14 +69,13 @@ export default function LoginPage() {
         VAT100
       </div>
 
-      <div style={{ width: "100%", maxWidth: 340, position: "relative", zIndex: 1 }}>
+      <div style={{ width: "100%", maxWidth: 320, position: "relative", zIndex: 1 }}>
         {/* Logo */}
         <h1
           style={{
-            
-            fontSize: "var(--text-display-hero)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
+            fontSize: "clamp(4rem, 12vw, 8rem)",
+            fontWeight: 800,
+            letterSpacing: "-0.05em",
             lineHeight: 0.85,
             margin: 0,
             color: "var(--color-black)",
@@ -79,18 +90,17 @@ export default function LoginPage() {
         <p
           className="label"
           style={{
-            marginTop: 24,
-            marginBottom: 72,
-            letterSpacing: "var(--tracking-caps)",
-            opacity: 0.4,
+            marginTop: 20,
+            marginBottom: 64,
+            opacity: 0.3,
           }}
         >
           Boekhouding zonder ruis
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="email" className="label">
+            <label htmlFor="email" className="label" style={{ opacity: 0.35 }}>
               E-mail
             </label>
             <input
@@ -99,21 +109,12 @@ export default function LoginPage() {
               type="email"
               required
               autoComplete="email"
-              style={{
-                fontSize: "13px",
-                fontWeight: 400,
-                padding: "14px 0",
-                border: "none",
-                borderBottom: "var(--border-light)",
-                background: "transparent",
-                color: "var(--color-black)",
-                outline: "none",
-              }}
+              style={inputStyle}
             />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="password" className="label">
+            <label htmlFor="password" className="label" style={{ opacity: 0.35 }}>
               Wachtwoord
             </label>
             <input
@@ -123,17 +124,7 @@ export default function LoginPage() {
               required
               minLength={6}
               autoComplete="current-password"
-              style={{
-                fontFamily: "var(--font-geist), sans-serif",
-                fontSize: "13px",
-                fontWeight: 400,
-                padding: "14px 0",
-                border: "none",
-                borderBottom: "var(--border-light)",
-                background: "transparent",
-                color: "var(--color-black)",
-                outline: "none",
-              }}
+              style={inputStyle}
             />
           </div>
 
@@ -141,9 +132,10 @@ export default function LoginPage() {
             <div
               role="alert"
               style={{
-                padding: 16,
-                background: "rgba(13,13,11,0.02)",
-                fontSize: "11px",
+                padding: "12px 16px",
+                background: "rgba(165, 28, 48, 0.04)",
+                borderLeft: "2px solid var(--color-accent)",
+                fontSize: "12px",
               }}
             >
               {error}
@@ -153,19 +145,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={pending}
+            className="btn-primary"
             style={{
-              fontFamily: "var(--font-geist), sans-serif",
-              fontSize: "var(--text-label)",
-              fontWeight: 500,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              padding: "24px",
-              border: "none",
-              background: "var(--color-black)",
-              color: "var(--color-white)",
-              cursor: "pointer",
+              padding: "20px",
               width: "100%",
-              transition: "all 0.2s ease",
             }}
           >
             {pending ? "Authenticatie..." : "Toegang"}
@@ -176,18 +159,18 @@ export default function LoginPage() {
           className="label"
           style={{
             marginTop: 40,
-            opacity: 0.4,
+            opacity: 0.3,
           }}
         >
           Geen dossier?{" "}
           <Link
             href="/register"
             style={{
-              fontWeight: 500,
+              fontWeight: 600,
               color: "var(--color-black)",
               textDecoration: "none",
               opacity: 1,
-              borderBottom: "var(--border-light)",
+              borderBottom: "0.5px solid rgba(0,0,0,0.2)",
               paddingBottom: 1,
             }}
           >
