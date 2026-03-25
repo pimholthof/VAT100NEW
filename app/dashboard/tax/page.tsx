@@ -76,7 +76,7 @@ export default function TaxPage() {
       {isLoading ? (
         <SkeletonCard />
       ) : projection ? (
-        <div style={{ marginBottom: "var(--space-block)" }}>
+        <div style={{ marginBottom: "var(--space-section)" }}>
           <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
             Geschatte inkomstenbelasting {now.getFullYear()}
           </p>
@@ -100,9 +100,28 @@ export default function TaxPage() {
         </div>
       ) : null}
 
+      {/* Jaarprognose */}
+      {projection && (
+        <div style={{
+          marginBottom: "var(--space-section)",
+          padding: "20px 24px",
+          background: "rgba(13,13,11,0.02)",
+          border: "0.5px solid rgba(13,13,11,0.06)",
+        }}>
+          <p className="label" style={{ margin: "0 0 12px", opacity: 0.4 }}>
+            Jaarprognose — als je in dit tempo doorgaat
+          </p>
+          <div style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
+            <ProjectionStat label="Verwachte jaaromzet" value={formatCurrency(Math.round(projection.prognoseJaarOmzet))} />
+            <ProjectionStat label="Verwachte jaarkosten" value={formatCurrency(Math.round(projection.prognoseJaarKosten))} />
+            <ProjectionStat label="Verwachte inkomstenbelasting" value={formatCurrency(Math.round(projection.prognoseJaarIB))} />
+          </div>
+        </div>
+      )}
+
       {/* Berekening */}
       {projection && (
-        <div style={{ marginBottom: "var(--space-block)" }}>
+        <div style={{ marginBottom: "var(--space-section)" }}>
           <div style={{
             background: "var(--background)",
             border: "0.5px solid rgba(13,13,11,0.08)",
@@ -144,7 +163,7 @@ export default function TaxPage() {
 
       {/* Tips om belasting te besparen */}
       {projection && projection.bespaartips.length > 0 && (
-        <div style={{ marginBottom: "var(--space-block)" }}>
+        <div style={{ marginBottom: "var(--space-section)" }}>
           <h3 className="section-header" style={{ margin: "0 0 16px" }}>
             Tips om belasting te besparen
           </h3>
@@ -201,6 +220,8 @@ export default function TaxPage() {
       ══════════════════════════════════════════════════ */}
 
       <div style={{
+        borderTop: "0.5px solid rgba(13,13,11,0.08)",
+        paddingTop: "var(--space-section)",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "baseline",
@@ -319,9 +340,18 @@ function DepreciationTableRow({ row }: { row: DepreciationRow }) {
 
 // ─── Breakdown componenten ───
 
+function ProjectionStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.5, margin: "0 0 4px" }}>{label}</p>
+      <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-body-lg)" }}>{value}</p>
+    </div>
+  );
+}
+
 function BreakdownSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div style={{ marginBottom: 24 }}>
       <p className="label" style={{ margin: "0 0 10px", opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10 }}>
         {title}
       </p>
