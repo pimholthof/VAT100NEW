@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient } from "@/features/invoices/actions";
 import type { InvoiceStatus } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Th, Td, SearchFilter } from "@/components/ui";
+import { Th, Td, SearchFilter, TableWrapper } from "@/components/ui";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Concept" },
@@ -131,7 +131,7 @@ export default function InvoicesPage() {
           )}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "var(--border-rule)", textAlign: "left" }}>
               <Th>Ref</Th>
@@ -243,7 +243,7 @@ export default function InvoicesPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></TableWrapper>
       )}
     </div>
   );

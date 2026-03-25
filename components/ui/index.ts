@@ -1,4 +1,4 @@
-export { Th, Td } from "./Table";
+export { Th, Td, TableWrapper } from "./Table";
 export { StatCard, SkeletonCard } from "./StatCard";
 export { DetailCell } from "./DetailCell";
 export { FieldGroup } from "./FieldGroup";
