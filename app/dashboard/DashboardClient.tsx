@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { m as motion , type Variants } from "framer-motion";
+import { m as motion, type Variants } from "framer-motion";
 import {
   getDashboardData,
   type DashboardData,
@@ -20,8 +20,6 @@ import { QuickReceiptUpload } from "@/features/dashboard/components/QuickReceipt
 import { CashflowChart } from "@/features/dashboard/components/CashflowChart";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
 
-
-
 export default function DashboardClient({
   initialResult,
 }: {
@@ -35,27 +33,26 @@ export default function DashboardClient({
 
   const data = dashboardResult?.data;
   const stats = data?.stats;
-
   const upcomingInvoices = data?.upcomingInvoices;
   const cashflow = data?.cashflow;
   const safeToSpend = data?.safeToSpend;
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    hidden: { opacity: 0, y: 16 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
   };
 
   useEffect(() => {
     const startHum = () => {
-      import('@/lib/utils/sound').then(({ playAmbient }) => playAmbient());
-      window.removeEventListener('click', startHum);
-      window.removeEventListener('keydown', startHum);
+      import("@/lib/utils/sound").then(({ playAmbient }) => playAmbient());
+      window.removeEventListener("click", startHum);
+      window.removeEventListener("keydown", startHum);
     };
-    window.addEventListener('click', startHum);
-    window.addEventListener('keydown', startHum);
+    window.addEventListener("click", startHum);
+    window.addEventListener("keydown", startHum);
     return () => {
-      window.removeEventListener('click', startHum);
-      window.removeEventListener('keydown', startHum);
+      window.removeEventListener("click", startHum);
+      window.removeEventListener("keydown", startHum);
     };
   }, []);
 
@@ -67,21 +64,20 @@ export default function DashboardClient({
         hidden: {},
         show: {
           transition: {
-            staggerChildren: 0.12,
+            staggerChildren: 0.08,
           },
         },
       }}
-      className="dashboard-content"
-      style={{ 
+      style={{
         display: "flex",
         flexDirection: "column",
-        gap: 48,
-        paddingBottom: 120
+        gap: "var(--space-section, 48px)",
+        paddingBottom: 80,
       }}
     >
-      {/* ── TOP ROW: QUICK ACTION + METRICS ── */}
+      {/* Quick Upload + Metrics */}
       {!isLoading && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
           <motion.div variants={itemVariants}>
             <QuickReceiptUpload />
           </motion.div>
@@ -116,66 +112,73 @@ export default function DashboardClient({
         </div>
       )}
 
-      {/* ── FISCAL PULSE ── */}
+      {/* Fiscal Pulse */}
       {safeToSpend && !isLoading && (
         <motion.div variants={itemVariants}>
-          <FiscalPulse 
-            safeToSpend={safeToSpend.safeToSpend} 
-            currentBalance={safeToSpend.currentBalance} 
+          <FiscalPulse
+            safeToSpend={safeToSpend.safeToSpend}
+            currentBalance={safeToSpend.currentBalance}
             isLoading={isLoading}
           />
         </motion.div>
       )}
 
-      {/* ── ACTION FEED ── */}
+      {/* Action Feed */}
       {!isLoading && (
-        <motion.div 
+        <motion.div
           variants={itemVariants}
-          className="flex flex-col relative"
-          style={{ 
+          style={{
             background: "var(--background)",
-            height: 400,
-            border: "var(--border-light)",
+            height: 380,
+            border: "0.5px solid rgba(0,0,0,0.06)",
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
           }}
         >
-          <div className="vertical-label" style={{ right: -15, fontSize: 8 }}>Intelligentielaag</div>
-          <div style={{ padding: "24px 24px 16px", borderBottom: "var(--border-rule)" }}>
-             <p className="label">Anticipatieprotocol</p>
+          <div style={{ padding: "20px 24px", borderBottom: "0.5px solid rgba(0,0,0,0.04)" }}>
+            <p className="label" style={{ opacity: 0.3 }}>Anticipatieprotocol</p>
           </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 24px" }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 20px" }}>
             <ActionFeed />
           </div>
         </motion.div>
       )}
 
-      {/* ── CASHFLOW ── */}
+      {/* Cashflow */}
       {cashflow && (
-        <motion.div 
+        <motion.div
           variants={itemVariants}
-          style={{ padding: "24px", border: "1px solid rgba(34,34,34,0.1)" }}
+          style={{ padding: 24, border: "0.5px solid rgba(0,0,0,0.06)" }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-            <p className="label">Liquiditeit / Prognose</p>
+          <div style={{ marginBottom: 28 }}>
+            <p className="label" style={{ opacity: 0.3 }}>Liquiditeit / Prognose</p>
           </div>
           <CashflowChart cashflow={cashflow} />
         </motion.div>
       )}
 
-      {/* ── OPEN INVOICES ── */}
+      {/* Open Invoices */}
       <motion.div variants={itemVariants}>
-        <h2 className="section-header" style={{ marginBottom: 40, display: "flex", alignItems: "center", gap: 24, opacity: 0.5 }}>
-          Dossier / Openstaand
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 20,
+          marginBottom: 32,
+        }}>
+          <h2 className="section-header" style={{ opacity: 0.4, whiteSpace: "nowrap" }}>
+            Openstaand
+          </h2>
           <span style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.04)" }} />
-        </h2>
+        </div>
         {isLoading ? (
           <SkeletonTable />
         ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
           <UpcomingInvoiceTable invoices={upcomingInvoices} />
         ) : (
-          <p className="empty-state">Geen actieve componenten</p>
+          <p className="empty-state">Geen openstaande facturen</p>
         )}
       </motion.div>
-
     </motion.div>
   );
 }

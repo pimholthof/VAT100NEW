@@ -15,15 +15,17 @@ export function PageHeader({
   titleSize?: "md" | "lg";
 }) {
   return (
-    <div style={{ marginBottom: 80 }}>
+    <div style={{ marginBottom: "var(--space-2xl, 64px)" }}>
       {backHref && backLabel && (
         <Link
           href={backHref}
           className="label"
           style={{
             color: "var(--foreground)",
-            opacity: 0.3,
+            opacity: 0.25,
             textDecoration: "none",
+            display: "inline-block",
+            marginBottom: 16,
           }}
         >
           &larr; {backLabel}
@@ -34,13 +36,12 @@ export function PageHeader({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-end",
-          marginTop: backHref ? 16 : 0,
+          gap: 16,
         }}
       >
         <h1
           className={titleSize === "lg" ? "display-title" : ""}
           style={titleSize === "md" ? {
-            fontFamily: "var(--font-display), sans-serif",
             fontSize: "var(--text-display-md)",
             fontWeight: 700,
             letterSpacing: "var(--tracking-display)",

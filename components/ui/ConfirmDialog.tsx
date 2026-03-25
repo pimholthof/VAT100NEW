@@ -44,14 +44,15 @@ export function ConfirmDialog({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(255, 255, 255, 0.6)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        backgroundColor: "rgba(250, 249, 246, 0.8)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
         zIndex: 9999,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
+        animation: "fadeIn 0.2s ease",
       }}
       onClick={onCancel}
     >
@@ -59,10 +60,11 @@ export function ConfirmDialog({
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "var(--background)",
-          border: "1px solid var(--color-black)",
-          padding: 32,
+          border: "0.5px solid rgba(0,0,0,0.12)",
+          padding: "32px",
           maxWidth: 400,
           width: "100%",
+          boxShadow: "0 24px 48px rgba(0,0,0,0.06)",
         }}
       >
         <p
@@ -70,7 +72,8 @@ export function ConfirmDialog({
           style={{
             fontSize: "var(--text-body-lg)",
             fontWeight: 600,
-            margin: "0 0 12px",
+            margin: "0 0 8px",
+            letterSpacing: "-0.01em",
           }}
         >
           {title}
@@ -78,14 +81,15 @@ export function ConfirmDialog({
         <p
           style={{
             fontSize: "var(--text-body-md)",
-            fontWeight: 300,
+            fontWeight: 400,
             margin: "0 0 32px",
-            opacity: 0.6,
+            opacity: 0.5,
+            lineHeight: 1.5,
           }}
         >
           {message}
         </p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <ButtonSecondary onClick={onCancel} autoFocus>
             {cancelLabel}
           </ButtonSecondary>

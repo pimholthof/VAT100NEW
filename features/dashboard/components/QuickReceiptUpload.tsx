@@ -1,14 +1,10 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { m as motion  } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/features/receipts/actions";
 
-/**
- * QuickReceiptUpload — A drag-and-drop "snap & go" receipt uploader
- * for the dashboard. Drop a photo → AI extracts data → receipt is created.
- */
 export function QuickReceiptUpload() {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -21,7 +17,6 @@ export function QuickReceiptUpload() {
       setStatus("uploading");
       setMessage("SYSTEEM INITIALISEREN...");
 
-      // 1. Create a placeholder receipt
       const receiptResult = await createReceipt({
         vendor_name: null,
         amount_ex_vat: 0,
@@ -37,7 +32,6 @@ export function QuickReceiptUpload() {
 
       const receiptId = receiptResult.data.id;
 
-      // 2. Upload the image
       const formData = new FormData();
       formData.append("file", file);
       const uploadResult = await uploadReceiptImage(receiptId, formData);
@@ -45,19 +39,16 @@ export function QuickReceiptUpload() {
         throw new Error(uploadResult.error);
       }
 
-      // 3. Scan with AI
       setStatus("scanning");
       setMessage("VISION AI EXTRAGEERT DATA...");
       const scanResult = await scanReceiptWithAI(receiptId);
 
       if (scanResult.error) {
-        // Receipt is still saved, just not AI-enriched
         setStatus("done");
         setMessage("DOCUMENT OPGESLAGEN (EXTRACTIE MISLUKT).");
         return;
       }
 
-      // 4. Update receipt with AI data
       if (scanResult.data) {
         const { updateReceipt } = await import("@/features/receipts/actions");
         await updateReceipt(receiptId, {
@@ -73,12 +64,12 @@ export function QuickReceiptUpload() {
         await markReceiptAiProcessed(receiptId);
       }
 
-    setStatus("done");
-    setMessage(
-      scanResult.data?.vendor_name
-        ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
-        : "DOCUMENT GEREGISTREERD."
-    );
+      setStatus("done");
+      setMessage(
+        scanResult.data?.vendor_name
+          ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
+          : "DOCUMENT GEREGISTREERD."
+      );
     },
     onError: (err) => {
       setStatus("error");
@@ -87,7 +78,6 @@ export function QuickReceiptUpload() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["action-feed"] });
-      // Auto-reset after 4 seconds
       setTimeout(() => {
         setStatus("idle");
         setMessage("");
@@ -129,14 +119,13 @@ export function QuickReceiptUpload() {
       onClick={() => status === "idle" && fileRef.current?.click()}
       style={{
         border: isDragging
-          ? "2px solid var(--color-black)"
-          : "var(--border-light)",
-        padding: 24,
+          ? "1.5px solid var(--color-black)"
+          : "0.5px solid rgba(0,0,0,0.06)",
+        padding: "20px 24px",
         textAlign: "center",
         cursor: status === "idle" ? "pointer" : "default",
         transition: "all 0.2s ease",
-        background: isDragging ? "rgba(0,0,0,0.02)" : "transparent",
-        marginBottom: "var(--space-section)",
+        background: isDragging ? "rgba(0,0,0,0.01)" : "transparent",
       }}
     >
       <input
@@ -152,25 +141,15 @@ export function QuickReceiptUpload() {
       />
 
       {status === "idle" && (
-        <>
-          <p
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-md)",
-              fontWeight: 500,
-              margin: "0 0 4px",
-            }}
-          >
-            DOCUMENT DROPZONE
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+          <p className="label" style={{ margin: 0, opacity: 0.3 }}>
+            Drop document voor AI-verwerking
           </p>
-          <p className="label" style={{ opacity: 0.5, margin: 0 }}>
-            Sleep foto of PDF voor AI-verwerking
-          </p>
-        </>
+        </div>
       )}
 
       {(status === "uploading" || status === "scanning") && (
-        <div style={{ position: "relative", overflow: "hidden", margin: "-24px", padding: "24px" }}>
+        <div style={{ position: "relative", overflow: "hidden", margin: "-20px -24px", padding: "20px 24px" }}>
           {status === "scanning" && (
             <motion.div
               initial={{ top: "0%" }}
@@ -180,49 +159,26 @@ export function QuickReceiptUpload() {
                 position: "absolute",
                 left: 0,
                 right: 0,
-                height: "2px",
+                height: "1.5px",
                 background: "linear-gradient(to right, transparent, var(--color-accent), transparent)",
                 zIndex: 10,
-                boxShadow: "0 0 15px var(--color-accent)",
               }}
             />
           )}
-          <p
-            style={{
-              fontFamily: "var(--font-body), sans-serif",
-              fontSize: "var(--text-body-md)",
-              fontWeight: 400,
-              margin: 0,
-              opacity: 0.7,
-            }}
-          >
+          <p className="label" style={{ margin: 0, opacity: 0.5 }}>
             {message}
           </p>
         </div>
       )}
 
       {status === "done" && (
-        <p
-          style={{
-            fontSize: "var(--text-mono-md)",
-            fontWeight: 400,
-            margin: 0,
-          }}
-        >
+        <p style={{ fontSize: 13, fontWeight: 500, margin: 0 }}>
           {message}
         </p>
       )}
 
       {status === "error" && (
-        <p
-          style={{
-            fontFamily: "var(--font-body), sans-serif",
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            margin: 0,
-            opacity: 0.7,
-          }}
-        >
+        <p style={{ fontSize: 12, fontWeight: 400, margin: 0, opacity: 0.6, color: "var(--color-accent)" }}>
           {message}
         </p>
       )}
