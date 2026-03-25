@@ -11,6 +11,7 @@ import {
   sendReminder,
   generateShareToken,
   createCreditNote,
+  duplicateInvoice,
 } from "@/features/invoices/actions";
 import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
@@ -34,6 +35,7 @@ export default function EditInvoicePage() {
   const [shareLoading, setShareLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [creditNoteLoading, setCreditNoteLoading] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoice", params.id],
@@ -261,6 +263,21 @@ export default function EditInvoicePage() {
               {creditNoteLoading ? "Aanmaken..." : "Creditnota aanmaken"}
             </ButtonSecondary>
           )}
+          <ButtonSecondary
+            onClick={async () => {
+              setDuplicating(true);
+              const res = await duplicateInvoice(params.id);
+              if (res.error) {
+                setStatusMsg(res.error);
+              } else if (res.data) {
+                router.push(`/dashboard/invoices/${res.data}`);
+              }
+              setDuplicating(false);
+            }}
+            disabled={duplicating}
+          >
+            {duplicating ? "Dupliceren..." : "Dupliceer factuur"}
+          </ButtonSecondary>
         </div>
       </div>
       {statusMsg && (
