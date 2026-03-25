@@ -201,7 +201,7 @@ export default function TaxPage() {
           </tbody>
         </table>
       ) : (
-        <p className="empty-state">Nog geen gegevens</p>
+        <p className="empty-state">Nog geen gegevens beschikbaar</p>
       )}
 
       {/* Disclaimer */}
