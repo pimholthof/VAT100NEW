@@ -4,13 +4,23 @@ import { useEffect, useState, useCallback } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 
+interface ChatMessage {
+  role: "user" | "ai";
+  content: string;
+}
+
+interface ChatApiResponse {
+  text?: string;
+  error?: string;
+}
+
 export function CommandMenu() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  
+
   // AI Chat State
   const [chatMode, setChatMode] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'ai', content: string}[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const router = useRouter();
@@ -53,8 +63,8 @@ export function CommandMenu() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: userQuery }),
       });
-      const data = await res.json();
-      setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error }]);
+      const data: ChatApiResponse = await res.json();
+      setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error || "Geen antwoord ontvangen." }]);
     } catch {
       setChatMessages(prev => [...prev, { role: 'ai', content: "Systeem onderbroken. We herstellen de verbinding." }]);
     } finally {
