@@ -176,7 +176,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           setConfidence(result.data.confidence);
       }
     } catch {
-      setScanError("AI-analyse mislukt. Vul de velden handmatig in.");
+      setScanError("AI-analyse kon de bon niet verwerken. Controleer of de afbeelding scherp en leesbaar is, en vul de velden handmatig in.");
     }
 
     setStep("form");

@@ -73,7 +73,11 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     if (!s.isDirty || !s.clientId || !s.invoiceNumber) return;
 
     if (invoiceId) {
-      await updateInvoice(invoiceId, s.toInput("draft"));
+      const result = await updateInvoice(invoiceId, s.toInput("draft"));
+      if (result.error) {
+        setError(`Auto-save mislukt: ${result.error}`);
+        return;
+      }
     } else {
       return;
     }
