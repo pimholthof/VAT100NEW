@@ -7,8 +7,12 @@ import { createServiceClient } from "@/lib/supabase/service";
  */
 export async function GET(request: Request) {
   // Verify cron secret
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+  }
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -84,7 +88,7 @@ export async function GET(request: Request) {
 
       // Copy lines
       if (lines.length > 0) {
-        await supabase.from("invoice_lines").insert(
+        const { error: linesError } = await supabase.from("invoice_lines").insert(
           lines.map((l, i) => ({
             invoice_id: invoice.id,
             description: l.description,
@@ -95,6 +99,13 @@ export async function GET(request: Request) {
             sort_order: i,
           }))
         );
+
+        if (linesError) {
+          // Rollback: verwijder de factuur als regels falen
+          await supabase.from("invoices").delete().eq("id", invoice.id);
+          results.push({ templateId: template.id, error: `Regels mislukt: ${linesError.message}` });
+          continue;
+        }
       }
 
       // Calculate next run date

@@ -4,6 +4,8 @@ import { useState, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useInvoiceStore } from "@/lib/store/invoice";
+import { useQuoteStore } from "@/lib/store/quote";
 import { m as motion, AnimatePresence } from "framer-motion";
 
 function useIsMobile(breakpoint = 768) {
@@ -33,6 +35,8 @@ export function DashboardNav({
   const isMobile = useIsMobile();
 
   async function handleLogout() {
+    useInvoiceStore.getState().resetForm();
+    useQuoteStore.getState().resetForm();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");

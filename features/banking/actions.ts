@@ -5,6 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth } from "@/lib/supabase/server";
 import { gocardless } from "@/lib/banking/gocardless";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
+import { uuidSchema } from "@/lib/validation";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 
 export async function getBankConnections(): Promise<ActionResult<BankConnection[]>> {
@@ -57,6 +58,9 @@ export async function categorizeTransaction(
   id: string,
   category: string
 ): Promise<ActionResult> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldig transactie-ID." };
+  if (!category.trim()) return { error: "Categorie is verplicht." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -75,6 +79,9 @@ export async function linkTransactionToInvoice(
   transactionId: string,
   invoiceId: string
 ): Promise<ActionResult> {
+  if (!uuidSchema.safeParse(transactionId).success) return { error: "Ongeldig transactie-ID." };
+  if (!uuidSchema.safeParse(invoiceId).success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -93,6 +100,9 @@ export async function linkTransactionToReceipt(
   transactionId: string,
   receiptId: string
 ): Promise<ActionResult> {
+  if (!uuidSchema.safeParse(transactionId).success) return { error: "Ongeldig transactie-ID." };
+  if (!uuidSchema.safeParse(receiptId).success) return { error: "Ongeldig bon-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -112,6 +122,8 @@ export async function linkTransactionToReceipt(
 export async function initiateBankConnection(
   institutionId: string
 ): Promise<ActionResult<{ redirectUrl: string }>> {
+  if (!institutionId.trim()) return { error: "Instituut-ID is verplicht." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -150,6 +162,8 @@ export async function initiateBankConnection(
 export async function completeBankConnection(
   requisitionId: string
 ): Promise<ActionResult> {
+  if (!requisitionId.trim()) return { error: "Requisition-ID is verplicht." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;

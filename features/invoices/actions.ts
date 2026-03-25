@@ -596,6 +596,9 @@ export async function createCreditNote(
 export async function duplicateInvoice(
   sourceId: string
 ): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(sourceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
