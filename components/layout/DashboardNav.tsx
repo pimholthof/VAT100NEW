@@ -74,7 +74,7 @@ export function DashboardNav({
                 color: "var(--foreground)"
               }}
             >
-              {isDrawerOpen ? "CLOSE" : "MENU"}
+              {isDrawerOpen ? "SLUITEN" : "MENU"}
             </button>
           </div>
         </div>

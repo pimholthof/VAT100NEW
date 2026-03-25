@@ -155,7 +155,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Recipient */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>RECIPIENT</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>ONTVANGER</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
           <select
             value={clientId}
@@ -177,7 +177,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
           >
             <option value="">
-              {clientsLoading ? "Loading..." : hasClientError ? clientErrorMessage : "Select Client"}
+              {clientsLoading ? "Laden..." : hasClientError ? clientErrorMessage : "Selecteer klant"}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -191,7 +191,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
             style={{ background: "none", border: "none", cursor: "pointer", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.2em", opacity: 0.3 }}
           >
-            {showNewClient ? "[-] CLOSE" : "[+] NEW"}
+            {showNewClient ? "[-] SLUITEN" : "[+] NIEUW"}
           </button>
         </div>
         {showNewClient && (
@@ -221,7 +221,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Lines */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>EXPRESSION</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>REGELS</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {lines.map((line, index) => (
             <InvoiceLineRow
@@ -241,7 +241,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
             style={{ background: "none", border: "none", cursor: "pointer", fontSize: 10, textAlign: "left", padding: "12px 0", opacity: 0.2, letterSpacing: "0.1em", textTransform: "uppercase" }}
           >
-            + ADD LINE
+            + REGEL TOEVOEGEN
           </button>
         </div>
       </div>

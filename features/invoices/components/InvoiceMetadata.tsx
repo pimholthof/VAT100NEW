@@ -23,7 +23,7 @@ export function InvoiceMetadata() {
       marginBottom: 80
     }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p className="label">REF</p>
+        <p className="label">REFERENTIE</p>
         <input
           type="text"
           value={invoiceNumber}
@@ -32,7 +32,7 @@ export function InvoiceMetadata() {
         />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p className="label">DATE</p>
+        <p className="label">DATUM</p>
         <input
           type="date"
           value={issueDate}
@@ -41,15 +41,15 @@ export function InvoiceMetadata() {
         />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p className="label">TAX ({vatRate}%)</p>
+        <p className="label">BTW ({vatRate}%)</p>
         <select
           value={vatRate}
           onChange={(e) => setVatRate(Number(e.target.value) as VatRate)}
           style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
         >
-          <option value={21}>High (21%)</option>
-          <option value={9}>Low (9%)</option>
-          <option value={0}>Zero (0%)</option>
+          <option value={21}>Hoog (21%)</option>
+          <option value={9}>Laag (9%)</option>
+          <option value={0}>Vrijgesteld (0%)</option>
         </select>
       </div>
     </div>
