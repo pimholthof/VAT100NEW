@@ -117,8 +117,6 @@ export async function linkTransactionToReceipt(
   return { error: null };
 }
 
-// TODO: GoCardless API — Initiates a bank connection via GoCardless Bank Account Data.
-// In production, this will redirect the user to GoCardless to authorize access.
 export async function initiateBankConnection(
   institutionId: string
 ): Promise<ActionResult<{ redirectUrl: string }>> {
@@ -158,7 +156,6 @@ export async function initiateBankConnection(
   }
 }
 
-// TODO: GoCardless API — Completes a bank connection after user returns from GoCardless.
 export async function completeBankConnection(
   requisitionId: string
 ): Promise<ActionResult> {
@@ -200,7 +197,6 @@ export async function completeBankConnection(
   }
 }
 
-// TODO: GoCardless API — Syncs transactions from a linked bank account.
 export async function syncTransactions(
   connectionIdOrReqId: string,
   isReqId = false

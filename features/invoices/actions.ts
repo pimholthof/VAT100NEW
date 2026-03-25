@@ -354,6 +354,12 @@ export async function generateShareToken(
 }
 
 export async function sendReminder(invoiceId: string, customMessage?: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+  if (customMessage && customMessage.length > 2000) {
+    return { error: "Bericht mag maximaal 2000 tekens zijn." };
+  }
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;

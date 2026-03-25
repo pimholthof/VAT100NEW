@@ -5,8 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getBtwOverview } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
 import type { QuarterStats } from "@/features/tax/actions";
-import { StatCard, SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
-import { inputStyle } from "@/components/ui";
+import { StatCard, SkeletonCard, SkeletonTable, Th, Td, TableWrapper, inputStyle } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
 
 export default function TaxPage() {
@@ -206,7 +205,7 @@ export default function TaxPage() {
       {isLoading ? (
         <SkeletonTable columns="1fr 1fr 1fr 1fr 1fr 1fr" rows={4} headerWidths={[60, 80, 70, 70, 60, 50]} bodyWidths={[50, 70, 60, 60, 50, 40]} />
       ) : quarters.length > 0 ? (
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
+        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Kwartaal</Th>
@@ -229,7 +228,7 @@ export default function TaxPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></TableWrapper>
       ) : (
         <p className="empty-state">Nog geen gegevens beschikbaar</p>
       )}

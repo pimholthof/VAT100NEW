@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getReceipts, deleteReceipt } from "@/features/receipts/actions";
 import { getKostensoortByCode, KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { Receipt } from "@/lib/types";
-import { Th, Td, SkeletonTable, SearchFilter } from "@/components/ui";
+import { Th, Td, SkeletonTable, SearchFilter, TableWrapper } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 const CATEGORY_OPTIONS = KOSTENSOORTEN.map((k) => ({
@@ -115,7 +115,7 @@ export default function ReceiptsPage() {
           )}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th style={{ width: 24 }}></Th>
@@ -193,7 +193,7 @@ export default function ReceiptsPage() {
               );
             })}
           </tbody>
-        </table>
+        </table></TableWrapper>
       )}
     </div>
   );

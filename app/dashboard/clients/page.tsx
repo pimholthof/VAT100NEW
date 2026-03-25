@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { m as motion , AnimatePresence } from "framer-motion";
 import { getClients, deleteClient } from "@/features/clients/actions";
 import type { Client } from "@/lib/types";
-import { Th, Td, ErrorMessage } from "@/components/ui";
+import { Th, Td, ErrorMessage, TableWrapper } from "@/components/ui";
 
 export default function ClientsPage() {
   const queryClient = useQueryClient();
@@ -108,7 +108,7 @@ export default function ClientsPage() {
           )}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 500 }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Bedrijfsnaam</Th>
@@ -176,7 +176,7 @@ export default function ClientsPage() {
               ))}
             </AnimatePresence>
           </motion.tbody>
-        </table>
+        </table></TableWrapper>
       )}
 
       {deleteMutation.data?.error && (

@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQuotes, deleteQuote, updateQuoteStatus, type QuoteWithClient } from "@/features/quotes/actions";
 import type { QuoteStatus } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Th, Td, SearchFilter } from "@/components/ui";
+import { Th, Td, SearchFilter, TableWrapper } from "@/components/ui";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Concept" },
@@ -112,7 +112,7 @@ export default function QuotesPage() {
           )}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "var(--border-rule)", textAlign: "left" }}>
               <Th>Ref</Th>
@@ -143,6 +143,8 @@ export default function QuotesPage() {
                 <Td>
                   <select
                     value={quote.status}
+                    aria-label={`Status ${quote.quote_number}`}
+                    aria-busy={statusMutation.isPending && statusMutation.variables?.id === quote.id}
                     onChange={(e) =>
                       statusMutation.mutate({ id: quote.id, status: e.target.value as QuoteStatus })
                     }
@@ -180,7 +182,7 @@ export default function QuotesPage() {
                           }
                         }}
                         className="table-action"
-                        style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3, padding: 0 }}
+                        style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}
                       >
                         Verwijder
                       </button>
@@ -190,7 +192,7 @@ export default function QuotesPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></TableWrapper>
       )}
     </div>
   );
