@@ -131,11 +131,9 @@ export default function LandingPage() {
               color: "var(--color-black)",
             }}
           >
-            De fiscale
+            VAT
             <br />
-            engine voor
-            <br />
-            creatieven.
+            100
           </h1>
 
           <p
@@ -147,7 +145,6 @@ export default function LandingPage() {
               opacity: 0.5,
             }}
           >
-            De fiscale engine voor Nederlandse creatieve freelancers.
             Facturen, BTW, bonnen en belastingaangifte — in een helder overzicht.
           </p>
 
