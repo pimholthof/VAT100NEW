@@ -4,6 +4,7 @@ import { requireAuth, createClient } from "@/lib/supabase/server";
 import type { ActionResult, ActionFeedItem } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { sendReminder } from "@/features/invoices/actions";
+import { formatCurrency } from "@/lib/format";
 import * as Sentry from "@sentry/nextjs";
 
 /**
@@ -153,12 +154,39 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
       (existingActions ?? []).map((a: { related_transaction_id: string | null }) => a.related_transaction_id)
     );
 
-    // 3. Try to match transactions to receipts
+    // 3. Batch-fetch all potentially matching receipts (±3 days from any transaction)
+    const filteredTxs = uncategorized.filter((tx: { id: string }) => !existingTxIds.has(tx.id));
+    const txDates = filteredTxs.map((tx: { booking_date: string }) => new Date(tx.booking_date));
+    const minDate = new Date(Math.min(...txDates.map((d: Date) => d.getTime())));
+    minDate.setDate(minDate.getDate() - 3);
+    const maxDate = new Date(Math.max(...txDates.map((d: Date) => d.getTime())));
+    maxDate.setDate(maxDate.getDate() + 3);
+
+    const [{ data: allReceipts }, { data: previousCategories }] = await Promise.all([
+      supabase
+        .from("receipts")
+        .select("id, vendor_name, amount_inc_vat, category, receipt_date")
+        .eq("user_id", userId)
+        .gte("receipt_date", minDate.toISOString().split("T")[0])
+        .lte("receipt_date", maxDate.toISOString().split("T")[0]),
+      // Batch-fetch known categories for counterpart names (learn from history)
+      supabase
+        .from("bank_transactions")
+        .select("counterpart_name, category")
+        .eq("user_id", userId)
+        .not("category", "is", null)
+        .not("counterpart_name", "is", null),
+    ]);
+
+    const receipts = allReceipts ?? [];
+    const knownCounterparts = new Set(
+      (previousCategories ?? []).map((p: { counterpart_name: string }) => p.counterpart_name)
+    );
+
+    // 4. Match transactions to receipts in-memory
     const newActions: Partial<ActionFeedItem>[] = [];
 
-    for (const tx of uncategorized) {
-      if (existingTxIds.has(tx.id)) continue;
-
+    for (const tx of filteredTxs) {
       const txAmount = Math.abs(Number(tx.amount));
       const txDate = new Date(tx.booking_date);
       const dateFrom = new Date(txDate);
@@ -166,35 +194,22 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
       const dateTo = new Date(txDate);
       dateTo.setDate(dateTo.getDate() + 3);
 
-      const { data: matchingReceipts } = await supabase
-        .from("receipts")
-        .select("id, vendor_name, amount_inc_vat, category, receipt_date")
-        .eq("user_id", userId)
-        .gte("receipt_date", dateFrom.toISOString().split("T")[0])
-        .lte("receipt_date", dateTo.toISOString().split("T")[0]);
-
-      const matchingReceipt = (matchingReceipts ?? []).find(
-        (r: { amount_inc_vat: number }) => Math.abs(Number(r.amount_inc_vat) - txAmount) < 0.01
+      const matchingReceipt = receipts.find(
+        (r: { amount_inc_vat: number; receipt_date: string }) => {
+          const rd = new Date(r.receipt_date);
+          return rd >= dateFrom && rd <= dateTo && Math.abs(Number(r.amount_inc_vat) - txAmount) < 0.01;
+        }
       );
 
       if (matchingReceipt) {
         let confidence = 0.85;
         const receiptDate = new Date(matchingReceipt.receipt_date);
         const daysDiff = Math.abs((txDate.getTime() - receiptDate.getTime()) / (1000 * 3600 * 24));
-        
+
         if (daysDiff <= 1) confidence += 0.05;
         if (matchingReceipt.vendor_name && tx.counterpart_name?.toLowerCase().includes(matchingReceipt.vendor_name.toLowerCase())) confidence += 0.05;
 
-        // Learn from previous resolutions
-        const { data: previous } = await supabase
-          .from("bank_transactions")
-          .select("category")
-          .eq("user_id", userId)
-          .eq("counterpart_name", tx.counterpart_name)
-          .not("category", "is", null)
-          .limit(1);
-
-        if (previous && previous.length > 0) confidence += 0.05;
+        if (tx.counterpart_name && knownCounterparts.has(tx.counterpart_name)) confidence += 0.05;
 
         if (confidence >= 0.98) {
           // Autonomous match
@@ -377,7 +392,7 @@ export async function runPaymentDetectionAgent(userId: string, externalSupabase?
           user_id: userId,
           type: "match_suggestion",
           title: `Mogelijke betaling: ${bestMatch.invoice.invoice_number}`,
-          description: `Inkomende transactie van ${new Date(tx.booking_date).toLocaleDateString("nl-NL")} (${new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(txAmount)}) lijkt een betaling voor factuur ${bestMatch.invoice.invoice_number}.`,
+          description: `Inkomende transactie van ${new Date(tx.booking_date).toLocaleDateString("nl-NL")} (${formatCurrency(txAmount)}) lijkt een betaling voor factuur ${bestMatch.invoice.invoice_number}.`,
           amount: txAmount,
           related_transaction_id: tx.id,
           related_invoice_id: bestMatch.invoice.id,
@@ -443,7 +458,7 @@ export async function runAnticipationAgent(userId: string, externalSupabase?: Aw
       if (existingInvoiceIds.has(inv.id)) continue;
 
       const clientName = inv.client?.name ?? "Onbekende klant";
-      const amount = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(inv.total_inc_vat);
+      const amount = formatCurrency(inv.total_inc_vat);
       const dueTime = new Date(inv.due_date).getTime();
       const nowTime = new Date(today).getTime();
       const daysOverdue = Math.floor((nowTime - dueTime) / (1000 * 3600 * 24));
@@ -516,7 +531,7 @@ export async function runInvestmentAgent(userId: string, externalSupabase?: Awai
           user_id: userId,
           type: "tax_alert",
           title: "Fiscale Optimalisatie: Investering",
-          description: `Je hebt dit jaar al ${new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totalRevenueExVat)} omgezet. Een investering van €1.000 in gear verlaagt je belastbare winst en bespaart ca. €370 aan inkomstenbelasting.`,
+          description: `Je hebt dit jaar al ${formatCurrency(totalRevenueExVat)} omgezet. Een investering van €1.000 in gear verlaagt je belastbare winst en bespaart ca. €370 aan inkomstenbelasting.`,
           ai_confidence: 0.9,
           status: "pending"
         });

@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendReminderEmail } from "@/lib/email/send-reminder";
+import { formatCurrency } from "@/lib/format";
 import type { InvoiceData } from "@/lib/types";
 
 export async function processOverdueInvoices(userId?: string): Promise<{
@@ -91,7 +92,7 @@ export async function processOverdueInvoices(userId?: string): Promise<{
         user_id: inv.user_id,
         type: "tax_alert",
         title: `Factuur ${inv.invoice_number} is verlopen`,
-        description: `Factuur ${inv.invoice_number} (${new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(inv.total_inc_vat)}) is verlopen. ${emailSent ? "Een herinnering is automatisch verstuurd." : "Stuur handmatig een herinnering."}`,
+        description: `Factuur ${inv.invoice_number} (${formatCurrency(inv.total_inc_vat)}) is verlopen. ${emailSent ? "Een herinnering is automatisch verstuurd." : "Stuur handmatig een herinnering."}`,
         amount: inv.total_inc_vat,
         related_invoice_id: inv.id,
         ai_confidence: 1.0,

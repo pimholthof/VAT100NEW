@@ -7,6 +7,7 @@ import {
 } from "@react-pdf/renderer";
 import type { InvoiceData } from "@/lib/types";
 import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 // ─── Design tokens (aligned with Luminous Conceptualism) ───
 
@@ -51,23 +52,6 @@ const RULE_THIN = {
 };
 
 // ─── Helpers ───
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
 
 function unitLabel(unit: string): string {
   if (unit === "dagen") return "Dagen";

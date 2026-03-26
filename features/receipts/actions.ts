@@ -33,24 +33,18 @@ export async function getReceipts(filters?: {
     query = query.lte("receipt_date", filters.dateTo);
   }
 
+  if (filters?.search) {
+    const q = `%${filters.search}%`;
+    query = query.or(`vendor_name.ilike.${q},amount_inc_vat::text.ilike.${q},amount_ex_vat::text.ilike.${q}`);
+  }
+
+  query = query.limit(200);
+
   const { data, error } = await query;
 
   if (error) return { error: error.message };
 
-  let results = (data ?? []) as Receipt[];
-
-  // Client-side search filtering (vendor name, amount)
-  if (filters?.search) {
-    const q = filters.search.toLowerCase();
-    results = results.filter(
-      (r) =>
-        r.vendor_name?.toLowerCase().includes(q) ||
-        String(r.amount_inc_vat).includes(q) ||
-        String(r.amount_ex_vat).includes(q)
-    );
-  }
-
-  return { error: null, data: results };
+  return { error: null, data: (data ?? []) as Receipt[] };
 }
 
 export async function getReceipt(

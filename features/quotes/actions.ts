@@ -263,23 +263,18 @@ export async function getQuotes(filters?: {
     query = query.eq("status", filters.status);
   }
 
+  if (filters?.search) {
+    const q = `%${filters.search}%`;
+    query = query.or(`quote_number.ilike.${q},total_inc_vat::text.ilike.${q}`);
+  }
+
+  query = query.limit(200);
+
   const { data, error } = await query;
 
   if (error) return { error: error.message };
 
-  let results = (data ?? []) as unknown as QuoteWithClient[];
-
-  if (filters?.search) {
-    const q = filters.search.toLowerCase();
-    results = results.filter(
-      (quote) =>
-        quote.quote_number.toLowerCase().includes(q) ||
-        quote.client?.name?.toLowerCase().includes(q) ||
-        String(quote.total_inc_vat).includes(q)
-    );
-  }
-
-  return { error: null, data: results };
+  return { error: null, data: (data ?? []) as unknown as QuoteWithClient[] };
 }
 
 export async function getQuote(
