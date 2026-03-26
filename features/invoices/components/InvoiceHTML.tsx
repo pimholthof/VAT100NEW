@@ -197,16 +197,17 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
   );
 }
 
-// ─── Inline styles (mirror PDF layout exactly) ───
+// ─── Inline styles (aligned with Luminous Conceptualism design system) ───
 
-const COLOR = "#0D0D0B";
+const COLOR = "#000000";
+const FONT_STACK = '"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif';
 
 const page: React.CSSProperties = {
   width: "595px",
   minHeight: "842px",
   padding: "56px",
-  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-  fontWeight: 300,
+  fontFamily: FONT_STACK,
+  fontWeight: 400,
   color: COLOR,
   backgroundColor: "#FFFFFF",
   position: "relative",
@@ -218,12 +219,12 @@ const header: React.CSSProperties = {
 };
 
 const vat100Mark: React.CSSProperties = {
-  fontFamily: 'monospace, sans-serif',
-  fontWeight: 400,
-  fontSize: "40px",
+  fontFamily: FONT_STACK,
+  fontWeight: 700,
+  fontSize: "48px",
   letterSpacing: "-0.04em",
   color: COLOR,
-  opacity: 0.1,
+  opacity: 0.06,
 };
 
 const metaRow: React.CSSProperties = {
@@ -241,18 +242,18 @@ const metaLine: React.CSSProperties = {
 
 const label: React.CSSProperties = {
   fontSize: "10px",
-  letterSpacing: "0.02em",
-  color: "rgba(13,13,11,0.5)",
-  fontWeight: 400,
+  letterSpacing: "0.14em",
+  color: "rgba(0,0,0,0.5)",
+  fontWeight: 500,
+  textTransform: "uppercase",
   marginBottom: "4px",
 };
 
 const value: React.CSSProperties = {
-  fontSize: "12px",
-  fontWeight: 300,
+  fontSize: "14px",
+  fontWeight: 400,
   color: COLOR,
 };
-
 
 const partiesRow: React.CSSProperties = {
   display: "flex",
@@ -273,8 +274,8 @@ const partyName: React.CSSProperties = {
 
 const partyDetail: React.CSSProperties = {
   fontSize: "12px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.5)",
+  fontWeight: 400,
+  color: "rgba(0,0,0,0.5)",
 };
 
 const tableHeader: React.CSSProperties = {
@@ -286,9 +287,10 @@ const tableHeader: React.CSSProperties = {
 
 const tableHeaderCell: React.CSSProperties = {
   fontSize: "10px",
-  letterSpacing: "0.02em",
-  color: "rgba(13,13,11,0.5)",
-  fontWeight: 400,
+  letterSpacing: "0.14em",
+  color: "rgba(0,0,0,0.5)",
+  fontWeight: 500,
+  textTransform: "uppercase",
 };
 
 const tableRow: React.CSSProperties = {
@@ -306,8 +308,8 @@ const tableRowLast: React.CSSProperties = {
 
 const tableCell: React.CSSProperties = {
   fontSize: "12px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.7)",
+  fontWeight: 400,
+  color: "rgba(0,0,0,0.7)",
 };
 
 const totalsContainer: React.CSSProperties = {
@@ -327,14 +329,16 @@ const totalsRow: React.CSSProperties = {
 
 const totalsLabel: React.CSSProperties = {
   fontSize: "10px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.35)",
+  fontWeight: 500,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  color: "rgba(0,0,0,0.5)",
 };
 
 const totalsValue: React.CSSProperties = {
   fontSize: "10px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.35)",
+  fontWeight: 400,
+  color: "rgba(0,0,0,0.5)",
   textAlign: "right",
 };
 
@@ -379,15 +383,16 @@ const footerCol: React.CSSProperties = {
 
 const footerLabel: React.CSSProperties = {
   fontSize: "9px",
-  fontWeight: 400,
-  color: "rgba(13,13,11,0.4)",
-  letterSpacing: "0.02em",
+  fontWeight: 500,
+  color: "rgba(0,0,0,0.5)",
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
   marginBottom: "2px",
 };
 
 const footerValue: React.CSSProperties = {
   fontSize: "9px",
-  fontWeight: 300,
+  fontWeight: 400,
   color: COLOR,
   marginBottom: "8px",
 };
