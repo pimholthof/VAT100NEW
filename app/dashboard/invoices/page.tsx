@@ -15,6 +15,13 @@ const STATUS_OPTIONS = [
   { value: "overdue", label: "Te laat" },
 ];
 
+const STATUS_LABELS: Record<string, string> = {
+  draft: "Concept",
+  sent: "Verzonden",
+  paid: "Betaald",
+  overdue: "Te laat",
+};
+
 export default function InvoicesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -60,36 +67,19 @@ export default function InvoicesPage() {
           <h1 className="display-title" style={{ letterSpacing: "-0.04em", marginBottom: 8 }}>
             Facturen
           </h1>
-          <p className="label" style={{ opacity: 0.3 }}>{invoices.length} FACTUREN</p>
+          <p className="label" style={{ opacity: 0.25 }}>{invoices.length} FACTUREN</p>
         </div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <a
             href="/api/export/invoices"
             download
-            className="label-strong"
-            style={{
-              padding: "16px 24px",
-              border: "0.5px solid rgba(13,13,11,0.25)",
-              background: "transparent",
-              color: "var(--foreground)",
-              textDecoration: "none",
-              display: "inline-block",
-              transition: "opacity 0.2s ease",
-            }}
+            className="btn-secondary"
           >
-            Exporteer CSV
+            Download lijst
           </a>
           <Link
             href="/dashboard/invoices/new"
-            className="label-strong"
-            style={{
-              padding: "16px 32px",
-              background: "var(--foreground)",
-              color: "var(--background)",
-              textDecoration: "none",
-              display: "inline-block",
-              transition: "opacity 0.2s ease",
-            }}
+            className="btn-primary"
           >
             + Nieuwe factuur
           </Link>
@@ -117,7 +107,7 @@ export default function InvoicesPage() {
           ))}
         </div>
       ) : invoices.length === 0 ? (
-        <div style={{ paddingTop: "var(--space-block)" }}>
+        <div style={{ paddingTop: "var(--space-xl)" }}>
           <p className="empty-state">
             {search || statusFilter ? "Geen facturen gevonden" : "Nog geen facturen"}
           </p>
@@ -132,127 +122,130 @@ export default function InvoicesPage() {
           )}
         </div>
       ) : (
-        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
-          <thead>
-            <tr style={{ borderBottom: "var(--border-rule)", textAlign: "left" }}>
-              <Th>Ref</Th>
-              <Th>Klant</Th>
-              <Th>Datum</Th>
-              <Th>Status</Th>
-              <Th style={{ textAlign: "right" }}>Bedrag</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((invoice: InvoiceWithClient) => (
-              <tr key={invoice.id} style={{ borderBottom: "0.5px solid rgba(0,0,0,0.03)" }}>
-                <Td>
-                  <Link
-                    href={`/dashboard/invoices/${invoice.id}`}
-                    style={{
-                      fontSize: 13,
-                      color: "var(--foreground)",
-                      textDecoration: "none",
-                      opacity: 0.6
-                    }}
-                  >
-                    {invoice.invoice_number}
-                    {invoice.is_credit_note && (
-                      <span style={{
-                        marginLeft: 8,
-                        fontSize: 9,
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        color: "var(--color-accent)",
-                      }}>
-                        Credit
-                      </span>
-                    )}
-                  </Link>
-                </Td>
-                <Td>{invoice.client?.name ?? "—"}</Td>
-                <Td>
-                  <span className="mono-amount" style={{ fontSize: 12, opacity: 0.4 }}>
-                    {formatDate(invoice.issue_date)}
-                  </span>
-                </Td>
-                <Td>
-                  <select
-                    value={invoice.status}
-                    aria-label={`Status ${invoice.invoice_number}`}
-                    aria-busy={statusMutation.isPending && statusMutation.variables?.id === invoice.id}
-                    onChange={(e) =>
-                      statusMutation.mutate({
-                        id: invoice.id,
-                        status: e.target.value as InvoiceStatus,
-                      })
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "8px 0",
-                      border: "none",
-                      background: "transparent",
-                      color: "var(--foreground)",
-                      fontSize: 11,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      outline: "none",
-                      opacity:
-                        statusMutation.isPending &&
-                        statusMutation.variables?.id === invoice.id
-                          ? 0.2
-                          : 0.5,
-                      cursor: "pointer"
-                    }}
-                  >
-                    <option value="draft">Concept</option>
-                    <option value="sent">Verzonden</option>
-                    <option value="paid">Betaald</option>
-                    <option value="overdue">Te laat</option>
-                  </select>
-                </Td>
-                <Td style={{ textAlign: "right" }}>
-                  <span
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      fontVariantNumeric: "tabular-nums",
-                      opacity: invoice.status === "paid" ? 0.3 : 1,
-                      color: invoice.status === "overdue" ? "var(--color-accent)" : "var(--foreground)",
-                    }}
-                  >
-                    {formatCurrency(invoice.total_inc_vat)}
-                  </span>
-                </Td>
-                <Td style={{ textAlign: "right" }}>
-                  <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                    <Link
-                      href={`/dashboard/invoices/${invoice.id}/preview`}
-                      className="table-action"
-                    >
-                      Bekijk
-                    </Link>
-                    {invoice.status === "draft" && (
-                      <button
-                        onClick={() => setDeleteTarget(invoice.id)}
-                        className="table-action"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          opacity: 0.3,
-                        }}
-                      >
-                        Verwijder
-                      </button>
-                    )}
-                  </div>
-                </Td>
+        <TableWrapper>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
+            <thead>
+              <tr style={{ borderBottom: "0.5px solid rgba(0,0,0,0.08)" }}>
+                <Th>Ref</Th>
+                <Th>Klant</Th>
+                <Th>Datum</Th>
+                <Th>Status</Th>
+                <Th style={{ textAlign: "right" }}>Bedrag</Th>
+                <Th style={{ textAlign: "right" }}>Acties</Th>
               </tr>
-            ))}
-          </tbody>
-        </table></TableWrapper>
+            </thead>
+            <tbody>
+              {invoices.map((invoice: InvoiceWithClient) => (
+                <tr key={invoice.id} style={{ borderBottom: "0.5px solid rgba(0,0,0,0.03)" }}>
+                  <Td>
+                    <Link
+                      href={`/dashboard/invoices/${invoice.id}`}
+                      style={{
+                        fontSize: 13,
+                        color: "var(--foreground)",
+                        textDecoration: "none",
+                        opacity: 0.6,
+                      }}
+                    >
+                      {invoice.invoice_number}
+                      {invoice.is_credit_note && (
+                        <span style={{
+                          marginLeft: 8,
+                          fontSize: 9,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          color: "var(--color-accent)",
+                        }}>
+                          Credit
+                        </span>
+                      )}
+                    </Link>
+                  </Td>
+                  <Td>{invoice.client?.name ?? "—"}</Td>
+                  <Td>
+                    <span style={{ fontSize: 12, opacity: 0.4, fontVariantNumeric: "tabular-nums" }}>
+                      {formatDate(invoice.issue_date)}
+                    </span>
+                  </Td>
+                  <Td>
+                    <select
+                      value={invoice.status}
+                      aria-label={`Status ${invoice.invoice_number}`}
+                      aria-busy={statusMutation.isPending && statusMutation.variables?.id === invoice.id}
+                      onChange={(e) =>
+                        statusMutation.mutate({
+                          id: invoice.id,
+                          status: e.target.value as InvoiceStatus,
+                        })
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "6px 0",
+                        border: "none",
+                        background: "transparent",
+                        color: invoice.status === "overdue" ? "var(--color-accent)" : "var(--foreground)",
+                        fontSize: 10,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                        fontWeight: 600,
+                        outline: "none",
+                        opacity:
+                          statusMutation.isPending &&
+                          statusMutation.variables?.id === invoice.id
+                            ? 0.15
+                            : invoice.status === "paid" ? 0.3 : 0.5,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value="draft">{STATUS_LABELS.draft}</option>
+                      <option value="sent">{STATUS_LABELS.sent}</option>
+                      <option value="paid">{STATUS_LABELS.paid}</option>
+                      <option value="overdue">{STATUS_LABELS.overdue}</option>
+                    </select>
+                  </Td>
+                  <Td style={{ textAlign: "right" }}>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        fontVariantNumeric: "tabular-nums",
+                        opacity: invoice.status === "paid" ? 0.3 : 1,
+                        color: invoice.status === "overdue" ? "var(--color-accent)" : "var(--foreground)",
+                      }}
+                    >
+                      {formatCurrency(invoice.total_inc_vat)}
+                    </span>
+                  </Td>
+                  <Td style={{ textAlign: "right" }}>
+                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                      <Link
+                        href={`/dashboard/invoices/${invoice.id}/preview`}
+                        className="table-action"
+                      >
+                        Bekijk
+                      </Link>
+                      {invoice.status === "draft" && (
+                        <button
+                          onClick={() => setDeleteTarget(invoice.id)}
+                          className="table-action"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            opacity: 0.25,
+                          }}
+                        >
+                          Verwijder
+                        </button>
+                      )}
+                    </div>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TableWrapper>
       )}
 
       <ConfirmDialog

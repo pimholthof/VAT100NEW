@@ -29,7 +29,6 @@ export function SearchFilter({
   const [search, setSearch] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
-  // Debounce search input (300ms)
   useEffect(() => {
     const timer = setTimeout(() => onSearch(search), 300);
     return () => clearTimeout(timer);
@@ -42,24 +41,23 @@ export function SearchFilter({
   }
 
   return (
-    <div style={{ display: "flex", gap: 24, alignItems: "flex-end", marginBottom: 32, flexWrap: "wrap" }}>
+    <div style={{
+      display: "flex",
+      gap: 24,
+      alignItems: "flex-end",
+      marginBottom: 32,
+      flexWrap: "wrap",
+    }}>
       <input
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder={placeholder}
+        className="input-field"
         style={{
           flex: 1,
           minWidth: 200,
           maxWidth: 400,
-          padding: "14px 0",
-          border: "none",
-          borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-          background: "transparent",
-          color: "var(--foreground)",
-          fontSize: "var(--text-mono-md)",
-          fontWeight: 300,
-          outline: "none",
         }}
       />
       {filters.map((filter) => (
@@ -70,13 +68,13 @@ export function SearchFilter({
           style={{
             padding: "14px 0",
             border: "none",
-            borderBottom: "0.5px solid rgba(13,13,11,0.15)",
+            borderBottom: "0.5px solid rgba(0,0,0,0.1)",
             background: "transparent",
             color: "var(--foreground)",
-            fontSize: 11,
+            fontSize: 10,
             textTransform: "uppercase",
             letterSpacing: "0.1em",
-            fontWeight: 300,
+            fontWeight: 500,
             outline: "none",
             cursor: "pointer",
             minWidth: 120,

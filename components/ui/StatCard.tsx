@@ -7,11 +7,13 @@ export function StatCard({
   value,
   sub,
   numericValue,
+  isCurrency = true,
 }: {
   label: string;
   value: string;
   sub?: string;
   numericValue?: number;
+  isCurrency?: boolean;
 }) {
   return (
     <motion.div 
@@ -19,15 +21,17 @@ export function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       style={{ 
-        padding: "32px", 
+        padding: "28px", 
         display: "flex", 
         flexDirection: "column", 
         justifyContent: "space-between",
-        minHeight: 180,
+        gap: 24,
+        minHeight: 200,
         position: "relative",
         overflow: "visible", // To allow vertical label to bleed out if needed
         border: "var(--border-light)",
-        background: "var(--background)"
+        background: "var(--card-surface, var(--dashboard-surface, var(--background)))",
+        borderRadius: "var(--card-radius, var(--dashboard-surface-radius, 0px))"
       }}
     >
       <div className="vertical-label">{label}</div>
@@ -47,7 +51,7 @@ export function StatCard({
           }}
         >
           {numericValue !== undefined ? (
-            <AnimatedNumber value={numericValue} isCurrency={true} />
+            <AnimatedNumber value={numericValue} isCurrency={isCurrency} />
           ) : (
             value
           )}
@@ -55,7 +59,7 @@ export function StatCard({
       </div>
 
       {sub && (
-        <div style={{ marginTop: 24 }}>
+        <div style={{ marginTop: "auto" }}>
           <div style={{ width: 40, height: 1, background: "rgba(0,0,0,0.05)", marginBottom: 12 }} />
           <p
             className="mono-amount"

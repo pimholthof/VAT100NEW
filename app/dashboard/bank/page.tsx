@@ -18,7 +18,7 @@ import {
 import { InstitutionSelector } from "@/features/dashboard/components/InstitutionSelector";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
-import { Th, Td, SkeletonTable, TableWrapper, ConfirmDialog } from "@/components/ui";
+import { Th, Td, SkeletonTable } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 const TRANSACTION_CATEGORIES = [
@@ -65,7 +65,6 @@ export default function BankPage() {
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0].value);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-  const [deleteConnTarget, setDeleteConnTarget] = useState<string | null>(null);
 
   const { data: connectionsResult, isLoading: connectionsLoading } = useQuery({
     queryKey: ["bank-connections"],
@@ -218,7 +217,7 @@ export default function BankPage() {
             transition: "opacity 0.2s ease",
           }}
         >
-          Exporteer CSV
+          Download lijst
         </a>
       </div>
 
@@ -282,14 +281,14 @@ export default function BankPage() {
         ) : connections.length === 0 ? (
           <div style={{ borderTop: "var(--border-rule)", borderBottom: "var(--border-rule)", padding: 48, textAlign: "center", background: "rgba(13, 13, 11, 0.02)" }}>
             <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "0 0 24px", opacity: 0.6 }}>
-              Nog geen bankrekening gekoppeld. Koppel je bank om transacties automatisch te verwerken.
+              Koppel je bankrekening om betalingen automatisch te zien.
             </p>
             <button
               onClick={() => setIsSelectorOpen(true)}
               className="label-strong"
               style={{ padding: "16px 32px", border: "none", background: "var(--foreground)", color: "var(--background)", cursor: "pointer" }}
             >
-              Koppel bankrekening
+              Bank koppelen
             </button>
           </div>
         ) : (
@@ -311,7 +310,7 @@ export default function BankPage() {
                   <span style={{ fontSize: "var(--text-body-lg)", fontWeight: 500 }}>{conn.institution_name}</span>
                   {conn.iban && <span style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.5 }}>{conn.iban}</span>}
                   <span className="label" style={{ opacity: 0.4 }}>{conn.status}</span>
-                  {conn.last_synced_at && <span style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4 }}>Laatst: {formatDate(conn.last_synced_at)}</span>}
+                  {conn.last_synced_at && <span style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4 }}>Laatste update: {formatDate(conn.last_synced_at)}</span>}
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <button
@@ -320,14 +319,18 @@ export default function BankPage() {
                     className="label-strong"
                     style={{ background: "none", border: "0.5px solid rgba(13, 13, 11, 0.25)", color: "var(--foreground)", padding: "6px 12px", cursor: "pointer" }}
                   >
-                    {syncMutation.isPending ? "Bezig..." : "Sync"}
+                    {syncMutation.isPending ? "Bezig..." : "Bijwerken"}
                   </button>
                   <button
-                    onClick={() => setDeleteConnTarget(conn.id)}
+                    onClick={() => {
+                      if (confirm("Weet je zeker dat je deze koppeling wilt verwijderen?")) {
+                        deleteMutation.mutate(conn.id);
+                      }
+                    }}
                     className="label"
                     style={{ background: "none", border: "none", color: "var(--foreground)", opacity: 0.6, cursor: "pointer", padding: 0 }}
                   >
-                    Verwijder
+                    Loskoppelen
                   </button>
                 </div>
               </div>
@@ -338,7 +341,7 @@ export default function BankPage() {
                 className="label-strong"
                 style={{ padding: "12px 20px", border: "0.5px solid rgba(13, 13, 11, 0.25)", background: "transparent", color: "var(--foreground)", cursor: "pointer" }}
               >
-                + Andere rekening koppelen
+                + Extra rekening koppelen
               </button>
             </div>
           </div>
@@ -348,7 +351,7 @@ export default function BankPage() {
       {/* Section 2: Transactions */}
       <div style={{ marginBottom: 48 }}>
         <div className="page-header" style={{ marginBottom: 24 }}>
-          <h2 className="section-header" style={{ margin: 0 }}>Transacties</h2>
+          <h2 className="section-header" style={{ margin: 0 }}>Betalingen</h2>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
@@ -364,7 +367,7 @@ export default function BankPage() {
         {!transactionsLoading && uncategorizedCount > 0 && (
           <div style={{ borderLeft: "2px solid var(--foreground)", padding: "12px 16px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <span style={{ fontSize: "var(--text-body-lg)", fontWeight: 300 }}>
-              {uncategorizedCount} transactie{uncategorizedCount !== 1 ? "s" : ""} wacht{uncategorizedCount === 1 ? "" : "en"} op categorisatie
+              {uncategorizedCount} betaling{uncategorizedCount !== 1 ? "en" : ""} nog in te delen
             </span>
             <button
               onClick={() => autoCategorizeMutation.mutate(uncategorizedTransactions.map((tx) => tx.id))}
@@ -372,7 +375,7 @@ export default function BankPage() {
               className="label-strong"
               style={{ padding: "12px 20px", border: "none", background: "var(--foreground)", color: "var(--background)", cursor: "pointer" }}
             >
-              {autoCategorizeMutation.isPending ? "Bezig..." : "Categoriseer automatisch"}
+              {autoCategorizeMutation.isPending ? "Bezig..." : "Automatisch indelen"}
             </button>
           </div>
         )}
@@ -392,7 +395,7 @@ export default function BankPage() {
               cursor: "pointer",
             }}
           >
-            Actie vereist ({uncategorizedCount})
+            Nog doen ({uncategorizedCount})
           </button>
           <button
             onClick={() => setActiveTab("auto")}
@@ -416,16 +419,16 @@ export default function BankPage() {
         ) : displayTransactions.length === 0 ? (
           <div style={{ borderTop: "var(--border-rule)", borderBottom: "var(--border-rule)", padding: 48, textAlign: "center" }}>
             <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: 0 }}>
-              Inbox Zero. Geen transacties meer in deze lijst.
+              Alles verwerkt. Geen betalingen meer in deze lijst.
             </p>
           </div>
         ) : (
-          <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--text-body-md)", minWidth: 700 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--text-body-md)" }}>
             <thead>
               <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
                 <Th>Datum</Th>
                 <Th>Omschrijving</Th>
-                <Th>Tegenpartij</Th>
+                <Th>Van/aan</Th>
                 <Th>Categorie</Th>
                 <Th style={{ textAlign: "right" }}>Bedrag</Th>
               </tr>
@@ -464,33 +467,21 @@ export default function BankPage() {
                 </tr>
               ))}
             </tbody>
-          </table></TableWrapper>
+          </table>
         )}
       </div>
 
       {/* Section 3: Summary */}
       {!isLoading && transactions.length > 0 && (
         <div style={{ borderTop: "0.5px solid rgba(13,13,11,0.15)", paddingTop: 24 }}>
-          <h2 className="section-header" style={{ margin: "0 0 24px" }}>Samenvatting</h2>
+          <h2 className="section-header" style={{ margin: "0 0 24px" }}>Overzicht</h2>
           <div className="responsive-grid-3">
             <SummaryItem label="Inkomsten" amount={totals.income} />
             <SummaryItem label="Uitgaven" amount={totals.expenses} />
-            <SummaryItem label="Netto" amount={totals.net} />
+            <SummaryItem label="Resultaat" amount={totals.net} />
           </div>
         </div>
       )}
-
-      <ConfirmDialog
-        open={!!deleteConnTarget}
-        title="Bankverbinding verwijderen"
-        message="Weet je zeker dat je deze bankverbinding wilt verwijderen? Alle gekoppelde transacties worden ook verwijderd."
-        confirmLabel="Verwijderen"
-        onConfirm={() => {
-          if (deleteConnTarget) deleteMutation.mutate(deleteConnTarget);
-          setDeleteConnTarget(null);
-        }}
-        onCancel={() => setDeleteConnTarget(null)}
-      />
     </div>
   );
 }

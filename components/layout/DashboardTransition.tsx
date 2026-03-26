@@ -15,7 +15,7 @@ export function DashboardTransition({ children }: { children: React.ReactNode })
         duration: 0.4,
         ease: [0.22, 1, 0.36, 1] // Apple-style custom ease
       }}
-      style={{ width: "100%" }}
+      className="w-full"
     >
       {children}
     </motion.div>
