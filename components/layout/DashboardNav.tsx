@@ -87,6 +87,7 @@ export function DashboardNav({
                 <span className="label mb-4">Geld</span>
                 <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Transacties</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
+                <Link href="/dashboard/report" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Jaarrekening</Link>
                 <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
               </div>
 
