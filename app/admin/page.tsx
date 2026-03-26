@@ -1,4 +1,4 @@
-import { getPlatformStats } from "@/features/admin/actions";
+import { getPlatformStats, getWaitlistCount } from "@/features/admin/actions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import Link from "next/link";
@@ -11,7 +11,10 @@ function formatCurrency(amount: number): string {
 }
 
 export default async function AdminDashboardPage() {
-  const result = await getPlatformStats();
+  const [result, waitlistResult] = await Promise.all([
+    getPlatformStats(),
+    getWaitlistCount(),
+  ]);
 
   if (result.error || !result.data) {
     return (
@@ -25,24 +28,39 @@ export default async function AdminDashboardPage() {
   }
 
   const stats = result.data;
+  const waitlistCount = waitlistResult.data ?? 0;
 
   return (
     <div>
       <PageHeader
         title="Platform Beheer"
         action={
-          <Link
-            href="/admin/users"
-            className="label-strong"
-            style={{
-              padding: "12px 24px",
-              border: "var(--border-light)",
-              textDecoration: "none",
-              color: "var(--foreground)",
-            }}
-          >
-            Alle gebruikers &rarr;
-          </Link>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Link
+              href="/admin/waitlist"
+              className="label-strong"
+              style={{
+                padding: "12px 24px",
+                border: "var(--border-light)",
+                textDecoration: "none",
+                color: "var(--foreground)",
+              }}
+            >
+              Wachtlijst ({waitlistCount})
+            </Link>
+            <Link
+              href="/admin/users"
+              className="label-strong"
+              style={{
+                padding: "12px 24px",
+                border: "var(--border-light)",
+                textDecoration: "none",
+                color: "var(--foreground)",
+              }}
+            >
+              Alle gebruikers &rarr;
+            </Link>
+          </div>
         }
       />
 

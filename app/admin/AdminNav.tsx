@@ -69,6 +69,9 @@ export function AdminNav() {
                 <Link href="/admin/users" onClick={() => setIsDrawerOpen(false)} className="drawer-link">
                   Gebruikers
                 </Link>
+                <Link href="/admin/waitlist" onClick={() => setIsDrawerOpen(false)} className="drawer-link">
+                  Wachtlijst
+                </Link>
               </div>
 
               <div className="dashboard-drawer-col">
