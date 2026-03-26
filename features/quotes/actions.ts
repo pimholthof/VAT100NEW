@@ -16,17 +16,39 @@ export type QuoteWithClient = Quote & {
   client: { name: string } | null;
 };
 
+async function queryNextQuoteNumber(
+  supabase: NonNullable<Awaited<ReturnType<typeof requireAuth>>["supabase"]>,
+  userId: string
+): Promise<string> {
+  const { data } = await supabase
+    .from("quotes")
+    .select("quote_number")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  let maxNum = 0;
+  for (const row of data ?? []) {
+    const digits = (row.quote_number as string).replace(/[^0-9]/g, "");
+    if (digits) {
+      const n = parseInt(digits, 10);
+      if (n > maxNum) maxNum = n;
+    }
+  }
+  return "OFF-" + String(maxNum + 1).padStart(4, "0");
+}
+
 export async function generateQuoteNumber(): Promise<ActionResult<string>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { data, error } = await supabase.rpc("generate_quote_number", {
-    p_user_id: user.id,
-  });
-
-  if (error) return { error: error.message };
-  return { error: null, data: data as string };
+  try {
+    const number = await queryNextQuoteNumber(supabase, user.id);
+    return { error: null, data: number };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Kon offertenummer niet genereren." };
+  }
 }
 
 export async function createQuote(
@@ -80,12 +102,7 @@ export async function createQuote(
       return { error: insertError.message };
     }
 
-    const { data: newNumber, error: rpcError } = await supabase.rpc(
-      "generate_quote_number",
-      { p_user_id: user.id }
-    );
-    if (rpcError) return { error: rpcError.message };
-    quoteNumber = newNumber as string;
+    quoteNumber = await queryNextQuoteNumber(supabase, user.id);
   }
 
   if (!quote) return { error: "Offertenummer kon niet worden gegenereerd." };
@@ -408,11 +425,7 @@ export async function duplicateQuote(
 
   if (fetchError || !source) return { error: "Offerte niet gevonden." };
 
-  const { data: newNumber, error: rpcError } = await supabase.rpc(
-    "generate_quote_number",
-    { p_user_id: user.id }
-  );
-  if (rpcError) return { error: rpcError.message };
+  const newNumber = await queryNextQuoteNumber(supabase, user.id);
 
   const today = new Date().toISOString().split("T")[0];
   const validUntil = new Date();
