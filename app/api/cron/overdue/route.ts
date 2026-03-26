@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processOverdueInvoices } from "@/lib/use-cases/process-overdue-invoices";
-import { getRequiredEnv } from "@/lib/utils/env";
+import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 
 /**
  * Cron: Overdue Invoice Handler (daily 06:00)
  */
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const cronHeader = request.headers.get("x-cron-secret");
-  const secret = cronHeader || authHeader?.replace("Bearer ", "");
-
-  const expected = getRequiredEnv("CRON_SECRET");
-
-  if (secret !== expected) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

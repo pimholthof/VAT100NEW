@@ -1,31 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@/lib/supabase/server";
+import { isRateLimited } from "@/lib/rate-limit";
 
-// Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Simple in-memory rate limiter (per IP, 10 requests per minute)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 10;
-const RATE_WINDOW_MS = 60_000;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return false;
-  }
-  entry.count++;
-  return entry.count > RATE_LIMIT;
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-    if (isRateLimited(ip)) {
+    // Authenticate user — prevents unauthorized API usage
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Niet ingelogd." },
+        { status: 401 }
+      );
+    }
+
+    // Rate limit per user (not IP — works across serverless instances)
+    const limited = await isRateLimited(`ai-chat:${user.id}`);
+    if (limited) {
       return NextResponse.json(
         { error: "Te veel verzoeken. Probeer het over een minuut opnieuw." },
         { status: 429 }
@@ -38,17 +35,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Geen vraag gesteld" }, { status: 400 });
     }
 
-    // 1. Manually fetch the user context to feed to the LLM (Naive RAG / Context Injection)
-    // Note: In production we would use pgvector and similarity search. 
-    // Here we inject an aggregated summary for the MVP.
-    // We can't easily use cookies in API routes without complex setup
-    // So for the sake of MVP we will use the service role or a simplified approach
-    // If not authenticated, we'll just mock the data fetch or use anon
-    
-    // However, since it's an MVP, let's just make it a general financial assistant first
-    // combined with whatever we can get. 
-    
-    // For now, we simulate pulling the current context
     const contextStr = `
 (Let op: dit is momenteel een demo-omgeving. Je antwoordt als VAT100 AI Assistant.
 Je bent een slimme, proactieve CFO / boekhoud-assistent.
@@ -56,7 +42,7 @@ Geef korte, bondige, en behulpzame antwoorden in het Nederlands.
 Je kunt uitleggen wat er allemaal mogelijk is wegens de "Liquid" architectuur.)
 `;
 
-    const systemPrompt = `Je bent de VAT100 Autonome CFO Assistent. 
+    const systemPrompt = `Je bent de VAT100 Autonome CFO Assistent.
 Je helpt zzp'ers en freelancers met inzicht in hun cashflow, facturen en bonnetjes.
 Houd je antwoorden professioneel, zeer beknopt, to-the-point en behulpzaam. Vermijd markdown formatting tenzij nodig (zoals opsommingen of vetgedrukt).
 Context van de gebruiker:\n${contextStr}`;
@@ -74,9 +60,9 @@ Context van de gebruiker:\n${contextStr}`;
     });
 
     const textContent = response.content.find((c) => c.type === "text");
-    
-    return NextResponse.json({ 
-      text: textContent?.type === "text" ? textContent.text : "Ik kon helaas geen antwoord formuleren." 
+
+    return NextResponse.json({
+      text: textContent?.type === "text" ? textContent.text : "Ik kon helaas geen antwoord formuleren."
     });
 
   } catch (error) {

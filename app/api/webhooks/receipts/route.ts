@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
 import { processReceiptWebhook } from "@/features/receipts/actions";
+import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 
 /**
  * Agent 1: Receipt Catcher (Webhook Endpoint)
  */
 export async function POST(request: Request) {
   try {
-    // Verify webhook secret
-    const cronSecret = process.env.CRON_SECRET;
-    if (!cronSecret) {
-      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
-    }
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+    if (!verifyCronSecret(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

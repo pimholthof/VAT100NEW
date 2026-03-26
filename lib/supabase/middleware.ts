@@ -54,5 +54,37 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Admin route protection: verify role
+  if (user && pathname.startsWith("/admin")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profile.role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Suspended user protection
+  if (user && !isPublicRoute) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("status")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.status === "suspended") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      // Sign out the suspended user
+      await supabase.auth.signOut();
+      return NextResponse.redirect(url);
+    }
+  }
+
   return supabaseResponse;
 }
