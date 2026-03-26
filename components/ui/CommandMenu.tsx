@@ -53,7 +53,8 @@ export function CommandMenu() {
   const askAI = async (userQuery: string) => {
     if (!userQuery.trim()) return;
     setChatMode(true);
-    setChatMessages(prev => [...prev, { role: 'user', content: userQuery }]);
+    const updatedMessages: ChatMessage[] = [...chatMessages, { role: 'user', content: userQuery }];
+    setChatMessages(updatedMessages);
     setQuery("");
     setIsChatLoading(true);
 
@@ -61,7 +62,10 @@ export function CommandMenu() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: userQuery }),
+        body: JSON.stringify({
+          query: userQuery,
+          history: updatedMessages.slice(0, -1),
+        }),
       });
       const data: ChatApiResponse = await res.json();
       setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error || "Geen antwoord ontvangen." }]);
