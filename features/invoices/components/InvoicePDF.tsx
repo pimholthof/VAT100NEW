@@ -10,14 +10,14 @@ import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 
 // ─── Design tokens ───
 
-const COLOR = "#0A0A0A";
+const COLOR = "#0D0D0B";
 const ACCENT = "#A51C30";
 const MARGIN = 56;
 
 const LABEL = {
   fontSize: 9,
-  letterSpacing: 0.15 * 9,
-  color: "rgba(10,10,10,0.4)",
+  letterSpacing: 0.08 * 9,
+  color: "rgba(13,13,11,0.5)",
   fontFamily: "Helvetica",
   fontWeight: 700,
   textTransform: "uppercase" as const,
@@ -39,14 +39,14 @@ const HERO = {
 };
 
 const RULE = {
-  borderBottomWidth: 1,
+  borderBottomWidth: 0.5,
   borderBottomColor: COLOR,
   borderBottomStyle: "solid" as const,
 };
 
 const RULE_THIN = {
   borderBottomWidth: 0.5,
-  borderBottomColor: "rgba(10,10,10,0.2)",
+  borderBottomColor: "rgba(13,13,11,0.2)",
   borderBottomStyle: "solid" as const,
 };
 
@@ -169,7 +169,7 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: "rgba(10,10,10,0.5)",
+    color: "rgba(13,13,11,0.5)",
     lineHeight: 1.5,
   },
 
@@ -199,7 +199,7 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: COLOR,
+    color: "rgba(13,13,11,0.7)",
     lineHeight: 1.4,
   },
 
@@ -226,13 +226,13 @@ const s = StyleSheet.create({
   totalsLabel: {
     ...LABEL,
     fontSize: 8,
-    color: "rgba(10,10,10,0.4)",
+    color: "rgba(13,13,11,0.4)",
   },
   totalsValue: {
     fontSize: 11,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: "rgba(10,10,10,0.5)",
+    color: "rgba(13,13,11,0.5)",
     textAlign: "right",
   },
   totalRow: {
@@ -240,7 +240,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 12,
     marginTop: 8,
-    borderTopWidth: 2,
+    borderTopWidth: 1,
     borderTopColor: COLOR,
   },
   totalLabel: {
@@ -275,6 +275,7 @@ const s = StyleSheet.create({
   footerLabel: {
     ...LABEL,
     fontSize: 7,
+    letterSpacing: 0.08 * 7,
     marginBottom: 4,
   },
   footerValue: {
