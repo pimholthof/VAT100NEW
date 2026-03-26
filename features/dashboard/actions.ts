@@ -3,7 +3,7 @@
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
 import { runReconciliationAgent, runAnticipationAgent, runInvestmentAgent, runPaymentDetectionAgent } from "./action-feed";
-import * as Sentry from "@sentry/nextjs";
+import { calculateZZPTaxProjection, calculateKIA, type Investment } from "@/lib/tax/dutch-tax-2026";
 
 export interface DashboardStats {
   revenueThisMonth: number;
@@ -94,10 +94,10 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     .gte("created_at", fifteenMinutesAgo);
 
   if ((recentAgentRuns ?? 0) === 0) {
-    runReconciliationAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "reconciliation" } }));
-    runPaymentDetectionAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "payment_detection" } }));
-    runAnticipationAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "anticipation" } }));
-    runInvestmentAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "investment" } }));
+    runReconciliationAgent(userId, supabase).catch(console.error);
+    runPaymentDetectionAgent(userId, supabase).catch(console.error);
+    runAnticipationAgent(userId, supabase).catch(console.error);
+    runInvestmentAgent(userId, supabase).catch(console.error);
   }
 
   // Date ranges
@@ -382,33 +382,42 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
 }
 
 // ── Safe-to-Spend Calculator (Agent 3: Tax Forecaster) ──
+// Uses real 2026 tax calculation instead of simplified 37% estimate
 function calculateSafeToSpend(
   bankTransactions: Array<{ amount: number }>,
   yearRevenue: Array<{ total_inc_vat: number; vat_amount: number }>,
   outputVat: number,
   inputVat: number
 ): SafeToSpendData {
-  // Current bank balance = sum of all transactions
   const currentBalance = bankTransactions.reduce(
     (sum, tx) => sum + (Number(tx.amount) || 0), 0
   );
 
-  // Estimated VAT to pay this quarter
   const estimatedVat = Math.max(0, Math.round((outputVat - inputVat) * 100) / 100);
 
-  // Estimated income tax: ~37% of net profit (revenue minus VAT = ex-VAT revenue)
-  // This is a simplified Dutch IB estimate for ZZP'ers
+  // Real IB calculation using 2026 rates (box 1 + heffingskortingen + aftrekposten)
   const totalRevenueExVat = yearRevenue.reduce(
     (sum, inv) => sum + ((Number(inv.total_inc_vat) || 0) - (Number(inv.vat_amount) || 0)), 0
   );
-  const estimatedIncomeTax = Math.max(0, Math.round(totalRevenueExVat * 0.37 * 100) / 100);
+
+  const now = new Date();
+  const maandenVerstreken = now.getMonth() + 1;
+  const projection = calculateZZPTaxProjection({
+    jaarOmzetExBtw: totalRevenueExVat,
+    jaarKostenExBtw: 0, // Kosten worden niet meegenomen in safe-to-spend (conservatief)
+    investeringen: [],
+    maandenVerstreken,
+  });
+
+  const estimatedIncomeTax = Math.max(0, projection.nettoIB);
 
   const reservedTotal = estimatedVat + estimatedIncomeTax;
   const safeToSpend = Math.round((currentBalance - reservedTotal) * 100) / 100;
 
-  // Tax Shield: If they invest €1000, they save roughly 37% in income tax (€370)
-  // This is only relevant if they have a decent revenue
-  const taxShieldPotential = totalRevenueExVat > 10000 ? 370 : 0;
+  // Tax Shield: echte KIA-berekening bij €1.000 extra investering
+  const kiaVoordeel = totalRevenueExVat > 10000
+    ? Math.round(calculateKIA(1000) * 0.3575 * 100) / 100 // marginaal tarief schijf 1
+    : 0;
 
   return {
     currentBalance: Math.round(currentBalance * 100) / 100,
@@ -416,7 +425,7 @@ function calculateSafeToSpend(
     estimatedIncomeTax,
     reservedTotal: Math.round(reservedTotal * 100) / 100,
     safeToSpend: Math.max(0, safeToSpend),
-    taxShieldPotential,
+    taxShieldPotential: kiaVoordeel,
   };
 }
 

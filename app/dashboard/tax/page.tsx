@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getBtwOverview } from "@/features/tax/actions";
+import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
 import type { QuarterStats } from "@/features/tax/actions";
-import { StatCard, SkeletonCard, SkeletonTable, Th, Td, TableWrapper, inputStyle } from "@/components/ui";
+import type { Bespaartip, DepreciationRow } from "@/lib/tax/dutch-tax-2026";
+import { SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
 import { formatCurrency } from "@/lib/format";
+import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 
 export default function TaxPage() {
-  const [selectedQuarter, setSelectedQuarter] = useState<string | null>(null);
-
-  const { data: result, isLoading } = useQuery({
+  const { data: btwResult, isLoading: btwLoading } = useQuery({
     queryKey: ["btw-overview"],
     queryFn: () => getBtwOverview(),
+  });
+
+  const { data: taxResult, isLoading: taxLoading } = useQuery({
+    queryKey: ["tax-projection"],
+    queryFn: () => getTaxProjection(),
   });
 
   const { data: dashResult } = useQuery({
@@ -21,42 +25,22 @@ export default function TaxPage() {
     queryFn: () => getDashboardData(),
   });
 
-  const quarters = result?.data ?? [];
-  const current = selectedQuarter
-    ? quarters.find((q) => q.quarter === selectedQuarter) ?? null
-    : quarters.length > 0 ? quarters[0] : null;
-  const safeToSpend = dashResult?.data?.safeToSpend;
+  const quarters = btwResult?.data ?? [];
+  const current = quarters.length > 0 ? quarters[0] : null;
+  const projection = taxResult?.data ?? null;
   const vatDeadline = dashResult?.data?.vatDeadline;
 
-  // Year-end IB projection
   const now = new Date();
-  const monthsElapsed = now.getMonth() + 1;
-  const yearRevenueExVat = quarters
-    .filter((q) => q.quarter.includes(String(now.getFullYear())))
-    .reduce((sum, q) => sum + q.revenueExVat, 0);
-  const annualizedRevenue = (yearRevenueExVat / monthsElapsed) * 12;
-  const zelfstandigenaftrek = 5030;
-  const mkbVrijstelling = annualizedRevenue * 0.14;
-  const taxableProfit = Math.max(0, annualizedRevenue - zelfstandigenaftrek - mkbVrijstelling);
-  let estimatedIB = 0;
-  if (taxableProfit <= 75518) {
-    estimatedIB = taxableProfit * 0.3693;
-  } else {
-    estimatedIB = 75518 * 0.3693 + (taxableProfit - 75518) * 0.4950;
-  }
-
-  const yearBtw = quarters
-    .filter((q) => q.quarter.includes(String(now.getFullYear())))
-    .reduce((sum, q) => sum + q.netVat, 0);
+  const isLoading = btwLoading || taxLoading;
 
   return (
     <div>
-      {/* Title */}
+      {/* ══ HEADER ══ */}
       <div className="page-header" style={{ marginBottom: 80 }}>
         <div>
           <h1 className="display-title">Belasting</h1>
           <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
-            Alles over je BTW en inkomstenbelasting
+            Overzicht van je geschatte inkomstenbelasting en BTW
           </p>
         </div>
         <a
@@ -73,145 +57,219 @@ export default function TaxPage() {
             transition: "opacity 0.2s ease",
           }}
         >
-          Exporteer CSV
+          Download lijst
         </a>
       </div>
 
-      {/* Jaar Prognose */}
-      <div
-        className="stat-cards-grid responsive-grid-3"
-        style={{
-          background: "rgba(13,13,11,0.08)",
-          border: "0.5px solid rgba(13,13,11,0.08)",
-          marginBottom: "var(--space-section)",
-          gap: 1,
-        }}
-      >
-        <YearCard
-          label={`Geschatte IB ${now.getFullYear()}`}
-          value={formatCurrency(Math.round(estimatedIB))}
-          sublabel={`Belastbaar: ${formatCurrency(Math.round(taxableProfit))}`}
-        />
-        <YearCard
-          label={`BTW totaal ${now.getFullYear()}`}
-          value={formatCurrency(Math.round(yearBtw))}
-          sublabel={`${quarters.filter((q) => q.quarter.includes(String(now.getFullYear()))).length} kwartalen`}
-        />
-        <YearCard
-          label="Totale belastingdruk"
-          value={formatCurrency(Math.round(estimatedIB + Math.max(0, yearBtw)))}
-          sublabel={safeToSpend ? `Safe-to-Spend: ${formatCurrency(safeToSpend.safeToSpend)}` : ""}
-        />
-      </div>
+      {/* ══════════════════════════════════════════════════
+          ZONE 1: INKOMSTENBELASTING
+      ══════════════════════════════════════════════════ */}
 
-      {/* ZZP Aftrekposten */}
-      <div style={{ marginBottom: "var(--space-section)" }}>
-        <h2 className="section-header" style={{ margin: "0 0 16px" }}>
-          Jouw aftrekposten
-        </h2>
-        <div className="responsive-grid-3">
-          <DeductionItem label="Zelfstandigenaftrek" value={formatCurrency(zelfstandigenaftrek)} note="1.225+ uur per jaar" />
-          <DeductionItem label="MKB-winstvrijstelling" value={formatCurrency(Math.round(mkbVrijstelling))} note="14% van de winst" />
-          <DeductionItem
-            label="Aftrekbare BTW (YTD)"
-            value={formatCurrency(
-              quarters
-                .filter((q) => q.quarter.includes(String(now.getFullYear())))
-                .reduce((sum, q) => sum + q.inputVat, 0)
-            )}
-            note="Via bonnetjes"
-          />
-        </div>
-      </div>
+      <h2 className="section-header" style={{ margin: "0 0 8px" }}>
+        Inkomstenbelasting {now.getFullYear()}
+      </h2>
+      <p className="label" style={{ margin: "0 0 24px", opacity: 0.4 }}>
+        Schatting op basis van je huidige omzet en kosten
+      </p>
 
-      {/* BTW Deadline */}
-      {vatDeadline && (
-        <div className="page-header" style={{ marginBottom: "var(--space-section)", padding: 20, border: "0.5px solid rgba(13,13,11,0.08)" }}>
-          <div>
-            <p className="label" style={{ opacity: 0.5, margin: "0 0 4px" }}>Volgende BTW-aangifte</p>
-            <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 500, margin: 0 }}>
-              {vatDeadline.quarter} — {vatDeadline.deadline}
-            </p>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <p style={{ fontSize: "var(--text-display-md)", fontWeight: 700, letterSpacing: "var(--tracking-display)", margin: "0 0 4px" }}>
-              {vatDeadline.daysRemaining}d
-            </p>
-            <p className="label" style={{ opacity: 0.5, margin: 0 }}>
-              {formatCurrency(vatDeadline.estimatedAmount)}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Hero: Netto BTW dit kwartaal */}
-      {!isLoading && current && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-            <p className="label" style={{ margin: 0, opacity: 0.3 }}>
-              {current.netVat >= 0 ? "Te betalen" : "Te vorderen"}
-            </p>
-            {quarters.length > 1 && (
-              <select
-                value={selectedQuarter ?? quarters[0]?.quarter ?? ""}
-                onChange={(e) => setSelectedQuarter(e.target.value)}
-                aria-label="Selecteer kwartaal"
-                style={{
-                  ...inputStyle,
-                  width: "auto",
-                  padding: "4px 8px",
-                  fontSize: 11,
-                  fontWeight: 500,
-                  border: "0.5px solid rgba(13,13,11,0.15)",
-                  background: "transparent",
-                }}
-              >
-                {quarters.map((q) => (
-                  <option key={q.quarter} value={q.quarter}>
-                    {q.quarter}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-          <p style={{ fontSize: "var(--text-display-xl)", fontWeight: 700, lineHeight: 0.85, letterSpacing: "var(--tracking-display)", margin: 0 }}>
-            {formatCurrency(Math.abs(current.netVat))}
-          </p>
-        </div>
-      )}
-
-      {/* Stat cards */}
+      {/* Hero: geschatte inkomstenbelasting */}
       {isLoading ? (
-        <div className="editorial-divider" style={{ marginBottom: "var(--space-block)" }}>
-          <div className="stat-cards-grid responsive-grid-3">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-        </div>
-      ) : current ? (
-        <div className="editorial-divider" style={{ marginBottom: "var(--space-section)" }}>
-          <div className="stat-cards-grid responsive-grid-3">
-            <StatCard label="Output BTW" value={formatCurrency(current.outputVat)} />
-            <StatCard label="Aftrekbare BTW" value={formatCurrency(current.inputVat)} />
-            <StatCard label="Aantal facturen" value={String(current.invoiceCount)} />
-          </div>
+        <SkeletonCard />
+      ) : projection ? (
+        <div style={{ marginBottom: "var(--space-section)" }}>
+          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+            Geschatte inkomstenbelasting {now.getFullYear()}
+          </p>
+          <p style={{
+            fontSize: "var(--text-display-xl)",
+            fontWeight: 700,
+            lineHeight: 0.85,
+            letterSpacing: "var(--tracking-display)",
+            margin: 0,
+          }}>
+            {formatCurrency(Math.round(projection.nettoIB))}
+          </p>
+          <p style={{
+            fontSize: "var(--text-body-sm)",
+            fontWeight: 300,
+            opacity: 0.45,
+            margin: "12px 0 0",
+          }}>
+            Gemiddeld belastingpercentage: {projection.effectiefTarief.toFixed(1)}%
+          </p>
         </div>
       ) : null}
 
-      {/* Quarterly table */}
-      <h2 className="section-header" style={{ margin: "0 0 16px" }}>Kwartaaloverzicht</h2>
+      {/* Jaarprognose */}
+      {projection && (
+        <div style={{
+          marginBottom: "var(--space-section)",
+          padding: "20px 24px",
+          background: "rgba(13,13,11,0.02)",
+          border: "0.5px solid rgba(13,13,11,0.06)",
+        }}>
+          <p className="label" style={{ margin: "0 0 12px", opacity: 0.4 }}>
+            Jaarprognose — als je in dit tempo doorgaat
+          </p>
+          <div style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
+            <ProjectionStat label="Verwachte jaaromzet" value={formatCurrency(Math.round(projection.prognoseJaarOmzet))} />
+            <ProjectionStat label="Verwachte jaarkosten" value={formatCurrency(Math.round(projection.prognoseJaarKosten))} />
+            <ProjectionStat label="Verwachte inkomstenbelasting" value={formatCurrency(Math.round(projection.prognoseJaarIB))} />
+          </div>
+        </div>
+      )}
 
-      {isLoading ? (
+      {/* Berekening */}
+      {projection && (
+        <div style={{ marginBottom: "var(--space-section)" }}>
+          <div style={{
+            background: "var(--background)",
+            border: "0.5px solid rgba(13,13,11,0.08)",
+            padding: 24,
+          }}>
+            <BreakdownSection title="Winstberekening">
+              <BreakdownLine label="Omzet (excl. BTW)" value={projection.brutoOmzet} />
+              <BreakdownLine label="Kosten" value={-projection.kosten} negative />
+              <BreakdownLine label="Afschrijvingen" value={-projection.afschrijvingen} negative />
+              <BreakdownTotal label="Winst voor aftrekposten" value={projection.brutoWinst} />
+            </BreakdownSection>
+
+            <BreakdownSection title="Aftrekposten">
+              <BreakdownLine label="Aftrek voor zelfstandigen" value={-projection.zelfstandigenaftrek} negative />
+              <BreakdownLine
+                label={`Winstvrijstelling kleine ondernemers (${(TAX_CONSTANTS.mkbVrijstellingRate * 100).toFixed(1)}%)`}
+                value={-projection.mkbVrijstelling}
+                negative
+              />
+              {projection.kia > 0 && (
+                <BreakdownLine
+                  label={`Investeringsaftrek (${(TAX_CONSTANTS.kiaTier1Rate * 100)}% over ${formatCurrency(projection.totalInvestments)})`}
+                  value={-projection.kia}
+                  negative
+                />
+              )}
+              <BreakdownTotal label="Inkomen waarover je belasting betaalt" value={projection.belastbaarInkomen} />
+            </BreakdownSection>
+
+            <BreakdownSection title="Belasting">
+              <BreakdownLine label="Inkomstenbelasting" value={projection.inkomstenbelasting} />
+              <BreakdownLine label="Belastingkorting (algemeen)" value={-projection.algemeneHeffingskorting} negative />
+              <BreakdownLine label="Belastingkorting (arbeid)" value={-projection.arbeidskorting} negative />
+              <BreakdownTotal label="Geschatte inkomstenbelasting" value={projection.nettoIB} highlight />
+            </BreakdownSection>
+          </div>
+        </div>
+      )}
+
+      {/* Tips om belasting te besparen */}
+      {projection && projection.bespaartips.length > 0 && (
+        <div style={{ marginBottom: "var(--space-section)" }}>
+          <h3 className="section-header" style={{ margin: "0 0 16px" }}>
+            Tips om belasting te besparen
+          </h3>
+          <div className="responsive-grid-2" style={{ gap: 1, background: "rgba(13,13,11,0.08)" }}>
+            {projection.bespaartips.map((tip, i) => (
+              <TipCard key={i} tip={tip} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Investeringen & afschrijvingen */}
+      {projection && projection.afschrijvingDetails.length > 0 && (
+        <div style={{ marginBottom: "var(--space-section)" }}>
+          <h3 className="section-header" style={{ margin: "0 0 16px" }}>
+            Investeringen & afschrijvingen
+          </h3>
+          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
+            <thead>
+              <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
+                <Th>Omschrijving</Th>
+                <Th style={{ textAlign: "right" }}>Aanschafprijs</Th>
+                <Th style={{ textAlign: "right" }}>Afschrijving/jaar</Th>
+                <Th style={{ textAlign: "right" }}>Boekwaarde</Th>
+                <Th>Resterend</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {projection.afschrijvingDetails.map((row) => (
+                <DepreciationTableRow key={row.id} row={row} />
+              ))}
+            </tbody>
+            <tfoot>
+              <tr style={{ borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+                <Td><span className="label-strong">Totaal</span></Td>
+                <Td style={{ textAlign: "right" }}>
+                  <span className="mono-amount">{formatCurrency(projection.afschrijvingDetails.reduce((s, r) => s + r.aanschafprijs, 0))}</span>
+                </Td>
+                <Td style={{ textAlign: "right" }}>
+                  <span className="mono-amount">{formatCurrency(projection.afschrijvingen)}</span>
+                </Td>
+                <Td style={{ textAlign: "right" }}>
+                  <span className="mono-amount">{formatCurrency(projection.afschrijvingDetails.reduce((s, r) => s + r.boekwaarde, 0))}</span>
+                </Td>
+                <Td />
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════
+          ZONE 2: BTW (OMZETBELASTING)
+      ══════════════════════════════════════════════════ */}
+
+      <div style={{
+        borderTop: "0.5px solid rgba(13,13,11,0.08)",
+        paddingTop: "var(--space-section)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        flexWrap: "wrap",
+        gap: 8,
+        margin: "0 0 24px",
+      }}>
+        <h2 className="section-header" style={{ margin: 0 }}>BTW (omzetbelasting)</h2>
+        {vatDeadline && (
+          <p className="label" style={{ margin: 0, opacity: 0.5 }}>
+            Volgende aangifte: {vatDeadline.quarter} — {vatDeadline.daysRemaining} dagen
+          </p>
+        )}
+      </div>
+
+      {/* Hero: netto BTW dit kwartaal */}
+      {btwLoading ? (
+        <SkeletonCard />
+      ) : current ? (
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+            {current.netVat >= 0 ? "Te betalen dit kwartaal" : "Terug te vorderen dit kwartaal"}
+          </p>
+          <p style={{
+            fontSize: "var(--text-display-xl)",
+            fontWeight: 700,
+            lineHeight: 0.85,
+            letterSpacing: "var(--tracking-display)",
+            margin: 0,
+          }}>
+            {formatCurrency(Math.abs(current.netVat))}
+          </p>
+        </div>
+      ) : null}
+
+      {/* Kwartaaloverzicht */}
+      <h3 className="section-header" style={{ margin: "0 0 16px" }}>Kwartaaloverzicht</h3>
+
+      {btwLoading ? (
         <SkeletonTable columns="1fr 1fr 1fr 1fr 1fr 1fr" rows={4} headerWidths={[60, 80, 70, 70, 60, 50]} bodyWidths={[50, 70, 60, 60, 50, 40]} />
       ) : quarters.length > 0 ? (
-        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)", minWidth: 600 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Kwartaal</Th>
-              <Th style={{ textAlign: "right" }}>Omzet excl. BTW</Th>
-              <Th style={{ textAlign: "right" }}>Output BTW</Th>
-              <Th style={{ textAlign: "right" }}>Aftrekbare BTW</Th>
+              <Th style={{ textAlign: "right" }}>Omzet</Th>
+              <Th style={{ textAlign: "right" }}>BTW ontvangen</Th>
+              <Th style={{ textAlign: "right" }}>BTW terugvraagbaar</Th>
               <Th style={{ textAlign: "right" }}>Netto BTW</Th>
               <Th>Status</Th>
             </tr>
@@ -228,40 +286,110 @@ export default function TaxPage() {
               </tr>
             ))}
           </tbody>
-        </table></TableWrapper>
+        </table>
       ) : (
-        <p className="empty-state">Nog geen gegevens beschikbaar</p>
+        <p className="empty-state">Nog geen gegevens</p>
       )}
 
-      {/* Disclaimer */}
+      {/* ══ DISCLAIMER ══ */}
       <div style={{ padding: 20, background: "rgba(13,13,11,0.02)", fontSize: 11, fontWeight: 400, lineHeight: 1.6 }}>
-        Dit overzicht is indicatief. Dien je BTW-aangifte in via het portaal van
-        de Belastingdienst. Bewaar je facturen en bonnen minimaal 7 jaar.
-        Inkomstenbelastingschatting is gebaseerd op 36,93% schijf 1 en 49,50% schijf 2 (2024).
-        Zelfstandigenaftrek (€5.030) en MKB-winstvrijstelling (14%) zijn meegenomen.
+        Dit is een schatting op basis van je facturen en bonnetjes.
+        Doe je officiële BTW-aangifte via de Belastingdienst.
+        Bewaar je administratie minimaal 7 jaar.
+        Berekeningen op basis van belastingtarieven {TAX_CONSTANTS.year}.
       </div>
     </div>
   );
 }
 
-function YearCard({ label, value, sublabel }: { label: string; value: string; sublabel: string }) {
+// ─── Subcomponenten ───
+
+function TipCard({ tip }: { tip: Bespaartip }) {
   return (
     <div style={{ background: "var(--background)", padding: 20 }}>
-      <p className="label" style={{ margin: "0 0 8px", opacity: 0.55 }}>{label}</p>
-      <p style={{ fontSize: "var(--text-display-sm)", fontWeight: 700, letterSpacing: "var(--tracking-display)", margin: "0 0 4px" }}>
-        {value}
+      <p className="label-strong" style={{ margin: "0 0 6px" }}>{tip.titel}</p>
+      <p style={{ fontSize: "var(--text-body-sm)", fontWeight: 300, margin: "0 0 8px", lineHeight: 1.5 }}>
+        {tip.beschrijving}
       </p>
-      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.45, margin: 0 }}>{sublabel}</p>
+      {tip.besparing > 0 && (
+        <p className="mono-amount" style={{ margin: 0, opacity: 0.7, fontSize: "var(--text-body-xs)" }}>
+          Geschatte besparing: {formatCurrency(Math.round(tip.besparing))}
+        </p>
+      )}
     </div>
   );
 }
 
-function DeductionItem({ label, value, note }: { label: string; value: string; note: string }) {
+function DepreciationTableRow({ row }: { row: DepreciationRow }) {
+  return (
+    <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+      <Td>
+        <span className="label">{row.omschrijving}</span>
+        <br />
+        <span style={{ fontSize: "var(--text-body-xs)", opacity: 0.4 }}>
+          {new Date(row.aanschafDatum).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}
+        </span>
+      </Td>
+      <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(row.aanschafprijs)}</span></Td>
+      <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(row.jaarAfschrijving)}</span></Td>
+      <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(row.boekwaarde)}</span></Td>
+      <Td><span className="label" style={{ opacity: 0.6 }}>{row.resterendeJaren} jaar</span></Td>
+    </tr>
+  );
+}
+
+// ─── Breakdown componenten ───
+
+function ProjectionStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="label" style={{ margin: "0 0 4px", opacity: 0.55 }}>{label}</p>
-      <p className="mono-amount" style={{ margin: "0 0 2px" }}>{value}</p>
-      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4, margin: 0 }}>{note}</p>
+      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.5, margin: "0 0 4px" }}>{label}</p>
+      <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-body-lg)" }}>{value}</p>
+    </div>
+  );
+}
+
+function BreakdownSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <p className="label" style={{ margin: "0 0 10px", opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10 }}>
+        {title}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function BreakdownLine({ label, value, negative }: { label: string; value: number; negative?: boolean }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "var(--text-body-sm)" }}>
+      <span style={{ fontWeight: 300, opacity: 0.7 }}>{label}</span>
+      <span className="mono-amount" style={{ opacity: negative ? 0.5 : 0.9 }}>
+        {negative && value !== 0 ? "−" : ""}{formatCurrency(Math.abs(value))}
+      </span>
+    </div>
+  );
+}
+
+function BreakdownTotal({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "8px 0 4px",
+      borderTop: "0.5px solid rgba(13,13,11,0.12)",
+      marginTop: 4,
+    }}>
+      <span style={{ fontWeight: 500, fontSize: "var(--text-body-sm)" }}>{label}</span>
+      <span
+        className="mono-amount"
+        style={{
+          fontWeight: highlight ? 700 : 600,
+          fontSize: highlight ? "var(--text-body-lg)" : "var(--text-body-sm)",
+        }}
+      >
+        {formatCurrency(Math.round(value))}
+      </span>
     </div>
   );
 }

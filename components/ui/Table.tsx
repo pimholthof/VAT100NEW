@@ -19,9 +19,11 @@ export function Th({
     <th
       className="label"
       style={{
-        padding: "16px 0",
+        padding: "14px 12px 14px 0",
         textAlign: "left",
         opacity: 0.3,
+        fontWeight: 600,
+        whiteSpace: "nowrap",
         ...style,
       }}
     >
@@ -40,8 +42,9 @@ export function Td({
   return (
     <td
       style={{
-        padding: "16px 0",
-        fontWeight: 300,
+        padding: "14px 12px 14px 0",
+        fontWeight: 400,
+        fontSize: 13,
         ...style,
       }}
     >

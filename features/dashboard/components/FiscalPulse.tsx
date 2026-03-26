@@ -2,7 +2,6 @@
 
 import { m as motion  } from "framer-motion";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import { SafeToSpendRing } from "./SafeToSpendRing";
 import { formatCurrency } from "@/lib/format";
 
 interface FiscalPulseProps {
@@ -14,11 +13,9 @@ interface FiscalPulseProps {
 export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPulseProps) {
   if (isLoading) {
     return (
-      <div style={{ padding: "80px 100px", height: 320, opacity: 0.1, border: "var(--border-light)" }} />
+      <div style={{ padding: "80px 100px", height: 320, opacity: 0.1, border: "var(--border-light)", borderRadius: "var(--dashboard-surface-radius, 14px)" }} />
     );
   }
-
-  const ratio = currentBalance > 0 ? safeToSpend / currentBalance : 0;
 
   return (
     <motion.div 
@@ -33,13 +30,14 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
         position: "relative",
         minHeight: 320,
         border: "var(--border-light)",
-        background: "var(--background)"
+        background: "var(--dashboard-surface, var(--background))",
+        borderRadius: "var(--dashboard-surface-radius, 14px)"
       }}
     >
-      <div className="vertical-label">Fiscale Index</div>
+      <div className="vertical-label">Jouw balans</div>
       
       <div style={{ flex: 1 }}>
-        <p className="label" style={{ marginBottom: 20 }}>Netto Liquiditeit</p>
+        <p className="label" style={{ marginBottom: 20 }}>Wat je vrij kunt besteden</p>
         <div style={{ position: "relative" }}>
           <AnimatedNumber 
             value={safeToSpend} 
@@ -61,27 +59,8 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
             textTransform: "uppercase",
             fontWeight: 500
           }}>
-            Beschikbaar Kapitaal / {formatCurrency(currentBalance)}
+            Vrij te besteden / {formatCurrency(currentBalance)}
           </p>
-        </div>
-      </div>
-
-      <div style={{ marginLeft: 80, position: "relative" }}>
-        <SafeToSpendRing 
-          percentage={ratio} 
-          size={240}
-          strokeWidth={2}
-        />
-        {/* Subtle center marker for Rams-inspired clarity */}
-        <div style={{ 
-          position: "absolute", 
-          top: "50%", 
-          left: "50%", 
-          transform: "translate(-50%, -50%)",
-          textAlign: "center"
-        }}>
-          <p className="label" style={{ margin: 0, opacity: 0.4 }}>Ratio</p>
-          <p className="display-hero" style={{ fontSize: "2.8rem", margin: "4px 0 0" }}>{Math.round(ratio * 100)}%</p>
         </div>
       </div>
     </motion.div>

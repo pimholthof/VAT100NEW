@@ -16,14 +16,6 @@ const STATUS_OPTIONS = [
   { value: "rejected", label: "Afgewezen" },
 ];
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Concept",
-  sent: "Verstuurd",
-  accepted: "Geaccepteerd",
-  invoiced: "Gefactureerd",
-  rejected: "Afgewezen",
-};
-
 export default function QuotesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
