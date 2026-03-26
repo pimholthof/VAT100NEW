@@ -95,7 +95,7 @@ export default function LoginPage() {
             opacity: 0.3,
           }}
         >
-          Boekhouding zonder gedoe
+          De fiscale engine voor creatieven
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>

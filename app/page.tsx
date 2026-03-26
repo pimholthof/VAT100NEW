@@ -131,11 +131,11 @@ export default function LandingPage() {
               color: "var(--color-black)",
             }}
           >
-            Boekhouding
+            De fiscale
             <br />
-            zonder
+            engine voor
             <br />
-            gedoe.
+            creatieven.
           </h1>
 
           <p
