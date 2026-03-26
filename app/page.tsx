@@ -136,43 +136,7 @@ export default function LandingPage() {
             100
           </h1>
 
-          <p
-            style={{
-              fontSize: "clamp(14px, 2vw, 16px)",
-              lineHeight: 1.6,
-              margin: "32px 0 0",
-              maxWidth: 400,
-              opacity: 0.5,
-            }}
-          >
-            Facturen, BTW, bonnen en belastingaangifte — in een helder overzicht.
-          </p>
-
-          {/* Features */}
-          <div
-            style={{
-              display: "flex",
-              gap: 32,
-              marginTop: 40,
-              marginBottom: 56,
-              flexWrap: "wrap",
-            }}
-          >
-            {[
-              "Facturen & offertes",
-              "BTW-aangifte",
-              "AI bonherkenning",
-              "Bankintegratie",
-            ].map((feature) => (
-              <span
-                key={feature}
-                className="label"
-                style={{ opacity: 0.3 }}
-              >
-                {feature}
-              </span>
-            ))}
-          </div>
+          <div style={{ marginTop: 56 }} />
 
           {/* Waitlist form or success */}
           {submitted ? (
