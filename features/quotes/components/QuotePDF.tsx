@@ -6,6 +6,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { QuoteData } from "@/lib/types";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 const COLOR = "#000000";
 const ACCENT = "#A51C30";
@@ -46,16 +47,6 @@ const RULE_THIN = {
   borderBottomColor: "rgba(0,0,0,0.08)",
   borderBottomStyle: "solid" as const,
 };
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("nl-NL", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount);
-}
 
 function unitLabel(unit: string): string {
   if (unit === "dagen") return "Dagen";

@@ -55,34 +55,26 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Admin route protection: verify role
-  if (user && pathname.startsWith("/admin")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // Suspended user protection
+  // Profile checks: admin role + suspended status in a single query
   if (user && !isPublicRoute) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("status")
+      .select("role, status")
       .eq("id", user.id)
       .single();
 
+    // Suspended user protection
     if (profile?.status === "suspended") {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
-      // Sign out the suspended user
       await supabase.auth.signOut();
+      return NextResponse.redirect(url);
+    }
+
+    // Admin route protection: verify role
+    if (pathname.startsWith("/admin") && (!profile || profile.role !== "admin")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
   }

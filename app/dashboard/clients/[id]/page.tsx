@@ -25,6 +25,7 @@ import {
   inputStyle,
 } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
 import { STATUS_LABELS } from "@/lib/constants/status";
 
 export default function ClientDetailPage() {
@@ -86,18 +87,14 @@ export default function ClientDetailPage() {
       setError("Bedrijfsnaam is verplicht.");
       return;
     }
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Ongeldig e-mailadres.");
-      return;
-    }
-    if (kvkNumber && !/^\d{8}$/.test(kvkNumber.replace(/\s/g, ""))) {
-      setError("KVK-nummer moet 8 cijfers zijn.");
-      return;
-    }
-    if (btwNumber && !/^NL\d{9}B\d{2}$/i.test(btwNumber.replace(/[\s.]/g, ""))) {
-      setError("BTW-nummer moet het formaat NL123456789B01 hebben.");
-      return;
-    }
+    const emailErr = validateEmail(email);
+    if (emailErr) { setError(emailErr); return; }
+
+    const kvkErr = validateKvk(kvkNumber);
+    if (kvkErr) { setError(kvkErr); return; }
+
+    const btwErr = validateBtw(btwNumber);
+    if (btwErr) { setError(btwErr); return; }
 
     setSaving(true);
     setError(null);

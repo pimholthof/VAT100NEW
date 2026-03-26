@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
 import { runReconciliationAgent, runAnticipationAgent, runInvestmentAgent, runPaymentDetectionAgent } from "./action-feed";
 import { calculateZZPTaxProjection, calculateKIA, type Investment } from "@/lib/tax/dutch-tax-2026";
+import * as Sentry from "@sentry/nextjs";
 
 export interface DashboardStats {
   revenueThisMonth: number;
@@ -94,10 +95,10 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     .gte("created_at", fifteenMinutesAgo);
 
   if ((recentAgentRuns ?? 0) === 0) {
-    runReconciliationAgent(userId, supabase).catch(console.error);
-    runPaymentDetectionAgent(userId, supabase).catch(console.error);
-    runAnticipationAgent(userId, supabase).catch(console.error);
-    runInvestmentAgent(userId, supabase).catch(console.error);
+    runReconciliationAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "reconciliation" } }));
+    runPaymentDetectionAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "payment-detection" } }));
+    runAnticipationAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "anticipation" } }));
+    runInvestmentAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "investment" } }));
   }
 
   // Date ranges
@@ -123,59 +124,65 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     .toISOString()
     .split("T")[0];
 
-  // Run ALL queries in a single Promise.all (single Supabase client, single auth check)
+  // Run ALL queries with graceful degradation — individual failures don't break the dashboard
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function safe<T>(promise: PromiseLike<{ data: T; error: any; count?: number | null }>): Promise<{ data: T | null; count: number | null }> {
+    try {
+      const res = await promise;
+      if (res.error) Sentry.captureMessage(`Dashboard query failed: ${res.error.message}`, "warning");
+      return { data: res.data ?? null, count: res.count ?? null };
+    } catch (err) {
+      Sentry.captureException(err);
+      return { data: null, count: null };
+    }
+  }
+
   const [
-    { data: paidThisMonth },
-    { data: openInvoices },
-    { data: vatThisMonth },
-    { count: receiptsCount },
-    { data: recentData, error: recentError },
-    { data: upcomingData, error: upcomingError },
-    { data: cashflowInvoices },
-    { data: cashflowReceipts },
-    { data: vatQuarterInvoices },
-    { data: vatQuarterReceipts },
-    { data: bankBalanceData },
-    { data: yearRevenueData },
+    paidResult,
+    openResult,
+    vatResult,
+    receiptsResult,
+    recentResult,
+    upcomingResult,
+    cashflowInvResult,
+    cashflowRecResult,
+    vatQInvResult,
+    vatQRecResult,
+    bankBalResult,
+    yearRevResult,
   ] = await Promise.all([
-    // Stats: paid invoices this month
-    supabase
+    safe(supabase
       .from("invoices")
       .select("total_inc_vat")
       .eq("user_id", userId)
       .eq("status", "paid")
       .gte("issue_date", monthStart)
-      .lte("issue_date", monthEnd),
-    // Stats: open invoices
-    supabase
+      .lte("issue_date", monthEnd)),
+    safe(supabase
       .from("invoices")
       .select("total_inc_vat")
       .eq("user_id", userId)
-      .in("status", ["sent", "overdue"]),
-    // Stats: VAT this month
-    supabase
+      .in("status", ["sent", "overdue"])),
+    safe(supabase
       .from("invoices")
       .select("vat_amount")
       .eq("user_id", userId)
       .in("status", ["sent", "paid"])
       .gte("issue_date", monthStart)
-      .lte("issue_date", monthEnd),
-    // Stats: receipts count this month
-    supabase
+      .lte("issue_date", monthEnd)),
+    safe(supabase
       .from("receipts")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
       .gte("receipt_date", monthStart)
-      .lte("receipt_date", monthEnd),
-    // Recent invoices
-    supabase
+      .lte("receipt_date", monthEnd)),
+    safe(supabase
       .from("invoices")
       .select("id, invoice_number, status, issue_date, total_inc_vat, client:clients(name)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(5),
-    // Upcoming due invoices
-    supabase
+      .limit(5)),
+    safe(supabase
       .from("invoices")
       .select("id, invoice_number, status, due_date, total_inc_vat, client:clients(name, email)")
       .eq("user_id", userId)
@@ -183,51 +190,55 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       .not("due_date", "is", null)
       .lte("due_date", upcomingCutoff)
       .order("due_date", { ascending: true })
-      .limit(10),
-    // Cashflow: paid invoices last 6 months
-    supabase
+      .limit(10)),
+    safe(supabase
       .from("invoices")
       .select("issue_date, total_inc_vat")
       .eq("user_id", userId)
       .eq("status", "paid")
-      .gte("issue_date", cashflowStart),
-    // Cashflow: receipts last 6 months
-    supabase
+      .gte("issue_date", cashflowStart)),
+    safe(supabase
       .from("receipts")
       .select("receipt_date, total_amount")
       .eq("user_id", userId)
-      .gte("receipt_date", cashflowStart),
-    // VAT deadline: quarter invoices
-    supabase
+      .gte("receipt_date", cashflowStart)),
+    safe(supabase
       .from("invoices")
       .select("vat_amount")
       .eq("user_id", userId)
       .in("status", ["sent", "paid"])
       .gte("issue_date", qStart)
-      .lte("issue_date", qEnd),
-    // VAT deadline: quarter receipts
-    supabase
+      .lte("issue_date", qEnd)),
+    safe(supabase
       .from("receipts")
       .select("vat_amount")
       .eq("user_id", userId)
       .gte("receipt_date", qStart)
-      .lte("receipt_date", qEnd),
-    // Safe-to-Spend: all bank transaction amounts (to compute balance)
-    supabase
+      .lte("receipt_date", qEnd)),
+    safe(supabase
       .from("bank_transactions")
       .select("amount")
-      .eq("user_id", userId),
-    // Safe-to-Spend: total revenue this year for income tax estimate
-    supabase
+      .eq("user_id", userId)),
+    safe(supabase
       .from("invoices")
       .select("total_inc_vat, vat_amount")
       .eq("user_id", userId)
       .eq("status", "paid")
-      .gte("issue_date", `${now.getFullYear()}-01-01`),
+      .gte("issue_date", `${now.getFullYear()}-01-01`)),
   ]);
 
-  if (recentError) return { error: recentError.message };
-  if (upcomingError) return { error: upcomingError.message };
+  const paidThisMonth = paidResult.data;
+  const openInvoices = openResult.data;
+  const vatThisMonth = vatResult.data;
+  const receiptsCount = receiptsResult.count;
+  const recentData = recentResult.data;
+  const upcomingData = upcomingResult.data;
+  const cashflowInvoices = cashflowInvResult.data;
+  const cashflowReceipts = cashflowRecResult.data;
+  const vatQuarterInvoices = vatQInvResult.data;
+  const vatQuarterReceipts = vatQRecResult.data;
+  const bankBalanceData = bankBalResult.data;
+  const yearRevenueData = yearRevResult.data;
 
   // ── Stats ──
   const revenueThisMonth = (paidThisMonth ?? []).reduce(

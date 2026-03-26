@@ -2,6 +2,7 @@
 
 import { useInvoiceStore } from "@/lib/store/invoice";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { formatCurrency } from "@/lib/format";
 
 export function InvoiceTotals() {
   const totals = useInvoiceStore((s) => s.totals);
@@ -23,8 +24,8 @@ export function InvoiceTotals() {
         />
       </div>
       <div style={{ textAlign: "right", opacity: 0.4 }}>
-        <p className="mono-amount" style={{ fontSize: 11, marginBottom: 4 }}>Excl. BTW: {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totals.subtotal)}</p>
-        <p className="mono-amount" style={{ fontSize: 11 }}>BTW: {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totals.vatAmount)}</p>
+        <p className="mono-amount" style={{ fontSize: 11, marginBottom: 4 }}>Excl. BTW: {formatCurrency(totals.subtotal)}</p>
+        <p className="mono-amount" style={{ fontSize: 11 }}>BTW: {formatCurrency(totals.vatAmount)}</p>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
   ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
+import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
 
 interface ClientFormProps {
   client?: Client;
@@ -36,20 +37,14 @@ export function ClientForm({ client }: ClientFormProps) {
       return;
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Ongeldig e-mailadres.");
-      return;
-    }
+    const emailErr = validateEmail(email);
+    if (emailErr) { setError(emailErr); return; }
 
-    if (kvkNumber && !/^\d{8}$/.test(kvkNumber.replace(/\s/g, ""))) {
-      setError("KVK-nummer moet 8 cijfers zijn.");
-      return;
-    }
+    const kvkErr = validateKvk(kvkNumber);
+    if (kvkErr) { setError(kvkErr); return; }
 
-    if (btwNumber && !/^NL\d{9}B\d{2}$/i.test(btwNumber.replace(/[\s.]/g, ""))) {
-      setError("BTW-nummer moet het formaat NL123456789B01 hebben.");
-      return;
-    }
+    const btwErr = validateBtw(btwNumber);
+    if (btwErr) { setError(btwErr); return; }
 
     setSaving(true);
     setError(null);
