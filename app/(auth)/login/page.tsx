@@ -86,17 +86,7 @@ export default function LoginPage() {
           100
         </h1>
 
-        {/* Tagline */}
-        <p
-          className="label"
-          style={{
-            marginTop: 20,
-            marginBottom: 64,
-            opacity: 0.3,
-          }}
-        >
-          Boekhouding zonder gedoe
-        </p>
+        <div style={{ marginBottom: 64 }} />
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

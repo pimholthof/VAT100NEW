@@ -1,37 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
+import { isRateLimited } from "@/lib/rate-limit";
 import { CFO_TOOLS } from "@/lib/ai/tools";
 import { handleToolCall } from "@/lib/ai/tool-handlers";
 
-// Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Simple in-memory rate limiter (per IP, 10 requests per minute)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 10;
-const RATE_WINDOW_MS = 60_000;
-
 // Maximum tool-use iterations to prevent infinite loops
 const MAX_TOOL_ITERATIONS = 5;
 
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return false;
-  }
-  entry.count++;
-  return entry.count > RATE_LIMIT;
-}
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-    if (isRateLimited(ip)) {
+    // Authenticate user — prevents unauthorized API usage
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Niet ingelogd." },
+        { status: 401 }
+      );
+    }
+
+    // Rate limit per user (not IP — works across serverless instances)
+    const limited = await isRateLimited(`ai-chat:${user.id}`);
+    if (limited) {
       return NextResponse.json(
         { error: "Te veel verzoeken. Probeer het over een minuut opnieuw." },
         { status: 429 }
@@ -44,16 +41,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Geen vraag gesteld" }, { status: 400 });
     }
 
-    // Authenticate user via Supabase
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Je moet ingelogd zijn om de AI CFO te gebruiken." },
-        { status: 401 }
-      );
-    }
 
     // Fetch user profile for context
     const { data: profile } = await supabase
