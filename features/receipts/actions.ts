@@ -184,6 +184,15 @@ export async function uploadReceiptImage(
     return { error: "Bestand is te groot (max 10MB)." };
   }
 
+  // Server-side magic byte validation (MIME type headers are spoofable)
+  const headerBytes = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+  const isJpeg = headerBytes[0] === 0xff && headerBytes[1] === 0xd8;
+  const isPng = headerBytes[0] === 0x89 && headerBytes[1] === 0x50 && headerBytes[2] === 0x4e && headerBytes[3] === 0x47;
+  const isWebp = headerBytes[0] === 0x52 && headerBytes[1] === 0x49; // RIFF
+  if (!isJpeg && !isPng && !isWebp) {
+    return { error: "Ongeldig bestandstype. Upload een JPEG, PNG of WebP afbeelding." };
+  }
+
   // Sanitize filename: extract extension, use UUID to prevent path traversal
   const ext = (file.name.split(".").pop() ?? "jpg").replace(/[^a-zA-Z0-9]/g, "");
   const safeFilename = `${crypto.randomUUID()}.${ext}`;

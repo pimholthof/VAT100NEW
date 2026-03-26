@@ -58,7 +58,7 @@ export default async function PublicInvoicePage({
 
 const wrapper: React.CSSProperties = {
   minHeight: "100vh",
-  backgroundColor: "#F5F5F5",
+  backgroundColor: "var(--background)",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -74,14 +74,15 @@ const toolbar: React.CSSProperties = {
 };
 
 const downloadButton: React.CSSProperties = {
-  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-  fontSize: "13px",
+  fontFamily: '"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif',
+  fontSize: "10px",
   fontWeight: 500,
-  letterSpacing: "0.05em",
-  padding: "10px 20px",
-  border: "1px solid #0D0D0B",
-  background: "#0D0D0B",
-  color: "#FFFFFF",
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  padding: "14px 28px",
+  border: "1px solid #000000",
+  background: "#000000",
+  color: "#FAF9F6",
   cursor: "pointer",
   textDecoration: "none",
 };

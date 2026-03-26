@@ -14,6 +14,11 @@ export async function fetchInvoiceByToken(
 
   if (invoiceError || !invoice) return { error: "Factuur niet gevonden" };
 
+  // Reject draft invoices — only sent/paid/overdue invoices may be shared
+  if (invoice.status === "draft") {
+    return { error: "Factuur niet gevonden" };
+  }
+
   // Check share token expiry
   if (invoice.share_token_expires_at) {
     const expiresAt = new Date(invoice.share_token_expires_at);

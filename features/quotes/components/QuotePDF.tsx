@@ -7,31 +7,31 @@ import {
 } from "@react-pdf/renderer";
 import type { QuoteData } from "@/lib/types";
 
-const COLOR = "#0D0D0B";
+const COLOR = "#000000";
 const ACCENT = "#A51C30";
 const MARGIN = 56;
 
 const LABEL = {
-  fontSize: 9,
-  letterSpacing: 0.08 * 9,
-  color: "rgba(13,13,11,0.5)",
+  fontSize: 10,
+  letterSpacing: 0.14 * 10,
+  color: "rgba(0,0,0,0.5)",
   fontFamily: "Helvetica",
-  fontWeight: 700,
+  fontWeight: 400 as const,
   textTransform: "uppercase" as const,
 };
 
 const VALUE = {
   fontSize: 11,
   fontFamily: "Helvetica",
-  fontWeight: 400,
+  fontWeight: 400 as const,
   color: COLOR,
 };
 
 const HERO = {
-  fontFamily: "Courier",
-  fontWeight: 900,
-  fontSize: 140,
-  letterSpacing: -0.03 * 140,
+  fontFamily: "Helvetica",
+  fontWeight: 700 as const,
+  fontSize: 48,
+  letterSpacing: -0.04 * 48,
   color: COLOR,
 };
 
@@ -43,7 +43,7 @@ const RULE = {
 
 const RULE_THIN = {
   borderBottomWidth: 0.5,
-  borderBottomColor: "rgba(13,13,11,0.2)",
+  borderBottomColor: "rgba(0,0,0,0.08)",
   borderBottomStyle: "solid" as const,
 };
 
@@ -152,7 +152,7 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: "rgba(13,13,11,0.5)",
+    color: "rgba(0,0,0,0.5)",
     lineHeight: 1.5,
   },
 
@@ -181,7 +181,7 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: "rgba(13,13,11,0.7)",
+    color: COLOR,
     lineHeight: 1.4,
   },
 
@@ -206,13 +206,13 @@ const s = StyleSheet.create({
   totalsLabel: {
     ...LABEL,
     fontSize: 8,
-    color: "rgba(13,13,11,0.4)",
+    color: "rgba(0,0,0,0.5)",
   },
   totalsValue: {
     fontSize: 11,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: "rgba(13,13,11,0.5)",
+    color: "rgba(0,0,0,0.5)",
     textAlign: "right",
   },
   totalRow: {
@@ -220,7 +220,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 12,
     marginTop: 8,
-    borderTopWidth: 1,
+    borderTopWidth: 2,
     borderTopColor: COLOR,
   },
   totalLabel: {
@@ -254,7 +254,6 @@ const s = StyleSheet.create({
   footerLabel: {
     ...LABEL,
     fontSize: 7,
-    letterSpacing: 0.08 * 7,
     marginBottom: 4,
   },
   footerValue: {

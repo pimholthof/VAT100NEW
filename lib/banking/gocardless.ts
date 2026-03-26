@@ -5,6 +5,23 @@
 
 const BASE_URL = "https://bankaccountdata.gocardless.com/api/v2";
 
+// Per-user rate limit for GoCardless API (5 requests per minute per user)
+const userRateMap = new Map<string, { count: number; resetAt: number }>();
+const GC_RATE_LIMIT = 5;
+const GC_RATE_WINDOW_MS = 60_000;
+
+export function checkGoCardlessRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = userRateMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    userRateMap.set(userId, { count: 1, resetAt: now + GC_RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  if (entry.count > GC_RATE_LIMIT) return true;
+  return false;
+}
+
 export interface GoCardlessToken {
   access: string;
   access_expires: number;

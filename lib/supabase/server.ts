@@ -48,3 +48,28 @@ export async function requireAuth(): Promise<AuthResult> {
   if (error || !user) return { error: "Niet ingelogd.", supabase: null, user: null };
   return { error: null, supabase, user };
 }
+
+type AdminResult =
+  | { error: null; supabase: SupabaseServer; user: User }
+  | { error: string; supabase: null; user: null };
+
+/**
+ * Authenticates the current user AND verifies admin role.
+ * Returns error if not logged in or not an admin.
+ */
+export async function requireAdmin(): Promise<AdminResult> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error, supabase: null, user: null };
+
+  const { data: profile, error: profileError } = await auth.supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", auth.user.id)
+    .single();
+
+  if (profileError || !profile || profile.role !== "admin") {
+    return { error: "Geen toegang.", supabase: null, user: null };
+  }
+
+  return { error: null, supabase: auth.supabase, user: auth.user };
+}
