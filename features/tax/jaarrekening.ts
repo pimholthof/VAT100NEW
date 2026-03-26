@@ -161,7 +161,7 @@ export async function getJaarrekeningData(
     supabase
       .from("invoices")
       .select(
-        "subtotal_ex_vat, vat_amount, total_inc_vat, status, is_credit_note, issue_date",
+        "subtotal_ex_vat, vat_amount, total_inc_vat, status, issue_date",
       )
       .eq("user_id", user.id)
       .in("status", ["sent", "paid"])
@@ -191,7 +191,6 @@ export async function getJaarrekeningData(
       .select("total_inc_vat")
       .eq("user_id", user.id)
       .in("status", ["sent", "overdue"])
-      .eq("is_credit_note", false)
       .lte("issue_date", yearEnd),
 
     // Profiel
@@ -224,8 +223,16 @@ export async function getJaarrekeningData(
 
   // ─── Winst- en verliesrekening ───
 
-  const regularInvoices = invoices.filter((i) => !i.is_credit_note);
-  const creditNotes = invoices.filter((i) => i.is_credit_note);
+  // Credit notes hebben een negatief total_inc_vat / subtotal — als is_credit_note
+  // kolom niet bestaat, behandelen we alle facturen als regulier
+  type InvoiceRow = (typeof invoices)[number];
+  const hasCreditNoteCol = invoices.length > 0 && "is_credit_note" in invoices[0];
+  const regularInvoices = hasCreditNoteCol
+    ? invoices.filter((i) => !(i as InvoiceRow & { is_credit_note?: boolean }).is_credit_note)
+    : invoices;
+  const creditNotes = hasCreditNoteCol
+    ? invoices.filter((i) => (i as InvoiceRow & { is_credit_note?: boolean }).is_credit_note)
+    : [];
 
   const omzetExBtw = round2(
     regularInvoices.reduce(
@@ -297,7 +304,8 @@ export async function getJaarrekeningData(
   for (const inv of invoices) {
     if (!inv.issue_date) continue;
     const q = getOrCreate(getQuarterKey(inv.issue_date));
-    const sign = inv.is_credit_note ? -1 : 1;
+    const isCN = hasCreditNoteCol && (inv as InvoiceRow & { is_credit_note?: boolean }).is_credit_note;
+    const sign = isCN ? -1 : 1;
     q.revenueExVat += sign * (Number(inv.subtotal_ex_vat) || 0);
     q.outputVat += sign * (Number(inv.vat_amount) || 0);
     q.invoiceCount += 1;
