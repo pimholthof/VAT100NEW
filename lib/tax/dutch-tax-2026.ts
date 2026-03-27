@@ -342,10 +342,11 @@ export function calculateZZPTaxProjection(input: {
   jaarKostenExBtw: number;
   investeringen: Investment[];
   maandenVerstreken: number;
+  huidigJaar?: number;
 }): TaxProjection {
   const { jaarOmzetExBtw, jaarKostenExBtw, investeringen, maandenVerstreken } =
     input;
-  const huidigJaar = new Date().getFullYear();
+  const huidigJaar = input.huidigJaar ?? new Date().getFullYear();
 
   // Afschrijvingen berekenen
   const afschrijvingDetails: DepreciationRow[] = [];

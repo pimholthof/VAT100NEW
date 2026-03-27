@@ -10,7 +10,7 @@ test('login page renders correctly', async ({ page }) => {
   await expect(page.locator('form')).toBeVisible();
   await expect(page.getByLabel('E-mail')).toBeVisible();
   await expect(page.getByLabel('Wachtwoord')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Toegang' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Inloggen' })).toBeVisible();
 });
 
 test('unauthenticated users are redirected from dashboard to login', async ({ page }) => {

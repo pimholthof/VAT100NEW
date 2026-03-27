@@ -4,6 +4,7 @@ import { memo } from "react";
 import type { InvoiceLineInput, InvoiceUnit } from "@/lib/types";
 import { playSound } from "@/lib/utils/sound";
 import { calculateInvoiceLineAmount } from "@/lib/logic/invoice-calculations";
+import { formatCurrency } from "@/lib/format";
 
 interface InvoiceLineRowProps {
   line: InvoiceLineInput;
@@ -84,7 +85,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-          {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount)}
+          {formatCurrency(amount)}
         </div>
         <button
           type="button"

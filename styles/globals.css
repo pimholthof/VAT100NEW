@@ -645,6 +645,55 @@ a {
   }
 }
 
+/* ─── Jaarrekening Tables ─── */
+.jr-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.jr-thead-row {
+  border-bottom: 1px solid var(--color-black);
+}
+
+.jr-th {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.4);
+  padding: 8px 0;
+  text-align: left;
+}
+
+.jr-row {
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.jr-row-bold {
+  border-top: 1px solid var(--color-black);
+}
+
+.jr-td {
+  font-size: var(--text-body-sm);
+  padding: 8px 0;
+  color: var(--color-black);
+}
+
+.jr-td-bold {
+  font-size: var(--text-body-sm);
+  font-weight: 700;
+  padding: 10px 0;
+  color: var(--color-black);
+}
+
+.jr-right {
+  text-align: right;
+}
+
+.jr-highlight {
+  font-size: var(--text-body-lg);
+}
+
 /* ─── Top Navigation ─── */
 .dashboard-nav {
   position: sticky;

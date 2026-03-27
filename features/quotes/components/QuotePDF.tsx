@@ -6,56 +6,47 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { QuoteData } from "@/lib/types";
+import { formatCurrency, formatDate } from "@/lib/format";
 
-const COLOR = "#0A0A0A";
+const COLOR = "#000000";
 const ACCENT = "#A51C30";
 const MARGIN = 56;
 
 const LABEL = {
-  fontSize: 9,
-  letterSpacing: 0.15 * 9,
-  color: "rgba(10,10,10,0.4)",
+  fontSize: 10,
+  letterSpacing: 0.14 * 10,
+  color: "rgba(0,0,0,0.5)",
   fontFamily: "Helvetica",
-  fontWeight: 700,
+  fontWeight: 400 as const,
   textTransform: "uppercase" as const,
 };
 
 const VALUE = {
   fontSize: 11,
   fontFamily: "Helvetica",
-  fontWeight: 400,
+  fontWeight: 400 as const,
   color: COLOR,
 };
 
 const HERO = {
-  fontFamily: "Courier",
-  fontWeight: 900,
-  fontSize: 140,
-  letterSpacing: -0.03 * 140,
+  fontFamily: "Helvetica",
+  fontWeight: 700 as const,
+  fontSize: 48,
+  letterSpacing: -0.04 * 48,
   color: COLOR,
 };
 
 const RULE = {
-  borderBottomWidth: 1,
+  borderBottomWidth: 0.5,
   borderBottomColor: COLOR,
   borderBottomStyle: "solid" as const,
 };
 
 const RULE_THIN = {
   borderBottomWidth: 0.5,
-  borderBottomColor: "rgba(10,10,10,0.2)",
+  borderBottomColor: "rgba(0,0,0,0.08)",
   borderBottomStyle: "solid" as const,
 };
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("nl-NL", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount);
-}
 
 function unitLabel(unit: string): string {
   if (unit === "dagen") return "Dagen";
@@ -152,7 +143,7 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: "rgba(10,10,10,0.5)",
+    color: "rgba(0,0,0,0.5)",
     lineHeight: 1.5,
   },
 
@@ -206,13 +197,13 @@ const s = StyleSheet.create({
   totalsLabel: {
     ...LABEL,
     fontSize: 8,
-    color: "rgba(10,10,10,0.4)",
+    color: "rgba(0,0,0,0.5)",
   },
   totalsValue: {
     fontSize: 11,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: "rgba(10,10,10,0.5)",
+    color: "rgba(0,0,0,0.5)",
     textAlign: "right",
   },
   totalRow: {

@@ -80,6 +80,7 @@ export function DashboardNav({
                 <Link href="/dashboard/quotes" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Offertes</Link>
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
+                <Link href="/dashboard/receipts" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Bonnen</Link>
               </div>
 
               {/* Navigation Column 2 */}
@@ -87,6 +88,7 @@ export function DashboardNav({
                 <span className="label mb-4">Geld</span>
                 <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Transacties</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
+                <Link href="/dashboard/report" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Jaarrekening</Link>
                 <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
               </div>
 

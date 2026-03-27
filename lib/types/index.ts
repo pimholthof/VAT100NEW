@@ -275,3 +275,49 @@ export interface SafeToSpendData {
   safeToSpend: number;
   taxShieldPotential: number; // Potential tax savings if gear investment is made
 }
+
+// ─── Admin types ───
+
+export type UserRole = "user" | "admin";
+export type UserStatus = "active" | "suspended";
+
+export interface AdminUser {
+  id: string;
+  full_name: string;
+  studio_name: string | null;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  created_at: string;
+  invoice_count: number;
+  total_revenue: number;
+  last_activity: string | null;
+}
+
+export interface AdminUserDetail {
+  profile: Profile & { role: UserRole; status: UserStatus; email: string };
+  stats: {
+    totalInvoices: number;
+    totalRevenue: number;
+    openInvoices: number;
+    openAmount: number;
+    totalClients: number;
+    totalReceipts: number;
+  };
+  recentInvoices: Array<{
+    id: string;
+    invoice_number: string;
+    status: InvoiceStatus;
+    issue_date: string;
+    total_inc_vat: number;
+    client_name: string;
+  }>;
+}
+
+export interface PlatformStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalInvoices: number;
+  totalRevenue: number;
+  newUsersThisMonth: number;
+}

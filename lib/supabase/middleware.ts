@@ -48,10 +48,35 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname === "/login" || pathname === "/register")) {
+  // Authenticated users on landing/auth pages → dashboard
+  if (user && (pathname === "/" || pathname === "/login" || pathname === "/register")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
+  }
+
+  // Profile checks: admin role + suspended status in a single query
+  if (user && !isPublicRoute) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, status")
+      .eq("id", user.id)
+      .single();
+
+    // Suspended user protection
+    if (profile?.status === "suspended") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      await supabase.auth.signOut();
+      return NextResponse.redirect(url);
+    }
+
+    // Admin route protection: verify role
+    if (pathname.startsWith("/admin") && (!profile || profile.role !== "admin")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

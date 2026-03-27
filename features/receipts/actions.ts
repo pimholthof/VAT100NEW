@@ -33,24 +33,18 @@ export async function getReceipts(filters?: {
     query = query.lte("receipt_date", filters.dateTo);
   }
 
+  if (filters?.search) {
+    const q = `%${filters.search}%`;
+    query = query.or(`vendor_name.ilike.${q},amount_inc_vat::text.ilike.${q},amount_ex_vat::text.ilike.${q}`);
+  }
+
+  query = query.limit(200);
+
   const { data, error } = await query;
 
   if (error) return { error: error.message };
 
-  let results = (data ?? []) as Receipt[];
-
-  // Client-side search filtering (vendor name, amount)
-  if (filters?.search) {
-    const q = filters.search.toLowerCase();
-    results = results.filter(
-      (r) =>
-        r.vendor_name?.toLowerCase().includes(q) ||
-        String(r.amount_inc_vat).includes(q) ||
-        String(r.amount_ex_vat).includes(q)
-    );
-  }
-
-  return { error: null, data: results };
+  return { error: null, data: (data ?? []) as Receipt[] };
 }
 
 export async function getReceipt(
@@ -182,6 +176,15 @@ export async function uploadReceiptImage(
 
   if (file.size > 10 * 1024 * 1024) {
     return { error: "Bestand is te groot (max 10MB)." };
+  }
+
+  // Server-side magic byte validation (MIME type headers are spoofable)
+  const headerBytes = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+  const isJpeg = headerBytes[0] === 0xff && headerBytes[1] === 0xd8;
+  const isPng = headerBytes[0] === 0x89 && headerBytes[1] === 0x50 && headerBytes[2] === 0x4e && headerBytes[3] === 0x47;
+  const isWebp = headerBytes[0] === 0x52 && headerBytes[1] === 0x49; // RIFF
+  if (!isJpeg && !isPng && !isWebp) {
+    return { error: "Ongeldig bestandstype. Upload een JPEG, PNG of WebP afbeelding." };
   }
 
   // Sanitize filename: extract extension, use UUID to prevent path traversal
