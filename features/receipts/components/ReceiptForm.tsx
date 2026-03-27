@@ -91,8 +91,10 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   }, [receipt?.storage_path, imageUrl]);
 
   const handleFileSelect = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Alleen afbeeldingen zijn toegestaan.");
+    const isImage = file.type.startsWith("image/");
+    const isPdfFile = file.type === "application/pdf";
+    if (!isImage && !isPdfFile) {
+      setUploadError("Alleen afbeeldingen en PDF-bestanden zijn toegestaan.");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -102,9 +104,13 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
     setUploadError(null);
 
-    const reader = new FileReader();
-    reader.onload = (e) => setFilePreview(e.target?.result as string);
-    reader.readAsDataURL(file);
+    if (isImage) {
+      const reader = new FileReader();
+      reader.onload = (e) => setFilePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
 
     await handleUpload(file);
   };
@@ -242,16 +248,18 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
   // ─── STEP 2: PROCESSING ───
   if (step === "processing") {
-    return <ReceiptProcessing imageUrl={imageUrl} filePreview={filePreview} />;
+    const isPdfProcessing = !filePreview && !imageUrl;
+    return <ReceiptProcessing imageUrl={imageUrl} filePreview={filePreview} isPdf={isPdfProcessing} />;
   }
 
   // ─── STEP 3: FORM ───
-  const showImageColumn = !!imageUrl || !!filePreview;
+  const isPdfForm = (receipt?.storage_path?.endsWith(".pdf")) || (!filePreview && !!workingReceiptId && !imageUrl);
+  const showPreviewColumn = !!imageUrl || !!filePreview || isPdfForm;
 
   return (
     <div
       style={
-        showImageColumn
+        showPreviewColumn
           ? {
               display: "grid",
               gridTemplateColumns: "250px 1fr",
@@ -261,18 +269,50 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           : { maxWidth: 600 }
       }
     >
-      {showImageColumn && (
-        <div style={{ position: "sticky", top: 80, alignSelf: "start", width: "100%", height: 400 }}>
-          <Image
-            src={imageUrl || filePreview || ""}
-            alt="Bon"
-            fill
-            style={{
-              objectFit: "contain",
-              border: "0.5px solid rgba(13,13,11,0.15)",
-            }}
-            unoptimized
-          />
+      {showPreviewColumn && (
+        <div style={{ position: "sticky", top: 80, alignSelf: "start", width: "100%" }}>
+          {filePreview || (imageUrl && !receipt?.storage_path?.endsWith(".pdf")) ? (
+            <div style={{ position: "relative", width: "100%", height: 400 }}>
+              <Image
+                src={imageUrl || filePreview || ""}
+                alt="Bon"
+                fill
+                style={{
+                  objectFit: "contain",
+                  border: "0.5px solid rgba(13,13,11,0.15)",
+                }}
+                unoptimized
+              />
+            </div>
+          ) : imageUrl ? (
+            <iframe
+              src={imageUrl}
+              title="PDF bon"
+              style={{
+                width: "100%",
+                height: 400,
+                border: "0.5px solid rgba(13,13,11,0.15)",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: 120,
+                border: "0.5px solid rgba(13,13,11,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "var(--text-label)",
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase" as const,
+                opacity: 0.3,
+              }}
+            >
+              PDF
+            </div>
+          )}
         </div>
       )}
 

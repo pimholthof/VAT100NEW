@@ -5,6 +5,7 @@ import Image from "next/image";
 interface ReceiptProcessingProps {
   imageUrl: string | null;
   filePreview: string | null;
+  isPdf?: boolean;
 }
 
 function SkeletonField() {
@@ -22,6 +23,7 @@ function SkeletonField() {
 export function ReceiptProcessing({
   imageUrl,
   filePreview,
+  isPdf,
 }: ReceiptProcessingProps) {
   return (
     <div
@@ -33,7 +35,25 @@ export function ReceiptProcessing({
       }}
     >
       <div>
-        {(imageUrl || filePreview) && (
+        {isPdf ? (
+          <div
+            style={{
+              width: "100%",
+              height: 400,
+              border: "0.5px solid rgba(13,13,11,0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "var(--text-label)",
+              fontWeight: 600,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase" as const,
+              opacity: 0.3,
+            }}
+          >
+            PDF wordt verwerkt...
+          </div>
+        ) : (imageUrl || filePreview) ? (
           <div style={{ position: "relative", width: "100%", height: 400 }}>
             <Image
               src={imageUrl || filePreview || ""}
@@ -46,7 +66,7 @@ export function ReceiptProcessing({
               unoptimized
             />
           </div>
-        )}
+        ) : null}
       </div>
 
       <div>
