@@ -309,10 +309,10 @@ export async function createPaymentLink(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Haal factuurgegevens op
+  // Haal factuurgegevens op (gebruik * voor compatibiliteit met migraties)
   const { data: invoice, error: invoiceError } = await supabase
     .from("invoices")
-    .select("id, invoice_number, total_inc_vat, status, share_token, mollie_payment_id")
+    .select("*")
     .eq("id", invoiceId)
     .eq("user_id", user.id)
     .single();
@@ -326,9 +326,10 @@ export async function createPaymentLink(
   }
 
   // Als er al een betaallink is, retourneer die
-  if (invoice.mollie_payment_id) {
+  const existingMollieId = (invoice as Record<string, unknown>).mollie_payment_id as string | null;
+  if (existingMollieId) {
     const { getMolliePayment } = await import("@/lib/payments/mollie");
-    const { data: existing } = await getMolliePayment(invoice.mollie_payment_id);
+    const { data: existing } = await getMolliePayment(existingMollieId);
     if (existing?._links?.checkout?.href && existing.status === "open") {
       return { error: null, data: { paymentLink: existing._links.checkout.href } };
     }
@@ -360,15 +361,20 @@ export async function createPaymentLink(
 
   const paymentLink = payment._links?.checkout?.href ?? null;
 
-  // Sla betaalgegevens op
-  await supabase
+  // Sla betaalgegevens op (kolommen bestaan mogelijk nog niet als migratie niet is gedraaid)
+  const { error: updateError } = await supabase
     .from("invoices")
     .update({
       mollie_payment_id: payment.id,
       payment_link: paymentLink,
-    })
+    } as Record<string, unknown>)
     .eq("id", invoice.id)
     .eq("user_id", user.id);
+
+  // Niet-fatale fout als kolommen nog niet bestaan
+  if (updateError) {
+    console.warn("Kon betaalgegevens niet opslaan (migratie nodig?):", updateError.message);
+  }
 
   if (!paymentLink) {
     return { error: "Mollie heeft geen betaallink teruggegeven." };
