@@ -1,12 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
+import { getTaxPaymentsSummary, createTaxPayment, deleteTaxPayment } from "@/features/tax/payments-actions";
 import type { QuarterStats } from "@/features/tax/actions";
 import type { Bespaartip, DepreciationRow } from "@/lib/tax/dutch-tax-2026";
-import { SkeletonCard, SkeletonTable, Th, Td } from "@/components/ui";
-import { formatCurrency } from "@/lib/format";
+import type { TaxPaymentType } from "@/lib/types";
+import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 
 export default function TaxPage() {
@@ -292,6 +295,12 @@ export default function TaxPage() {
         <p className="empty-state">Nog geen gegevens</p>
       )}
 
+      {/* ══════════════════════════════════════════════════
+          ZONE 3: VOORLOPIGE AANSLAGEN
+      ══════════════════════════════════════════════════ */}
+
+      <VoorlopigeAanslagSection year={now.getFullYear()} />
+
       {/* ══ DISCLAIMER ══ */}
       <div style={{ padding: 20, background: "rgba(13,13,11,0.02)", fontSize: 11, fontWeight: 400, lineHeight: 1.6 }}>
         Dit is een schatting op basis van je facturen en bonnetjes.
@@ -391,6 +400,243 @@ function BreakdownTotal({ label, value, highlight }: { label: string; value: num
       >
         {formatCurrency(Math.round(value))}
       </span>
+    </div>
+  );
+}
+
+// ─── Voorlopige Aanslag Section ───
+
+function VoorlopigeAanslagSection({ year }: { year: number }) {
+  const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [formType, setFormType] = useState<TaxPaymentType>("ib");
+  const [formPeriod, setFormPeriod] = useState(`${year}`);
+  const [formAmount, setFormAmount] = useState("");
+  const [formDate, setFormDate] = useState(new Date().toISOString().split("T")[0]);
+  const [formRef, setFormRef] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  const { data: summaryResult, isLoading } = useQuery({
+    queryKey: ["tax-payments-summary", year],
+    queryFn: () => getTaxPaymentsSummary(year),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      createTaxPayment({
+        type: formType,
+        period: formPeriod,
+        amount: parseFloat(formAmount) || 0,
+        paid_date: formDate || null,
+        reference: formRef || null,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tax-payments-summary"] });
+      setShowForm(false);
+      setFormAmount("");
+      setFormRef("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteTaxPayment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tax-payments-summary"] });
+    },
+  });
+
+  const summary = summaryResult?.data;
+
+  return (
+    <div style={{
+      borderTop: "0.5px solid rgba(13,13,11,0.08)",
+      paddingTop: "var(--space-section)",
+      marginTop: "var(--space-section)",
+    }}>
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        flexWrap: "wrap",
+        gap: 8,
+        margin: "0 0 24px",
+      }}>
+        <h2 className="section-header" style={{ margin: 0 }}>Voorlopige aanslagen</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="label-strong"
+          style={{
+            padding: "10px 20px",
+            border: "0.5px solid rgba(13,13,11,0.25)",
+            background: "transparent",
+            cursor: "pointer",
+          }}
+        >
+          {showForm ? "Annuleer" : "+ Betaling toevoegen"}
+        </button>
+      </div>
+
+      {/* Samenvatting */}
+      {!isLoading && summary && (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 1,
+          background: "rgba(13,13,11,0.08)",
+          marginBottom: 24,
+        }}>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Inkomstenbelasting</p>
+            <p className="mono-amount" style={{ margin: "0 0 4px", fontSize: "var(--text-body-lg)" }}>
+              {formatCurrency(summary.ibBetaald)} <span style={{ opacity: 0.4, fontSize: "var(--text-body-sm)" }}>betaald</span>
+            </p>
+            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.5, margin: 0 }}>
+              Geschat: {formatCurrency(summary.geschatteIB)} — {summary.verschilIB > 0
+                ? `nog ${formatCurrency(summary.verschilIB)} te betalen`
+                : summary.verschilIB < 0
+                  ? `${formatCurrency(Math.abs(summary.verschilIB))} teveel betaald`
+                  : "op schema"}
+            </p>
+          </div>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>BTW</p>
+            <p className="mono-amount" style={{ margin: "0 0 4px", fontSize: "var(--text-body-lg)" }}>
+              {formatCurrency(summary.btwBetaald)} <span style={{ opacity: 0.4, fontSize: "var(--text-body-sm)" }}>betaald</span>
+            </p>
+            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.5, margin: 0 }}>
+              Geschat: {formatCurrency(summary.geschatteBTW)} — {summary.verschilBTW > 0
+                ? `nog ${formatCurrency(summary.verschilBTW)} te betalen`
+                : summary.verschilBTW < 0
+                  ? `${formatCurrency(Math.abs(summary.verschilBTW))} teveel betaald`
+                  : "op schema"}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Formulier */}
+      {showForm && (
+        <div style={{
+          padding: 20,
+          background: "rgba(13,13,11,0.02)",
+          border: "0.5px solid rgba(13,13,11,0.06)",
+          marginBottom: 24,
+        }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
+            <div>
+              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Type</label>
+              <select
+                value={formType}
+                onChange={(e) => setFormType(e.target.value as TaxPaymentType)}
+                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+              >
+                <option value="ib">Inkomstenbelasting</option>
+                <option value="btw">BTW</option>
+              </select>
+            </div>
+            <div>
+              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Periode</label>
+              <input
+                type="text"
+                value={formPeriod}
+                onChange={(e) => setFormPeriod(e.target.value)}
+                placeholder={`${year} of ${year}-Q1`}
+                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+              />
+            </div>
+            <div>
+              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Bedrag</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formAmount}
+                onChange={(e) => setFormAmount(e.target.value)}
+                placeholder="0,00"
+                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+              />
+            </div>
+            <div>
+              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Betaaldatum</label>
+              <input
+                type="date"
+                value={formDate}
+                onChange={(e) => setFormDate(e.target.value)}
+                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+              />
+            </div>
+            <button
+              onClick={() => createMutation.mutate()}
+              disabled={createMutation.isPending || !formAmount}
+              className="label-strong"
+              style={{
+                padding: "10px 20px",
+                border: "0.5px solid rgba(13,13,11,0.25)",
+                background: "var(--foreground)",
+                color: "var(--background)",
+                cursor: "pointer",
+                opacity: createMutation.isPending || !formAmount ? 0.5 : 1,
+              }}
+            >
+              {createMutation.isPending ? "Opslaan..." : "Opslaan"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Betalingsoverzicht */}
+      {isLoading ? (
+        <SkeletonTable columns="1fr 1fr 1fr 1fr 80px" rows={3} headerWidths={[60, 50, 60, 50, 40]} bodyWidths={[50, 40, 50, 40, 30]} />
+      ) : summary && summary.betalingen.length > 0 ? (
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
+              <Th>Type</Th>
+              <Th>Periode</Th>
+              <Th style={{ textAlign: "right" }}>Bedrag</Th>
+              <Th>Betaaldatum</Th>
+              <Th style={{ textAlign: "right" }}>Acties</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {summary.betalingen.map((p) => (
+              <tr key={p.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+                <Td>
+                  <span className="label" style={{ opacity: 1 }}>
+                    {p.type === "ib" ? "IB" : "BTW"}
+                  </span>
+                </Td>
+                <Td><span className="mono-amount">{p.period}</span></Td>
+                <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(p.amount)}</span></Td>
+                <Td><span className="mono-amount">{p.paid_date ? formatDate(p.paid_date) : "—"}</span></Td>
+                <Td style={{ textAlign: "right" }}>
+                  <button
+                    onClick={() => setDeleteTarget(p.id)}
+                    className="table-action"
+                    style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}
+                  >
+                    Verwijder
+                  </button>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="empty-state">Nog geen voorlopige aanslagen geregistreerd</p>
+      )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Betaling verwijderen"
+        message="Weet je zeker dat je deze betaling wilt verwijderen?"
+        confirmLabel="Verwijderen"
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

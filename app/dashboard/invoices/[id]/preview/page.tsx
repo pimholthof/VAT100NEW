@@ -2,6 +2,7 @@ import Link from "next/link";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
 import { SendEmailButton } from "@/features/invoices/components/SendEmailButton";
+import { PaymentLinkButton } from "@/features/invoices/components/PaymentLinkButton";
 
 export default async function InvoicePreviewPage({
   params,
@@ -105,12 +106,35 @@ export default async function InvoicePreviewPage({
           </Link>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {data.invoice.status !== "draft" && data.invoice.status !== "paid" && (
+            <PaymentLinkButton
+              invoiceId={id}
+              existingLink={data.invoice.payment_link ?? null}
+            />
+          )}
           {data.invoice.status !== "draft" && data.client.email && (
             <SendEmailButton
               invoiceId={id}
               clientEmail={data.client.email}
             />
           )}
+          <a
+            href={`/api/invoice/${id}/ubl`}
+            download
+            style={{
+              fontSize: "var(--text-body-md)",
+              fontFamily: "var(--font-body), sans-serif",
+              fontWeight: 500,
+              color: "var(--foreground)",
+              textDecoration: "none",
+              letterSpacing: "0.05em",
+              padding: "8px 20px",
+              border: "var(--border-light)",
+              borderRadius: "var(--radius-sm)",
+            }}
+          >
+            Download UBL
+          </a>
           <a
             href={`/api/invoice/${id}/pdf`}
             style={{

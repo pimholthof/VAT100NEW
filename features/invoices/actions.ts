@@ -296,3 +296,89 @@ export async function createCreditNote(
     return { error: e instanceof Error ? e.message : String(e) };
   }
 }
+
+// ─── Mollie Payment Link ───
+
+export async function createPaymentLink(
+  invoiceId: string,
+): Promise<ActionResult<{ paymentLink: string }>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Haal factuurgegevens op (gebruik * voor compatibiliteit met migraties)
+  const { data: invoice, error: invoiceError } = await supabase
+    .from("invoices")
+    .select("*")
+    .eq("id", invoiceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (invoiceError || !invoice) {
+    return { error: "Factuur niet gevonden." };
+  }
+
+  if (invoice.status === "paid") {
+    return { error: "Factuur is al betaald." };
+  }
+
+  // Als er al een betaallink is, retourneer die
+  const existingMollieId = (invoice as Record<string, unknown>).mollie_payment_id as string | null;
+  if (existingMollieId) {
+    const { getMolliePayment } = await import("@/lib/payments/mollie");
+    const { data: existing } = await getMolliePayment(existingMollieId);
+    if (existing?._links?.checkout?.href && existing.status === "open") {
+      return { error: null, data: { paymentLink: existing._links.checkout.href } };
+    }
+  }
+
+  const { createMolliePayment, isMollieConfigured } = await import("@/lib/payments/mollie");
+
+  if (!isMollieConfigured()) {
+    return { error: "Mollie is niet geconfigureerd. Voeg MOLLIE_API_KEY toe." };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.vat100.nl";
+  const token = invoice.share_token;
+
+  const { data: payment, error: paymentError } = await createMolliePayment({
+    invoiceId: invoice.id,
+    invoiceNumber: invoice.invoice_number,
+    amount: Number(invoice.total_inc_vat),
+    description: `Factuur ${invoice.invoice_number}`,
+    redirectUrl: token
+      ? `${baseUrl}/invoice/${token}?betaald=1`
+      : `${baseUrl}/dashboard/invoices/${invoice.id}`,
+    webhookUrl: `${baseUrl}/api/webhooks/mollie`,
+  });
+
+  if (paymentError || !payment) {
+    return { error: paymentError ?? "Kon betaallink niet aanmaken." };
+  }
+
+  const paymentLink = payment._links?.checkout?.href ?? null;
+
+  // Sla betaalgegevens op (kolommen bestaan mogelijk nog niet als migratie niet is gedraaid)
+  const { error: updateError } = await supabase
+    .from("invoices")
+    .update({
+      mollie_payment_id: payment.id,
+      payment_link: paymentLink,
+    } as Record<string, unknown>)
+    .eq("id", invoice.id)
+    .eq("user_id", user.id);
+
+  // Niet-fatale fout als kolommen nog niet bestaan
+  if (updateError) {
+    console.warn("Kon betaalgegevens niet opslaan (migratie nodig?):", updateError.message);
+  }
+
+  if (!paymentLink) {
+    return { error: "Mollie heeft geen betaallink teruggegeven." };
+  }
+
+  return { error: null, data: { paymentLink } };
+}

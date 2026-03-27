@@ -69,6 +69,9 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const [vatRate, setVatRate] = useState(
     receipt?.vat_rate != null ? String(receipt.vat_rate) : "21"
   );
+  const [businessPercentage, setBusinessPercentage] = useState(
+    receipt?.business_percentage ?? 100
+  );
 
   const parsedAmount = parseFloat(amountExVat) || 0;
   const parsedVatRate = parseFloat(vatRate) || 0;
@@ -198,6 +201,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
       category,
       cost_code: costCode,
       receipt_date: receiptDate,
+      business_percentage: businessPercentage,
     };
 
     const result = workingReceiptId
@@ -380,6 +384,42 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             <option value="9">9%</option>
             <option value="0">0%</option>
           </select>
+        </FieldGroup>
+
+        <FieldGroup label="Zakelijk percentage">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={businessPercentage}
+              onChange={(e) => setBusinessPercentage(Number(e.target.value))}
+              style={{ flex: 1 }}
+            />
+            <span
+              style={{
+                fontSize: "var(--text-mono-md)",
+                fontWeight: 600,
+                minWidth: 44,
+                textAlign: "right",
+              }}
+            >
+              {businessPercentage}%
+            </span>
+          </div>
+          {businessPercentage < 100 && (
+            <p
+              style={{
+                fontSize: "var(--text-body-xs)",
+                opacity: 0.4,
+                margin: "6px 0 0",
+              }}
+            >
+              {businessPercentage}% zakelijk — {100 - businessPercentage}% privé.
+              Alleen het zakelijke deel is aftrekbaar.
+            </p>
+          )}
         </FieldGroup>
 
         <p

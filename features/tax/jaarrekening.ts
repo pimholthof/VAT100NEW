@@ -87,13 +87,14 @@ function getQuarterKey(dateStr: string): string {
 }
 
 function groupKosten(
-  receipts: { amount_ex_vat: number | null; cost_code: number | null }[],
+  receipts: { amount_ex_vat: number | null; cost_code: number | null; business_percentage?: number | null }[],
 ): KostenGroep[] {
-  // Tally per cost_code
+  // Tally per cost_code (gewogen naar zakelijk percentage)
   const codeMap = new Map<number, number>();
   for (const r of receipts) {
     const code = r.cost_code ?? 4999;
-    const amount = Number(r.amount_ex_vat) || 0;
+    const pct = (r.business_percentage ?? 100) / 100;
+    const amount = (Number(r.amount_ex_vat) || 0) * pct;
     codeMap.set(code, (codeMap.get(code) || 0) + amount);
   }
 
@@ -171,7 +172,7 @@ export async function getJaarrekeningData(
     // Bonnen dit jaar (excl. investeringen cost_code 4230)
     supabase
       .from("receipts")
-      .select("amount_ex_vat, vat_amount, cost_code, receipt_date")
+      .select("amount_ex_vat, vat_amount, cost_code, receipt_date, business_percentage")
       .eq("user_id", user.id)
       .gte("receipt_date", yearStart)
       .lte("receipt_date", yearEnd),
@@ -252,7 +253,7 @@ export async function getJaarrekeningData(
   const kostenGroepen = groupKosten(reguliereKosten);
   const totaalKosten = round2(
     reguliereKosten.reduce(
-      (s, r) => s + (Number(r.amount_ex_vat) || 0),
+      (s, r) => s + (Number(r.amount_ex_vat) || 0) * ((r.business_percentage ?? 100) / 100),
       0,
     ),
   );
@@ -314,7 +315,8 @@ export async function getJaarrekeningData(
   for (const rec of allReceipts) {
     if (!rec.receipt_date) continue;
     const q = getOrCreate(getQuarterKey(rec.receipt_date));
-    q.inputVat += Number(rec.vat_amount) || 0;
+    const pct = (rec.business_percentage ?? 100) / 100;
+    q.inputVat += (Number(rec.vat_amount) || 0) * pct;
     q.receiptCount += 1;
   }
 

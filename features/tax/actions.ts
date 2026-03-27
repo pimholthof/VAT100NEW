@@ -46,7 +46,7 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
       .gte("issue_date", startDate),
     supabase
       .from("receipts")
-      .select("receipt_date, vat_amount")
+      .select("receipt_date, vat_amount, business_percentage")
       .eq("user_id", user.id)
       .gte("receipt_date", startDate),
   ]);
@@ -89,7 +89,8 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
     if (!rec.receipt_date) continue;
     const key = getQuarterKey(rec.receipt_date);
     const q = getOrCreate(key);
-    q.inputVat += Number(rec.vat_amount) || 0;
+    const pct = (rec.business_percentage ?? 100) / 100;
+    q.inputVat += (Number(rec.vat_amount) || 0) * pct;
     q.receiptCount += 1;
   }
 
