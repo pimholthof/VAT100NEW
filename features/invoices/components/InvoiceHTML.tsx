@@ -266,7 +266,7 @@ const partyCol: React.CSSProperties = {
 };
 
 const partyName: React.CSSProperties = {
-  fontSize: "12px",
+  fontSize: "13px",
   fontWeight: 500,
   color: COLOR,
   marginBottom: "2px",

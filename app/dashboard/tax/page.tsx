@@ -50,6 +50,7 @@ export default function TaxPage() {
           style={{
             padding: "14px 24px",
             border: "0.5px solid rgba(13,13,11,0.25)",
+            borderRadius: "var(--radius-sm)",
             background: "transparent",
             color: "var(--foreground)",
             textDecoration: "none",

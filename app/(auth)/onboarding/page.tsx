@@ -44,10 +44,9 @@ export default function OnboardingPage() {
       <div style={{ width: "100%", maxWidth: 400 }}>
         <h1
           style={{
-            fontFamily: "var(--font-display), sans-serif",
             fontSize: "var(--text-display-lg)",
             fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
+            letterSpacing: "-0.03em",
             lineHeight: 0.9,
             margin: 0,
           }}

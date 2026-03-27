@@ -63,11 +63,12 @@ export function ActionFeed() {
         }}
       >
         <p
-          className="display-title"
           style={{
             fontSize: "var(--text-display-md)",
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
+            lineHeight: 1,
             margin: 0,
-            textTransform: "uppercase",
           }}
         >
           Je bent helemaal bij

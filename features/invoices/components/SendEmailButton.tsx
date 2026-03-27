@@ -45,7 +45,6 @@ export function SendEmailButton({
         aria-busy={sending}
         style={{
           fontSize: "var(--text-body-md)",
-          fontFamily: "var(--font-body), sans-serif",
           fontWeight: 500,
           color: "var(--foreground)",
           letterSpacing: "0.05em",
@@ -63,7 +62,6 @@ export function SendEmailButton({
           <span
             style={{
               fontSize: "var(--text-body-sm)",
-              fontFamily: "var(--font-body), sans-serif",
               fontWeight: 400,
               color: isError ? "var(--color-accent)" : "var(--foreground)",
             }}

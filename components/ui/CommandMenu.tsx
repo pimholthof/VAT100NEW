@@ -107,7 +107,7 @@ export function CommandMenu() {
           maxWidth: 640,
           background: "var(--background)",
           border: "1px solid var(--color-black)",
-          borderRadius: 0,
+          borderRadius: "var(--radius)",
           overflow: "hidden",
           boxShadow: "none",
         }}
@@ -247,7 +247,7 @@ export function CommandMenu() {
                   background: msg.role === 'user' ? 'var(--color-black)' : 'transparent',
                   color: msg.role === 'user' ? 'var(--color-white)' : 'var(--color-black)',
                   padding: '12px 16px',
-                  borderRadius: 0,
+                  borderRadius: 'var(--radius-sm)',
                   maxWidth: '85%',
                   whiteSpace: 'pre-wrap',
                   fontFamily: "var(--font-geist), sans-serif",

@@ -210,6 +210,7 @@ export default function BankPage() {
           style={{
             padding: "14px 24px",
             border: "0.5px solid rgba(13,13,11,0.25)",
+            borderRadius: "var(--radius-sm)",
             background: "transparent",
             color: "var(--foreground)",
             textDecoration: "none",
@@ -317,7 +318,7 @@ export default function BankPage() {
                     onClick={() => syncMutation.mutate(conn.id)}
                     disabled={syncMutation.isPending}
                     className="label-strong"
-                    style={{ background: "none", border: "0.5px solid rgba(13, 13, 11, 0.25)", color: "var(--foreground)", padding: "6px 12px", cursor: "pointer" }}
+                    style={{ background: "none", border: "0.5px solid rgba(13, 13, 11, 0.25)", borderRadius: "var(--radius-sm)", color: "var(--foreground)", padding: "6px 12px", cursor: "pointer" }}
                   >
                     {syncMutation.isPending ? "Bezig..." : "Bijwerken"}
                   </button>
@@ -339,7 +340,7 @@ export default function BankPage() {
               <button
                 onClick={() => setIsSelectorOpen(true)}
                 className="label-strong"
-                style={{ padding: "12px 20px", border: "0.5px solid rgba(13, 13, 11, 0.25)", background: "transparent", color: "var(--foreground)", cursor: "pointer" }}
+                style={{ padding: "12px 20px", border: "0.5px solid rgba(13, 13, 11, 0.25)", borderRadius: "var(--radius-sm)", background: "transparent", color: "var(--foreground)", cursor: "pointer" }}
               >
                 + Extra rekening koppelen
               </button>
@@ -355,7 +356,7 @@ export default function BankPage() {
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ ...selectStyle, width: "auto", minWidth: 160, borderBottom: "none", border: "0.5px solid rgba(13, 13, 11, 0.25)", padding: "8px 12px" }}
+            style={{ ...selectStyle, width: "auto", minWidth: 160, borderBottom: "none", border: "0.5px solid rgba(13, 13, 11, 0.25)", borderRadius: "var(--radius-sm)", padding: "8px 12px" }}
           >
             {monthOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>

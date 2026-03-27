@@ -61,6 +61,7 @@ export function ConfirmDialog({
         style={{
           background: "var(--background)",
           border: "0.5px solid rgba(0,0,0,0.12)",
+          borderRadius: "var(--radius)",
           padding: "32px",
           maxWidth: 400,
           width: "100%",

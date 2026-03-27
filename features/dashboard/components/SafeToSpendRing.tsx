@@ -19,7 +19,7 @@ export function SafeToSpendRing({
 
   return (
     <div 
-      className="liquid-glimmer glass-refraction"
+      className=""
       style={{ 
         width: size, 
         height: size, 

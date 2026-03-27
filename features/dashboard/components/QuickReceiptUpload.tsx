@@ -131,6 +131,7 @@ export function QuickReceiptUpload() {
         border: isDragging
           ? "2px solid var(--color-black)"
           : "var(--border-light)",
+        borderRadius: "var(--radius)",
         padding: 24,
         textAlign: "center",
         cursor: status === "idle" ? "pointer" : "default",
@@ -138,7 +139,6 @@ export function QuickReceiptUpload() {
         background: isDragging
           ? "var(--dashboard-surface-strong, rgba(0,0,0,0.04))"
           : "var(--dashboard-surface, rgba(0,0,0,0.02))",
-        borderRadius: "var(--dashboard-surface-radius, 14px)",
         marginBottom: "var(--quick-upload-margin-bottom, var(--space-section))",
       }}
     >
@@ -158,7 +158,6 @@ export function QuickReceiptUpload() {
         <>
           <p
             style={{
-              fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-body-md)",
               fontWeight: 500,
               margin: "0 0 4px",
@@ -192,7 +191,6 @@ export function QuickReceiptUpload() {
           )}
           <p
             style={{
-              fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-body-md)",
               fontWeight: 400,
               margin: 0,
@@ -219,7 +217,6 @@ export function QuickReceiptUpload() {
       {status === "error" && (
         <p
           style={{
-            fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
             fontWeight: 400,
             margin: 0,

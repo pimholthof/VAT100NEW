@@ -30,6 +30,7 @@ export default function DashboardError({
           letterSpacing: "0.05em",
           padding: "10px 16px",
           border: "1px solid rgba(13, 13, 11, 0.2)",
+          borderRadius: "var(--radius-sm)",
           background: "transparent",
           color: "var(--foreground)",
           cursor: "pointer",

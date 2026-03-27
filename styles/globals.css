@@ -5,11 +5,6 @@
   /* Baseline unit */
   --u: 8px;
 
-  /* Spacing */
-  --space-hero: 120px;
-  --space-section: 80px;
-  --space-block: 48px;
-
   /* Colors — High-End Editorial Brutalism */
   --color-black: #000000; /* Pure Black Ink */
   --color-white: #FAF9F6; /* Premium Off-White Paper */
@@ -65,7 +60,7 @@
   --tracking-tight: -0.01em;
   --tracking-label: 0.14em;
 
-  --radius: 0; /* Strict 0px radius */
+  --radius: 6px;
 
   /* Spacing system */
   --space-xs: 4px;
@@ -78,9 +73,15 @@
   --space-section: 48px;
   --space-block: 32px;
 
+  /* Layout */
+  --page-gutter: clamp(24px, 4vw, 64px);
+
   /* Easing */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* Font families */
+  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
 }
 
 /* ─── Tailwind theme integration ─── */
@@ -93,11 +94,12 @@
 
   --font-geist: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
 
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-xl: 0;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
 }
 
 /* ─── Base ─── */
@@ -208,108 +210,6 @@ a {
   min-height: 100dvh;
 }
 
-/* ─── Glass Panels ─── */
-.glass {
-  background: var(--color-white);
-  border: 0.5px solid rgba(0, 0, 0, 0.06);
-  position: relative;
-  overflow: hidden;
-  box-shadow: none;
-  transition: border-color 0.3s ease;
-}
-
-.glass:hover {
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-.glass::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(255, 255, 255, 0.04),
-    transparent
-  );
-  transform: skewX(-25deg);
-  transition: 0.5s;
-}
-
-.glass:hover::before {
-  left: 150%;
-  transition: 0.8s ease-in-out;
-}
-
-.glass-dark {
-  background: rgba(10, 10, 10, 0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.glass-refraction {
-  position: relative;
-  overflow: hidden;
-}
-
-.glass-refraction::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.03) 0%,
-    transparent 50%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-.glass-refraction:hover::after {
-  opacity: 1;
-  animation: refractionRotate 10s linear infinite;
-}
-
-@keyframes refractionRotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.liquid-glimmer {
-  position: relative;
-}
-
-.liquid-glimmer::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 40%,
-    rgba(99, 102, 241, 0.05) 45%,
-    rgba(99, 102, 241, 0.1) 50%,
-    rgba(99, 102, 241, 0.05) 55%,
-    transparent 60%
-  );
-  background-size: 200% 200%;
-  animation: liquidFlow 8s ease infinite;
-  pointer-events: none;
-}
-
-@keyframes liquidFlow {
-  0% { background-position: 200% 0%; }
-  100% { background-position: -200% 0%; }
-}
-
 /* ─── Vertical Label ─── */
 .vertical-label {
   writing-mode: vertical-rl;
@@ -323,16 +223,6 @@ a {
   transform: translateY(-50%) rotate(180deg);
   pointer-events: none;
   font-weight: 500;
-}
-
-/* ─── Tilted Canvas (Experimental) ─── */
-.tilted-canvas {
-  transform: perspective(1000px) rotateX(1deg) rotateY(-0.5deg);
-  transition: transform 0.8s var(--ease-out-expo);
-}
-
-.tilted-canvas:hover {
-  transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
 }
 
 /* ─── Typography Classes ─── */
@@ -365,7 +255,7 @@ a {
 .display-title {
   font-size: var(--text-display-lg);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   line-height: 0.9;
   margin: 0;
 }
@@ -408,9 +298,9 @@ a {
 
 .status-badge::before {
   content: "";
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 0;
   flex-shrink: 0;
 }
 
@@ -471,7 +361,7 @@ a {
 }
 
 .brutalist-mark {
-  font-family: "Courier", monospace;
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: clamp(4rem, 10vw, 8rem);
   font-weight: 900;
   letter-spacing: -0.03em;
@@ -489,7 +379,7 @@ a {
 .brutalist-year {
   font-size: var(--text-display-lg);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: var(--color-accent);
 }
 
@@ -701,31 +591,41 @@ a {
   z-index: 1000;
   background: var(--background);
   border-bottom: var(--border-light);
-  padding: 0 var(--space-block);
+  padding: 0 var(--page-gutter);
 }
 
 .dashboard-nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 120px;
+  height: 80px;
 }
 
 .dashboard-nav-header {
-  padding: var(--space-block) 0;
+  padding: 0;
 }
 
 .dashboard-nav-brand {
-  font-size: clamp(3rem, 6vw, 6rem);
+  font-size: clamp(1.75rem, 2.8vw, 2.5rem);
+  font-weight: 800;
   letter-spacing: -0.05em;
   color: var(--foreground);
   text-decoration: none;
+  line-height: 1;
 }
 
 .dashboard-nav-actions {
   display: flex;
   align-items: center;
   gap: 32px;
+}
+
+.nav-studio-name {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  opacity: 0.4;
+  text-transform: none;
 }
 
 .dashboard-nav-menu {
@@ -853,7 +753,7 @@ a {
 /* ─── Dashboard Content ─── */
 .dashboard-content {
   flex: 1;
-  padding: var(--space-3xl) 4vw;
+  padding: var(--space-3xl) var(--page-gutter);
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
@@ -870,17 +770,14 @@ a {
 .dashboard-home {
   --dashboard-surface: #f0f0ec;
   --dashboard-surface-strong: #e8e8e3;
-  --dashboard-surface-radius: 14px;
 }
 
-.dashboard-home .brutalist-panel,
-.dashboard-home .glass {
+.dashboard-home .brutalist-panel {
   background: var(--dashboard-surface);
-  border-radius: var(--dashboard-surface-radius);
 }
 
 .dashboard-home .brutalist-panel-header {
-  border-bottom-color: rgba(0, 0, 0, 0.12);
+  border-bottom-color: rgba(0, 0, 0, 0.10);
 }
 
 .dashboard-home-hero {
@@ -896,22 +793,23 @@ a {
   justify-content: flex-end;
   gap: 20px;
   min-height: 320px;
-  padding: 40px 48px;
+  padding: 40px 48px 40px 0;
 }
 
 .dashboard-home-title {
-  font-size: clamp(2.8rem, 5vw, 5.5rem);
+  font-size: clamp(2rem, 3.8vw, 4.5rem);
   font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 0.92;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
   margin: 12px 0 0;
-  max-width: 12ch;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .dashboard-home-intro {
-  margin: 16px 0 0;
-  max-width: 44rem;
-  font-size: 1rem;
+  margin: 8px 0 0;
+  max-width: 100%;
+  font-size: var(--text-body-md);
   line-height: 1.6;
   opacity: 0.72;
 }
@@ -920,8 +818,8 @@ a {
   display: flex;
   flex-direction: column;
   background: var(--dashboard-surface);
-  border-radius: var(--dashboard-surface-radius);
   border: var(--border-light);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
@@ -931,6 +829,7 @@ a {
   gap: 8px;
   padding: 24px 28px;
   flex: 1;
+  overflow: hidden;
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.07);
 }
 
@@ -939,10 +838,13 @@ a {
 }
 
 .dashboard-home-meta-value {
-  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-home-meta-sub {
@@ -950,6 +852,9 @@ a {
   font-size: var(--text-body-sm);
   line-height: 1.5;
   opacity: 0.58;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-home-hero-upload {
@@ -1074,7 +979,8 @@ a {
 
 .brutalist-panel {
   background: var(--background);
-  border: 1px solid var(--color-black);
+  border: 0.5px solid rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius);
   position: relative;
 }
 
@@ -1084,7 +990,7 @@ a {
 
 .brutalist-panel-header {
   padding: 24px 24px 16px;
-  border-bottom: 1px solid var(--color-black);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.15);
 }
 
 .brutalist-panel-header.minimal {
@@ -1175,6 +1081,7 @@ a {
   text-transform: uppercase;
   padding: 14px 28px;
   border: none;
+  border-radius: var(--radius-sm);
   background: var(--foreground);
   color: var(--background);
   cursor: pointer;
@@ -1196,6 +1103,7 @@ a {
   text-transform: uppercase;
   padding: 14px 28px;
   border: 0.5px solid rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--foreground);
   cursor: pointer;
@@ -1249,7 +1157,7 @@ a {
   }
 
   .dashboard-content {
-    padding: 48px 32px;
+    padding: 48px var(--page-gutter);
   }
 
   :root {
@@ -1288,22 +1196,23 @@ a {
     --space-2xl: 32px;
     --space-section: 32px;
     --space-block: 24px;
+    --page-gutter: 16px;
   }
 
   .dashboard-content {
-    padding: 24px 16px;
+    padding: 24px var(--page-gutter);
   }
 
   .dashboard-nav {
-    padding: 0 16px;
+    padding: 0 var(--page-gutter);
   }
 
   .dashboard-nav-header {
-    padding: 16px 0;
+    padding: 0;
   }
 
   .dashboard-nav-brand {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 
   .dashboard-nav-actions {

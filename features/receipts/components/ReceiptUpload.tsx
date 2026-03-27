@@ -6,7 +6,6 @@ import { ErrorMessage } from "@/components/ui";
 import Image from "next/image";
 
 const uploadTextStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
   fontWeight: 300,
   margin: 0,
@@ -153,7 +152,6 @@ export function ReceiptUpload({
           marginTop: 16,
           background: "none",
           border: "none",
-          fontFamily: "var(--font-body), sans-serif",
           fontSize: "var(--text-label)",
           fontWeight: 500,
           letterSpacing: "0.08em",

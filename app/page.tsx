@@ -101,6 +101,7 @@ export default function LandingPage() {
             color: "var(--color-black)",
             padding: "10px 20px",
             border: "0.5px solid rgba(0,0,0,0.15)",
+            borderRadius: "var(--radius-sm)",
             transition: "border-color 0.15s ease",
           }}
         >
@@ -129,11 +130,10 @@ export default function LandingPage() {
               lineHeight: 0.88,
               margin: 0,
               color: "var(--color-black)",
+              whiteSpace: "nowrap",
             }}
           >
-            VAT
-            <br />
-            100
+            VAT100
           </h1>
 
           <div style={{ marginTop: 56 }} />
@@ -144,6 +144,7 @@ export default function LandingPage() {
               style={{
                 padding: "32px",
                 border: "0.5px solid rgba(0,0,0,0.08)",
+                borderRadius: "var(--radius)",
               }}
             >
               <p
@@ -163,9 +164,7 @@ export default function LandingPage() {
                   lineHeight: 1.6,
                 }}
               >
-                {position
-                  ? `Je bent nummer ${position}. `
-                  : ""}
+                {position ? `Je bent nummer ${position}. ` : ""}
                 We sturen je een e-mail zodra je toegang krijgt.
               </p>
             </div>

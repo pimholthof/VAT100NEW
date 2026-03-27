@@ -12,7 +12,6 @@ import {
 
 const quickLabelStyle: React.CSSProperties = {
   display: "block",
-  fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-label)",
   fontWeight: 500,
   letterSpacing: "0.08em",
@@ -70,7 +69,6 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
     >
       <p
         style={{
-          fontFamily: "var(--font-body), sans-serif",
           fontSize: "var(--text-label)",
           fontWeight: 500,
           letterSpacing: "0.08em",

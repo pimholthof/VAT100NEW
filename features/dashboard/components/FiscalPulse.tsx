@@ -13,7 +13,7 @@ interface FiscalPulseProps {
 export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPulseProps) {
   if (isLoading) {
     return (
-      <div style={{ padding: "80px 100px", height: 320, opacity: 0.1, border: "var(--border-light)", borderRadius: "var(--dashboard-surface-radius, 14px)" }} />
+      <div style={{ padding: "80px 100px", height: 320, opacity: 0.1, border: "var(--border-light)", borderRadius: "var(--radius)" }} />
     );
   }
 
@@ -23,30 +23,27 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
       style={{ 
-        padding: "80px 100px",
+        padding: "clamp(48px, 8vw, 80px) clamp(32px, 8vw, 100px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         position: "relative",
-        minHeight: 320,
+        minHeight: 280,
         border: "var(--border-light)",
+        borderRadius: "var(--radius)",
         background: "var(--dashboard-surface, var(--background))",
-        borderRadius: "var(--dashboard-surface-radius, 14px)"
       }}
     >
-      <div className="vertical-label">Jouw balans</div>
-      
       <div style={{ flex: 1 }}>
         <p className="label" style={{ marginBottom: 20 }}>Wat je vrij kunt besteden</p>
         <div style={{ position: "relative" }}>
           <AnimatedNumber 
             value={safeToSpend} 
             style={{
-              
               fontSize: "clamp(4rem, 12vw, 10rem)",
-              fontWeight: 500,
-              lineHeight: 0.8,
-              letterSpacing: "-0.02em",
+              fontWeight: 300,
+              lineHeight: 0.85,
+              letterSpacing: "-0.03em",
               color: "var(--foreground)"
             }}
           />

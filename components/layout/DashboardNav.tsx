@@ -49,7 +49,7 @@ export function DashboardNav({
 
           <div className="dashboard-nav-actions">
             {!isMobile && (
-              <span className="label opacity-40">{studioName}</span>
+              <span className="nav-studio-name">{studioName}</span>
             )}
             <button
               onClick={() => setIsDrawerOpen(!isDrawerOpen)}

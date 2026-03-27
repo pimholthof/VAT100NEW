@@ -21,54 +21,45 @@ export function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       style={{ 
-        padding: "28px", 
+        padding: "28px",
         display: "flex", 
         flexDirection: "column", 
         justifyContent: "space-between",
-        gap: 24,
-        minHeight: 200,
-        position: "relative",
-        overflow: "visible", // To allow vertical label to bleed out if needed
+        gap: 20,
+        minHeight: 180,
         border: "var(--border-light)",
+        borderRadius: "var(--radius)",
         background: "var(--card-surface, var(--dashboard-surface, var(--background)))",
-        borderRadius: "var(--card-radius, var(--dashboard-surface-radius, 0px))"
       }}
     >
-      <div className="vertical-label">{label}</div>
+      <p className="label" style={{ margin: 0 }}>
+        {label}
+      </p>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <p className="label" style={{ margin: "0 0 12px" }}>
-          Concept / {label}
-        </p>
-        <p
-          className="display-hero"
-          style={{
-            fontSize: "var(--text-display-md)",
-            fontWeight: 500,
-            lineHeight: 0.9,
-            margin: 0,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {numericValue !== undefined ? (
-            <AnimatedNumber value={numericValue} isCurrency={isCurrency} />
-          ) : (
-            value
-          )}
-        </p>
-      </div>
+      <p
+        style={{
+          fontSize: "var(--text-display-md)",
+          fontWeight: 300,
+          letterSpacing: "-0.03em",
+          lineHeight: 1,
+          margin: 0,
+        }}
+      >
+        {numericValue !== undefined ? (
+          <AnimatedNumber value={numericValue} isCurrency={isCurrency} />
+        ) : (
+          value
+        )}
+      </p>
 
       {sub && (
-        <div style={{ marginTop: "auto" }}>
-          <div style={{ width: 40, height: 1, background: "rgba(0,0,0,0.05)", marginBottom: 12 }} />
+        <div>
+          <div style={{ width: 32, height: "0.5px", background: "rgba(0,0,0,0.08)", marginBottom: 10 }} />
           <p
-            className="mono-amount"
+            className="label"
             style={{
-              fontSize: "var(--text-label)",
               margin: 0,
-              textTransform: "uppercase",
-              letterSpacing: "var(--tracking-label)",
-              fontWeight: 500
+              opacity: 0.4,
             }}
           >
             {sub}

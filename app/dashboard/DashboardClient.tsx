@@ -102,9 +102,9 @@ export default function DashboardClient({
       {/* ── HERO ── */}
       {!isLoading && (
         <div className="dashboard-home-hero">
-          <motion.div variants={itemVariants} className="brutalist-panel dashboard-home-hero-copy">
+          <motion.div variants={itemVariants} className="dashboard-home-hero-copy">
             <p className="label" style={{ margin: 0 }}>Vandaag</p>
-            <h1 className="dashboard-home-title">Alles wat je vandaag nodig hebt.</h1>
+            <h1 className="dashboard-home-title">Alles wat je vandaag moet weten.</h1>
             <p className="dashboard-home-intro">{heroMessage}</p>
           </motion.div>
 

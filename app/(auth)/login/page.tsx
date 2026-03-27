@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useState } from "react";
 
 const inputStyle: React.CSSProperties = {
-  fontSize: "13px",
+  fontSize: "14px",
   fontWeight: 400,
   padding: "14px 0",
   border: "none",
-  borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+  borderBottom: "0.5px solid rgba(0,0,0,0.12)",
   background: "transparent",
   color: "var(--color-black)",
   outline: "none",
@@ -40,59 +40,36 @@ export default function LoginPage() {
       style={{
         minHeight: "100dvh",
         display: "grid",
-        gridTemplateColumns: "1fr",
         alignItems: "center",
         justifyItems: "center",
-        padding: 24,
-        position: "relative",
-        overflow: "hidden",
+        padding: "24px 16px",
+        background: "var(--background)",
+        backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1400' height='520'%3E%3Ctext x='8' y='430' font-family='Helvetica Neue%2CHelvetica%2CArial%2Csans-serif' font-weight='800' font-size='420' letter-spacing='-16' fill='%23000' fill-opacity='0.012'%3EVAT100%3C%2Ftext%3E%3C%2Fsvg%3E\")",
+        backgroundRepeat: "repeat",
       }}
     >
-      {/* Background watermark */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          bottom: -60,
-          right: -40,
-          fontSize: "min(20rem, 35vw)",
-          fontWeight: 800,
-          letterSpacing: "-0.05em",
-          lineHeight: 0.85,
-          color: "var(--color-black)",
-          opacity: 0.02,
-          pointerEvents: "none",
-          userSelect: "none",
-          whiteSpace: "nowrap",
-        }}
-      >
-        VAT100
-      </div>
+      <div style={{ width: "100%", maxWidth: 380 }}>
+        {/* Header */}
+        <div style={{ marginBottom: 48 }}>
+          <h1
+            style={{
+              fontSize: "clamp(4rem, 9vw, 6.5rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.04em",
+              lineHeight: 0.85,
+              margin: 0,
+              color: "var(--color-black)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            VAT100
+          </h1>
+        </div>
 
-      <div style={{ width: "100%", maxWidth: 320, position: "relative", zIndex: 1 }}>
-        {/* Logo */}
-        <h1
-          style={{
-            fontSize: "clamp(4rem, 12vw, 8rem)",
-            fontWeight: 800,
-            letterSpacing: "-0.05em",
-            lineHeight: 0.85,
-            margin: 0,
-            color: "var(--color-black)",
-          }}
-        >
-          VAT
-          <br />
-          100
-        </h1>
-
-        <div style={{ marginBottom: 64 }} />
-
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+        {/* Form — flat, no card */}
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="email" className="label" style={{ opacity: 0.35 }}>
-              E-mail
-            </label>
+            <label htmlFor="email" className="label">E-mail</label>
             <input
               id="email"
               name="email"
@@ -104,9 +81,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="password" className="label" style={{ opacity: 0.35 }}>
-              Wachtwoord
-            </label>
+            <label htmlFor="password" className="label">Wachtwoord</label>
             <input
               id="password"
               name="password"
@@ -119,27 +94,23 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div
+            <p
               role="alert"
               style={{
-                padding: "12px 16px",
-                background: "rgba(165, 28, 48, 0.04)",
-                borderLeft: "2px solid var(--color-accent)",
+                margin: 0,
                 fontSize: "12px",
+                color: "var(--color-accent)",
               }}
             >
               {error}
-            </div>
+            </p>
           )}
 
           <button
             type="submit"
             disabled={pending}
             className="btn-primary"
-            style={{
-              padding: "20px",
-              width: "100%",
-            }}
+            style={{ marginTop: 8, width: "100%" }}
           >
             {pending ? "Even wachten..." : "Inloggen"}
           </button>
@@ -147,20 +118,16 @@ export default function LoginPage() {
 
         <p
           className="label"
-          style={{
-            marginTop: 40,
-            opacity: 0.3,
-          }}
+          style={{ marginTop: 32, opacity: 0.35 }}
         >
           Nog geen account?{" "}
           <Link
             href="/register"
             style={{
-              fontWeight: 600,
+              fontWeight: 700,
               color: "var(--color-black)",
               textDecoration: "none",
-              opacity: 1,
-              borderBottom: "0.5px solid rgba(0,0,0,0.2)",
+              borderBottom: "0.5px solid rgba(0,0,0,0.25)",
               paddingBottom: 1,
             }}
           >

@@ -25,6 +25,7 @@ export const selectStyle: React.CSSProperties = {
 export const textareaStyle: React.CSSProperties = {
   ...baseInputStyle,
   border: "0.5px solid rgba(0,0,0,0.1)",
+  borderRadius: "var(--radius-sm)",
   padding: 14,
   resize: "vertical",
 };

@@ -64,7 +64,7 @@ export default function InvoicesPage() {
       {/* Page header */}
       <div className="page-header">
         <div>
-          <h1 className="display-title" style={{ letterSpacing: "-0.04em", marginBottom: 8 }}>
+          <h1 className="display-title" style={{ marginBottom: 8 }}>
             Facturen
           </h1>
           <p className="label" style={{ opacity: 0.25 }}>{invoices.length} FACTUREN</p>

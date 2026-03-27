@@ -122,6 +122,7 @@ export default async function InvoicePreviewPage({
               letterSpacing: "0.05em",
               padding: "8px 20px",
               border: "var(--border-light)",
+              borderRadius: "var(--radius-sm)",
             }}
           >
             Download PDF

@@ -52,7 +52,6 @@ export function ReceiptProcessing({
       <div>
         <p
           style={{
-            fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
             fontWeight: 300,
             margin: "0 0 24px",

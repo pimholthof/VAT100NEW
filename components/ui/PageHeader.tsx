@@ -44,7 +44,7 @@ export function PageHeader({
           style={titleSize === "md" ? {
             fontSize: "var(--text-display-md)",
             fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
+            letterSpacing: "-0.03em",
             lineHeight: 0.9,
             margin: 0,
           } : {

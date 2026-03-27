@@ -57,7 +57,7 @@ export default function QuotesPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="display-title" style={{ letterSpacing: "-0.04em", marginBottom: 8 }}>
+          <h1 className="display-title" style={{ marginBottom: 8 }}>
             Offertes
           </h1>
           <p className="label" style={{ opacity: 0.3 }}>{quotes.length} OFFERTES</p>
