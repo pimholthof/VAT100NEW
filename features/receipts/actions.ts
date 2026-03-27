@@ -95,6 +95,7 @@ export async function createReceipt(
       cost_code: input.cost_code ?? null,
       receipt_date: input.receipt_date || null,
       ai_processed: false,
+      business_percentage: input.business_percentage ?? 100,
     })
     .select()
     .single();
@@ -131,6 +132,7 @@ export async function updateReceipt(
       category: input.category || "Overig",
       cost_code: input.cost_code ?? null,
       receipt_date: input.receipt_date || null,
+      business_percentage: input.business_percentage ?? 100,
     })
     .eq("id", id)
     .eq("user_id", user.id)

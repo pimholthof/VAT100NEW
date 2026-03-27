@@ -60,6 +60,7 @@ export const receiptSchema = z.object({
   category: optionalString,
   cost_code: z.number().nullable().optional(),
   receipt_date: z.string().nullable().optional(),
+  business_percentage: z.number().int().min(0).max(100).optional().default(100),
 });
 
 export type ReceiptSchema = z.infer<typeof receiptSchema>;
@@ -80,6 +81,18 @@ export const quoteSchema = z.object({
 });
 
 export type QuoteSchema = z.infer<typeof quoteSchema>;
+
+// ─── Tax Payment ───
+
+export const taxPaymentSchema = z.object({
+  type: z.enum(["ib", "btw"]),
+  period: trimmedString.min(1, "Periode is verplicht"),
+  amount: z.number().min(0, "Bedrag mag niet negatief zijn"),
+  paid_date: z.string().nullable().optional(),
+  reference: optionalString,
+});
+
+export type TaxPaymentSchema = z.infer<typeof taxPaymentSchema>;
 
 // ─── Profile ───
 

@@ -41,10 +41,17 @@ export default async function PublicInvoicePage({
   }
 
   const pdfUrl = `/api/invoice/public/${token}/pdf`;
+  const { invoice } = result.data;
+  const showPayButton = invoice.payment_link && invoice.status !== "paid";
 
   return (
     <div style={wrapper}>
       <div style={toolbar}>
+        {showPayButton && (
+          <a href={invoice.payment_link!} style={payButton}>
+            Betaal nu
+          </a>
+        )}
         <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={downloadButton}>
           Download PDF
         </a>
@@ -82,6 +89,20 @@ const downloadButton: React.CSSProperties = {
   padding: "14px 28px",
   border: "1px solid #000000",
   background: "#000000",
+  color: "#FAF9F6",
+  cursor: "pointer",
+  textDecoration: "none",
+};
+
+const payButton: React.CSSProperties = {
+  fontFamily: '"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif',
+  fontSize: "10px",
+  fontWeight: 700,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  padding: "14px 28px",
+  border: "1px solid #A51C30",
+  background: "#A51C30",
   color: "#FAF9F6",
   cursor: "pointer",
   textDecoration: "none",

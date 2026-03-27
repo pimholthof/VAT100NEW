@@ -69,6 +69,9 @@ export interface Invoice {
   share_token: string | null;
   is_credit_note: boolean;
   original_invoice_id: string | null;
+  payment_link: string | null;
+  mollie_payment_id: string | null;
+  payment_method: string | null;
   created_at: string;
 }
 
@@ -133,6 +136,7 @@ export interface Receipt {
   receipt_date: string | null;
   storage_path: string | null;
   ai_processed: boolean;
+  business_percentage: number;
   created_at: string;
 }
 
@@ -143,6 +147,7 @@ export interface ReceiptInput {
   category: string | null;
   cost_code: number | null;
   receipt_date: string | null;
+  business_percentage?: number;
 }
 
 // ─── Bank types ───
@@ -263,6 +268,29 @@ export interface QuoteInput {
   vat_rate: VatRate;
   notes: string | null;
   lines: InvoiceLineInput[];
+}
+
+// ─── Tax Payment types ───
+
+export type TaxPaymentType = "ib" | "btw";
+
+export interface TaxPayment {
+  id: string;
+  user_id: string;
+  type: TaxPaymentType;
+  period: string;
+  amount: number;
+  paid_date: string | null;
+  reference: string | null;
+  created_at: string;
+}
+
+export interface TaxPaymentInput {
+  type: TaxPaymentType;
+  period: string;
+  amount: number;
+  paid_date: string | null;
+  reference: string | null;
 }
 
 // ─── Safe-to-Spend types ───

@@ -145,7 +145,14 @@ export default function ReceiptsPage() {
                       {receipt.receipt_date ? formatDate(receipt.receipt_date) : "—"}
                     </span>
                   </Td>
-                  <Td style={{ fontWeight: 400 }}>{receipt.vendor_name ?? "—"}</Td>
+                  <Td style={{ fontWeight: 400 }}>
+                    {receipt.vendor_name ?? "—"}
+                    {receipt.business_percentage < 100 && (
+                      <span style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, marginLeft: 6 }}>
+                        {receipt.business_percentage}% zakelijk
+                      </span>
+                    )}
+                  </Td>
                   <Td>
                     {kostensoort ? kostensoort.label : receipt.category ?? "—"}
                   </Td>

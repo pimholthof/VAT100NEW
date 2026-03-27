@@ -112,6 +112,23 @@ export default async function InvoicePreviewPage({
             />
           )}
           <a
+            href={`/api/invoice/${id}/ubl`}
+            download
+            style={{
+              fontSize: "var(--text-body-md)",
+              fontFamily: "var(--font-body), sans-serif",
+              fontWeight: 500,
+              color: "var(--foreground)",
+              textDecoration: "none",
+              letterSpacing: "0.05em",
+              padding: "8px 20px",
+              border: "var(--border-light)",
+              borderRadius: "var(--radius-sm)",
+            }}
+          >
+            Download UBL
+          </a>
+          <a
             href={`/api/invoice/${id}/pdf`}
             style={{
               fontSize: "var(--text-body-md)",
