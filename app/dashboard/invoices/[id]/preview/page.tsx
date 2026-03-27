@@ -2,6 +2,7 @@ import Link from "next/link";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
 import { SendEmailButton } from "@/features/invoices/components/SendEmailButton";
+import { PaymentLinkButton } from "@/features/invoices/components/PaymentLinkButton";
 
 export default async function InvoicePreviewPage({
   params,
@@ -105,6 +106,12 @@ export default async function InvoicePreviewPage({
           </Link>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {data.invoice.status !== "draft" && data.invoice.status !== "paid" && (
+            <PaymentLinkButton
+              invoiceId={id}
+              existingLink={data.invoice.payment_link ?? null}
+            />
+          )}
           {data.invoice.status !== "draft" && data.client.email && (
             <SendEmailButton
               invoiceId={id}
