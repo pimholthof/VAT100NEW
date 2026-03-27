@@ -80,6 +80,7 @@ export function DashboardNav({
                 <Link href="/dashboard/quotes" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Offertes</Link>
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
+                <Link href="/dashboard/receipts" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Bonnen</Link>
               </div>
 
               {/* Navigation Column 2 */}
