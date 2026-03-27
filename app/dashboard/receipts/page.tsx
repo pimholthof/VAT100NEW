@@ -138,7 +138,11 @@ export default function ReceiptsPage() {
               return (
                 <tr key={receipt.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
                   <Td style={{ width: 24, textAlign: "center", opacity: 0.4 }}>
-                    {receipt.storage_path ? "📷" : ""}
+                    {receipt.storage_path
+                      ? receipt.storage_path.endsWith(".pdf")
+                        ? "📄"
+                        : "📷"
+                      : ""}
                   </Td>
                   <Td>
                     <span className="mono-amount">

@@ -170,8 +170,10 @@ export async function uploadReceiptImage(
   const file = formData.get("file") as File | null;
   if (!file) return { error: "Geen bestand geselecteerd." };
 
-  if (!file.type.startsWith("image/")) {
-    return { error: "Alleen afbeeldingen zijn toegestaan." };
+  const isImage = file.type.startsWith("image/");
+  const isPdf = file.type === "application/pdf";
+  if (!isImage && !isPdf) {
+    return { error: "Alleen afbeeldingen en PDF-bestanden zijn toegestaan." };
   }
 
   if (file.size > 10 * 1024 * 1024) {
@@ -183,8 +185,9 @@ export async function uploadReceiptImage(
   const isJpeg = headerBytes[0] === 0xff && headerBytes[1] === 0xd8;
   const isPng = headerBytes[0] === 0x89 && headerBytes[1] === 0x50 && headerBytes[2] === 0x4e && headerBytes[3] === 0x47;
   const isWebp = headerBytes[0] === 0x52 && headerBytes[1] === 0x49; // RIFF
-  if (!isJpeg && !isPng && !isWebp) {
-    return { error: "Ongeldig bestandstype. Upload een JPEG, PNG of WebP afbeelding." };
+  const isPdfBytes = headerBytes[0] === 0x25 && headerBytes[1] === 0x50 && headerBytes[2] === 0x44 && headerBytes[3] === 0x46; // %PDF
+  if (!isJpeg && !isPng && !isWebp && !isPdfBytes) {
+    return { error: "Ongeldig bestandstype. Upload een JPEG, PNG, WebP afbeelding of PDF." };
   }
 
   // Sanitize filename: extract extension, use UUID to prevent path traversal
@@ -258,12 +261,13 @@ export async function scanReceiptWithAI(
   const buffer = Buffer.from(await fileData.arrayBuffer());
   const base64 = buffer.toString("base64");
   const mimeType = fileData.type || "image/jpeg";
+  const isPdfFile = buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46;
 
   // Call Anthropic API
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen in het administratiesysteem VAT100. Analyseer de afbeelding en extraheer alle informatie. Retourneer UITSLUITEND valide JSON zonder expliciete markdown backticks rondom de JSON.
+  const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen in het administratiesysteem VAT100. Analyseer het document en extraheer alle informatie. Retourneer UITSLUITEND valide JSON zonder expliciete markdown backticks rondom de JSON.
 Velden in het JSON object:
 - vendor_name (string): naam van de winkel/leverancier
 - receipt_date (string): datum in YYYY-MM-DD format
@@ -275,6 +279,24 @@ Velden in het JSON object:
 Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
 
   try {
+    const documentContent = isPdfFile
+      ? {
+          type: "document" as const,
+          source: {
+            type: "base64" as const,
+            media_type: "application/pdf" as const,
+            data: base64,
+          },
+        }
+      : {
+          type: "image" as const,
+          source: {
+            type: "base64" as const,
+            media_type: mimeType as "image/jpeg" | "image/png" | "image/webp" | "image/gif",
+            data: base64,
+          },
+        };
+
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
@@ -283,14 +305,7 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
         {
           role: "user",
           content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: mimeType as "image/jpeg" | "image/png" | "image/webp" | "image/gif",
-                data: base64,
-              },
-            },
+            documentContent,
             {
               type: "text",
               text: "Analyseer deze bon en extraheer de gevraagde velden in JSON.",
