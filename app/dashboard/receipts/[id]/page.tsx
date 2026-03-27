@@ -9,6 +9,7 @@ import { getReceipt, getReceiptImageUrl } from "@/features/receipts/actions";
 import { getKostensoortByCode } from "@/lib/constants/costs";
 import { ReceiptForm } from "@/features/receipts/components/ReceiptForm";
 import { DetailCell, ButtonSecondary, PageHeader } from "@/components/ui";
+import { ReceiptLightbox } from "@/features/receipts/components/ReceiptLightbox";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 export default function ReceiptDetailPage() {
@@ -18,6 +19,7 @@ export default function ReceiptDetailPage() {
 
   const [editing, setEditing] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["receipt", id],
@@ -121,32 +123,54 @@ export default function ReceiptDetailPage() {
       ) : (
         <>
           {imageUrl && (
-            receipt.storage_path?.endsWith(".pdf") ? (
-              <iframe
-                src={imageUrl}
-                title="PDF bon"
-                style={{
-                  width: "100%",
-                  maxWidth: 500,
-                  height: 500,
-                  border: "0.5px solid rgba(13,13,11,0.15)",
-                  marginBottom: 32,
+            <>
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label="Klik om bon te vergroten"
+                onClick={() => setLightboxOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setLightboxOpen(true);
+                  }
                 }}
-              />
-            ) : (
-              <div style={{ position: "relative", width: "100%", maxWidth: 300, height: 400, marginBottom: 32 }}>
-                <Image
-                  src={imageUrl}
-                  alt="Bon afbeelding"
-                  fill
-                  style={{
-                    objectFit: "contain",
-                    border: "0.5px solid rgba(13,13,11,0.15)",
-                  }}
-                  unoptimized
-                />
+                style={{ cursor: "zoom-in", marginBottom: 32 }}
+              >
+                {receipt.storage_path?.endsWith(".pdf") ? (
+                  <iframe
+                    src={imageUrl}
+                    title="PDF bon"
+                    style={{
+                      width: "100%",
+                      maxWidth: 500,
+                      height: 500,
+                      border: "0.5px solid rgba(13,13,11,0.15)",
+                      pointerEvents: "none",
+                    }}
+                  />
+                ) : (
+                  <div style={{ position: "relative", width: "100%", maxWidth: 300, height: 400 }}>
+                    <Image
+                      src={imageUrl}
+                      alt="Bon afbeelding"
+                      fill
+                      style={{
+                        objectFit: "contain",
+                        border: "0.5px solid rgba(13,13,11,0.15)",
+                      }}
+                      unoptimized
+                    />
+                  </div>
+                )}
               </div>
-            )
+              <ReceiptLightbox
+                open={lightboxOpen}
+                onClose={() => setLightboxOpen(false)}
+                imageUrl={imageUrl}
+                isPdf={!!receipt.storage_path?.endsWith(".pdf")}
+              />
+            </>
           )}
 
           <div

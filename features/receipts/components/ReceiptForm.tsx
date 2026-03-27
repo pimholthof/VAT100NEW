@@ -27,6 +27,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { ReceiptUpload } from "./ReceiptUpload";
 import { ReceiptProcessing } from "./ReceiptProcessing";
+import { ReceiptLightbox } from "./ReceiptLightbox";
 
 type Step = "upload" | "processing" | "form";
 
@@ -53,6 +54,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const [workingReceiptId, setWorkingReceiptId] = useState<string | null>(
     receipt?.id ?? null
   );
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -267,47 +269,70 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     >
       {showPreviewColumn && (
         <div style={{ position: "sticky", top: 80, alignSelf: "start", width: "100%" }}>
-          {filePreview || (imageUrl && !receipt?.storage_path?.endsWith(".pdf")) ? (
-            <div style={{ position: "relative", width: "100%", height: 400 }}>
-              <Image
-                src={imageUrl || filePreview || ""}
-                alt="Bon"
-                fill
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Klik om bon te vergroten"
+            onClick={() => (imageUrl || filePreview) && setLightboxOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                if (imageUrl || filePreview) setLightboxOpen(true);
+              }
+            }}
+            style={{ cursor: (imageUrl || filePreview) ? "zoom-in" : "default" }}
+          >
+            {filePreview || (imageUrl && !receipt?.storage_path?.endsWith(".pdf")) ? (
+              <div style={{ position: "relative", width: "100%", height: 400 }}>
+                <Image
+                  src={imageUrl || filePreview || ""}
+                  alt="Bon"
+                  fill
+                  style={{
+                    objectFit: "contain",
+                    border: "0.5px solid rgba(13,13,11,0.15)",
+                  }}
+                  unoptimized
+                />
+              </div>
+            ) : imageUrl ? (
+              <iframe
+                src={imageUrl}
+                title="PDF bon"
                 style={{
-                  objectFit: "contain",
+                  width: "100%",
+                  height: 400,
                   border: "0.5px solid rgba(13,13,11,0.15)",
+                  pointerEvents: "none",
                 }}
-                unoptimized
               />
-            </div>
-          ) : imageUrl ? (
-            <iframe
-              src={imageUrl}
-              title="PDF bon"
-              style={{
-                width: "100%",
-                height: 400,
-                border: "0.5px solid rgba(13,13,11,0.15)",
-              }}
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  height: 120,
+                  border: "0.5px solid rgba(13,13,11,0.15)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "var(--text-label)",
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase" as const,
+                  opacity: 0.3,
+                }}
+              >
+                PDF
+              </div>
+            )}
+          </div>
+          {(imageUrl || filePreview) && (
+            <ReceiptLightbox
+              open={lightboxOpen}
+              onClose={() => setLightboxOpen(false)}
+              imageUrl={imageUrl || filePreview || ""}
+              isPdf={!!receipt?.storage_path?.endsWith(".pdf") || (!filePreview && !!imageUrl)}
             />
-          ) : (
-            <div
-              style={{
-                width: "100%",
-                height: 120,
-                border: "0.5px solid rgba(13,13,11,0.15)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "var(--text-label)",
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase" as const,
-                opacity: 0.3,
-              }}
-            >
-              PDF
-            </div>
           )}
         </div>
       )}
