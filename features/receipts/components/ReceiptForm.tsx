@@ -48,6 +48,8 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
   const [scanError, setScanError] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
+  const [aiVatAmount, setAiVatAmount] = useState<number | null>(null);
+  const [aiAmountIncVat, setAiAmountIncVat] = useState<number | null>(null);
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -74,8 +76,12 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
   const parsedAmount = parseFloat(amountExVat) || 0;
   const parsedVatRate = parseFloat(vatRate) || 0;
-  const computedVat = Math.round(parsedAmount * (parsedVatRate / 100) * 100) / 100;
-  const computedIncVat = Math.round((parsedAmount + computedVat) * 100) / 100;
+  const calculatedVat = Math.round(parsedAmount * (parsedVatRate / 100) * 100) / 100;
+  const calculatedIncVat = Math.round((parsedAmount + calculatedVat) * 100) / 100;
+
+  // Prefer AI-extracted amounts (accurate for mixed VAT rates)
+  const computedVat = aiVatAmount != null ? aiVatAmount : calculatedVat;
+  const computedIncVat = aiAmountIncVat != null ? aiAmountIncVat : calculatedIncVat;
 
   const category = costCode
     ? KOSTENSOORTEN.find((k) => k.code === costCode)?.label ?? "Overig"
@@ -182,6 +188,11 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           setCostCode(result.data.cost_code);
         if (result.data.confidence != null)
           setConfidence(result.data.confidence);
+        // Store AI-extracted VAT amounts (accurate for mixed rates)
+        if (result.data.vat_amount != null)
+          setAiVatAmount(result.data.vat_amount);
+        if (result.data.amount_inc_vat != null)
+          setAiAmountIncVat(result.data.amount_inc_vat);
       }
     } catch {
       setScanError("AI-analyse kon de bon niet verwerken. Controleer of de afbeelding scherp en leesbaar is, en vul de velden handmatig in.");
@@ -202,6 +213,8 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     const input: ReceiptInput = {
       vendor_name: vendorName || null,
       amount_ex_vat: parsedAmount,
+      vat_amount: aiVatAmount,
+      amount_inc_vat: aiAmountIncVat,
       vat_rate: parsedVatRate,
       category,
       cost_code: costCode,
@@ -429,7 +442,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             step="0.01"
             min="0"
             value={amountExVat}
-            onChange={(e) => setAmountExVat(e.target.value)}
+            onChange={(e) => { setAmountExVat(e.target.value); setAiVatAmount(null); setAiAmountIncVat(null); }}
             placeholder="0,00"
             style={{ ...inputStyle }}
           />
@@ -438,7 +451,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
         <FieldGroup label="BTW-tarief">
           <select
             value={vatRate}
-            onChange={(e) => setVatRate(e.target.value)}
+            onChange={(e) => { setVatRate(e.target.value); setAiVatAmount(null); setAiAmountIncVat(null); }}
             style={inputStyle}
           >
             <option value="21">21%</option>

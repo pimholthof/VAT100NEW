@@ -52,9 +52,13 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
 
   const parsedAmount = parseFloat(amountExVat) || 0;
   const parsedVatRate = parseFloat(vatRate) || 0;
-  const computedVat =
+  const calculatedVat =
     Math.round(parsedAmount * (parsedVatRate / 100) * 100) / 100;
-  const computedIncVat = Math.round((parsedAmount + computedVat) * 100) / 100;
+  const calculatedIncVat = Math.round((parsedAmount + calculatedVat) * 100) / 100;
+
+  // Prefer AI-extracted amounts
+  const computedVat = result.aiData?.vat_amount != null ? result.aiData.vat_amount : calculatedVat;
+  const computedIncVat = result.aiData?.amount_inc_vat != null ? result.aiData.amount_inc_vat : calculatedIncVat;
 
   const confidence = result.aiData?.confidence ?? null;
   const category = costCode

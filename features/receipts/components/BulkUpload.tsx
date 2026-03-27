@@ -17,7 +17,6 @@ import {
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { ReceiptInput } from "@/lib/types";
 import { BulkReceiptCard, type BulkReceiptResult } from "./BulkReceiptCard";
-import { calculateVat } from "@/lib/format";
 
 type Phase = "select" | "processing" | "review";
 
@@ -197,6 +196,8 @@ export function BulkUpload() {
           await updateReceipt(receiptId, {
             vendor_name: aiData.vendor_name ?? null,
             amount_ex_vat: aiData.amount_ex_vat ?? null,
+            vat_amount: aiData.vat_amount ?? null,
+            amount_inc_vat: aiData.amount_inc_vat ?? null,
             vat_rate: aiData.vat_rate ?? null,
             category,
             cost_code: aiData.cost_code ?? null,
@@ -253,14 +254,10 @@ export function BulkUpload() {
       for (const result of successResults) {
         const editData = edits[result.receiptId];
         if (editData) {
-          // User made edits — save them
-          const vat = calculateVat(
-            editData.amount_ex_vat ?? 0,
-            editData.vat_rate ?? 21
-          );
+          // User made edits — save them (no AI amounts, will be calculated server-side)
           await updateReceipt(result.receiptId, {
             vendor_name: editData.vendor_name ?? null,
-            amount_ex_vat: vat.subtotalExVat,
+            amount_ex_vat: editData.amount_ex_vat ?? 0,
             vat_rate: editData.vat_rate ?? 21,
             category: editData.category ?? "Overig",
             cost_code: editData.cost_code ?? null,

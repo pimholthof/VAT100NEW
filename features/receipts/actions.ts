@@ -76,11 +76,20 @@ export async function createReceipt(
   const v = validate(receiptSchema, input);
   if (v.error) return { error: v.error };
 
-  const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
-  const amountExVat = vat.subtotalExVat;
+  const amountExVat = input.amount_ex_vat ?? 0;
   const vatRate = input.vat_rate ?? 21;
-  const vatAmount = vat.vatAmount;
-  const amountIncVat = vat.totalIncVat;
+
+  // Use AI-extracted amounts when available, otherwise calculate
+  let vatAmount: number;
+  let amountIncVat: number;
+  if (input.vat_amount != null && input.amount_inc_vat != null) {
+    vatAmount = input.vat_amount;
+    amountIncVat = input.amount_inc_vat;
+  } else {
+    const vat = calculateVat(amountExVat, vatRate);
+    vatAmount = vat.vatAmount;
+    amountIncVat = vat.totalIncVat;
+  }
 
   const { data, error } = await supabase
     .from("receipts")
@@ -114,11 +123,19 @@ export async function updateReceipt(
   const v = validate(receiptSchema, input);
   if (v.error) return { error: v.error };
 
-  const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
-  const amountExVat = vat.subtotalExVat;
+  const amountExVat = input.amount_ex_vat ?? 0;
   const vatRate = input.vat_rate ?? 21;
-  const vatAmount = vat.vatAmount;
-  const amountIncVat = vat.totalIncVat;
+
+  let vatAmount: number;
+  let amountIncVat: number;
+  if (input.vat_amount != null && input.amount_inc_vat != null) {
+    vatAmount = input.vat_amount;
+    amountIncVat = input.amount_inc_vat;
+  } else {
+    const vat = calculateVat(amountExVat, vatRate);
+    vatAmount = vat.vatAmount;
+    amountIncVat = vat.totalIncVat;
+  }
 
   const { data, error } = await supabase
     .from("receipts")
@@ -271,8 +288,10 @@ export async function scanReceiptWithAI(
 Velden in het JSON object:
 - vendor_name (string): naam van de winkel/leverancier
 - receipt_date (string): datum in YYYY-MM-DD format
-- amount_ex_vat (number): bedrag exclusief BTW. Reken terug indien enkel het totaalbedrag en BTW-bedrag/percentage vermeld staan.
-- vat_rate (number): BTW-tarief als integer (21, 9, of 0). Leid correct af uit de bon.
+- amount_ex_vat (number): subtotaal/bedrag exclusief BTW zoals vermeld op de bon
+- vat_amount (number): het totale BTW-bedrag zoals vermeld op de bon. Lees dit ALTIJD direct af van de bon (bijv. "Total Tax", "BTW", "VAT"). Bereken dit NIET zelf.
+- amount_inc_vat (number): totaalbedrag inclusief BTW zoals vermeld op de bon (bijv. "Invoice Total", "Totaal", "Total"). Lees dit ALTIJD direct af van de bon.
+- vat_rate (number|null): BTW-tarief als integer (21, 9, of 0). Als de bon meerdere BTW-tarieven bevat (gemengd), geef dan null.
 - cost_code (number): de meest passende kostensoort code uit deze lijst:
   4100=Huur, 4105=Energie, 4195=Overige huisvesting, 4230=Kleine investering, 4300=Kantoorkosten, 4330=Computer & software, 4340=Telefoon, 4341=Webhosting & internet, 4350=Porto, 4360=Vakliteratuur, 4400=Verzekeringen, 4500=Vervoer (OV/auto), 4510=Reiskosten, 4520=Parkeren, 4600=Reclame & marketing, 4610=Representatie, 4620=Website & SEO, 4700=Accountant & advies, 4710=Boekhouding, 4720=Juridisch, 4750=Bankkosten, 4800=Abonnementen & licenties, 4900=Eten & drinken zakelijk, 4910=Gereedschap & materiaal, 4999=Overig
 - confidence (number 0-1): hoe zeker je bent van je extractie (bijv. 0.95)
@@ -327,6 +346,8 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
       vendor_name: z.string().nullable().optional(),
       receipt_date: z.string().nullable().optional(),
       amount_ex_vat: z.number().nullable().optional(),
+      vat_amount: z.number().nullable().optional(),
+      amount_inc_vat: z.number().nullable().optional(),
       vat_rate: z.number().nullable().optional(),
       cost_code: z.number().nullable().optional(),
       confidence: z.number().min(0).max(1).optional(),

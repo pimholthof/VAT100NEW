@@ -139,6 +139,8 @@ export interface Receipt {
 export interface ReceiptInput {
   vendor_name: string | null;
   amount_ex_vat: number | null;
+  vat_amount?: number | null;
+  amount_inc_vat?: number | null;
   vat_rate: number | null;
   category: string | null;
   cost_code: number | null;
