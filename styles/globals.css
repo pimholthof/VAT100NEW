@@ -465,7 +465,7 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  border-bottom: 2px solid var(--color-black);
+  border-bottom: 1px solid var(--color-black);
   padding-bottom: 24px;
   margin-bottom: 48px;
 }
@@ -518,7 +518,7 @@ a {
 }
 
 .brutalist-metric {
-  border: 1px solid var(--color-black);
+  border: 0.5px solid var(--color-black);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -533,7 +533,7 @@ a {
 .brutalist-metric-label {
   font-size: var(--text-label);
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.4);
 }
@@ -560,7 +560,7 @@ a {
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 64px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.1);
   padding-top: 24px;
 }
 
@@ -573,7 +573,7 @@ a {
 .brutalist-stat-label {
   font-size: var(--text-label);
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.4);
 }
@@ -588,7 +588,7 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.1);
   padding-top: 24px;
 }
 
@@ -1423,4 +1423,30 @@ a {
   color: var(--background);
   padding: 8px 16px;
   font-size: 14px;
+}
+
+/* ─── Print Styles ─── */
+@media print {
+  .dashboard-nav,
+  .brutalist-actions {
+    display: none !important;
+  }
+
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .brutalist-metric {
+    break-inside: avoid;
+  }
+
+  .brutalist-metrics-grid,
+  .brutalist-secondary-grid {
+    break-inside: avoid;
+  }
 }
