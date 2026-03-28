@@ -81,7 +81,7 @@
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 
   /* Font families */
-  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
 }
 
 /* ─── Tailwind theme integration ─── */
@@ -94,7 +94,7 @@
 
   --font-geist: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
 
   --radius-sm: 4px;
   --radius-md: 6px;
