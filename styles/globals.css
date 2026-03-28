@@ -977,6 +977,15 @@ a {
 .dashboard-content > *:nth-child(9) { animation-delay: 0.4s; }
 .dashboard-content > *:nth-child(10) { animation-delay: 0.45s; }
 
+/* ─── Glass — Turrell-inspired atmospheric surface ─── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius);
+}
+
 /* ── Stat Card hover ── */
 .stat-cards-grid > div {
   transition: opacity 0.15s ease;
@@ -1078,8 +1087,14 @@ a {
 .brutalist-rule {
   flex: 1;
   height: 1px;
-  background: var(--color-black);
-  opacity: 0.1;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-black) 15%,
+    var(--color-black) 85%,
+    transparent 100%
+  );
+  opacity: 0.08;
 }
 
 /* Mobile */
