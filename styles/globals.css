@@ -82,6 +82,22 @@
 
   /* Font families */
   --font-serif: "Cormorant Garamond", Georgia, serif;
+
+  /* Atmospheric Light — Turrell-inspired */
+  --glow-ambient: 0 0 80px rgba(0, 0, 0, 0.015);
+  --glow-surface: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.03);
+  --glow-elevated: 0 2px 8px rgba(0, 0, 0, 0.04), 0 16px 48px rgba(0, 0, 0, 0.05);
+
+  /* Glass — Turrell depth */
+  --glass-bg: rgba(250, 249, 246, 0.78);
+  --glass-blur: blur(40px);
+  --glass-border: 0.5px solid rgba(255, 255, 255, 0.6);
+
+  /* Chrome Accent — subtle metallic highlight */
+  --chrome-gradient: linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.02) 100%);
+
+  /* Incision — Fontana-inspired decorative line */
+  --incision-gradient: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.06) 50%, transparent 100%);
 }
 
 /* ─── Tailwind theme integration ─── */
@@ -281,7 +297,21 @@ a {
 }
 
 .editorial-divider {
-  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+  border: none;
+  height: 1px;
+  background: var(--incision-gradient);
+  position: relative;
+}
+
+.editorial-divider::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 10%;
+  right: 10%;
+  height: 4px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.02) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 /* ─── Status Badges ─── */
@@ -589,9 +619,12 @@ a {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: var(--background);
-  border-bottom: var(--border-light);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: var(--glass-border);
   padding: 0 var(--page-gutter);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
 }
 
 .dashboard-nav-inner {
@@ -770,6 +803,23 @@ a {
 .dashboard-home {
   --dashboard-surface: #f0f0ec;
   --dashboard-surface-strong: #e8e8e3;
+}
+
+.dashboard-home::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  background: radial-gradient(ellipse 80% 200px at 50% -40px, rgba(0,0,0,0.012) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dashboard-home .stat-cards-grid > div {
+  box-shadow: var(--glow-surface);
+  background-image: var(--chrome-gradient);
 }
 
 .dashboard-home .brutalist-panel {
@@ -979,9 +1029,11 @@ a {
 
 .brutalist-panel {
   background: var(--background);
-  border: 0.5px solid rgba(0, 0, 0, 0.15);
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius);
   position: relative;
+  box-shadow: var(--glow-surface);
+  transition: box-shadow 0.3s var(--ease-out-expo);
 }
 
 .brutalist-panel-padded {
@@ -1086,11 +1138,13 @@ a {
   color: var(--background);
   cursor: pointer;
   text-decoration: none;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .btn-primary:hover {
   opacity: 0.8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .btn-secondary {
@@ -1332,6 +1386,16 @@ a {
   color: var(--background);
   padding: 8px 16px;
   font-size: 14px;
+}
+
+/* ─── Feature Card — Landing page hover elevation ─── */
+.feature-card {
+  transition: box-shadow 0.3s var(--ease-out-expo), transform 0.3s var(--ease-out-expo);
+}
+
+.feature-card:hover {
+  box-shadow: var(--glow-elevated);
+  transform: translateY(-1px);
 }
 
 /* ─── Print Styles ─── */

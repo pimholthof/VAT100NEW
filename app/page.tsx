@@ -157,9 +157,11 @@ export default function LandingPage() {
           position: "sticky",
           top: 0,
           zIndex: 10,
-          background: "rgba(250, 249, 246, 0.85)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          background: "var(--glass-bg)",
+          backdropFilter: "var(--glass-blur)",
+          WebkitBackdropFilter: "var(--glass-blur)",
+          borderBottom: "var(--glass-border)",
+          boxShadow: "0 1px 0 rgba(0, 0, 0, 0.02)",
         }}
       >
         <span
@@ -404,6 +406,7 @@ export default function LandingPage() {
           {features.map((feature, i) => (
             <div
               key={i}
+              className="feature-card"
               style={{
                 padding: "32px 28px",
                 border: "0.5px solid rgba(0,0,0,0.06)",

@@ -30,6 +30,7 @@ export function StatCard({
         border: "var(--border-light)",
         borderRadius: "var(--radius)",
         background: "var(--card-surface, var(--dashboard-surface, var(--background)))",
+        boxShadow: "var(--glow-surface)",
       }}
     >
       <p className="label" style={{ margin: 0 }}>

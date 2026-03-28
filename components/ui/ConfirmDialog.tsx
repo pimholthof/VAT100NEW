@@ -59,13 +59,15 @@ export function ConfirmDialog({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "var(--background)",
-          border: "0.5px solid rgba(0,0,0,0.12)",
+          background: "var(--glass-bg)",
+          backdropFilter: "var(--glass-blur)",
+          WebkitBackdropFilter: "var(--glass-blur)",
+          border: "var(--glass-border)",
           borderRadius: "var(--radius)",
           padding: "32px",
           maxWidth: 400,
           width: "100%",
-          boxShadow: "0 24px 48px rgba(0,0,0,0.06)",
+          boxShadow: "var(--glow-elevated)",
         }}
       >
         <p
