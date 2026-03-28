@@ -2,7 +2,10 @@
 
 import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult } from "@/lib/types";
+import { Resend } from "resend";
 import { z } from "zod";
+
+const NOTIFY_EMAIL = "pimholthof@gmail.com";
 
 const waitlistSchema = z.object({
   email: z.string().trim().email("Ongeldig e-mailadres"),
@@ -56,7 +59,24 @@ export async function joinWaitlist(formData: FormData): Promise<ActionResult<{ p
       .from("waitlist")
       .select("*", { count: "exact", head: true });
 
-    return { error: null, data: { position: count ?? 1 } };
+    const position = count ?? 1;
+
+    // Send notification email (fire-and-forget)
+    if (process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      resend.emails.send({
+        from: process.env.EMAIL_FROM || "VAT100 <onboarding@resend.dev>",
+        to: NOTIFY_EMAIL,
+        subject: `Nieuwe waitlist-aanmelding: ${name}`,
+        html: `
+          <p><strong>${name}</strong> (${email}) heeft zich aangemeld voor de wachtlijst.</p>
+          <p>Positie: #${position}</p>
+          ${referral ? `<p>Referral: ${referral}</p>` : ""}
+        `,
+      }).catch((err) => console.error("[joinWaitlist] Notification email failed:", err));
+    }
+
+    return { error: null, data: { position } };
   } catch (err) {
     console.error("[joinWaitlist] Unexpected error:", err);
     return { error: "Er is een fout opgetreden. Probeer het opnieuw." };
