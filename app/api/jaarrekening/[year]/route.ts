@@ -3,11 +3,18 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { getJaarrekeningData } from "@/features/tax/jaarrekening";
 import { JaarrekeningPDF } from "@/features/tax/components/JaarrekeningPDF";
+import { requirePlan } from "@/lib/supabase/server";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ year: string }> },
 ) {
+  // Feature-gate: Jaarrekening is Compleet-only
+  const planCheck = await requirePlan("compleet");
+  if (planCheck.error) {
+    return NextResponse.json({ error: planCheck.error }, { status: 403 });
+  }
+
   const { year: yearStr } = await params;
   const year = parseInt(yearStr, 10);
 

@@ -235,6 +235,11 @@ export async function scanReceiptWithAI(
   const idCheck = uuidSchema.safeParse(receiptId);
   if (!idCheck.success) return { error: "Ongeldig bon-ID." };
 
+  // Feature-gate: AI scan is Compleet-only
+  const { requirePlan } = await import("@/lib/supabase/server");
+  const planCheck = await requirePlan("compleet");
+  if (planCheck.error) return { error: planCheck.error };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
