@@ -80,6 +80,12 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 
+  /* Shadows — Atmospheric depth (warm indirect light) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(25, 15, 0, 0.02);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(25, 15, 0, 0.02);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.03), 0 8px 32px rgba(25, 15, 0, 0.03);
+  --shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(20, 12, 0, 0.015);
+
   /* Font families */
   --font-serif: "Cormorant Garamond", Georgia, serif;
 }
@@ -114,7 +120,7 @@ html {
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(ellipse at 50% 0%, rgba(245, 235, 220, 0.15) 0%, transparent 70%), var(--background);
   color: var(--foreground);
   font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-body-md);
@@ -195,7 +201,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background: rgba(0, 0, 0, 0.015);
+  background: rgba(20, 12, 0, 0.012);
 }
 
 a {
@@ -592,6 +598,7 @@ a {
   background: var(--background);
   border-bottom: var(--border-light);
   padding: 0 var(--page-gutter);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), 0 2px 8px rgba(20, 12, 0, 0.01);
 }
 
 .dashboard-nav-inner {
@@ -768,8 +775,8 @@ a {
 }
 
 .dashboard-home {
-  --dashboard-surface: #f0f0ec;
-  --dashboard-surface-strong: #e8e8e3;
+  --dashboard-surface: #f0efeb;
+  --dashboard-surface-strong: #e8e7e2;
 }
 
 .dashboard-home .brutalist-panel {
@@ -821,6 +828,7 @@ a {
   border: var(--border-light);
   border-radius: var(--radius);
   overflow: hidden;
+  box-shadow: var(--shadow-md);
 }
 
 .dashboard-home-meta-item {
@@ -951,7 +959,7 @@ a {
 
 /* ─── Skeleton Loaders ─── */
 .skeleton {
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(20, 12, 0, 0.03);
   animation: skeleton-pulse 1.8s ease-in-out infinite;
 }
 
@@ -982,6 +990,8 @@ a {
   border: 0.5px solid rgba(0, 0, 0, 0.15);
   border-radius: var(--radius);
   position: relative;
+  box-shadow: var(--shadow-panel);
+  transition: box-shadow 0.3s var(--ease-out-expo);
 }
 
 .brutalist-panel-padded {
@@ -1087,6 +1097,7 @@ a {
   cursor: pointer;
   text-decoration: none;
   transition: opacity 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(20, 12, 0, 0.04);
 }
 
 .btn-primary:hover {
