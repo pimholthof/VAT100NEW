@@ -73,31 +73,23 @@ export function DashboardNav({
           >
             <div className="dashboard-drawer-inner">
               
-              {/* Navigation Column 1 */}
+              {/* Navigation */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
                 <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">Overzicht</Link>
-                <Link href="/dashboard/quotes" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Offertes</Link>
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
-                <Link href="/dashboard/receipts" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Bonnen</Link>
-              </div>
-
-              {/* Navigation Column 2 */}
-              <div className="dashboard-drawer-col">
-                <span className="label mb-4">Geld</span>
-                <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Transacties</Link>
+                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uitgaven</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
-                <Link href="/dashboard/report" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Jaarrekening</Link>
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
               </div>
 
-              {/* Action Column */}
+              {/* Account */}
               <div className="dashboard-drawer-col dashboard-drawer-col-end">
                 <span className="label mb-4">Account</span>
                 {isMobile && studioName && (
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
                 <button
                   type="button"
                   onClick={handleLogout}
