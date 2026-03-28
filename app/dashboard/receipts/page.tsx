@@ -155,17 +155,17 @@ export default function ReceiptsPage() {
                   </Td>
                   <Td style={{ textAlign: "right" }}>
                     <span className="mono-amount">
-                      {receipt.amount_ex_vat != null ? formatCurrency(receipt.amount_ex_vat) : "—"}
+                      {receipt.amount_ex_vat != null ? formatCurrency(receipt.amount_ex_vat, receipt.currency) : "—"}
                     </span>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
                     <span className="mono-amount">
-                      {receipt.vat_amount != null ? formatCurrency(receipt.vat_amount) : "—"}
+                      {receipt.vat_amount != null ? formatCurrency(receipt.vat_amount, receipt.currency) : "—"}
                     </span>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
                     <span className="mono-amount">
-                      {receipt.amount_inc_vat != null ? formatCurrency(receipt.amount_inc_vat) : "—"}
+                      {receipt.amount_inc_vat != null ? formatCurrency(receipt.amount_inc_vat, receipt.currency) : "—"}
                     </span>
                   </Td>
                   <Td style={{ textAlign: "right" }}>

@@ -128,6 +128,7 @@ export interface Receipt {
   vat_amount: number | null;
   amount_inc_vat: number | null;
   vat_rate: number | null;
+  currency: string;
   category: string | null;
   cost_code: number | null;
   receipt_date: string | null;
@@ -142,6 +143,7 @@ export interface ReceiptInput {
   vat_amount?: number | null;
   amount_inc_vat?: number | null;
   vat_rate: number | null;
+  currency?: string;
   category: string | null;
   cost_code: number | null;
   receipt_date: string | null;

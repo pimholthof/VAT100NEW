@@ -8,6 +8,7 @@ import {
   ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
+import { COMMON_VAT_RATES, COMMON_CURRENCIES } from "@/lib/constants/vat-rates";
 import {
   getGroepen,
   getKostensoortenByGroep,
@@ -49,6 +50,9 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
   const [costCode, setCostCode] = useState<number | null>(
     result.aiData?.cost_code ?? null
   );
+  const [currency, setCurrency] = useState(
+    result.aiData?.currency ?? "EUR"
+  );
 
   const parsedAmount = parseFloat(amountExVat) || 0;
   const parsedVatRate = parseFloat(vatRate) || 0;
@@ -73,6 +77,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
       vendor_name: vendorName || null,
       amount_ex_vat: parsedAmount,
       vat_rate: parsedVatRate,
+      currency,
       category,
       cost_code: costCode,
       receipt_date: receiptDate,
@@ -192,7 +197,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
             textAlign: "right",
           }}
         >
-          {formatCurrency(computedIncVat)}
+          {formatCurrency(computedIncVat, currency)}
         </span>
         {confidence !== null && (
           <span
@@ -293,15 +298,32 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
             />
           </FieldGroup>
 
+          <FieldGroup label="Valuta">
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              style={inputStyle}
+            >
+              {COMMON_CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>{c.code}</option>
+              ))}
+            </select>
+          </FieldGroup>
+
           <FieldGroup label="BTW-tarief">
             <select
               value={vatRate}
               onChange={(e) => setVatRate(e.target.value)}
               style={inputStyle}
             >
-              <option value="21">21%</option>
-              <option value="9">9%</option>
-              <option value="0">0%</option>
+              {COMMON_VAT_RATES.map((vr) => (
+                <option key={`${vr.rate}-${vr.country}`} value={String(vr.rate)}>
+                  {vr.label}
+                </option>
+              ))}
+              {vatRate && !COMMON_VAT_RATES.some((vr) => String(vr.rate) === vatRate) && (
+                <option value={vatRate}>{vatRate}% (gedetecteerd)</option>
+              )}
             </select>
           </FieldGroup>
 
@@ -313,8 +335,8 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
               opacity: 0.5,
             }}
           >
-            BTW: {formatCurrency(computedVat)} | Incl. BTW:{" "}
-            {formatCurrency(computedIncVat)}
+            BTW: {formatCurrency(computedVat, currency)} | Incl. BTW:{" "}
+            {formatCurrency(computedIncVat, currency)}
           </p>
 
           <ButtonSecondary onClick={handleSave}>Opslaan</ButtonSecondary>

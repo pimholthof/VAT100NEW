@@ -16,6 +16,7 @@ import {
   getGroepen,
   getKostensoortenByGroep,
 } from "@/lib/constants/costs";
+import { COMMON_VAT_RATES, COMMON_CURRENCIES } from "@/lib/constants/vat-rates";
 import type { Receipt, ReceiptInput } from "@/lib/types";
 import {
   FieldGroup,
@@ -73,6 +74,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const [vatRate, setVatRate] = useState(
     receipt?.vat_rate != null ? String(receipt.vat_rate) : "21"
   );
+  const [currency, setCurrency] = useState(receipt?.currency ?? "EUR");
 
   const parsedAmount = parseFloat(amountExVat) || 0;
   const parsedVatRate = parseFloat(vatRate) || 0;
@@ -193,6 +195,8 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           setAiVatAmount(result.data.vat_amount);
         if (result.data.amount_inc_vat != null)
           setAiAmountIncVat(result.data.amount_inc_vat);
+        if (result.data.currency)
+          setCurrency(result.data.currency);
       }
     } catch {
       setScanError("AI-analyse kon de bon niet verwerken. Controleer of de afbeelding scherp en leesbaar is, en vul de velden handmatig in.");
@@ -216,6 +220,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
       vat_amount: aiVatAmount,
       amount_inc_vat: aiAmountIncVat,
       vat_rate: parsedVatRate,
+      currency,
       category,
       cost_code: costCode,
       receipt_date: receiptDate,
@@ -436,6 +441,20 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           </div>
         </FieldGroup>
 
+        <FieldGroup label="Valuta">
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            style={inputStyle}
+          >
+            {COMMON_CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.code}
+              </option>
+            ))}
+          </select>
+        </FieldGroup>
+
         <FieldGroup label="Bedrag excl. BTW">
           <input
             type="number"
@@ -454,9 +473,15 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             onChange={(e) => { setVatRate(e.target.value); setAiVatAmount(null); setAiAmountIncVat(null); }}
             style={inputStyle}
           >
-            <option value="21">21%</option>
-            <option value="9">9%</option>
-            <option value="0">0%</option>
+            {COMMON_VAT_RATES.map((vr) => (
+              <option key={`${vr.rate}-${vr.country}`} value={String(vr.rate)}>
+                {vr.label}
+              </option>
+            ))}
+            {/* Show AI-detected rate if not in the common list */}
+            {vatRate && !COMMON_VAT_RATES.some((vr) => String(vr.rate) === vatRate) && (
+              <option value={vatRate}>{vatRate}% (gedetecteerd)</option>
+            )}
           </select>
         </FieldGroup>
 
@@ -470,9 +495,24 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             borderBottom: "0.5px solid rgba(13,13,11,0.15)",
           }}
         >
-          BTW: {formatCurrency(computedVat)} | Incl. BTW:{" "}
-          {formatCurrency(computedIncVat)}
+          BTW: {formatCurrency(computedVat, currency)} | Incl. BTW:{" "}
+          {formatCurrency(computedIncVat, currency)}
         </p>
+
+        {currency !== "EUR" && (
+          <p
+            style={{
+              fontSize: "var(--text-label)",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase" as const,
+              opacity: 0.4,
+              margin: "-16px 0 24px",
+            }}
+          >
+            Buitenlandse valuta
+          </p>
+        )}
 
         <div
           style={{

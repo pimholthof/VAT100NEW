@@ -100,6 +100,7 @@ export async function createReceipt(
       vat_rate: vatRate,
       vat_amount: vatAmount,
       amount_inc_vat: amountIncVat,
+      currency: input.currency || "EUR",
       category: input.category || "Overig",
       cost_code: input.cost_code ?? null,
       receipt_date: input.receipt_date || null,
@@ -145,6 +146,7 @@ export async function updateReceipt(
       vat_rate: vatRate,
       vat_amount: vatAmount,
       amount_inc_vat: amountIncVat,
+      currency: input.currency || "EUR",
       category: input.category || "Overig",
       cost_code: input.cost_code ?? null,
       receipt_date: input.receipt_date || null,
@@ -291,7 +293,8 @@ Velden in het JSON object:
 - amount_ex_vat (number): subtotaal/bedrag exclusief BTW zoals vermeld op de bon
 - vat_amount (number): het totale BTW-bedrag zoals vermeld op de bon. Lees dit ALTIJD direct af van de bon (bijv. "Total Tax", "BTW", "VAT"). Bereken dit NIET zelf.
 - amount_inc_vat (number): totaalbedrag inclusief BTW zoals vermeld op de bon (bijv. "Invoice Total", "Totaal", "Total"). Lees dit ALTIJD direct af van de bon.
-- vat_rate (number|null): BTW-tarief als integer (21, 9, of 0). Als de bon meerdere BTW-tarieven bevat (gemengd), geef dan null.
+- vat_rate (number|null): BTW-tarief als integer. Veelvoorkomende tarieven: NL 21/9/0, DE 19/7, FR/UK 20/5, BE 21/6, SE 25/12, IT 22/10, PT/IE 23. Als de bon meerdere BTW-tarieven bevat (gemengd), geef dan null.
+- currency (string): ISO 4217 valutacode, bijv. "EUR", "USD", "GBP". Detecteer dit uit valutasymbolen (€, $, £), landcodes of tekst op de bon. Standaard "EUR" als onduidelijk.
 - cost_code (number): de meest passende kostensoort code uit deze lijst:
   4100=Huur, 4105=Energie, 4195=Overige huisvesting, 4230=Kleine investering, 4300=Kantoorkosten, 4330=Computer & software, 4340=Telefoon, 4341=Webhosting & internet, 4350=Porto, 4360=Vakliteratuur, 4400=Verzekeringen, 4500=Vervoer (OV/auto), 4510=Reiskosten, 4520=Parkeren, 4600=Reclame & marketing, 4610=Representatie, 4620=Website & SEO, 4700=Accountant & advies, 4710=Boekhouding, 4720=Juridisch, 4750=Bankkosten, 4800=Abonnementen & licenties, 4900=Eten & drinken zakelijk, 4910=Gereedschap & materiaal, 4999=Overig
 - confidence (number 0-1): hoe zeker je bent van je extractie (bijv. 0.95)
@@ -349,6 +352,7 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
       vat_amount: z.number().nullable().optional(),
       amount_inc_vat: z.number().nullable().optional(),
       vat_rate: z.number().nullable().optional(),
+      currency: z.string().max(3).optional(),
       cost_code: z.number().nullable().optional(),
       confidence: z.number().min(0).max(1).optional(),
     });

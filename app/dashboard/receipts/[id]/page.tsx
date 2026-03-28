@@ -198,11 +198,17 @@ export default function ReceiptDetailPage() {
               label="BTW-tarief"
               value={receipt.vat_rate != null ? `${receipt.vat_rate}%` : null}
             />
+            {receipt.currency !== "EUR" && (
+              <DetailCell
+                label="Valuta"
+                value={receipt.currency}
+              />
+            )}
             <DetailCell
               label="Bedrag excl. BTW"
               value={
                 receipt.amount_ex_vat != null
-                  ? formatCurrency(receipt.amount_ex_vat)
+                  ? formatCurrency(receipt.amount_ex_vat, receipt.currency)
                   : null
               }
             />
@@ -210,7 +216,7 @@ export default function ReceiptDetailPage() {
               label="BTW"
               value={
                 receipt.vat_amount != null
-                  ? formatCurrency(receipt.vat_amount)
+                  ? formatCurrency(receipt.vat_amount, receipt.currency)
                   : null
               }
             />
@@ -218,7 +224,7 @@ export default function ReceiptDetailPage() {
               label="Bedrag incl. BTW"
               value={
                 receipt.amount_inc_vat != null
-                  ? formatCurrency(receipt.amount_inc_vat)
+                  ? formatCurrency(receipt.amount_inc_vat, receipt.currency)
                   : null
               }
             />
