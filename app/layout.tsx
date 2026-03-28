@@ -1,16 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond } from "next/font/google";
 import { Providers } from "./providers";
 import "@/styles/globals.css";
 import { LazyCommandMenu } from "@/components/ui/LazyCommandMenu";
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
 
 export const viewport: Viewport = {
   themeColor: "#f4f4f4",
@@ -38,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" className={`light ${cormorant.variable}`} style={{ colorScheme: "light" }}>
+    <html lang="nl" className="light" style={{ colorScheme: "light" }}>
       <body>
         <a
           href="#main"

@@ -57,7 +57,8 @@ export async function joinWaitlist(formData: FormData): Promise<ActionResult<{ p
       .select("*", { count: "exact", head: true });
 
     return { error: null, data: { position: count ?? 1 } };
-  } catch {
+  } catch (err) {
+    console.error("[joinWaitlist] Unexpected error:", err);
     return { error: "Er is een fout opgetreden. Probeer het opnieuw." };
   }
 }
