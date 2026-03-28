@@ -82,15 +82,14 @@ export async function joinWaitlist(formData: FormData): Promise<ActionResult<{ p
       resend.emails.send({
         from,
         to: email,
-        subject: "Welkom op de VAT100 wachtlijst!",
+        subject: "VAT100 — Je staat op de wachtlijst",
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 0;">
-            <h1 style="font-size: 32px; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 24px;">VAT100</h1>
-            <p style="font-size: 15px; line-height: 1.7; color: #333; margin: 0 0 16px;">Hoi ${name},</p>
-            <p style="font-size: 15px; line-height: 1.7; color: #333; margin: 0 0 16px;">Bedankt voor je aanmelding! Je staat op <strong>positie #${position}</strong> van de wachtlijst.</p>
-            <p style="font-size: 15px; line-height: 1.7; color: #333; margin: 0 0 16px;">We werken hard aan VAT100 — de fiscale engine voor Nederlandse creatieve freelancers. Zodra je toegang krijgt, sturen we je een e-mail.</p>
-            <hr style="border: none; border-top: 0.5px solid rgba(0,0,0,0.08); margin: 32px 0;" />
-            <p style="font-size: 12px; color: #999; margin: 0;">VAT100 — Minder software, meer helderheid.</p>
+            <p style="font-size: 14px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 32px; color: #000;">VAT100</p>
+            <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0 0 12px;">${name},</p>
+            <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0 0 12px;">Je aanmelding is genoteerd. Je staat op positie #${position} van de wachtlijst.</p>
+            <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0 0 12px;">VAT100 is boekhoudsoftware voor creatieve freelancers in Nederland. Facturatie, BTW-aangifte en bonnen — zonder gedoe.</p>
+            <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0;">We sturen je een mail zodra je account klaarstaat.</p>
           </div>
         `,
       }).catch((err) => console.error("[joinWaitlist] Confirmation email failed:", err));
