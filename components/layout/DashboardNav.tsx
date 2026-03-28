@@ -80,7 +80,9 @@ export function DashboardNav({
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uitgaven</Link>
+                <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Activa</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
+                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Importeren</Link>
               </div>
 
               {/* Account */}

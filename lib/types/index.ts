@@ -349,6 +349,78 @@ export interface SubscriptionPayment {
   created_at: string;
 }
 
+// ─── Asset types ───
+
+export interface Asset {
+  id: string;
+  user_id: string;
+  omschrijving: string;
+  aanschaf_datum: string;
+  aanschaf_prijs: number;
+  restwaarde: number;
+  levensduur: number;
+  categorie: string | null;
+  receipt_id: string | null;
+  notitie: string | null;
+  is_verkocht: boolean;
+  verkoop_datum: string | null;
+  verkoop_prijs: number | null;
+  created_at: string;
+}
+
+export interface AssetInput {
+  omschrijving: string;
+  aanschaf_datum: string;
+  aanschaf_prijs: number;
+  restwaarde: number;
+  levensduur: number;
+  categorie: string | null;
+  receipt_id: string | null;
+  notitie: string | null;
+  is_verkocht?: boolean;
+  verkoop_datum?: string | null;
+  verkoop_prijs?: number | null;
+}
+
+// ─── Opening Balance types ───
+
+export interface OpeningBalance {
+  id: string;
+  user_id: string;
+  year: number;
+  eigen_vermogen: number;
+  vaste_activa: number;
+  bank_saldo: number;
+  debiteuren: number;
+  crediteuren: number;
+  btw_schuld: number;
+  overige_activa: number;
+  overige_passiva: number;
+  created_at: string;
+}
+
+export interface OpeningBalanceInput {
+  eigen_vermogen: number;
+  vaste_activa: number;
+  bank_saldo: number;
+  debiteuren: number;
+  crediteuren: number;
+  btw_schuld: number;
+  overige_activa: number;
+  overige_passiva: number;
+}
+
+// ─── Import types ───
+
+export interface ImportMapping {
+  source: string;
+  target: string;
+}
+
+export interface ImportPreviewRow {
+  [key: string]: string;
+}
+
 // ─── Admin types ───
 
 export type UserRole = "user" | "admin";
