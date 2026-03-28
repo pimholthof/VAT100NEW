@@ -89,5 +89,5 @@ export async function completeOnboarding(
     return { error: error.message };
   }
 
-  redirect("/abonnement/kies");
+  redirect("/dashboard"); // TEMPORARILY CHANGED: was "/abonnement/kies"
 }
