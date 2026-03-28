@@ -89,7 +89,7 @@ export async function joinWaitlist(formData: FormData): Promise<ActionResult<{ p
             <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0 0 12px;">${name},</p>
             <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0 0 12px;">Je aanmelding is genoteerd. Je staat op positie #${position} van de wachtlijst.</p>
             <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0 0 12px;">VAT100 is boekhoudsoftware voor creatieve freelancers in Nederland. Facturatie, BTW-aangifte en bonnen — zonder gedoe.</p>
-            <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0;">We sturen je een mail zodra je account klaarstaat.</p>
+            <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0;">Zodra de website klaar is, sturen we je een mail.</p>
           </div>
         `,
       }).catch((err) => console.error("[joinWaitlist] Confirmation email failed:", err));
