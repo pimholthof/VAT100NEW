@@ -80,21 +80,21 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Subscription gating: require active subscription for dashboard
-    if (pathname.startsWith("/dashboard") && profile?.role !== "admin") {
-      const { data: subscription } = await supabase
-        .from("subscriptions")
-        .select("status")
-        .eq("user_id", user.id)
-        .in("status", ["active", "past_due"])
-        .single();
-
-      if (!subscription) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/abonnement/kies";
-        return NextResponse.redirect(url);
-      }
-    }
+    // TEMPORARILY DISABLED: Subscription gating
+    // if (pathname.startsWith("/dashboard") && profile?.role !== "admin") {
+    //   const { data: subscription } = await supabase
+    //     .from("subscriptions")
+    //     .select("status")
+    //     .eq("user_id", user.id)
+    //     .in("status", ["active", "past_due"])
+    //     .single();
+    //
+    //   if (!subscription) {
+    //     const url = request.nextUrl.clone();
+    //     url.pathname = "/abonnement/kies";
+    //     return NextResponse.redirect(url);
+    //   }
+    // }
   }
 
   return supabaseResponse;
