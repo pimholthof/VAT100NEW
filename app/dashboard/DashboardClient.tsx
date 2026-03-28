@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { m as motion , type Variants } from "framer-motion";
 import {
@@ -51,20 +50,6 @@ export default function DashboardClient({
     : nextInvoiceDue
       ? `De volgende betaaldeadline is voor ${nextInvoiceDue.client_name} op ${new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))}.`
       : "Je hebt op dit moment geen facturen die op korte termijn aandacht nodig hebben.";
-
-  useEffect(() => {
-    const startHum = () => {
-      import('@/lib/utils/sound').then(({ playAmbient }) => playAmbient());
-      window.removeEventListener('click', startHum);
-      window.removeEventListener('keydown', startHum);
-    };
-    window.addEventListener('click', startHum);
-    window.addEventListener('keydown', startHum);
-    return () => {
-      window.removeEventListener('click', startHum);
-      window.removeEventListener('keydown', startHum);
-    };
-  }, []);
 
   if (dashboardResult?.error) {
     return (
