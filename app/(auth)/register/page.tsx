@@ -2,7 +2,8 @@
 
 import { register } from "../actions";
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
 
 const inputStyle: React.CSSProperties = {
   fontSize: "14px",
@@ -17,7 +18,9 @@ const inputStyle: React.CSSProperties = {
   transition: "border-color 0.2s ease",
 };
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams();
+  const plan = searchParams.get("plan");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -81,6 +84,7 @@ export default function RegisterPage() {
 
         {/* Form — flat, no card */}
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            {plan && <input type="hidden" name="plan" value={plan} />}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label htmlFor="full_name" className="label">Volledige naam</label>
               <input id="full_name" name="full_name" type="text" required autoComplete="name" style={inputStyle} />
@@ -147,5 +151,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }

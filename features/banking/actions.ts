@@ -2,13 +2,17 @@
 
 import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
-import { requireAuth } from "@/lib/supabase/server";
+import { requireAuth, requirePlan } from "@/lib/supabase/server";
 import { gocardless, checkGoCardlessRateLimit } from "@/lib/banking/gocardless";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 
 export async function getBankConnections(): Promise<ActionResult<BankConnection[]>> {
+  // Feature-gate: Bank koppeling is Compleet-only
+  const planCheck = await requirePlan("compleet");
+  if (planCheck.error) return { error: planCheck.error };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;

@@ -304,6 +304,51 @@ export interface SafeToSpendData {
   taxShieldPotential: number; // Potential tax savings if gear investment is made
 }
 
+// ─── Subscription types ───
+
+export type SubscriptionStatus = "pending" | "active" | "past_due" | "cancelled" | "expired";
+
+export interface Plan {
+  id: string;
+  name: string;
+  price_cents: number;
+  currency: string;
+  interval_months: number;
+  features: string[];
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface Subscription {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  status: SubscriptionStatus;
+  mollie_customer_id: string | null;
+  mollie_subscription_id: string | null;
+  mollie_mandate_id: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubscriptionWithPlan extends Subscription {
+  plan: Plan;
+}
+
+export interface SubscriptionPayment {
+  id: string;
+  subscription_id: string;
+  mollie_payment_id: string;
+  amount_cents: number;
+  status: string;
+  paid_at: string | null;
+  created_at: string;
+}
+
 // ─── Admin types ───
 
 export type UserRole = "user" | "admin";

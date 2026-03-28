@@ -54,49 +54,42 @@ const features = [
 
 const pricingPlans = [
   {
-    name: "Starter",
-    price: "0",
-    period: "voor altijd",
-    description: "Voor freelancers die net beginnen",
+    id: "basis",
+    name: "Basis",
+    price: "29",
+    period: "per maand",
+    description: "Voor actieve freelancers",
     features: [
-      "5 facturen per maand",
+      "Onbeperkt facturen & creditnota's",
       "BTW-overzicht",
-      "Bonnen scannen (10/maand)",
-      "1 gebruiker",
-    ],
-    cta: "Gratis starten",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    price: "19",
-    period: "per maand",
-    description: "Voor actieve freelancers en studio's",
-    features: [
-      "Onbeperkt facturen",
-      "Automatische BTW-aangifte",
-      "Onbeperkt bonnen scannen",
-      "Klantportaal",
+      "Bonnen scannen (handmatig)",
       "Offertes",
-      "Cashflow-analyse",
+      "Klantenbeheer",
+      "Betaallinks (Mollie)",
+      "E-mail herinneringen",
+      "CSV export",
     ],
-    cta: "Meest gekozen",
-    highlighted: true,
+    cta: "Aan de slag",
+    highlighted: false,
   },
   {
-    name: "Studio",
-    price: "39",
+    id: "compleet",
+    name: "Compleet",
+    price: "59",
     period: "per maand",
-    description: "Voor teams en grotere studio's",
+    description: "Voor groeiende studio's",
     features: [
-      "Alles van Pro",
-      "Tot 5 gebruikers",
-      "Jaarrapportage",
+      "Alles van Basis",
+      "AI bonnen scannen",
+      "AI boekhouder chat",
+      "Bankrekening koppeling",
+      "Automatische reconciliatie",
+      "Jaarrekening PDF export",
+      "Cashflow-analyse",
       "Prioriteit support",
-      "API-toegang",
     ],
-    cta: "Voor teams",
-    highlighted: false,
+    cta: "Meest compleet",
+    highlighted: true,
   },
 ];
 
@@ -574,7 +567,7 @@ export default function LandingPage() {
               </div>
 
               <a
-                href="#wachtlijst"
+                href={`/register?plan=${plan.id}`}
                 className={plan.highlighted ? "btn-primary" : "btn-secondary"}
                 style={{
                   marginTop: 28,

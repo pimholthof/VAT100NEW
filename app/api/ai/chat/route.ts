@@ -26,6 +26,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Feature-gate: AI chat is Compleet-only
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("plan_id, status")
+      .eq("user_id", user.id)
+      .in("status", ["active", "past_due"])
+      .single();
+
+    if (!subscription || subscription.plan_id !== "compleet") {
+      return NextResponse.json(
+        { error: "Upgrade naar Compleet om de AI boekhouder te gebruiken." },
+        { status: 403 }
+      );
+    }
+
     // Rate limit per user (not IP — works across serverless instances)
     const limited = await isRateLimited(`ai-chat:${user.id}`);
     if (limited) {

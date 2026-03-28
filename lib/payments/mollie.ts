@@ -11,8 +11,8 @@ function getMollieKey(): string | null {
   return process.env.MOLLIE_API_KEY ?? null;
 }
 
-async function mollieRequest<T>(
-  method: "GET" | "POST",
+export async function mollieRequest<T>(
+  method: "GET" | "POST" | "DELETE",
   path: string,
   body?: Record<string, unknown>,
 ): Promise<{ data?: T; error?: string }> {
@@ -47,6 +47,10 @@ export interface MolliePayment {
   amount: { value: string; currency: string };
   description: string;
   method: string | null;
+  customerId?: string;
+  subscriptionId?: string;
+  sequenceType?: "oneoff" | "first" | "recurring";
+  metadata?: Record<string, string>;
   _links: {
     checkout?: { href: string };
     self: { href: string };
