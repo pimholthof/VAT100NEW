@@ -94,6 +94,39 @@ export const taxPaymentSchema = z.object({
 
 export type TaxPaymentSchema = z.infer<typeof taxPaymentSchema>;
 
+// ─── Asset ───
+
+export const assetSchema = z.object({
+  omschrijving: trimmedString.min(1, "Omschrijving is verplicht"),
+  aanschaf_datum: z.string().min(1, "Aanschafdatum is verplicht"),
+  aanschaf_prijs: z.number().positive("Aanschafprijs moet positief zijn"),
+  restwaarde: z.number().min(0, "Restwaarde mag niet negatief zijn").default(0),
+  levensduur: z.number().int().min(1).max(30).default(5),
+  categorie: optionalString,
+  receipt_id: z.string().uuid().nullable().optional(),
+  notitie: optionalString,
+  is_verkocht: z.boolean().optional().default(false),
+  verkoop_datum: z.string().nullable().optional(),
+  verkoop_prijs: z.number().min(0).nullable().optional(),
+});
+
+export type AssetSchema = z.infer<typeof assetSchema>;
+
+// ─── Opening Balance ───
+
+export const openingBalanceSchema = z.object({
+  eigen_vermogen: z.number().default(0),
+  vaste_activa: z.number().min(0).default(0),
+  bank_saldo: z.number().default(0),
+  debiteuren: z.number().min(0).default(0),
+  crediteuren: z.number().min(0).default(0),
+  btw_schuld: z.number().min(0).default(0),
+  overige_activa: z.number().min(0).default(0),
+  overige_passiva: z.number().min(0).default(0),
+});
+
+export type OpeningBalanceSchema = z.infer<typeof openingBalanceSchema>;
+
 // ─── Profile ───
 
 export const profileSchema = z.object({

@@ -46,23 +46,40 @@ export default function TaxPage() {
             Overzicht van je geschatte inkomstenbelasting en BTW
           </p>
         </div>
-        <a
-          href="/api/export/btw"
-          download
-          className="label-strong"
-          style={{
-            padding: "14px 24px",
-            border: "0.5px solid rgba(13,13,11,0.25)",
-            borderRadius: "var(--radius-sm)",
-            background: "transparent",
-            color: "var(--foreground)",
-            textDecoration: "none",
-            display: "inline-block",
-            transition: "opacity 0.2s ease",
-          }}
-        >
-          Download lijst
-        </a>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <a
+            href="/api/export/btw"
+            download
+            className="label-strong"
+            style={{
+              padding: "14px 24px",
+              border: "0.5px solid rgba(13,13,11,0.25)",
+              borderRadius: "var(--radius-sm)",
+              background: "transparent",
+              color: "var(--foreground)",
+              textDecoration: "none",
+              display: "inline-block",
+              transition: "opacity 0.2s ease",
+            }}
+          >
+            Download lijst
+          </a>
+          <a
+            href="/dashboard/tax/opening-balance"
+            className="label-strong"
+            style={{
+              padding: "14px 24px",
+              border: "0.5px solid rgba(13,13,11,0.25)",
+              borderRadius: "var(--radius-sm)",
+              background: "transparent",
+              color: "var(--foreground)",
+              textDecoration: "none",
+              display: "inline-block",
+            }}
+          >
+            Openingsbalans
+          </a>
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════
@@ -276,6 +293,7 @@ export default function TaxPage() {
               <Th style={{ textAlign: "right" }}>BTW terugvraagbaar</Th>
               <Th style={{ textAlign: "right" }}>Netto BTW</Th>
               <Th>Status</Th>
+              <Th style={{ textAlign: "right" }}>Aangifte</Th>
             </tr>
           </thead>
           <tbody>
@@ -287,6 +305,16 @@ export default function TaxPage() {
                 <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.inputVat)}</span></Td>
                 <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.netVat)}</span></Td>
                 <Td><span className="label" style={{ opacity: 1 }}>{q.netVat >= 0 ? "Te betalen" : "Te vorderen"}</span></Td>
+                <Td style={{ textAlign: "right" }}>
+                  <a
+                    href={`/api/export/btw-aangifte?year=${q.quarter.split(" ")[1]}&quarter=${q.quarter.split(" ")[0].replace("Q", "")}`}
+                    download
+                    style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
+                    title="Download BTW aangifte CSV"
+                  >
+                    Aangifte &darr;
+                  </a>
+                </Td>
               </tr>
             ))}
           </tbody>
@@ -326,7 +354,7 @@ export default function TaxPage() {
         <p style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.6, margin: "0 0 24px" }}>
           Volledig overzicht van winst & verlies, balans en fiscale samenvatting.
         </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
           {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map((y) => (
             <a
               key={y}
@@ -336,6 +364,25 @@ export default function TaxPage() {
               className="btn-secondary"
             >
               Download {y}
+            </a>
+          ))}
+        </div>
+
+        <h3 className="section-header" style={{ margin: "24px 0 12px", fontSize: "var(--text-body)" }}>
+          IB Aangifte Export
+        </h3>
+        <p style={{ fontSize: "var(--text-body-sm)", fontWeight: 300, opacity: 0.5, margin: "0 0 12px" }}>
+          Exporteer je jaarrekening als IB-aangifte overzicht voor de Belastingdienst.
+        </p>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {[now.getFullYear() - 1, now.getFullYear() - 2].map((y) => (
+            <a
+              key={y}
+              href={`/api/export/ib-aangifte?year=${y}`}
+              download
+              className="btn-secondary"
+            >
+              IB Aangifte {y}
             </a>
           ))}
         </div>
