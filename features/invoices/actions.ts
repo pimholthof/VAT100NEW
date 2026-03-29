@@ -273,6 +273,7 @@ export async function duplicateInvoice(
       issue_date: new Date().toISOString().split("T")[0],
       due_date: null,
       vat_rate: original.vat_rate as import("@/lib/types").VatRate,
+      vat_scheme: original.vat_scheme ?? "standard",
       notes: original.notes ?? null,
       lines: original.lines.map((l) => ({
         id: crypto.randomUUID(),

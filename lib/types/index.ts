@@ -3,6 +3,7 @@
 export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue";
 export type InvoiceUnit = "uren" | "dagen" | "stuks";
 export type VatRate = 0 | 9 | 21;
+export type VatScheme = "standard" | "eu_reverse_charge" | "export_outside_eu";
 
 export interface Profile {
   id: string;
@@ -72,6 +73,7 @@ export interface Invoice {
   payment_link: string | null;
   mollie_payment_id: string | null;
   payment_method: string | null;
+  vat_scheme: VatScheme;
   created_at: string;
 }
 
@@ -106,6 +108,7 @@ export interface InvoiceInput {
   issue_date: string;
   due_date: string | null;
   vat_rate: VatRate;
+  vat_scheme: VatScheme;
   notes: string | null;
   lines: InvoiceLineInput[];
 }

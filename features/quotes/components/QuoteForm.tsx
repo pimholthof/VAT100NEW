@@ -14,7 +14,7 @@ import { InvoiceLineRow } from "@/features/invoices/components/InvoiceLineRow";
 import { ClientQuickCreate } from "@/features/invoices/components/ClientQuickCreate";
 import { InvoiceMetadata } from "@/features/invoices/components/InvoiceMetadata";
 import { InvoiceTotals } from "@/features/invoices/components/InvoiceTotals";
-import type { VatRate, QuoteStatus } from "@/lib/types";
+import type { QuoteStatus } from "@/lib/types";
 import { inputStyle, ErrorMessage } from "@/components/ui";
 import { m as motion } from "framer-motion";
 import { playSound } from "@/lib/utils/sound";
@@ -48,11 +48,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
   // Sync quote store → invoice store so shared components (InvoiceMetadata, InvoiceTotals) work
   const invoiceSetClientId = useInvoiceStore((s) => s.setClientId);
-  const invoiceSetIssueDate = useInvoiceStore((s) => s.setIssueDate);
-  const invoiceSetDueDate = useInvoiceStore((s) => s.setDueDate);
-  const invoiceSetVatRate = useInvoiceStore((s) => s.setVatRate);
   const invoiceSetNotes = useInvoiceStore((s) => s.setNotes);
-  const invoiceSetInvoiceNumber = useInvoiceStore((s) => s.setInvoiceNumber);
   const invoiceLoadInvoice = useInvoiceStore((s) => s.loadInvoice);
 
   // Initialize invoice store from quote store for shared components
@@ -64,12 +60,33 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
       issueDate: state.issueDate,
       dueDate: state.validUntil,
       vatRate: state.vatRate,
+      vatScheme: "standard",
       notes: state.notes,
       lines: state.lines,
     });
   }, [invoiceLoadInvoice]);
 
-  // Sync changes from invoice store back to quote store
+  // Sync quote line changes to invoice store so InvoiceTotals updates
+  useEffect(() => {
+    const unsub = useQuoteStore.subscribe((quoteState) => {
+      const invoiceState = useInvoiceStore.getState();
+      // Sync lines and vatRate so totals calculate correctly
+      if (
+        quoteState.lines !== invoiceState.lines ||
+        quoteState.vatRate !== invoiceState.vatRate
+      ) {
+        useInvoiceStore.setState({
+          lines: quoteState.lines,
+          vatRate: quoteState.vatRate,
+        });
+        // Trigger totals recalculation
+        useInvoiceStore.getState().setVatRate(quoteState.vatRate);
+      }
+    });
+    return unsub;
+  }, []);
+
+  // Sync changes from invoice store back to quote store (for shared components like InvoiceMetadata)
   useEffect(() => {
     const unsub = useInvoiceStore.subscribe((invoiceState) => {
       const quoteState = useQuoteStore.getState();
@@ -156,9 +173,9 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
       )}
 
       {/* Recipient */}
-      <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>ONTVANGER</p>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
+      <div style={{ marginBottom: 48 }}>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>ONTVANGER</p>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
           <select
             value={clientId}
             onChange={(e) => {
@@ -168,13 +185,13 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
             style={{
               ...inputStyle,
-              fontSize: "2.5rem",
+              fontSize: 14,
               fontWeight: 400,
-              letterSpacing: "-0.04em",
+              letterSpacing: "-0.01em",
               border: "none",
               padding: 0,
               width: "auto",
-              minWidth: 300,
+              minWidth: 160,
               background: "transparent"
             }}
           >
