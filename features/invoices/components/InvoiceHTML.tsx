@@ -40,14 +40,13 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
 
   return (
     <div style={page}>
-      {/* ── Massive VAT100 Header ── */}
+      {/* ── VAT100 Watermark ── */}
       <div style={header}>
         <div style={vat100Mark}>VAT100</div>
       </div>
 
       {/* ── Two-column Meta ── */}
       <div style={metaGrid}>
-        {/* Left: Sender */}
         <div style={{ flex: "0 0 55%" }}>
           <div style={senderName}>
             {profile.studio_name || profile.full_name}
@@ -68,7 +67,6 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
           )}
         </div>
 
-        {/* Right: Invoice metadata */}
         <div style={{ flex: 1 }}>
           <div style={docType}>
             {isCreditNote ? "CREDITNOTA" : "FACTUUR"}
@@ -95,7 +93,7 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
       {/* ── Client ── */}
       <div style={clientSection}>
         <div style={clientLabel}>Aan</div>
-        <div style={clientName}>{client.name}</div>
+        <div style={clientNameStyle}>{client.name}</div>
         {client.contact_name && (
           <div style={clientDetail}>{client.contact_name}</div>
         )}
@@ -206,7 +204,6 @@ export function InvoiceHTML({ data }: { data: InvoiceData }) {
 // ─── Inline styles ───
 
 const COLOR = "#000000";
-const ACCENT = "#A51C30";
 const FONT_STACK =
   '"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif';
 
@@ -223,60 +220,60 @@ const page: React.CSSProperties = {
 };
 
 const header: React.CSSProperties = {
-  marginBottom: "20px",
+  marginBottom: "28px",
 };
 
 const vat100Mark: React.CSSProperties = {
   fontFamily: FONT_STACK,
   fontWeight: 700,
-  fontSize: "72px",
-  letterSpacing: "-0.05em",
+  fontSize: "120px",
+  letterSpacing: "-0.04em",
   color: COLOR,
-  opacity: 0.06,
-  lineHeight: 0.9,
+  opacity: 0.05,
+  lineHeight: 0.8,
 };
 
 const metaGrid: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
-  marginBottom: "24px",
+  marginBottom: "32px",
   gap: "32px",
 };
 
 const senderName: React.CSSProperties = {
-  fontSize: "14px",
+  fontSize: "12px",
   fontWeight: 700,
-  letterSpacing: "-0.02em",
+  letterSpacing: "-0.01em",
   color: COLOR,
-  marginBottom: "4px",
+  marginBottom: "6px",
 };
 
 const senderDetail: React.CSSProperties = {
-  fontSize: "9px",
+  fontSize: "8.5px",
   fontWeight: 400,
-  color: "rgba(0,0,0,0.5)",
-  lineHeight: 1.5,
+  color: "rgba(0,0,0,0.45)",
+  lineHeight: 1.6,
 };
 
 const docType: React.CSSProperties = {
-  fontSize: "10px",
+  fontSize: "8px",
   fontWeight: 700,
-  letterSpacing: "0.2em",
-  color: ACCENT,
+  letterSpacing: "0.18em",
+  color: "rgba(0,0,0,0.35)",
   textTransform: "uppercase",
-  marginBottom: "8px",
+  marginBottom: "10px",
 };
 
 const metaRowStyle: React.CSSProperties = {
   display: "flex",
   justifyContent: "space-between",
-  marginBottom: "2px",
+  marginBottom: "3px",
 };
 
 const metaLabelStyle: React.CSSProperties = {
-  fontSize: "8px",
-  letterSpacing: "0.14em",
-  color: "rgba(0,0,0,0.45)",
+  fontSize: "7.5px",
+  letterSpacing: "0.12em",
+  color: "rgba(0,0,0,0.35)",
   fontWeight: 400,
   textTransform: "uppercase",
 };
@@ -288,27 +285,27 @@ const metaValueStyle: React.CSSProperties = {
 };
 
 const invoiceNumber: React.CSSProperties = {
-  fontSize: "14px",
+  fontSize: "16px",
   fontWeight: 700,
   letterSpacing: "-0.02em",
   color: COLOR,
-  marginBottom: "8px",
+  marginBottom: "10px",
 };
 
 const clientSection: React.CSSProperties = {
-  marginBottom: "16px",
+  marginBottom: "24px",
 };
 
 const clientLabel: React.CSSProperties = {
-  fontSize: "8px",
-  letterSpacing: "0.14em",
-  color: "rgba(0,0,0,0.45)",
+  fontSize: "7.5px",
+  letterSpacing: "0.12em",
+  color: "rgba(0,0,0,0.35)",
   fontWeight: 400,
   textTransform: "uppercase",
   marginBottom: "6px",
 };
 
-const clientName: React.CSSProperties = {
+const clientNameStyle: React.CSSProperties = {
   fontSize: "11px",
   fontWeight: 700,
   color: COLOR,
@@ -316,34 +313,34 @@ const clientName: React.CSSProperties = {
 };
 
 const clientDetail: React.CSSProperties = {
-  fontSize: "9px",
+  fontSize: "8.5px",
   fontWeight: 400,
-  color: "rgba(0,0,0,0.5)",
-  lineHeight: 1.5,
+  color: "rgba(0,0,0,0.45)",
+  lineHeight: 1.6,
 };
 
 const notesSection: React.CSSProperties = {
-  marginBottom: "12px",
+  marginBottom: "16px",
 };
 
 const notesLabel: React.CSSProperties = {
-  fontSize: "8px",
-  letterSpacing: "0.14em",
-  color: "rgba(0,0,0,0.45)",
+  fontSize: "7.5px",
+  letterSpacing: "0.12em",
+  color: "rgba(0,0,0,0.35)",
   fontWeight: 400,
   textTransform: "uppercase",
   marginBottom: "4px",
 };
 
 const notesText: React.CSSProperties = {
-  fontSize: "9px",
+  fontSize: "8.5px",
   fontWeight: 400,
-  color: "rgba(0,0,0,0.5)",
-  lineHeight: 1.5,
+  color: "rgba(0,0,0,0.45)",
+  lineHeight: 1.6,
 };
 
 const tableSection: React.CSSProperties = {
-  marginBottom: "12px",
+  marginBottom: "16px",
 };
 
 const tableHeaderStyle: React.CSSProperties = {
@@ -354,9 +351,9 @@ const tableHeaderStyle: React.CSSProperties = {
 };
 
 const tableHeaderCell: React.CSSProperties = {
-  fontSize: "8px",
-  letterSpacing: "0.14em",
-  color: "rgba(0,0,0,0.45)",
+  fontSize: "7.5px",
+  letterSpacing: "0.12em",
+  color: "rgba(0,0,0,0.35)",
   fontWeight: 400,
   textTransform: "uppercase",
 };
@@ -364,14 +361,14 @@ const tableHeaderCell: React.CSSProperties = {
 const tableRow: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
-  padding: "7px 0",
-  borderBottom: "0.5px solid rgba(0,0,0,0.08)",
+  padding: "8px 0",
+  borderBottom: "0.5px solid rgba(0,0,0,0.06)",
 };
 
 const tableRowLast: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
-  padding: "7px 0",
+  padding: "8px 0",
   borderBottom: `0.5px solid ${COLOR}`,
 };
 
@@ -386,7 +383,7 @@ const totalsContainer: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-end",
-  marginTop: "12px",
+  marginTop: "16px",
 };
 
 const totalsRow: React.CSSProperties = {
@@ -398,17 +395,17 @@ const totalsRow: React.CSSProperties = {
 };
 
 const totalsLabelStyle: React.CSSProperties = {
-  fontSize: "8px",
+  fontSize: "7.5px",
   fontWeight: 400,
-  letterSpacing: "0.14em",
+  letterSpacing: "0.12em",
   textTransform: "uppercase",
-  color: "rgba(0,0,0,0.45)",
+  color: "rgba(0,0,0,0.35)",
 };
 
 const totalsValueStyle: React.CSSProperties = {
   fontSize: "9px",
   fontWeight: 400,
-  color: "rgba(0,0,0,0.5)",
+  color: "rgba(0,0,0,0.45)",
   textAlign: "right",
 };
 
@@ -418,14 +415,14 @@ const totalRowStyle: React.CSSProperties = {
   width: "240px",
   justifyContent: "space-between",
   padding: "8px 0",
-  borderTop: `1.5px solid ${COLOR}`,
+  borderTop: `1px solid ${COLOR}`,
   marginTop: "4px",
 };
 
 const totalLabelStyle: React.CSSProperties = {
-  fontSize: "10px",
+  fontSize: "9px",
   fontWeight: 700,
-  letterSpacing: "0.1em",
+  letterSpacing: "0.12em",
   textTransform: "uppercase",
   color: COLOR,
 };
@@ -448,19 +445,18 @@ const footer: React.CSSProperties = {
 const footerRow: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
-  borderTop: "0.5px solid rgba(0,0,0,0.08)",
+  borderTop: "0.5px solid rgba(0,0,0,0.06)",
   paddingTop: "12px",
+  gap: "40px",
 };
 
-const footerCol: React.CSSProperties = {
-  marginRight: "40px",
-};
+const footerCol: React.CSSProperties = {};
 
 const footerLabel: React.CSSProperties = {
   fontSize: "6px",
   fontWeight: 400,
-  color: "rgba(0,0,0,0.45)",
-  letterSpacing: "0.14em",
+  color: "rgba(0,0,0,0.35)",
+  letterSpacing: "0.12em",
   textTransform: "uppercase",
   marginBottom: "3px",
 };
@@ -469,5 +465,4 @@ const footerValue: React.CSSProperties = {
   fontSize: "8px",
   fontWeight: 400,
   color: COLOR,
-  marginBottom: "8px",
 };

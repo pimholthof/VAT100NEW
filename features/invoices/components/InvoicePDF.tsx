@@ -12,13 +12,12 @@ import { formatCurrency, formatDate } from "@/lib/format";
 // ─── Design tokens ───
 
 const COLOR = "#000000";
-const ACCENT = "#A51C30";
 const MARGIN = 48;
 
 const LABEL = {
-  fontSize: 8,
-  letterSpacing: 0.14 * 8,
-  color: "rgba(0,0,0,0.45)",
+  fontSize: 7.5,
+  letterSpacing: 0.12 * 7.5,
+  color: "rgba(0,0,0,0.35)",
   fontFamily: "Helvetica",
   fontWeight: 400 as const,
   textTransform: "uppercase" as const,
@@ -40,7 +39,7 @@ const RULE = {
 
 const RULE_THIN = {
   borderBottomWidth: 0.5,
-  borderBottomColor: "rgba(0,0,0,0.08)",
+  borderBottomColor: "rgba(0,0,0,0.06)",
   borderBottomStyle: "solid" as const,
 };
 
@@ -68,24 +67,24 @@ const s = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
-  // Header — Massive brutalist watermark
+  // Header — Massive watermark
   header: {
-    marginBottom: 20,
+    marginBottom: 28,
   },
   vat100Mark: {
     fontFamily: "Helvetica",
     fontWeight: 700,
-    fontSize: 72,
-    letterSpacing: -0.05 * 72,
+    fontSize: 120,
+    letterSpacing: -0.04 * 120,
     color: COLOR,
-    opacity: 0.08,
-    lineHeight: 0.9,
+    opacity: 0.05,
+    lineHeight: 0.8,
   },
 
   // Two-column meta section
   metaGrid: {
     flexDirection: "row",
-    marginBottom: 24,
+    marginBottom: 32,
     gap: 32,
   },
   metaLeft: {
@@ -95,34 +94,35 @@ const s = StyleSheet.create({
     flex: 1,
   },
   senderName: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "Helvetica",
     fontWeight: 700,
-    letterSpacing: -0.02 * 14,
+    letterSpacing: -0.01 * 12,
     color: COLOR,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   senderDetail: {
-    ...VALUE,
-    color: "rgba(0,0,0,0.5)",
+    fontSize: 8.5,
+    fontFamily: "Helvetica",
+    fontWeight: 400,
+    color: "rgba(0,0,0,0.45)",
+    lineHeight: 1.6,
   },
   docType: {
-    fontSize: 10,
-    fontFamily: "Helvetica",
-    fontWeight: 700,
-    letterSpacing: 0.2 * 10,
-    color: ACCENT,
-    textTransform: "uppercase",
-    marginBottom: 8,
+    ...LABEL,
+    fontSize: 8,
+    fontWeight: 700 as const,
+    letterSpacing: 0.18 * 8,
+    color: "rgba(0,0,0,0.35)",
+    marginBottom: 10,
   },
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 2,
+    marginBottom: 3,
   },
   metaLabel: {
     ...LABEL,
-    fontSize: 8,
   },
   metaValue: {
     fontSize: 9,
@@ -131,17 +131,17 @@ const s = StyleSheet.create({
     color: COLOR,
   },
   invoiceNumber: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: "Helvetica",
     fontWeight: 700,
-    letterSpacing: -0.02 * 14,
+    letterSpacing: -0.02 * 16,
     color: COLOR,
-    marginBottom: 8,
+    marginBottom: 10,
   },
 
   // Client section
   clientSection: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   clientLabel: {
     ...LABEL,
@@ -155,13 +155,16 @@ const s = StyleSheet.create({
     marginBottom: 2,
   },
   clientDetail: {
-    ...VALUE,
-    color: "rgba(0,0,0,0.5)",
+    fontSize: 8.5,
+    fontFamily: "Helvetica",
+    fontWeight: 400,
+    color: "rgba(0,0,0,0.45)",
+    lineHeight: 1.6,
   },
 
   // Notes
   notesSection: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   notesLabel: {
     ...LABEL,
@@ -169,12 +172,13 @@ const s = StyleSheet.create({
   },
   notesText: {
     ...VALUE,
-    color: "rgba(0,0,0,0.5)",
+    fontSize: 8.5,
+    color: "rgba(0,0,0,0.45)",
   },
 
   // Table
   tableSection: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tableHeader: {
     flexDirection: "row",
@@ -186,12 +190,12 @@ const s = StyleSheet.create({
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 7,
+    paddingVertical: 8,
     ...RULE_THIN,
   },
   tableRowLast: {
     flexDirection: "row",
-    paddingVertical: 7,
+    paddingVertical: 8,
     ...RULE,
   },
   tableCell: {
@@ -211,7 +215,7 @@ const s = StyleSheet.create({
   // Totals
   totalsSection: {
     alignItems: "flex-end",
-    marginTop: 12,
+    marginTop: 16,
   },
   totalsGrid: {
     width: 240,
@@ -225,14 +229,13 @@ const s = StyleSheet.create({
   },
   totalsLabel: {
     ...LABEL,
-    fontSize: 8,
-    color: "rgba(0,0,0,0.45)",
+    color: "rgba(0,0,0,0.35)",
   },
   totalsValue: {
     fontSize: 9,
     fontFamily: "Helvetica",
     fontWeight: 400,
-    color: "rgba(0,0,0,0.5)",
+    color: "rgba(0,0,0,0.45)",
     textAlign: "right",
   },
   totalRow: {
@@ -241,14 +244,14 @@ const s = StyleSheet.create({
     width: 240,
     paddingVertical: 8,
     marginTop: 4,
-    borderTopWidth: 1.5,
+    borderTopWidth: 1,
     borderTopColor: COLOR,
   },
   totalLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica",
     fontWeight: 700,
-    letterSpacing: 0.1 * 10,
+    letterSpacing: 0.12 * 9,
     color: COLOR,
     textTransform: "uppercase",
   },
@@ -268,11 +271,11 @@ const s = StyleSheet.create({
     left: MARGIN,
     right: MARGIN,
     flexDirection: "row",
-    justifyContent: "space-between",
     borderTopWidth: 0.5,
-    borderTopColor: "rgba(0,0,0,0.08)",
+    borderTopColor: "rgba(0,0,0,0.06)",
     borderTopStyle: "solid",
     paddingTop: 12,
+    gap: 40,
   },
   footerCol: {},
   footerLabel: {
@@ -303,7 +306,7 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        {/* ── Massive VAT100 Header ── */}
+        {/* ── VAT100 Watermark ── */}
         <View style={s.header}>
           <Text style={s.vat100Mark}>VAT100</Text>
         </View>
@@ -336,11 +339,9 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
             <Text style={s.docType}>
               {isCreditNote ? "CREDITNOTA" : "FACTUUR"}
             </Text>
-            <View style={s.metaRow}>
-              <Text style={s.metaLabel}>
-                {isCreditNote ? "Creditnotanr" : "Factuurnr"}
-              </Text>
-            </View>
+            <Text style={s.metaLabel}>
+              {isCreditNote ? "Creditnotanr" : "Factuurnr"}
+            </Text>
             <Text style={s.invoiceNumber}>{invoice.invoice_number}</Text>
             <View style={s.metaRow}>
               <Text style={s.metaLabel}>Datum</Text>
