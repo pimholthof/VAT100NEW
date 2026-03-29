@@ -211,6 +211,19 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
       return { error: "Klant heeft geen e-mailadres." };
     }
 
+    // Auto-create Mollie payment link if not yet present
+    const { data: inv } = await supabase
+      .from("invoices")
+      .select("payment_link")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!inv?.payment_link) {
+      // Best-effort: don't block sending if payment link creation fails
+      await createPaymentLink(id).catch(() => {});
+    }
+
     return sendInvoiceEmail(id);
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };

@@ -25,7 +25,7 @@ export function InvoiceRecipientSection({
   setShowNewClient: (show: boolean) => void;
 }) {
   return (
-    <div style={{ marginBottom: 80 }}>
+    <div style={{ marginBottom: 48 }}>
       <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>
         RECIPIENT
       </p>
@@ -38,13 +38,13 @@ export function InvoiceRecipientSection({
           }}
           style={{
             ...inputStyle,
-            fontSize: "2.5rem",
+            fontSize: "1.5rem",
             fontWeight: 400,
             letterSpacing: "-0.04em",
             border: "none",
             padding: 0,
             width: "auto",
-            minWidth: 300,
+            minWidth: 200,
             background: "transparent",
           }}
         >

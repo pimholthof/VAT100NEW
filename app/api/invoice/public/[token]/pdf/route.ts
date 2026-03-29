@@ -20,6 +20,7 @@ export async function GET(
 
   try {
     const data = result.data;
+
     const element = createElement(InvoicePDF, { data });
     const buffer = await renderToBuffer(
       element as unknown as Parameters<typeof renderToBuffer>[0]
