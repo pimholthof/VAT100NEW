@@ -175,7 +175,7 @@ export async function completeBankConnection(
 
   try {
     const requisition = await gocardless.getRequisition(requisitionId);
-    
+
     // In many cases, we take the first account returned by the requisition
     const accountId = requisition.accounts[0];
     if (!accountId) return { error: "Geen rekeningen gevonden bij deze bank." };
@@ -183,19 +183,28 @@ export async function completeBankConnection(
     const accountDetails = await gocardless.getAccountDetails(accountId);
     const detail = accountDetails.account;
 
+    // Calculate consent expiry (GoCardless requisitions typically valid 90 days)
+    const consentExpiresAt = new Date();
+    consentExpiresAt.setDate(consentExpiresAt.getDate() + 90);
+
     const { error } = await supabase
       .from("bank_connections")
       .update({
         status: "active",
         account_id: accountId,
         iban: detail.iban || null,
-        institution_name: requisition.institution_id, // We'll improve this with actual name later
+        institution_name: requisition.institution_id,
+        account_name: detail.name || detail.product || null,
+        account_holder: detail.ownerName || null,
+        consent_expires_at: consentExpiresAt.toISOString(),
+        error_count: 0,
+        error_message: null,
       })
       .eq("requisition_id", requisitionId)
       .eq("user_id", user.id);
 
     if (error) return { error: error.message };
-    
+
     // Trigger initial sync
     await syncTransactions(requisitionId, true);
 
@@ -218,8 +227,8 @@ export async function syncTransactions(
     .from("bank_connections")
     .select("*")
     .eq("user_id", user.id);
-  
-  const { data: connection, error: connError } = await (isReqId 
+
+  const { data: connection, error: connError } = await (isReqId
     ? query.eq("requisition_id", connectionIdOrReqId)
     : query.eq("id", connectionIdOrReqId)
   ).single();
@@ -230,7 +239,23 @@ export async function syncTransactions(
 
   if (!connection.account_id) return { error: "Bankrekening ID ontbreekt." };
 
+  // Check consent expiry
+  if (connection.consent_expires_at && new Date(connection.consent_expires_at) < new Date()) {
+    await supabase
+      .from("bank_connections")
+      .update({ status: "expired", error_message: "Autorisatie verlopen. Vernieuw de koppeling." })
+      .eq("id", connection.id);
+    return { error: "Autorisatie verlopen. Vernieuw de bankkoppeling." };
+  }
+
   if (checkGoCardlessRateLimit(user.id)) {
+    // Log rate limit
+    await supabase.from("bank_sync_log").insert({
+      user_id: user.id,
+      bank_connection_id: connection.id,
+      status: "rate_limited",
+      error_message: "Rate limit bereikt",
+    });
     return { error: "Te veel bankverzoeken. Probeer het over een minuut opnieuw." };
   }
 
@@ -262,28 +287,128 @@ export async function syncTransactions(
       counterpart_name: t.debtorName || t.creditorName || "",
       counterpart_iban: t.debtorAccount?.iban || t.creditorAccount?.iban || "",
       booking_date: t.bookingDate || t.valueDate,
-      status: "booked",
+      source: "gocardless",
     }));
 
     // 4. Upsert (ignore duplicates based on external_id)
     if (newTransactions.length > 0) {
       const { error: upsertError } = await supabase
         .from("bank_transactions")
-        .upsert(newTransactions, { onConflict: "external_id" });
-      
-      if (upsertError) return { error: upsertError.message };
+        .upsert(newTransactions, { onConflict: "bank_connection_id,external_id" });
+
+      if (upsertError) {
+        throw new Error(upsertError.message);
+      }
     }
 
-    // 5. Update last_synced_at
+    // 5. Update connection: last_synced_at, reset errors
     await supabase
       .from("bank_connections")
-      .update({ last_synced_at: new Date().toISOString() })
+      .update({
+        last_synced_at: new Date().toISOString(),
+        error_count: 0,
+        error_message: null,
+        status: "active",
+      })
       .eq("id", connection.id);
+
+    // 6. Log successful sync
+    await supabase.from("bank_sync_log").insert({
+      user_id: user.id,
+      bank_connection_id: connection.id,
+      status: "success",
+      transaction_count: newTransactions.length,
+    });
 
     return { error: null, data: newTransactions.length };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    const errorMsg = e instanceof Error ? e.message : String(e);
+    const newErrorCount = (connection.error_count ?? 0) + 1;
+
+    // Update connection with error info
+    await supabase
+      .from("bank_connections")
+      .update({
+        error_count: newErrorCount,
+        error_message: errorMsg,
+        last_error_at: new Date().toISOString(),
+        status: newErrorCount >= 3 ? "error" : connection.status,
+      })
+      .eq("id", connection.id);
+
+    // Log failed sync
+    await supabase.from("bank_sync_log").insert({
+      user_id: user.id,
+      bank_connection_id: connection.id,
+      status: "error",
+      error_message: errorMsg,
+    });
+
+    return { error: errorMsg };
   }
+}
+
+export async function retryBankConnection(
+  connectionId: string
+): Promise<ActionResult<number>> {
+  if (!uuidSchema.safeParse(connectionId).success) return { error: "Ongeldig verbinding-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Reset error state
+  const { error } = await supabase
+    .from("bank_connections")
+    .update({
+      error_count: 0,
+      error_message: null,
+      status: "active",
+    })
+    .eq("id", connectionId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  // Trigger sync
+  return syncTransactions(connectionId);
+}
+
+export interface ConnectionHealth {
+  id: string;
+  institution_name: string;
+  account_name: string | null;
+  iban: string | null;
+  status: string;
+  error_message: string | null;
+  error_count: number;
+  last_synced_at: string | null;
+  consent_expires_at: string | null;
+  days_until_expiry: number | null;
+}
+
+export async function getConnectionHealth(): Promise<ActionResult<ConnectionHealth[]>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { data: connections, error } = await supabase
+    .from("bank_connections")
+    .select("id, institution_name, account_name, iban, status, error_message, error_count, last_synced_at, consent_expires_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) return { error: error.message };
+
+  const now = new Date();
+  const health: ConnectionHealth[] = (connections ?? []).map((conn) => ({
+    ...conn,
+    days_until_expiry: conn.consent_expires_at
+      ? Math.ceil((new Date(conn.consent_expires_at).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      : null,
+  }));
+
+  return { error: null, data: health };
 }
 
 export async function deleteBankConnection(

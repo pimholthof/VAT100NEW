@@ -14,6 +14,7 @@ import {
   completeBankConnection,
   autoCategorizeTransactions,
   learnFromCorrection,
+  retryBankConnection,
 } from "@/features/banking/actions";
 import { InstitutionSelector } from "@/features/dashboard/components/InstitutionSelector";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
@@ -151,6 +152,14 @@ export default function BankTab() {
       learnFromCorrection(transactionId, category),
   });
 
+  const retryMutation = useMutation({
+    mutationFn: (id: string) => retryBankConnection(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bank-connections"] });
+      queryClient.invalidateQueries({ queryKey: ["bank-transactions"] });
+    },
+  });
+
   const connectMutation = useMutation({
     mutationFn: async (institutionId: string) => {
       const result = await initiateBankConnection(institutionId);
@@ -167,6 +176,7 @@ export default function BankTab() {
 
   const connections = connectionsResult?.data ?? [];
   const transactions = useMemo(() => transactionsResult?.data ?? [], [transactionsResult?.data]);
+  const [renderTime] = useState(() => Date.now());
 
   const uncategorizedTransactions = useMemo(
     () => transactions.filter((tx) => !tx.category),
@@ -296,48 +306,110 @@ export default function BankTab() {
           </div>
         ) : (
           <div>
-            {connections.map((conn: BankConnection) => (
-              <div
-                key={conn.id}
-                style={{
-                  borderBottom: "var(--border)",
-                  padding: "16px 0",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: 12,
-                }}
-              >
-                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
-                  <span style={{ fontSize: "var(--text-body-lg)", fontWeight: 500 }}>{conn.institution_name}</span>
-                  {conn.iban && <span style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.5 }}>{conn.iban}</span>}
-                  <span className="label" style={{ opacity: 0.4 }}>{conn.status}</span>
-                  {conn.last_synced_at && <span style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4 }}>Laatste update: {formatDate(conn.last_synced_at)}</span>}
+            {connections.map((conn: BankConnection) => {
+              const statusColor = conn.status === "active" ? "#2E7D32"
+                : conn.status === "error" ? "#A51C30"
+                : conn.status === "expired" ? "#E65100"
+                : "rgba(13,13,11,0.4)";
+              const daysUntilExpiry = conn.consent_expires_at
+                ? Math.ceil((new Date(conn.consent_expires_at).getTime() - renderTime) / (1000 * 60 * 60 * 24))
+                : null;
+
+              return (
+                <div
+                  key={conn.id}
+                  style={{
+                    borderBottom: "var(--border)",
+                    padding: "16px 0",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontSize: "var(--text-body-lg)", fontWeight: 500 }}>
+                        {conn.account_name || conn.institution_name}
+                      </span>
+                      {conn.iban && <span style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.5 }}>{conn.iban}</span>}
+                      <span style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                        color: statusColor,
+                        padding: "2px 8px",
+                        border: `1px solid ${statusColor}`,
+                        borderRadius: 4,
+                      }}>
+                        {conn.status === "active" ? "Actief" : conn.status === "error" ? "Fout" : conn.status === "expired" ? "Verlopen" : conn.status}
+                      </span>
+                      {conn.account_holder && (
+                        <span style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4 }}>{conn.account_holder}</span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                      {conn.last_synced_at && (
+                        <span style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4 }}>
+                          Laatste sync: {formatDate(conn.last_synced_at)}
+                        </span>
+                      )}
+                      {conn.status === "error" ? (
+                        <button
+                          onClick={() => retryMutation.mutate(conn.id)}
+                          disabled={retryMutation.isPending}
+                          className="btn-secondary"
+                          style={{ cursor: "pointer" }}
+                        >
+                          {retryMutation.isPending ? "Bezig..." : "Opnieuw proberen"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => syncMutation.mutate(conn.id)}
+                          disabled={syncMutation.isPending}
+                          className="btn-secondary"
+                          style={{ cursor: "pointer" }}
+                        >
+                          {syncMutation.isPending ? "Bezig..." : "Bijwerken"}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          if (confirm("Weet je zeker dat je deze koppeling wilt verwijderen?")) {
+                            deleteMutation.mutate(conn.id);
+                          }
+                        }}
+                        className="label"
+                        style={{ background: "none", border: "none", color: "var(--foreground)", opacity: 0.6, cursor: "pointer", padding: 0 }}
+                      >
+                        Loskoppelen
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Error message */}
+                  {conn.status === "error" && conn.error_message && (
+                    <div style={{ fontSize: "var(--text-body-sm)", color: "#A51C30", padding: "8px 12px", background: "rgba(165,28,48,0.05)", borderRadius: 4 }}>
+                      {conn.error_message}
+                    </div>
+                  )}
+
+                  {/* Consent expiry warning */}
+                  {daysUntilExpiry !== null && daysUntilExpiry <= 14 && daysUntilExpiry > 0 && (
+                    <div style={{ fontSize: "var(--text-body-sm)", color: "#E65100", padding: "8px 12px", background: "rgba(230,81,0,0.05)", borderRadius: 4 }}>
+                      Autorisatie verloopt over {daysUntilExpiry} dag{daysUntilExpiry !== 1 ? "en" : ""}. Vernieuw de koppeling om sync te behouden.
+                    </div>
+                  )}
+
+                  {/* Expired consent */}
+                  {conn.status === "expired" && (
+                    <div style={{ fontSize: "var(--text-body-sm)", color: "#E65100", padding: "8px 12px", background: "rgba(230,81,0,0.05)", borderRadius: 4 }}>
+                      Autorisatie verlopen. Koppel de bank opnieuw om transacties te blijven synchroniseren.
+                    </div>
+                  )}
                 </div>
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button
-                    onClick={() => syncMutation.mutate(conn.id)}
-                    disabled={syncMutation.isPending}
-                    className="btn-secondary"
-                    style={{ cursor: "pointer" }}
-                  >
-                    {syncMutation.isPending ? "Bezig..." : "Bijwerken"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm("Weet je zeker dat je deze koppeling wilt verwijderen?")) {
-                        deleteMutation.mutate(conn.id);
-                      }
-                    }}
-                    className="label"
-                    style={{ background: "none", border: "none", color: "var(--foreground)", opacity: 0.6, cursor: "pointer", padding: 0 }}
-                  >
-                    Loskoppelen
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             <div style={{ marginTop: 24 }}>
               <button
                 onClick={() => setIsSelectorOpen(true)}

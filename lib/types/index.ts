@@ -167,6 +167,12 @@ export interface BankConnection {
   iban: string | null;
   status: BankConnectionStatus;
   last_synced_at: string | null;
+  error_message: string | null;
+  error_count: number;
+  last_error_at: string | null;
+  account_name: string | null;
+  account_holder: string | null;
+  consent_expires_at: string | null;
   created_at: string;
 }
 
