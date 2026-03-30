@@ -798,7 +798,7 @@ a {
   content: "";
   position: absolute;
   inset: 0;
-  background: url("/images/office.jpg") center / cover no-repeat;
+  background: url("/images/office.png") center / cover no-repeat;
   opacity: 0.09;
   z-index: 0;
   pointer-events: none;
