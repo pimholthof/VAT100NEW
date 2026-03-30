@@ -2,8 +2,7 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
-import { runReconciliationAgent, runAnticipationAgent, runInvestmentAgent, runPaymentDetectionAgent } from "./action-feed";
-import { calculateZZPTaxProjection, calculateKIA, type Investment } from "@/lib/tax/dutch-tax-2026";
+import { calculateZZPTaxProjection, calculateKIA } from "@/lib/tax/dutch-tax-2026";
 import * as Sentry from "@sentry/nextjs";
 
 export interface DashboardStats {
@@ -21,24 +20,6 @@ export interface RecentInvoice {
   issue_date: string;
   total_inc_vat: number;
   client_name: string;
-}
-
-interface RecentInvoiceRow {
-  id: string;
-  invoice_number: string;
-  status: string;
-  issue_date: string;
-  total_inc_vat: number;
-  client: { name: string } | null;
-}
-
-interface UpcomingInvoiceRow {
-  id: string;
-  invoice_number: string;
-  status: string;
-  due_date: string;
-  total_inc_vat: number;
-  client: { name: string; email: string | null } | null;
 }
 
 export interface UpcomingInvoice {
@@ -77,267 +58,97 @@ export interface DashboardData {
   safeToSpend: SafeToSpendData;
 }
 
+interface RpcCashflowEntry {
+  month: string;
+  amount: number;
+}
+
+interface RpcRecentInvoice {
+  id: string;
+  invoice_number: string;
+  status: string;
+  issue_date: string;
+  total_inc_vat: number;
+  client_name: string;
+}
+
+interface RpcUpcomingInvoice {
+  id: string;
+  invoice_number: string;
+  status: string;
+  due_date: string;
+  total_inc_vat: number;
+  client_name: string;
+  client_email: string | null;
+  days_overdue: number;
+}
+
 export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
   const now = new Date();
-  const userId = user.id;
 
-  // Trigger Agents in background — throttled to max once per 15 minutes
-  // Check the most recent action_feed entry to determine if agents ran recently
-  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000).toISOString();
-  const { count: recentAgentRuns } = await supabase
-    .from("action_feed")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .gte("created_at", fifteenMinutesAgo);
-
-  if ((recentAgentRuns ?? 0) === 0) {
-    runReconciliationAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "reconciliation" } }));
-    runPaymentDetectionAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "payment-detection" } }));
-    runAnticipationAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "anticipation" } }));
-    runInvestmentAgent(userId, supabase).catch((e) => Sentry.captureException(e, { tags: { agent: "investment" } }));
-  }
-
-  // Date ranges
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    .toISOString()
-    .split("T")[0];
-
-  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-  const cashflowStart = sixMonthsAgo.toISOString().split("T")[0];
-
-  const sevenDaysFromNow = new Date();
-  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-  const upcomingCutoff = sevenDaysFromNow.toISOString().split("T")[0];
-
-  const currentQ = Math.floor(now.getMonth() / 3) + 1;
-  const qStart = new Date(now.getFullYear(), (currentQ - 1) * 3, 1)
-    .toISOString()
-    .split("T")[0];
-  const qEnd = new Date(now.getFullYear(), currentQ * 3, 0)
-    .toISOString()
-    .split("T")[0];
-
-  // Run ALL queries with graceful degradation — individual failures don't break the dashboard
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async function safe<T>(promise: PromiseLike<{ data: T; error: any; count?: number | null }>): Promise<{ data: T | null; count: number | null }> {
-    try {
-      const res = await promise;
-      if (res.error) Sentry.captureMessage(`Dashboard query failed: ${res.error.message}`, "warning");
-      return { data: res.data ?? null, count: res.count ?? null };
-    } catch (err) {
-      Sentry.captureException(err);
-      return { data: null, count: null };
-    }
-  }
-
-  const [
-    paidResult,
-    openResult,
-    vatResult,
-    receiptsResult,
-    recentResult,
-    upcomingResult,
-    cashflowInvResult,
-    cashflowRecResult,
-    vatQInvResult,
-    vatQRecResult,
-    bankBalResult,
-    yearRevResult,
-  ] = await Promise.all([
-    safe(supabase
-      .from("invoices")
-      .select("total_inc_vat")
-      .eq("user_id", userId)
-      .eq("status", "paid")
-      .gte("issue_date", monthStart)
-      .lte("issue_date", monthEnd)),
-    safe(supabase
-      .from("invoices")
-      .select("total_inc_vat")
-      .eq("user_id", userId)
-      .in("status", ["sent", "overdue"])),
-    safe(supabase
-      .from("invoices")
-      .select("vat_amount")
-      .eq("user_id", userId)
-      .in("status", ["sent", "paid"])
-      .gte("issue_date", monthStart)
-      .lte("issue_date", monthEnd)),
-    safe(supabase
-      .from("receipts")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .gte("receipt_date", monthStart)
-      .lte("receipt_date", monthEnd)),
-    safe(supabase
-      .from("invoices")
-      .select("id, invoice_number, status, issue_date, total_inc_vat, client:clients(name)")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(5)),
-    safe(supabase
-      .from("invoices")
-      .select("id, invoice_number, status, due_date, total_inc_vat, client:clients(name, email)")
-      .eq("user_id", userId)
-      .in("status", ["sent", "overdue"])
-      .not("due_date", "is", null)
-      .lte("due_date", upcomingCutoff)
-      .order("due_date", { ascending: true })
-      .limit(10)),
-    safe(supabase
-      .from("invoices")
-      .select("issue_date, total_inc_vat")
-      .eq("user_id", userId)
-      .eq("status", "paid")
-      .gte("issue_date", cashflowStart)),
-    safe(supabase
-      .from("receipts")
-      .select("receipt_date, total_amount")
-      .eq("user_id", userId)
-      .gte("receipt_date", cashflowStart)),
-    safe(supabase
-      .from("invoices")
-      .select("vat_amount")
-      .eq("user_id", userId)
-      .in("status", ["sent", "paid"])
-      .gte("issue_date", qStart)
-      .lte("issue_date", qEnd)),
-    safe(supabase
-      .from("receipts")
-      .select("vat_amount")
-      .eq("user_id", userId)
-      .gte("receipt_date", qStart)
-      .lte("receipt_date", qEnd)),
-    safe(supabase
-      .from("bank_transactions")
-      .select("amount")
-      .eq("user_id", userId)),
-    safe(supabase
-      .from("invoices")
-      .select("total_inc_vat, vat_amount")
-      .eq("user_id", userId)
-      .eq("status", "paid")
-      .gte("issue_date", `${now.getFullYear()}-01-01`)),
-  ]);
-
-  const paidThisMonth = paidResult.data;
-  const openInvoices = openResult.data;
-  const vatThisMonth = vatResult.data;
-  const receiptsCount = receiptsResult.count;
-  const recentData = recentResult.data;
-  const upcomingData = upcomingResult.data;
-  const cashflowInvoices = cashflowInvResult.data;
-  const cashflowReceipts = cashflowRecResult.data;
-  const vatQuarterInvoices = vatQInvResult.data;
-  const vatQuarterReceipts = vatQRecResult.data;
-  const bankBalanceData = bankBalResult.data;
-  const yearRevenueData = yearRevResult.data;
-
-  // ── Stats ──
-  const revenueThisMonth = (paidThisMonth ?? []).reduce(
-    (sum, inv) => sum + (inv.total_inc_vat ?? 0), 0
-  );
-  const openInvoiceCount = openInvoices?.length ?? 0;
-  const openInvoiceAmount = (openInvoices ?? []).reduce(
-    (sum, inv) => sum + (inv.total_inc_vat ?? 0), 0
-  );
-  const vatToPay = (vatThisMonth ?? []).reduce(
-    (sum, inv) => sum + (inv.vat_amount ?? 0), 0
-  );
-
-  // ── Recent invoices ──
-  const recentInvoices: RecentInvoice[] = (
-    (recentData as unknown as RecentInvoiceRow[]) ?? []
-  ).map((row) => ({
-    id: row.id,
-    invoice_number: row.invoice_number,
-    status: row.status,
-    issue_date: row.issue_date,
-    total_inc_vat: row.total_inc_vat,
-    client_name: row.client?.name ?? "—",
-  }));
-
-  // ── Upcoming invoices ──
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const upcomingInvoices: UpcomingInvoice[] = (
-    (upcomingData as unknown as UpcomingInvoiceRow[]) ?? []
-  ).map((row) => {
-    const dueDate = new Date(row.due_date);
-    dueDate.setHours(0, 0, 0, 0);
-    const daysOverdue = Math.floor(
-      (today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return {
-      id: row.id,
-      invoice_number: row.invoice_number,
-      status: row.status,
-      due_date: row.due_date,
-      total_inc_vat: row.total_inc_vat,
-      client_name: row.client?.name ?? "—",
-      client_email: row.client?.email ?? null,
-      days_overdue: daysOverdue,
-    };
+  // Single RPC call replaces 12 individual queries
+  const { data: rpc, error: rpcError } = await supabase.rpc("get_dashboard_stats", {
+    p_user_id: user.id,
   });
 
+  if (rpcError) {
+    Sentry.captureMessage(`Dashboard RPC failed: ${rpcError.message}`, "error");
+    return { error: rpcError.message };
+  }
+
+  if (!rpc) {
+    return { error: "Geen dashboard data ontvangen." };
+  }
+
+  // ── Parse RPC result ──
+  const recentInvoices: RecentInvoice[] = ((rpc.recentInvoices ?? []) as RpcRecentInvoice[]).map((r) => ({
+    id: r.id,
+    invoice_number: r.invoice_number,
+    status: r.status,
+    issue_date: r.issue_date,
+    total_inc_vat: Number(r.total_inc_vat) || 0,
+    client_name: r.client_name ?? "—",
+  }));
+
+  const upcomingInvoices: UpcomingInvoice[] = ((rpc.upcomingInvoices ?? []) as RpcUpcomingInvoice[]).map((r) => ({
+    id: r.id,
+    invoice_number: r.invoice_number,
+    status: r.status,
+    due_date: r.due_date,
+    total_inc_vat: Number(r.total_inc_vat) || 0,
+    client_name: r.client_name ?? "—",
+    client_email: r.client_email ?? null,
+    days_overdue: Number(r.days_overdue) || 0,
+  }));
+
   // ── Cashflow ──
-  const revenueMap = new Map<string, number>();
-  const expenseMap = new Map<string, number>();
+  const cashflowRevenue: RpcCashflowEntry[] = (rpc.cashflowRevenue ?? []) as RpcCashflowEntry[];
+  const cashflowExpenses: RpcCashflowEntry[] = (rpc.cashflowExpenses ?? []) as RpcCashflowEntry[];
 
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    revenueMap.set(key, 0);
-    expenseMap.set(key, 0);
-  }
-
-  for (const inv of cashflowInvoices ?? []) {
-    if (!inv.issue_date) continue;
-    const d = new Date(inv.issue_date);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    if (revenueMap.has(key)) {
-      revenueMap.set(key, (revenueMap.get(key) ?? 0) + (Number(inv.total_inc_vat) || 0));
-    }
-  }
-
-  for (const rec of cashflowReceipts ?? []) {
-    if (!rec.receipt_date) continue;
-    const d = new Date(rec.receipt_date);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    if (expenseMap.has(key)) {
-      expenseMap.set(key, (expenseMap.get(key) ?? 0) + (Number(rec.total_amount) || 0));
-    }
-  }
-
-  const months = Array.from(revenueMap.keys());
-  const monthlyRevenue = months.map((m) => ({
-    month: m,
-    amount: Math.round((revenueMap.get(m) ?? 0) * 100) / 100,
+  const monthlyRevenue = cashflowRevenue.map((e) => ({
+    month: e.month,
+    amount: Math.round(Number(e.amount) * 100) / 100,
   }));
-  const monthlyExpenses = months.map((m) => ({
-    month: m,
-    amount: Math.round((expenseMap.get(m) ?? 0) * 100) / 100,
+  const monthlyExpenses = cashflowExpenses.map((e) => ({
+    month: e.month,
+    amount: Math.round(Number(e.amount) * 100) / 100,
   }));
 
-  const currentMonth = months[months.length - 1];
-  const lastMonth = months[months.length - 2];
-  const netThisMonth = Math.round(
-    ((revenueMap.get(currentMonth) ?? 0) - (expenseMap.get(currentMonth) ?? 0)) * 100
-  ) / 100;
-  const netLastMonth = Math.round(
-    ((revenueMap.get(lastMonth) ?? 0) - (expenseMap.get(lastMonth) ?? 0)) * 100
-  ) / 100;
+  const currentMonthRev = monthlyRevenue[monthlyRevenue.length - 1]?.amount ?? 0;
+  const currentMonthExp = monthlyExpenses[monthlyExpenses.length - 1]?.amount ?? 0;
+  const lastMonthRev = monthlyRevenue[monthlyRevenue.length - 2]?.amount ?? 0;
+  const lastMonthExp = monthlyExpenses[monthlyExpenses.length - 2]?.amount ?? 0;
+  const netThisMonth = Math.round((currentMonthRev - currentMonthExp) * 100) / 100;
+  const netLastMonth = Math.round((lastMonthRev - lastMonthExp) * 100) / 100;
   const trend: CashflowSummary["trend"] =
     netThisMonth > netLastMonth ? "up" : netThisMonth < netLastMonth ? "down" : "stable";
 
   // ── VAT deadline ──
+  const currentQ = Number(rpc.currentQuarter) || (Math.floor(now.getMonth() / 3) + 1);
   const deadlines: Record<number, { month: number; day: number; yearOffset: number }> = {
     1: { month: 3, day: 30, yearOffset: 0 },
     2: { month: 6, day: 31, yearOffset: 0 },
@@ -351,22 +162,32 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
   );
 
-  const outputVat = (vatQuarterInvoices ?? []).reduce(
-    (sum, inv) => sum + (Number(inv.vat_amount) || 0), 0
-  );
-  const inputVat = (vatQuarterReceipts ?? []).reduce(
-    (sum, rec) => sum + (Number(rec.vat_amount) || 0), 0
+  const outputVat = Number(rpc.outputVat) || 0;
+  const inputVat = Number(rpc.inputVat) || 0;
+
+  // ── Safe-to-Spend ──
+  const bankBalance = Number(rpc.bankBalance) || 0;
+  const yearRevenueRecords = (rpc.yearRevenueRecords ?? []) as Array<{
+    total_inc_vat: number;
+    vat_amount: number;
+  }>;
+
+  const safeToSpend = calculateSafeToSpend(
+    bankBalance,
+    yearRevenueRecords,
+    outputVat,
+    inputVat
   );
 
   return {
     error: null,
     data: {
       stats: {
-        revenueThisMonth,
-        openInvoiceCount,
-        openInvoiceAmount,
-        vatToPay,
-        receiptsThisMonth: receiptsCount ?? 0,
+        revenueThisMonth: Number(rpc.revenueThisMonth) || 0,
+        openInvoiceCount: Number(rpc.openInvoiceCount) || 0,
+        openInvoiceAmount: Number(rpc.openInvoiceAmount) || 0,
+        vatToPay: Number(rpc.vatToPay) || 0,
+        receiptsThisMonth: Number(rpc.receiptsThisMonth) || 0,
       },
       recentInvoices,
       upcomingInvoices,
@@ -382,31 +203,20 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         estimatedAmount: Math.round((outputVat - inputVat) * 100) / 100,
         forecastedAmount: Math.round(((outputVat - inputVat) * (90 / Math.max(1, 90 - daysRemaining))) * 100) / 100,
       },
-      safeToSpend: calculateSafeToSpend(
-        bankBalanceData ?? [],
-        yearRevenueData ?? [],
-        outputVat,
-        inputVat
-      ),
+      safeToSpend,
     },
   };
 }
 
-// ── Safe-to-Spend Calculator (Agent 3: Tax Forecaster) ──
-// Uses real 2026 tax calculation instead of simplified 37% estimate
+// ── Safe-to-Spend Calculator ──
 function calculateSafeToSpend(
-  bankTransactions: Array<{ amount: number }>,
+  currentBalance: number,
   yearRevenue: Array<{ total_inc_vat: number; vat_amount: number }>,
   outputVat: number,
   inputVat: number
 ): SafeToSpendData {
-  const currentBalance = bankTransactions.reduce(
-    (sum, tx) => sum + (Number(tx.amount) || 0), 0
-  );
-
   const estimatedVat = Math.max(0, Math.round((outputVat - inputVat) * 100) / 100);
 
-  // Real IB calculation using 2026 rates (box 1 + heffingskortingen + aftrekposten)
   const totalRevenueExVat = yearRevenue.reduce(
     (sum, inv) => sum + ((Number(inv.total_inc_vat) || 0) - (Number(inv.vat_amount) || 0)), 0
   );
@@ -415,19 +225,17 @@ function calculateSafeToSpend(
   const maandenVerstreken = now.getMonth() + 1;
   const projection = calculateZZPTaxProjection({
     jaarOmzetExBtw: totalRevenueExVat,
-    jaarKostenExBtw: 0, // Kosten worden niet meegenomen in safe-to-spend (conservatief)
+    jaarKostenExBtw: 0,
     investeringen: [],
     maandenVerstreken,
   });
 
   const estimatedIncomeTax = Math.max(0, projection.nettoIB);
-
   const reservedTotal = estimatedVat + estimatedIncomeTax;
   const safeToSpend = Math.round((currentBalance - reservedTotal) * 100) / 100;
 
-  // Tax Shield: echte KIA-berekening bij €1.000 extra investering
   const kiaVoordeel = totalRevenueExVat > 10000
-    ? Math.round(calculateKIA(1000) * 0.3575 * 100) / 100 // marginaal tarief schijf 1
+    ? Math.round(calculateKIA(1000) * 0.3575 * 100) / 100
     : 0;
 
   return {

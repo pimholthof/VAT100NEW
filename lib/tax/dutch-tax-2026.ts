@@ -343,6 +343,7 @@ export function calculateZZPTaxProjection(input: {
   investeringen: Investment[];
   maandenVerstreken: number;
   huidigJaar?: number;
+  kilometerAftrek?: number; // €0,23/km deduction from trips
 }): TaxProjection {
   const { jaarOmzetExBtw, jaarKostenExBtw, investeringen, maandenVerstreken } =
     input;
@@ -385,9 +386,12 @@ export function calculateZZPTaxProjection(input: {
     0,
   );
 
+  // Kilometervergoeding aftrek
+  const kilometerAftrek = input.kilometerAftrek ?? 0;
+
   // Winstberekening
   const brutoWinst = round2(
-    Math.max(0, jaarOmzetExBtw - jaarKostenExBtw - totalAfschrijvingen),
+    Math.max(0, jaarOmzetExBtw - jaarKostenExBtw - totalAfschrijvingen - kilometerAftrek),
   );
 
   // Aftrekposten
@@ -421,9 +425,10 @@ export function calculateZZPTaxProjection(input: {
   const prognoseJaarKosten = round2(jaarKostenExBtw * factor);
 
   // Prognose IB berekenen met geannualiseerde cijfers
+  const prognoseKmAftrek = round2(kilometerAftrek * factor);
   const prognoseWinst = Math.max(
     0,
-    prognoseJaarOmzet - prognoseJaarKosten - totalAfschrijvingen,
+    prognoseJaarOmzet - prognoseJaarKosten - totalAfschrijvingen - prognoseKmAftrek,
   );
   const prognoseZA = Math.min(ZELFSTANDIGENAFTREK, prognoseWinst);
   const prognoseNaAftrek = Math.max(0, prognoseWinst - prognoseZA);

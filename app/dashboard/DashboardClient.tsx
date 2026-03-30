@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { FiscalPulse } from "@/features/dashboard/components/FiscalPulse";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
+import { QuickLogWidget } from "@/features/dashboard/components/QuickLogWidget";
 
 
 
@@ -174,6 +175,17 @@ export default function DashboardClient({
             currentBalance={safeToSpend.currentBalance} 
             isLoading={isLoading}
           />
+        </motion.div>
+      )}
+
+      {/* ── QUICK LOG: Uren & Ritten ── */}
+      {!isLoading && (
+        <motion.div variants={itemVariants}>
+          <h2 className="brutalist-section-title">
+            <span>Snel registreren</span>
+            <span className="brutalist-rule" />
+          </h2>
+          <QuickLogWidget />
         </motion.div>
       )}
 
