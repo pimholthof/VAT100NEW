@@ -106,7 +106,7 @@ BEGIN
 
     -- 9. Recent invoices (5)
     'recentInvoices', COALESCE((
-      SELECT jsonb_agg(row_to_jsonb(r) ORDER BY r.created_at DESC)
+      SELECT jsonb_agg(to_jsonb(r))
       FROM (
         SELECT i.id, i.invoice_number, i.status, i.issue_date, i.total_inc_vat,
                COALESCE(c.name, '—') AS client_name
@@ -120,7 +120,7 @@ BEGIN
 
     -- 10. Upcoming invoices (10)
     'upcomingInvoices', COALESCE((
-      SELECT jsonb_agg(row_to_jsonb(r) ORDER BY r.due_date ASC)
+      SELECT jsonb_agg(to_jsonb(r))
       FROM (
         SELECT i.id, i.invoice_number, i.status, i.due_date, i.total_inc_vat,
                COALESCE(c.name, '—') AS client_name,
