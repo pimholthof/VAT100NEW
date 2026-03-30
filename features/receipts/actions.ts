@@ -101,6 +101,21 @@ export async function createReceipt(
     .single();
 
   if (error) return { error: error.message };
+
+  // Auto-create ledger entries
+  if (data && input.receipt_date) {
+    const { createReceiptLedgerEntries } = await import("@/features/ledger/actions");
+    await createReceiptLedgerEntries(
+      user.id,
+      data.id,
+      input.receipt_date,
+      input.vendor_name?.trim() || "Onbekend",
+      input.cost_code ?? null,
+      amountExVat,
+      vatAmount,
+    ).catch(() => {}); // Non-blocking: ledger failure shouldn't block receipt creation
+  }
+
   return { error: null, data };
 }
 
@@ -140,6 +155,22 @@ export async function updateReceipt(
     .single();
 
   if (error) return { error: error.message };
+
+  // Re-create ledger entries (delete old, create new)
+  if (data && input.receipt_date) {
+    const { deleteLedgerEntriesForReceipt, createReceiptLedgerEntries } = await import("@/features/ledger/actions");
+    await deleteLedgerEntriesForReceipt(id).catch(() => {});
+    await createReceiptLedgerEntries(
+      user.id,
+      id,
+      input.receipt_date,
+      input.vendor_name?.trim() || "Onbekend",
+      input.cost_code ?? null,
+      amountExVat,
+      vatAmount,
+    ).catch(() => {});
+  }
+
   return { error: null, data };
 }
 

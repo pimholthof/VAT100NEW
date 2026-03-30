@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAuth } from "@/lib/supabase/server";
-import type { ActionResult, Asset, AssetInput } from "@/lib/types";
+import type { ActionResult, Asset, AssetInput, DepreciationLine, DepreciationLineInput } from "@/lib/types";
 import { assetSchema, uuidSchema, validate } from "@/lib/validation";
 import {
   calculateYearlyDepreciation,
@@ -188,4 +188,74 @@ export async function getActivastaat(
       totaalBoekwaarde: round2(totaalBoekwaarde),
     },
   };
+}
+
+// ─── Depreciation Lines: per-year overrides / willekeurige afschrijving ───
+
+export async function getDepreciationLines(
+  assetId: string,
+): Promise<ActionResult<DepreciationLine[]>> {
+  const idCheck = uuidSchema.safeParse(assetId);
+  if (!idCheck.success) return { error: "Ongeldig ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { data, error } = await supabase
+    .from("depreciation_lines")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("asset_id", assetId)
+    .order("year", { ascending: true });
+
+  if (error) return { error: error.message };
+  return { error: null, data: (data ?? []) as DepreciationLine[] };
+}
+
+export async function upsertDepreciationLine(
+  input: DepreciationLineInput,
+): Promise<ActionResult<DepreciationLine>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  if (input.amount < 0) return { error: "Afschrijvingsbedrag mag niet negatief zijn." };
+
+  const { data, error } = await supabase
+    .from("depreciation_lines")
+    .upsert(
+      {
+        user_id: user.id,
+        asset_id: input.asset_id,
+        year: input.year,
+        amount: input.amount,
+        is_arbitrary: input.is_arbitrary ?? false,
+        notes: input.notes?.trim() || null,
+      },
+      { onConflict: "asset_id,year" },
+    )
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  return { error: null, data: data as DepreciationLine };
+}
+
+export async function deleteDepreciationLine(id: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { error } = await supabase
+    .from("depreciation_lines")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  return { error: null };
 }

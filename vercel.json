@@ -5,7 +5,7 @@
       "schedule": "0 6 * * *"
     },
     {
-      "path": "/api/agents/reconcile",
+      "path": "/api/cron/agents",
       "schedule": "0 7 * * *"
     }
   ]

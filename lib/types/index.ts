@@ -413,6 +413,122 @@ export interface OpeningBalanceInput {
   overige_passiva: number;
 }
 
+// ─── VAT Return types ───
+
+export type VatReturnStatus = "open" | "filed" | "accepted";
+
+export interface VatReturn {
+  id: string;
+  user_id: string;
+  year: number;
+  quarter: number;
+  status: VatReturnStatus;
+  revenue_ex_vat: number;
+  output_vat: number;
+  input_vat: number;
+  net_vat: number;
+  eu_supplies: number;
+  eu_acquisitions: number;
+  export_outside_eu: number;
+  filed_at: string | null;
+  reference: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface VatReturnInput {
+  reference?: string;
+  notes?: string;
+}
+
+// ─── Ledger types ───
+
+export interface LedgerEntry {
+  id: string;
+  user_id: string;
+  entry_date: string;
+  description: string;
+  account_code: number;
+  account_name: string;
+  debit: number;
+  credit: number;
+  invoice_id: string | null;
+  receipt_id: string | null;
+  asset_id: string | null;
+  vat_amount: number;
+  is_representatie: boolean;
+  split_percentage: number;
+  notes: string | null;
+  created_at: string;
+}
+
+// ─── Depreciation Line types ───
+
+export interface DepreciationLine {
+  id: string;
+  user_id: string;
+  asset_id: string;
+  year: number;
+  amount: number;
+  is_arbitrary: boolean;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface DepreciationLineInput {
+  asset_id: string;
+  year: number;
+  amount: number;
+  is_arbitrary?: boolean;
+  notes?: string | null;
+}
+
+// ─── Hours Log types ───
+
+export interface HoursLogEntry {
+  id: string;
+  user_id: string;
+  work_date: string;
+  hours: number;
+  description: string | null;
+  project: string | null;
+  client_id: string | null;
+  created_at: string;
+}
+
+export interface HoursLogInput {
+  work_date: string;
+  hours: number;
+  description?: string | null;
+  project?: string | null;
+  client_id?: string | null;
+}
+
+// ─── Trip types ───
+
+export interface Trip {
+  id: string;
+  user_id: string;
+  trip_date: string;
+  description: string;
+  origin: string | null;
+  destination: string | null;
+  distance_km: number;
+  is_return_trip: boolean;
+  client_id: string | null;
+  created_at: string;
+}
+
+export interface TripInput {
+  trip_date: string;
+  description: string;
+  origin?: string | null;
+  destination?: string | null;
+  distance_km: number;
+  is_return_trip?: boolean;
+  client_id?: string | null;
+}
+
 // ─── Import types ───
 
 export interface ImportMapping {

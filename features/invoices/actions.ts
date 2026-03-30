@@ -53,6 +53,23 @@ export async function createInvoice(
 
   try {
     const invoiceId = await createInvoiceInService(supabase, user.id, input);
+
+    // Auto-create ledger entries for non-draft invoices
+    if (input.status !== "draft") {
+      const { createInvoiceLedgerEntries } = await import("@/features/ledger/actions");
+      const subtotal = input.lines.reduce((s, l) => s + l.quantity * l.rate, 0);
+      const vatAmount = Math.round(subtotal * (input.vat_rate / 100) * 100) / 100;
+      await createInvoiceLedgerEntries(
+        user.id,
+        invoiceId,
+        input.issue_date,
+        `Factuur ${input.invoice_number}`,
+        subtotal,
+        input.vat_scheme === "standard" ? vatAmount : 0,
+        input.vat_scheme ?? "standard",
+      ).catch(() => {});
+    }
+
     return { error: null, data: invoiceId };
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };
