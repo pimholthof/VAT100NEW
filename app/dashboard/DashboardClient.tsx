@@ -11,6 +11,7 @@ import { formatCurrency } from "@/lib/format";
 
 import {
   StatCard,
+  SkeletonTable,
 } from "@/components/ui";
 import { FiscalPulse } from "@/features/dashboard/components/FiscalPulse";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
@@ -201,7 +202,7 @@ export default function DashboardClient({
         ) : (
           <p className="empty-state">Geen openstaande facturen</p>
         )}
-      </div>
+      </motion.div>
 
 
     </motion.div>

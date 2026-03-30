@@ -64,8 +64,8 @@ export function StatCard({
           >
             {sub}
           </p>
-        ) : null}
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 }

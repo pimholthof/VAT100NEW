@@ -14,6 +14,7 @@ const validInput: InvoiceInput = {
   client_id: "abc-123",
   invoice_number: "FAC-001",
   status: "draft",
+  vat_scheme: "standard",
   issue_date: "2026-03-15",
   due_date: null,
   vat_rate: 21,
