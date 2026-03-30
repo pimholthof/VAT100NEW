@@ -20,6 +20,7 @@ export interface BulkReceiptResult {
   fileName: string;
   status: "success" | "error" | "processing";
   error?: string;
+  aiError?: string;
   aiData?: Partial<
     ReceiptInput & { cost_code: number | null; confidence: number }
   >;
@@ -31,7 +32,7 @@ interface BulkReceiptCardProps {
 }
 
 export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!!result.aiError);
   const [vendorName, setVendorName] = useState(
     result.aiData?.vendor_name ?? ""
   );
@@ -225,6 +226,22 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
           {editing ? "Sluiten" : "Bewerken"}
         </button>
       </div>
+
+      {/* AI scan unavailable hint */}
+      {result.aiError && !editing && (
+        <p
+          style={{
+            fontSize: "var(--text-label)",
+            fontWeight: 400,
+            margin: "8px 0 0",
+            opacity: 0.45,
+            paddingLeft: 26,
+          }}
+        >
+          AI-scan niet beschikbaar — vul de gegevens handmatig in via
+          &quot;Bewerken&quot;.
+        </p>
+      )}
 
       {/* Expandable edit form */}
       {editing && (

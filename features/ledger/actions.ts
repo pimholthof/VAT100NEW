@@ -5,7 +5,7 @@ import type { ActionResult, LedgerEntry, LedgerEntryInput, LedgerAccount } from 
 
 // ─── Ledger Account Constants ───
 
-export const ACCOUNTS = {
+const ACCOUNTS = {
   BANK: 1000,
   KAS: 1100,
   DEBITEUREN: 1300,

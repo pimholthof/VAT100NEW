@@ -69,137 +69,145 @@ export async function getReceipt(
 export async function createReceipt(
   input: ReceiptInput
 ): Promise<ActionResult<Receipt>> {
-  const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error };
-  const { supabase, user } = auth;
+  try {
+    const auth = await requireAuth();
+    if (auth.error !== null) return { error: auth.error };
+    const { supabase, user } = auth;
 
-  const v = validate(receiptSchema, input);
-  if (v.error) return { error: v.error };
+    const v = validate(receiptSchema, input);
+    if (v.error) return { error: v.error };
 
-  const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
-  const amountExVat = vat.subtotalExVat;
-  const vatRate = input.vat_rate ?? 21;
-  let vatAmount = vat.vatAmount;
-  const category = input.category || "Overig";
-  const costCode = input.cost_code ?? null;
+    const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
+    const amountExVat = vat.subtotalExVat;
+    const vatRate = input.vat_rate ?? 21;
+    let vatAmount = vat.vatAmount;
+    const category = input.category || "Overig";
+    const costCode = input.cost_code ?? null;
 
-  // Horeca: force deductible VAT to 0 (conform wetgeving)
-  const isHoreca = category === "Eten & drinken horeca" || category === "Eten & drinken zakelijk";
-  if (isHoreca) vatAmount = 0;
+    // Horeca: force deductible VAT to 0 (conform wetgeving)
+    const isHoreca = category === "Eten & drinken horeca" || category === "Eten & drinken zakelijk";
+    if (isHoreca) vatAmount = 0;
 
-  const amountIncVat = amountExVat + vatAmount;
+    const amountIncVat = amountExVat + vatAmount;
 
-  // Representatie 80/20 split: set business_percentage to 80
-  const isRepresentatie = costCode === 4500 || category === "Representatie";
-  const businessPercentage = isRepresentatie ? 80 : (input.business_percentage ?? 100);
+    // Representatie 80/20 split: set business_percentage to 80
+    const isRepresentatie = costCode === 4500 || category === "Representatie";
+    const businessPercentage = isRepresentatie ? 80 : (input.business_percentage ?? 100);
 
-  const { data, error } = await supabase
-    .from("receipts")
-    .insert({
-      user_id: user.id,
-      vendor_name: input.vendor_name?.trim() || null,
-      amount_ex_vat: amountExVat,
-      vat_rate: vatRate,
-      vat_amount: vatAmount,
-      amount_inc_vat: amountIncVat,
+    const { data, error } = await supabase
+      .from("receipts")
+      .insert({
+        user_id: user.id,
+        vendor_name: input.vendor_name?.trim() || null,
+        amount_ex_vat: amountExVat,
+        vat_rate: vatRate,
+        vat_amount: vatAmount,
+        amount_inc_vat: amountIncVat,
+        category,
+        cost_code: costCode,
+        receipt_date: input.receipt_date || null,
+        ai_processed: false,
+        business_percentage: businessPercentage,
+      })
+      .select()
+      .single();
+
+    if (error) return { error: error.message };
+
+    // Auto-book to ledger
+    const { autoBookReceipt } = await import("@/features/ledger/actions");
+    await autoBookReceipt({
+      receiptId: data.id,
+      userId: user.id,
+      entryDate: input.receipt_date || new Date().toISOString().split("T")[0],
+      description: input.vendor_name?.trim() || "Onbekende leverancier",
+      costCode: costCode || 4999,
+      amountExVat,
+      vatAmount,
+      businessPercentage,
       category,
-      cost_code: costCode,
-      receipt_date: input.receipt_date || null,
-      ai_processed: false,
-      business_percentage: businessPercentage,
-    })
-    .select()
-    .single();
+      supabase,
+    }).catch(() => {}); // Non-fatal: ledger is best-effort
 
-  if (error) return { error: error.message };
-
-  // Auto-book to ledger
-  const { autoBookReceipt } = await import("@/features/ledger/actions");
-  await autoBookReceipt({
-    receiptId: data.id,
-    userId: user.id,
-    entryDate: input.receipt_date || new Date().toISOString().split("T")[0],
-    description: input.vendor_name?.trim() || "Onbekende leverancier",
-    costCode: costCode || 4999,
-    amountExVat,
-    vatAmount,
-    businessPercentage,
-    category,
-    supabase,
-  }).catch(() => {}); // Non-fatal: ledger is best-effort
-
-  return { error: null, data };
+    return { error: null, data };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Fout bij aanmaken bon." };
+  }
 }
 
 export async function updateReceipt(
   id: string,
   input: ReceiptInput
 ): Promise<ActionResult<Receipt>> {
-  const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error };
-  const { supabase, user } = auth;
+  try {
+    const auth = await requireAuth();
+    if (auth.error !== null) return { error: auth.error };
+    const { supabase, user } = auth;
 
-  const v = validate(receiptSchema, input);
-  if (v.error) return { error: v.error };
+    const v = validate(receiptSchema, input);
+    if (v.error) return { error: v.error };
 
-  const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
-  const amountExVat = vat.subtotalExVat;
-  const vatRate = input.vat_rate ?? 21;
-  const category = input.category || "Overig";
-  const costCode = input.cost_code ?? null;
+    const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
+    const amountExVat = vat.subtotalExVat;
+    const vatRate = input.vat_rate ?? 21;
+    const category = input.category || "Overig";
+    const costCode = input.cost_code ?? null;
 
-  // Horeca: force deductible VAT to 0 (conform wetgeving)
-  const isHoreca = category === "Eten & drinken horeca" || category === "Eten & drinken zakelijk";
-  let vatAmount = isHoreca ? 0 : vat.vatAmount;
+    // Horeca: force deductible VAT to 0 (conform wetgeving)
+    const isHoreca = category === "Eten & drinken horeca" || category === "Eten & drinken zakelijk";
+    let vatAmount = isHoreca ? 0 : vat.vatAmount;
 
-  const amountIncVat = amountExVat + vatAmount;
+    const amountIncVat = amountExVat + vatAmount;
 
-  // Representatie 80/20 split
-  const isRepresentatie = costCode === 4500 || category === "Representatie";
-  const businessPercentage = isRepresentatie ? 80 : (input.business_percentage ?? 100);
+    // Representatie 80/20 split
+    const isRepresentatie = costCode === 4500 || category === "Representatie";
+    const businessPercentage = isRepresentatie ? 80 : (input.business_percentage ?? 100);
 
-  const { data, error } = await supabase
-    .from("receipts")
-    .update({
-      vendor_name: input.vendor_name?.trim() || null,
-      amount_ex_vat: amountExVat,
-      vat_rate: vatRate,
-      vat_amount: vatAmount,
-      amount_inc_vat: amountIncVat,
+    const { data, error } = await supabase
+      .from("receipts")
+      .update({
+        vendor_name: input.vendor_name?.trim() || null,
+        amount_ex_vat: amountExVat,
+        vat_rate: vatRate,
+        vat_amount: vatAmount,
+        amount_inc_vat: amountIncVat,
+        category,
+        cost_code: costCode,
+        receipt_date: input.receipt_date || null,
+        business_percentage: businessPercentage,
+      })
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select()
+      .single();
+
+    if (error) return { error: error.message };
+
+    // Remove old ledger entries for this receipt and re-book
+    await supabase
+      .from("ledger_entries")
+      .delete()
+      .eq("source_receipt_id", id)
+      .eq("user_id", user.id);
+
+    const { autoBookReceipt } = await import("@/features/ledger/actions");
+    await autoBookReceipt({
+      receiptId: id,
+      userId: user.id,
+      entryDate: input.receipt_date || new Date().toISOString().split("T")[0],
+      description: input.vendor_name?.trim() || "Onbekende leverancier",
+      costCode: costCode || 4999,
+      amountExVat,
+      vatAmount,
+      businessPercentage,
       category,
-      cost_code: costCode,
-      receipt_date: input.receipt_date || null,
-      business_percentage: businessPercentage,
-    })
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .select()
-    .single();
+      supabase,
+    }).catch(() => {});
 
-  if (error) return { error: error.message };
-
-  // Remove old ledger entries for this receipt and re-book
-  await supabase
-    .from("ledger_entries")
-    .delete()
-    .eq("source_receipt_id", id)
-    .eq("user_id", user.id);
-
-  const { autoBookReceipt } = await import("@/features/ledger/actions");
-  await autoBookReceipt({
-    receiptId: id,
-    userId: user.id,
-    entryDate: input.receipt_date || new Date().toISOString().split("T")[0],
-    description: input.vendor_name?.trim() || "Onbekende leverancier",
-    costCode: costCode || 4999,
-    amountExVat,
-    vatAmount,
-    businessPercentage,
-    category,
-    supabase,
-  }).catch(() => {});
-
-  return { error: null, data };
+    return { error: null, data };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Fout bij bijwerken bon." };
+  }
 }
 
 export async function deleteReceipt(id: string): Promise<ActionResult> {
@@ -247,53 +255,57 @@ export async function uploadReceiptImage(
   receiptId: string,
   formData: FormData
 ): Promise<ActionResult<string>> {
-  const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error };
-  const { supabase, user } = auth;
+  try {
+    const auth = await requireAuth();
+    if (auth.error !== null) return { error: auth.error };
+    const { supabase, user } = auth;
 
-  const file = formData.get("file") as File | null;
-  if (!file) return { error: "Geen bestand geselecteerd." };
+    const file = formData.get("file") as File | null;
+    if (!file) return { error: "Geen bestand geselecteerd." };
 
-  const isImage = file.type.startsWith("image/");
-  const isPdf = file.type === "application/pdf";
-  if (!isImage && !isPdf) {
-    return { error: "Alleen afbeeldingen en PDF-bestanden zijn toegestaan." };
+    const isImage = file.type.startsWith("image/");
+    const isPdf = file.type === "application/pdf";
+    if (!isImage && !isPdf) {
+      return { error: "Alleen afbeeldingen en PDF-bestanden zijn toegestaan." };
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      return { error: "Bestand is te groot (max 10MB)." };
+    }
+
+    // Server-side magic byte validation (MIME type headers are spoofable)
+    const headerBytes = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+    const isJpeg = headerBytes[0] === 0xff && headerBytes[1] === 0xd8;
+    const isPng = headerBytes[0] === 0x89 && headerBytes[1] === 0x50 && headerBytes[2] === 0x4e && headerBytes[3] === 0x47;
+    const isWebp = headerBytes[0] === 0x52 && headerBytes[1] === 0x49; // RIFF
+    const isPdfBytes = headerBytes[0] === 0x25 && headerBytes[1] === 0x50 && headerBytes[2] === 0x44 && headerBytes[3] === 0x46; // %PDF
+    if (!isJpeg && !isPng && !isWebp && !isPdfBytes) {
+      return { error: "Ongeldig bestandstype. Upload een JPEG, PNG, WebP afbeelding of PDF." };
+    }
+
+    // Sanitize filename: extract extension, use UUID to prevent path traversal
+    const ext = (file.name.split(".").pop() ?? "jpg").replace(/[^a-zA-Z0-9]/g, "");
+    const safeFilename = `${crypto.randomUUID()}.${ext}`;
+    const storagePath = `${user.id}/${receiptId}/${safeFilename}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("receipts")
+      .upload(storagePath, file, { upsert: true });
+
+    if (uploadError) return { error: uploadError.message };
+
+    const { error: updateError } = await supabase
+      .from("receipts")
+      .update({ storage_path: storagePath })
+      .eq("id", receiptId)
+      .eq("user_id", user.id);
+
+    if (updateError) return { error: updateError.message };
+
+    return { error: null, data: storagePath };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Fout bij uploaden bestand." };
   }
-
-  if (file.size > 10 * 1024 * 1024) {
-    return { error: "Bestand is te groot (max 10MB)." };
-  }
-
-  // Server-side magic byte validation (MIME type headers are spoofable)
-  const headerBytes = new Uint8Array(await file.slice(0, 4).arrayBuffer());
-  const isJpeg = headerBytes[0] === 0xff && headerBytes[1] === 0xd8;
-  const isPng = headerBytes[0] === 0x89 && headerBytes[1] === 0x50 && headerBytes[2] === 0x4e && headerBytes[3] === 0x47;
-  const isWebp = headerBytes[0] === 0x52 && headerBytes[1] === 0x49; // RIFF
-  const isPdfBytes = headerBytes[0] === 0x25 && headerBytes[1] === 0x50 && headerBytes[2] === 0x44 && headerBytes[3] === 0x46; // %PDF
-  if (!isJpeg && !isPng && !isWebp && !isPdfBytes) {
-    return { error: "Ongeldig bestandstype. Upload een JPEG, PNG, WebP afbeelding of PDF." };
-  }
-
-  // Sanitize filename: extract extension, use UUID to prevent path traversal
-  const ext = (file.name.split(".").pop() ?? "jpg").replace(/[^a-zA-Z0-9]/g, "");
-  const safeFilename = `${crypto.randomUUID()}.${ext}`;
-  const storagePath = `${user.id}/${receiptId}/${safeFilename}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("receipts")
-    .upload(storagePath, file, { upsert: true });
-
-  if (uploadError) return { error: uploadError.message };
-
-  const { error: updateError } = await supabase
-    .from("receipts")
-    .update({ storage_path: storagePath })
-    .eq("id", receiptId)
-    .eq("user_id", user.id);
-
-  if (updateError) return { error: updateError.message };
-
-  return { error: null, data: storagePath };
 }
 
 export async function getReceiptImageUrl(
@@ -314,49 +326,50 @@ export async function getReceiptImageUrl(
 export async function scanReceiptWithAI(
   receiptId: string
 ): Promise<ActionResult<Partial<ReceiptInput & { cost_code: number | null; confidence: number }>>> {
-  const idCheck = uuidSchema.safeParse(receiptId);
-  if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+  try {
+    const idCheck = uuidSchema.safeParse(receiptId);
+    if (!idCheck.success) return { error: "Ongeldig bon-ID." };
 
-  // Feature-gate: AI scan is Compleet-only
-  const { requirePlan } = await import("@/lib/supabase/server");
-  const planCheck = await requirePlan("compleet");
-  if (planCheck.error) return { error: planCheck.error };
+    // Feature-gate: AI scan is Compleet-only
+    const { requirePlan } = await import("@/lib/supabase/server");
+    const planCheck = await requirePlan("compleet");
+    if (planCheck.error) return { error: planCheck.error };
 
-  const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error };
-  const { supabase, user } = auth;
+    const auth = await requireAuth();
+    if (auth.error !== null) return { error: auth.error };
+    const { supabase, user } = auth;
 
-  // Get receipt to find storage_path
-  const { data: receipt, error: receiptError } = await supabase
-    .from("receipts")
-    .select("storage_path")
-    .eq("id", receiptId)
-    .eq("user_id", user.id)
-    .single();
+    // Get receipt to find storage_path
+    const { data: receipt, error: receiptError } = await supabase
+      .from("receipts")
+      .select("storage_path")
+      .eq("id", receiptId)
+      .eq("user_id", user.id)
+      .single();
 
-  if (receiptError || !receipt?.storage_path) {
-    return { error: "Bon-afbeelding niet gevonden." };
-  }
+    if (receiptError || !receipt?.storage_path) {
+      return { error: "Bon-afbeelding niet gevonden." };
+    }
 
-  // Download image from storage
-  const { data: fileData, error: downloadError } = await supabase.storage
-    .from("receipts")
-    .download(receipt.storage_path);
+    // Download image from storage
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from("receipts")
+      .download(receipt.storage_path);
 
-  if (downloadError || !fileData) {
-    return { error: "Kon afbeelding niet downloaden." };
-  }
+    if (downloadError || !fileData) {
+      return { error: "Kon afbeelding niet downloaden." };
+    }
 
-  const buffer = Buffer.from(await fileData.arrayBuffer());
-  const base64 = buffer.toString("base64");
-  const mimeType = fileData.type || "image/jpeg";
-  const isPdfFile = buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46;
+    const buffer = Buffer.from(await fileData.arrayBuffer());
+    const base64 = buffer.toString("base64");
+    const mimeType = fileData.type || "image/jpeg";
+    const isPdfFile = buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46;
 
-  // Call Anthropic API
-  const Anthropic = (await import("@anthropic-ai/sdk")).default;
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    // Call Anthropic API
+    const Anthropic = (await import("@anthropic-ai/sdk")).default;
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen in het administratiesysteem VAT100. Analyseer het document en extraheer alle informatie. Retourneer UITSLUITEND valide JSON zonder expliciete markdown backticks rondom de JSON.
+    const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen in het administratiesysteem VAT100. Analyseer het document en extraheer alle informatie. Retourneer UITSLUITEND valide JSON zonder expliciete markdown backticks rondom de JSON.
 Velden in het JSON object:
 - vendor_name (string): naam van de winkel/leverancier
 - receipt_date (string): datum in YYYY-MM-DD format
@@ -367,7 +380,6 @@ Velden in het JSON object:
 - confidence (number 0-1): hoe zeker je bent van je extractie (bijv. 0.95)
 Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
 
-  try {
     const documentContent = isPdfFile
       ? {
           type: "document" as const,
@@ -434,18 +446,22 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
 export async function markReceiptAiProcessed(
   id: string
 ): Promise<ActionResult> {
-  const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error };
-  const { supabase, user } = auth;
+  try {
+    const auth = await requireAuth();
+    if (auth.error !== null) return { error: auth.error };
+    const { supabase, user } = auth;
 
-  const { error } = await supabase
-    .from("receipts")
-    .update({ ai_processed: true })
-    .eq("id", id)
-    .eq("user_id", user.id);
+    const { error } = await supabase
+      .from("receipts")
+      .update({ ai_processed: true })
+      .eq("id", id)
+      .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
-  return { error: null };
+    if (error) return { error: error.message };
+    return { error: null };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Fout bij markeren als verwerkt." };
+  }
 }
 
 /**
