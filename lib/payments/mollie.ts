@@ -11,6 +11,9 @@ function getMollieKey(): string | null {
   return process.env.MOLLIE_API_KEY ?? null;
 }
 
+const MOLLIE_TIMEOUT_MS = 15_000;
+const MOLLIE_MAX_RETRIES = 1;
+
 export async function mollieRequest<T>(
   method: "GET" | "POST" | "DELETE",
   path: string,
@@ -19,26 +22,49 @@ export async function mollieRequest<T>(
   const apiKey = getMollieKey();
   if (!apiKey) return { error: "Mollie API-sleutel niet geconfigureerd." };
 
-  try {
-    const response = await fetch(`${MOLLIE_API_BASE}${path}`, {
-      method,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  for (let attempt = 0; attempt <= MOLLIE_MAX_RETRIES; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), MOLLIE_TIMEOUT_MS);
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({ detail: response.statusText }));
-      return { error: err.detail ?? `Mollie fout: ${response.status}` };
+      const response = await fetch(`${MOLLIE_API_BASE}${path}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: response.statusText }));
+        // Retry on 5xx server errors
+        if (response.status >= 500 && attempt < MOLLIE_MAX_RETRIES) {
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        return { error: err.detail ?? `Mollie fout: ${response.status}` };
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (e) {
+      // Retry on network errors / timeouts
+      if (attempt < MOLLIE_MAX_RETRIES) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      const message = e instanceof Error
+        ? e.name === "AbortError" ? "Mollie timeout (15s)" : e.message
+        : "Onbekende Mollie fout.";
+      return { error: message };
     }
-
-    const data = await response.json();
-    return { data };
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : "Onbekende Mollie fout." };
   }
+
+  return { error: "Mollie verzoek mislukt na retry." };
 }
 
 export interface MolliePayment {

@@ -24,6 +24,15 @@ const STATUS_LABELS: Record<string, string> = {
   overdue: "Te laat",
 };
 
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  ideal: "iDEAL",
+  creditcard: "Creditcard",
+  banktransfer: "Bankoverschrijving",
+  paypal: "PayPal",
+  applepay: "Apple Pay",
+  online: "Online",
+};
+
 const QUOTE_STATUS_OPTIONS = [
   { value: "draft", label: "Concept" },
   { value: "sent", label: "Verstuurd" },
@@ -247,6 +256,16 @@ function InvoicesTab() {
                       <option value="paid">{STATUS_LABELS.paid}</option>
                       <option value="overdue">{STATUS_LABELS.overdue}</option>
                     </select>
+                    {invoice.status === "paid" && invoice.payment_method && (
+                      <span style={{ fontSize: 10, opacity: 0.35, marginLeft: 4 }}>
+                        via {PAYMENT_METHOD_LABELS[invoice.payment_method] ?? invoice.payment_method}
+                      </span>
+                    )}
+                    {invoice.status !== "paid" && invoice.status !== "draft" && invoice.payment_link && (
+                      <span style={{ fontSize: 10, opacity: 0.35, marginLeft: 4 }}>
+                        betaallink
+                      </span>
+                    )}
                   </Td>
                   <Td style={{ textAlign: "right" }}>
                     <span

@@ -112,26 +112,40 @@ async function handleInvoicePayment(
   payment: Awaited<ReturnType<typeof getMolliePayment>>["data"] & {},
   paymentId: string,
 ) {
-  // Alleen verwerken als de betaling daadwerkelijk betaald is
-  if (payment.status !== "paid") {
-    return NextResponse.json({ status: "ignored", paymentStatus: payment.status });
-  }
-
   const supabase = createServiceClient();
 
   // Zoek de factuur via mollie_payment_id
-  const { data: invoice, error: invoiceError } = await supabase
+  let invoice: { id: string; status: string } | null = null;
+
+  const { data: byPaymentId } = await supabase
     .from("invoices")
     .select("id, status")
     .eq("mollie_payment_id", paymentId)
-    .single();
+    .maybeSingle();
 
-  if (invoiceError || !invoice) {
+  invoice = byPaymentId;
+
+  // Fallback: zoek via metadata.invoice_id als mollie_payment_id geen match geeft
+  if (!invoice && payment.metadata?.invoice_id) {
+    const { data: byMetadata } = await supabase
+      .from("invoices")
+      .select("id, status")
+      .eq("id", payment.metadata.invoice_id)
+      .maybeSingle();
+    invoice = byMetadata;
+  }
+
+  if (!invoice) {
     return NextResponse.json({ error: "Factuur niet gevonden voor deze betaling" }, { status: 404 });
   }
 
-  // Update factuurstatus naar betaald
-  if (invoice.status !== "paid") {
+  // Betaling succesvol
+  if (payment.status === "paid") {
+    // Idempotency: als factuur al betaald is, return OK
+    if (invoice.status === "paid") {
+      return NextResponse.json({ status: "already_paid", invoiceId: invoice.id });
+    }
+
     await supabase
       .from("invoices")
       .update({
@@ -139,7 +153,23 @@ async function handleInvoicePayment(
         payment_method: payment.method ?? "online",
       })
       .eq("id", invoice.id);
+
+    return NextResponse.json({ status: "processed", invoiceId: invoice.id });
   }
 
-  return NextResponse.json({ status: "processed", invoiceId: invoice.id });
+  // Expired/failed/canceled: reset betaallink zodat een nieuwe kan worden aangemaakt
+  if (["expired", "failed", "canceled"].includes(payment.status)) {
+    await supabase
+      .from("invoices")
+      .update({
+        mollie_payment_id: null,
+        payment_link: null,
+      })
+      .eq("id", invoice.id);
+
+    return NextResponse.json({ status: "payment_reset", invoiceId: invoice.id, paymentStatus: payment.status });
+  }
+
+  // Overige statussen (open, pending, authorized)
+  return NextResponse.json({ status: "ignored", paymentStatus: payment.status });
 }

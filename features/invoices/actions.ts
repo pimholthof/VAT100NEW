@@ -53,6 +53,12 @@ export async function createInvoice(
 
   try {
     const invoiceId = await createInvoiceInService(supabase, user.id, input);
+
+    // Auto-create payment link for non-draft invoices (best-effort)
+    if (input.status !== "draft") {
+      createPaymentLink(invoiceId).catch(() => {});
+    }
+
     return { error: null, data: invoiceId };
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };
@@ -180,12 +186,36 @@ export async function sendReminder(invoiceId: string, customMessage?: string): P
       return { error: "Klant heeft geen e-mailadres." };
     }
 
+    // Ensure payment link is valid before sending reminder
+    const { data: inv } = await supabase
+      .from("invoices")
+      .select("payment_link, mollie_payment_id")
+      .eq("id", invoiceId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!inv?.payment_link) {
+      await createPaymentLink(invoiceId).catch(() => {});
+    } else if (inv.mollie_payment_id) {
+      // Check if existing payment is still valid
+      const { getMolliePayment } = await import("@/lib/payments/mollie");
+      const { data: existing } = await getMolliePayment(inv.mollie_payment_id);
+      if (existing && ["expired", "canceled", "failed"].includes(existing.status)) {
+        // Reset and create fresh link
+        await supabase
+          .from("invoices")
+          .update({ mollie_payment_id: null, payment_link: null } as Record<string, unknown>)
+          .eq("id", invoiceId)
+          .eq("user_id", user.id);
+        await createPaymentLink(invoiceId).catch(() => {});
+      }
+    }
+
     const result = await fetchInvoiceData(invoiceId);
     if (result.error || !result.data) {
       return { error: result.error ?? "Kon factuurgegevens niet ophalen." };
     }
 
-    // Email is not a DB interaction; keeping in action layer.
     return sendReminderEmail(result.data, customMessage);
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };
@@ -339,13 +369,28 @@ export async function createPaymentLink(
     return { error: "Factuur is al betaald." };
   }
 
-  // Als er al een betaallink is, retourneer die
+  // Bedrag validatie
+  const amount = Number(invoice.total_inc_vat);
+  if (!amount || amount <= 0) {
+    return { error: "Factuurbedrag moet groter dan €0 zijn." };
+  }
+
+  // Als er al een Mollie payment is, check de status
   const existingMollieId = (invoice as Record<string, unknown>).mollie_payment_id as string | null;
   if (existingMollieId) {
     const { getMolliePayment } = await import("@/lib/payments/mollie");
     const { data: existing } = await getMolliePayment(existingMollieId);
     if (existing?._links?.checkout?.href && existing.status === "open") {
+      // Bestaande actieve link hergebruiken
       return { error: null, data: { paymentLink: existing._links.checkout.href } };
+    }
+    // Expired/canceled/failed: reset zodat we een nieuwe kunnen aanmaken
+    if (existing && ["expired", "canceled", "failed"].includes(existing.status)) {
+      await supabase
+        .from("invoices")
+        .update({ mollie_payment_id: null, payment_link: null } as Record<string, unknown>)
+        .eq("id", invoice.id)
+        .eq("user_id", user.id);
     }
   }
 
@@ -356,16 +401,24 @@ export async function createPaymentLink(
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.vat100.nl";
-  const token = invoice.share_token;
+  let token = invoice.share_token;
+
+  // Genereer share_token als die ontbreekt (nodig voor redirect na betaling)
+  if (!token) {
+    token = crypto.randomUUID();
+    await supabase
+      .from("invoices")
+      .update({ share_token: token })
+      .eq("id", invoice.id)
+      .eq("user_id", user.id);
+  }
 
   const { data: payment, error: paymentError } = await createMolliePayment({
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoice_number,
-    amount: Number(invoice.total_inc_vat),
+    amount,
     description: `Factuur ${invoice.invoice_number}`,
-    redirectUrl: token
-      ? `${baseUrl}/invoice/${token}?betaald=1`
-      : `${baseUrl}/dashboard/invoices/${invoice.id}`,
+    redirectUrl: `${baseUrl}/invoice/${token}?betaald=1`,
     webhookUrl: `${baseUrl}/api/webhooks/mollie`,
   });
 

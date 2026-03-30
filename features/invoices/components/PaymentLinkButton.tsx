@@ -46,25 +46,54 @@ export function PaymentLinkButton({
     setIsError(false);
   };
 
+  const handleOpen = () => {
+    if (!link) return;
+    window.open(link, "_blank", "noopener,noreferrer");
+  };
+
+  const handleRefresh = async () => {
+    setLink(null);
+    await handleCreate();
+  };
+
+  const buttonBase: React.CSSProperties = {
+    fontSize: "var(--text-body-md)",
+    fontWeight: 500,
+    letterSpacing: "0.05em",
+    padding: "8px 20px",
+    cursor: "pointer",
+  };
+
+  const primaryButton: React.CSSProperties = {
+    ...buttonBase,
+    color: "#A51C30",
+    border: "1px solid #A51C30",
+    background: "transparent",
+  };
+
+  const secondaryButton: React.CSSProperties = {
+    ...buttonBase,
+    color: "var(--foreground)",
+    border: "0.5px solid rgba(13,13,11,0.2)",
+    background: "transparent",
+    opacity: 0.6,
+    fontSize: "var(--text-body-sm)",
+  };
+
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "12px" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
       {link ? (
-        <button
-          type="button"
-          onClick={handleCopy}
-          style={{
-            fontSize: "var(--text-body-md)",
-            fontWeight: 500,
-            color: "#A51C30",
-            letterSpacing: "0.05em",
-            padding: "8px 20px",
-            border: "1px solid #A51C30",
-            background: "transparent",
-            cursor: "pointer",
-          }}
-        >
-          Kopieer betaallink
-        </button>
+        <>
+          <button type="button" onClick={handleCopy} style={primaryButton}>
+            Kopieer betaallink
+          </button>
+          <button type="button" onClick={handleOpen} style={secondaryButton}>
+            Openen
+          </button>
+          <button type="button" onClick={handleRefresh} disabled={loading} style={{ ...secondaryButton, opacity: loading ? 0.3 : 0.6 }}>
+            {loading ? "Bezig..." : "Vernieuw link"}
+          </button>
+        </>
       ) : (
         <button
           type="button"
@@ -72,18 +101,12 @@ export function PaymentLinkButton({
           disabled={loading}
           aria-busy={loading}
           style={{
-            fontSize: "var(--text-body-md)",
-            fontWeight: 500,
-            color: "#A51C30",
-            letterSpacing: "0.05em",
-            padding: "8px 20px",
-            border: "1px solid #A51C30",
-            background: "transparent",
+            ...primaryButton,
             cursor: loading ? "default" : "pointer",
             opacity: loading ? 0.5 : 1,
           }}
         >
-          {loading ? "Aanmaken..." : "Betaallink"}
+          {loading ? "Aanmaken..." : "Betaallink aanmaken"}
         </button>
       )}
       <span aria-live="polite">

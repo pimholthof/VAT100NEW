@@ -24,6 +24,8 @@ export type InvoiceWithClientName = {
   notes: string | null;
   share_token: string | null;
   is_credit_note: boolean | null;
+  payment_link: string | null;
+  payment_method: string | null;
   created_at: string;
   client: { name: string } | null;
 };

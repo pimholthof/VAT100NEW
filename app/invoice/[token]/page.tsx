@@ -30,10 +30,13 @@ export async function generateMetadata({
 
 export default async function PublicInvoicePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ betaald?: string }>;
 }) {
   const { token } = await params;
+  const { betaald } = await searchParams;
 
   const result = await fetchInvoiceByToken(token);
   if (result.error || !result.data) {
@@ -43,11 +46,38 @@ export default async function PublicInvoicePage({
   const pdfUrl = `/api/invoice/public/${token}/pdf`;
   const { invoice } = result.data;
   const showPayButton = invoice.payment_link && invoice.status !== "paid";
+  const showPaidBanner = invoice.status === "paid" || betaald === "1";
 
   return (
     <div style={wrapper}>
+      {/* Betaalbevestiging banner */}
+      {showPaidBanner && (
+        <div style={{
+          width: "595px",
+          maxWidth: "100%",
+          padding: "16px 24px",
+          marginBottom: 16,
+          background: "#f0fdf4",
+          border: "1px solid #bbf7d0",
+          borderRadius: 4,
+          textAlign: "center",
+        }}>
+          <p style={{
+            margin: 0,
+            fontFamily: '"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif',
+            fontSize: 14,
+            fontWeight: 500,
+            color: "#166534",
+          }}>
+            {invoice.status === "paid"
+              ? "Deze factuur is betaald. Bedankt!"
+              : "Betaling ontvangen, bedankt! De factuurstatus wordt zo bijgewerkt."}
+          </p>
+        </div>
+      )}
+
       <div style={toolbar}>
-        {showPayButton && (
+        {showPayButton && !showPaidBanner && (
           <a href={invoice.payment_link!} style={payButton}>
             Betaal nu
           </a>
