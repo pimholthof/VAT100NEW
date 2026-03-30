@@ -53,13 +53,6 @@ export function DashboardNav({
             )}
             <button
               onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-              className="label-strong dashboard-nav-menu"
-              data-open={isDrawerOpen}
-            >
-              [ UPLOAD ]
-            </button>
-            <button
-              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
               className="label-strong"
               style={{
                 fontSize: "12px", 
