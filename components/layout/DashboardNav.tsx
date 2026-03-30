@@ -84,6 +84,7 @@ export function DashboardNav({
                 <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Activa</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
                 <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Importeren</Link>
+                <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Berichten</Link>
               </div>
 
               {/* Account */}
