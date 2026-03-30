@@ -50,6 +50,7 @@ export async function createAsset(
       is_verkocht: input.is_verkocht ?? false,
       verkoop_datum: input.verkoop_datum || null,
       verkoop_prijs: input.verkoop_prijs ?? null,
+      depreciation_method: input.depreciation_method ?? "linear",
     })
     .select()
     .single();
@@ -86,6 +87,7 @@ export async function updateAsset(
       is_verkocht: input.is_verkocht ?? false,
       verkoop_datum: input.verkoop_datum || null,
       verkoop_prijs: input.verkoop_prijs ?? null,
+      depreciation_method: input.depreciation_method ?? "linear",
     })
     .eq("id", id)
     .eq("user_id", user.id)
@@ -119,6 +121,7 @@ export async function deleteAsset(id: string): Promise<ActionResult> {
 export interface ActivastaatRow extends DepreciationRow {
   categorie: string | null;
   is_verkocht: boolean;
+  depreciation_method: string;
 }
 
 export interface Activastaat {
@@ -152,6 +155,8 @@ export async function getActivastaat(
   let totaalBoekwaarde = 0;
 
   for (const asset of assets ?? []) {
+    const method = asset.depreciation_method ?? "linear";
+
     const dep = calculateYearlyDepreciation(
       Number(asset.aanschaf_prijs),
       Number(asset.restwaarde) || 0,
@@ -160,12 +165,16 @@ export async function getActivastaat(
       year,
     );
 
+    // For 'willekeurig' method: user can depreciate up to the full
+    // remaining amount in any year (used for KIA-eligible assets)
+    // The standard calculation still applies as default/maximum
     const row: ActivastaatRow = {
       ...dep,
       id: asset.id,
       omschrijving: asset.omschrijving,
       categorie: asset.categorie,
       is_verkocht: asset.is_verkocht ?? false,
+      depreciation_method: method,
     };
 
     rijen.push(row);
@@ -188,4 +197,35 @@ export async function getActivastaat(
       totaalBoekwaarde: round2(totaalBoekwaarde),
     },
   };
+}
+
+/**
+ * Get total KIA-eligible investments from assets for a given year.
+ * Used by the Investment Agent and tax calculations.
+ */
+export async function getKiaEligibleTotal(
+  year: number,
+): Promise<ActionResult<{ total: number; count: number }>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const yearStart = `${year}-01-01`;
+  const yearEnd = `${year}-12-31`;
+
+  const { data: assets, error } = await supabase
+    .from("assets")
+    .select("aanschaf_prijs")
+    .eq("user_id", user.id)
+    .gte("aanschaf_datum", yearStart)
+    .lte("aanschaf_datum", yearEnd)
+    .gte("aanschaf_prijs", 450); // KIA minimum per item
+
+  if (error) return { error: error.message };
+
+  const total = (assets ?? []).reduce(
+    (sum, a) => sum + (Number(a.aanschaf_prijs) || 0), 0
+  );
+
+  return { error: null, data: { total, count: (assets ?? []).length } };
 }

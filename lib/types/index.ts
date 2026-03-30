@@ -352,7 +352,109 @@ export interface SubscriptionPayment {
   created_at: string;
 }
 
+// ─── VAT Return types ───
+
+export type VatReturnStatus = "draft" | "locked" | "submitted";
+
+export interface VatReturn {
+  id: string;
+  user_id: string;
+  year: number;
+  quarter: number;
+  rubriek_1a_omzet: number;
+  rubriek_1a_btw: number;
+  rubriek_1b_omzet: number;
+  rubriek_1b_btw: number;
+  rubriek_1c_omzet: number;
+  rubriek_1c_btw: number;
+  rubriek_2a_omzet: number;
+  rubriek_2a_btw: number;
+  rubriek_3b_omzet: number;
+  rubriek_3b_btw: number;
+  rubriek_4a_omzet: number;
+  rubriek_4a_btw: number;
+  rubriek_4b_omzet: number;
+  rubriek_4b_btw: number;
+  rubriek_5b: number;
+  status: VatReturnStatus;
+  submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Ledger types ───
+
+export interface LedgerAccount {
+  id: string;
+  code: number;
+  name: string;
+  type: string;
+  parent_code: number | null;
+  is_system: boolean;
+}
+
+export interface LedgerEntry {
+  id: string;
+  user_id: string;
+  entry_date: string;
+  description: string;
+  source_invoice_id: string | null;
+  source_receipt_id: string | null;
+  debit_account: number;
+  credit_account: number;
+  amount: number;
+  created_at: string;
+}
+
+export interface LedgerEntryInput {
+  entry_date: string;
+  description: string;
+  source_invoice_id?: string | null;
+  source_receipt_id?: string | null;
+  debit_account: number;
+  credit_account: number;
+  amount: number;
+}
+
+// ─── Hours Log types ───
+
+export interface HoursLog {
+  id: string;
+  user_id: string;
+  date: string;
+  hours: number;
+  category: string | null;
+  created_at: string;
+}
+
+export interface HoursLogInput {
+  date: string;
+  hours: number;
+  category: string | null;
+}
+
+// ─── Trips types ───
+
+export interface Trip {
+  id: string;
+  user_id: string;
+  date: string;
+  distance_km: number;
+  is_return_trip: boolean;
+  purpose: string | null;
+  created_at: string;
+}
+
+export interface TripInput {
+  date: string;
+  distance_km: number;
+  is_return_trip?: boolean;
+  purpose: string | null;
+}
+
 // ─── Asset types ───
+
+export type DepreciationMethod = "linear" | "willekeurig";
 
 export interface Asset {
   id: string;
@@ -368,6 +470,7 @@ export interface Asset {
   is_verkocht: boolean;
   verkoop_datum: string | null;
   verkoop_prijs: number | null;
+  depreciation_method: DepreciationMethod;
   created_at: string;
 }
 
@@ -383,6 +486,7 @@ export interface AssetInput {
   is_verkocht?: boolean;
   verkoop_datum?: string | null;
   verkoop_prijs?: number | null;
+  depreciation_method?: DepreciationMethod;
 }
 
 // ─── Opening Balance types ───

@@ -79,8 +79,19 @@ export async function createReceipt(
   const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
   const amountExVat = vat.subtotalExVat;
   const vatRate = input.vat_rate ?? 21;
-  const vatAmount = vat.vatAmount;
-  const amountIncVat = vat.totalIncVat;
+  let vatAmount = vat.vatAmount;
+  const category = input.category || "Overig";
+  const costCode = input.cost_code ?? null;
+
+  // Horeca: force deductible VAT to 0 (conform wetgeving)
+  const isHoreca = category === "Eten & drinken horeca" || category === "Eten & drinken zakelijk";
+  if (isHoreca) vatAmount = 0;
+
+  const amountIncVat = amountExVat + vatAmount;
+
+  // Representatie 80/20 split: set business_percentage to 80
+  const isRepresentatie = costCode === 4500 || category === "Representatie";
+  const businessPercentage = isRepresentatie ? 80 : (input.business_percentage ?? 100);
 
   const { data, error } = await supabase
     .from("receipts")
@@ -91,16 +102,32 @@ export async function createReceipt(
       vat_rate: vatRate,
       vat_amount: vatAmount,
       amount_inc_vat: amountIncVat,
-      category: input.category || "Overig",
-      cost_code: input.cost_code ?? null,
+      category,
+      cost_code: costCode,
       receipt_date: input.receipt_date || null,
       ai_processed: false,
-      business_percentage: input.business_percentage ?? 100,
+      business_percentage: businessPercentage,
     })
     .select()
     .single();
 
   if (error) return { error: error.message };
+
+  // Auto-book to ledger
+  const { autoBookReceipt } = await import("@/features/ledger/actions");
+  await autoBookReceipt({
+    receiptId: data.id,
+    userId: user.id,
+    entryDate: input.receipt_date || new Date().toISOString().split("T")[0],
+    description: input.vendor_name?.trim() || "Onbekende leverancier",
+    costCode: costCode || 4999,
+    amountExVat,
+    vatAmount,
+    businessPercentage,
+    category,
+    supabase,
+  }).catch(() => {}); // Non-fatal: ledger is best-effort
+
   return { error: null, data };
 }
 
@@ -118,8 +145,18 @@ export async function updateReceipt(
   const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
   const amountExVat = vat.subtotalExVat;
   const vatRate = input.vat_rate ?? 21;
-  const vatAmount = vat.vatAmount;
-  const amountIncVat = vat.totalIncVat;
+  const category = input.category || "Overig";
+  const costCode = input.cost_code ?? null;
+
+  // Horeca: force deductible VAT to 0 (conform wetgeving)
+  const isHoreca = category === "Eten & drinken horeca" || category === "Eten & drinken zakelijk";
+  let vatAmount = isHoreca ? 0 : vat.vatAmount;
+
+  const amountIncVat = amountExVat + vatAmount;
+
+  // Representatie 80/20 split
+  const isRepresentatie = costCode === 4500 || category === "Representatie";
+  const businessPercentage = isRepresentatie ? 80 : (input.business_percentage ?? 100);
 
   const { data, error } = await supabase
     .from("receipts")
@@ -129,10 +166,10 @@ export async function updateReceipt(
       vat_rate: vatRate,
       vat_amount: vatAmount,
       amount_inc_vat: amountIncVat,
-      category: input.category || "Overig",
-      cost_code: input.cost_code ?? null,
+      category,
+      cost_code: costCode,
       receipt_date: input.receipt_date || null,
-      business_percentage: input.business_percentage ?? 100,
+      business_percentage: businessPercentage,
     })
     .eq("id", id)
     .eq("user_id", user.id)
@@ -140,6 +177,28 @@ export async function updateReceipt(
     .single();
 
   if (error) return { error: error.message };
+
+  // Remove old ledger entries for this receipt and re-book
+  await supabase
+    .from("ledger_entries")
+    .delete()
+    .eq("source_receipt_id", id)
+    .eq("user_id", user.id);
+
+  const { autoBookReceipt } = await import("@/features/ledger/actions");
+  await autoBookReceipt({
+    receiptId: id,
+    userId: user.id,
+    entryDate: input.receipt_date || new Date().toISOString().split("T")[0],
+    description: input.vendor_name?.trim() || "Onbekende leverancier",
+    costCode: costCode || 4999,
+    amountExVat,
+    vatAmount,
+    businessPercentage,
+    category,
+    supabase,
+  }).catch(() => {});
+
   return { error: null, data };
 }
 

@@ -494,13 +494,17 @@ export async function runAnticipationAgent(userId: string, externalSupabase?: Aw
 
 /**
  * Agent 4: The Investment Agent (Tax Shield).
+ * Now uses assets DB totals instead of scanning receipts by cost_code.
  */
 export async function runInvestmentAgent(userId: string, externalSupabase?: Awaited<ReturnType<typeof createClient>>): Promise<ActionResult<{ created: number }>> {
   try {
     const supabase = externalSupabase || await createClient();
     const now = new Date();
-    const yearStart = `${now.getFullYear()}-01-01`;
-    
+    const currentYear = now.getFullYear();
+    const yearStart = `${currentYear}-01-01`;
+    const yearEnd = `${currentYear}-12-31`;
+
+    // Fetch revenue
     const { data: profitData } = await supabase
       .from("invoices")
       .select("total_inc_vat, vat_amount")
@@ -514,33 +518,59 @@ export async function runInvestmentAgent(userId: string, externalSupabase?: Awai
       (sum, inv) => sum + (Number(inv.total_inc_vat) - Number(inv.vat_amount)), 0
     );
 
-    if (totalRevenueExVat > 10000) {
-      const { data: existing } = await supabase
-        .from("action_feed")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("type", "tax_alert")
-        .eq("status", "pending")
-        .ilike("title", "%Investering%");
+    // Fetch KIA-eligible investments from assets table (>= €450, this year)
+    const { data: kiaAssets } = await supabase
+      .from("assets")
+      .select("aanschaf_prijs")
+      .eq("user_id", userId)
+      .gte("aanschaf_datum", yearStart)
+      .lte("aanschaf_datum", yearEnd)
+      .gte("aanschaf_prijs", 450);
 
-      if (existing && existing.length > 0) return { error: null, data: { created: 0 } };
+    const totalInvestments = (kiaAssets ?? []).reduce(
+      (sum, a) => sum + (Number(a.aanschaf_prijs) || 0), 0
+    );
 
-      const { error } = await supabase
-        .from("action_feed")
-        .insert({
-          user_id: userId,
-          type: "tax_alert",
-          title: "Fiscale Optimalisatie: Investering",
-          description: `Je hebt dit jaar al ${formatCurrency(totalRevenueExVat)} omgezet. Een investering van €1.000 in gear verlaagt je belastbare winst en bespaart ca. €370 aan inkomstenbelasting.`,
-          ai_confidence: 0.9,
-          status: "pending"
-        });
+    // Check for existing pending tax alerts
+    const { data: existing } = await supabase
+      .from("action_feed")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("type", "tax_alert")
+      .eq("status", "pending");
 
-      if (error) return { error: error.message };
-      return { error: null, data: { created: 1 } };
+    if (existing && existing.length > 0) return { error: null, data: { created: 0 } };
+
+    let created = 0;
+
+    // Alert 1: KIA threshold proximity (>€2500 but <€2901)
+    if (totalInvestments > 2500 && totalInvestments < 2901) {
+      const nodig = 2901 - totalInvestments;
+      await supabase.from("action_feed").insert({
+        user_id: userId,
+        type: "tax_alert",
+        title: "KIA-drempel bijna bereikt!",
+        description: `Je totale investeringen zijn ${formatCurrency(totalInvestments)}. Investeer nog ${formatCurrency(nodig)} om de KIA-drempel van €2.901 te bereiken en 28% extra aftrek te krijgen.`,
+        ai_confidence: 0.95,
+        status: "pending",
+      });
+      created++;
     }
 
-    return { error: null, data: { created: 0 } };
+    // Alert 2: General investment suggestion for high revenue
+    if (totalRevenueExVat > 10000 && totalInvestments < 2901) {
+      await supabase.from("action_feed").insert({
+        user_id: userId,
+        type: "tax_alert",
+        title: "Fiscale Optimalisatie: Investering",
+        description: `Je hebt dit jaar al ${formatCurrency(totalRevenueExVat)} omgezet. Een investering van €1.000 in gear verlaagt je belastbare winst en bespaart ca. €370 aan inkomstenbelasting via de KIA.`,
+        ai_confidence: 0.9,
+        status: "pending",
+      });
+      created++;
+    }
+
+    return { error: null, data: { created } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "investment", userId } });
     return { error: err instanceof Error ? err.message : "Unknown error in investment agent" };
