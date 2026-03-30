@@ -790,6 +790,18 @@ a {
   grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
   gap: 24px;
   align-items: stretch;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/images/office.jpg") center / cover no-repeat;
+  opacity: 0.09;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .dashboard-home-hero-copy {
@@ -799,6 +811,8 @@ a {
   gap: 20px;
   min-height: 320px;
   padding: 40px 48px 40px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .dashboard-home-title {
@@ -825,6 +839,8 @@ a {
   background: var(--dashboard-surface);
   border: var(--border-light);
   border-radius: var(--radius);
+  position: relative;
+  z-index: 1;
   overflow: hidden;
 }
 
