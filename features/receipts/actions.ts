@@ -228,6 +228,29 @@ export async function deleteReceipt(id: string): Promise<ActionResult> {
   return { error: null };
 }
 
+export async function deleteReceipts(ids: string[]): Promise<ActionResult> {
+  if (ids.length === 0) return { error: "Geen bonnen geselecteerd." };
+  if (ids.length > 100) return { error: "Maximaal 100 bonnen tegelijk verwijderen." };
+
+  for (const id of ids) {
+    const idCheck = uuidSchema.safeParse(id);
+    if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+  }
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { error } = await supabase
+    .from("receipts")
+    .delete()
+    .in("id", ids)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
 export async function uploadReceiptImage(
   receiptId: string,
   formData: FormData
