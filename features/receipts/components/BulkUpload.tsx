@@ -479,7 +479,7 @@ export function BulkUpload() {
         {/* File status list */}
         {results.map((result, i) => (
           <BulkReceiptCard
-            key={`${result.fileName}-${i}`}
+            key={`${result.fileName}-${i}-${result.status}`}
             result={result}
             onUpdate={handleCardUpdate}
           />
@@ -522,7 +522,7 @@ export function BulkUpload() {
 
       {results.map((result, i) => (
         <BulkReceiptCard
-          key={`${result.fileName}-${i}`}
+          key={`${result.fileName}-${i}-${result.status}`}
           result={result}
           onUpdate={handleCardUpdate}
         />
