@@ -184,6 +184,24 @@ export default function ImportPage() {
         </div>
       </div>
 
+      {/* Wizard banner */}
+      <a
+        href="/dashboard/import/wizard"
+        style={{
+          display: "block",
+          padding: "16px 24px",
+          marginBottom: 32,
+          borderLeft: "2px solid var(--foreground)",
+          background: "rgba(13,13,11,0.02)",
+          textDecoration: "none",
+          color: "var(--foreground)",
+          fontSize: "var(--text-body)",
+          fontWeight: 300,
+        }}
+      >
+        Eerste keer? Gebruik de <strong>stap-voor-stap import wizard</strong> om je volledige boekhouding over te zetten &rarr;
+      </a>
+
       {/* Tabs */}
       <div style={{ display: "flex", gap: "24px", marginBottom: "40px", borderBottom: "0.5px solid rgba(13,13,11,0.12)" }}>
         <button onClick={() => handleTabChange("invoices")} style={tabStyle(tab === "invoices")}>Facturen</button>

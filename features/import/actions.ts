@@ -768,3 +768,40 @@ function simpleHash(str: string): string {
   }
   return Math.abs(hash).toString(36);
 }
+
+// ─── Historische kostensamenvatting ───
+
+export async function importHistoricalCostSummary(
+  year: number,
+  costs: Array<{ category: string; cost_code: number; amount_ex_vat: number; vat_amount: number }>,
+): Promise<ActionResult<{ imported: number }>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  if (!Number.isInteger(year) || year < 2015 || year > new Date().getFullYear()) {
+    return { error: "Ongeldig jaar." };
+  }
+
+  let imported = 0;
+
+  for (const cost of costs) {
+    if (cost.amount_ex_vat <= 0) continue;
+
+    const { error } = await supabase.from("receipts").insert({
+      user_id: user.id,
+      vendor_name: `Samenvatting ${cost.category} ${year}`,
+      amount_ex_vat: cost.amount_ex_vat,
+      vat_amount: cost.vat_amount,
+      amount_inc_vat: cost.amount_ex_vat + cost.vat_amount,
+      vat_rate: cost.amount_ex_vat > 0 ? Math.round((cost.vat_amount / cost.amount_ex_vat) * 100) : 21,
+      receipt_date: `${year}-12-31`,
+      category: cost.category,
+      cost_code: cost.cost_code,
+    });
+
+    if (!error) imported++;
+  }
+
+  return { error: null, data: { imported } };
+}
