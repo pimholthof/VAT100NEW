@@ -2,8 +2,15 @@
 
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { previewImportCSV, importInvoices, importReceipts } from "@/features/import/actions";
-import type { ImportPreview } from "@/features/import/actions";
+import {
+  previewImportCSV,
+  previewImportClients,
+  importInvoices,
+  importReceipts,
+  importClients,
+  detectClientDuplicates,
+} from "@/features/import/actions";
+import type { ImportPreview, DuplicateMatch } from "@/features/import/actions";
 import { Th, Td } from "@/components/ui";
 
 const inputStyle: React.CSSProperties = {
@@ -28,7 +35,13 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
   cursor: "pointer",
 });
 
-type ImportType = "invoices" | "receipts";
+type ImportType = "invoices" | "receipts" | "clients";
+
+const MATCH_FIELD_LABELS: Record<string, string> = {
+  name: "Naam",
+  kvk_number: "KVK-nummer",
+  btw_number: "BTW-nummer",
+};
 
 export default function ImportPage() {
   const [tab, setTab] = useState<ImportType>("invoices");
@@ -36,22 +49,43 @@ export default function ImportPage() {
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ imported: number; skipped: number } | null>(null);
+  const [result, setResult] = useState<{ imported: number; skipped: number; updated?: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Client-specific state
+  const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([]);
+  const [showDuplicates, setShowDuplicates] = useState(false);
+  const [duplicateStrategy, setDuplicateStrategy] = useState<"skip" | "merge" | "create">("skip");
+
   const previewMut = useMutation({
-    mutationFn: (text: string) => previewImportCSV(text, tab),
+    mutationFn: (text: string) => {
+      if (tab === "clients") return previewImportClients(text);
+      return previewImportCSV(text, tab);
+    },
     onSuccess: (res) => {
       if (res.error) { setError(res.error); return; }
       setPreview(res.data!);
       setMapping(res.data!.mapping);
       setError(null);
       setResult(null);
+      setDuplicates([]);
+      setShowDuplicates(false);
+    },
+  });
+
+  const duplicateMut = useMutation({
+    mutationFn: () => detectClientDuplicates(csvText, mapping),
+    onSuccess: (res) => {
+      if (res.error) { setError(res.error); return; }
+      setDuplicates(res.data!.duplicates);
+      setShowDuplicates(true);
+      setError(null);
     },
   });
 
   const importMut = useMutation({
     mutationFn: () => {
+      if (tab === "clients") return importClients(csvText, mapping, duplicateStrategy);
       if (tab === "invoices") return importInvoices(csvText, mapping);
       return importReceipts(csvText, mapping);
     },
@@ -81,11 +115,23 @@ export default function ImportPage() {
     setError(null);
     setResult(null);
     setCsvText("");
+    setDuplicates([]);
+    setShowDuplicates(false);
+  }
+
+  function handleClientImportNext() {
+    if (tab === "clients") {
+      duplicateMut.mutate();
+    } else {
+      importMut.mutate();
+    }
   }
 
   const targetFields = tab === "invoices"
     ? ["invoice_number", "client_name", "issue_date", "due_date", "subtotal_ex_vat", "vat_amount", "total_inc_vat", "description", "status"]
-    : ["vendor_name", "receipt_date", "amount_ex_vat", "vat_amount", "amount_inc_vat", "category"];
+    : tab === "receipts"
+    ? ["vendor_name", "receipt_date", "amount_ex_vat", "vat_amount", "amount_inc_vat", "category"]
+    : ["name", "contact_name", "email", "address", "city", "postal_code", "kvk_number", "btw_number"];
 
   const targetLabels: Record<string, string> = {
     invoice_number: "Factuurnummer",
@@ -102,7 +148,17 @@ export default function ImportPage() {
     amount_ex_vat: "Bedrag excl. BTW",
     amount_inc_vat: "Bedrag incl. BTW",
     category: "Categorie",
+    name: "Bedrijfsnaam",
+    contact_name: "Contactpersoon",
+    email: "E-mail",
+    address: "Adres",
+    city: "Stad",
+    postal_code: "Postcode",
+    kvk_number: "KVK-nummer",
+    btw_number: "BTW-nummer",
   };
+
+  const resultLabel = tab === "invoices" ? "facturen" : tab === "receipts" ? "bonnen" : "klanten";
 
   return (
     <div>
@@ -120,13 +176,15 @@ export default function ImportPage() {
       <div style={{ display: "flex", gap: "24px", marginBottom: "40px", borderBottom: "0.5px solid rgba(13,13,11,0.12)" }}>
         <button onClick={() => handleTabChange("invoices")} style={tabStyle(tab === "invoices")}>Facturen</button>
         <button onClick={() => handleTabChange("receipts")} style={tabStyle(tab === "receipts")}>Bonnen / Uitgaven</button>
+        <button onClick={() => handleTabChange("clients")} style={tabStyle(tab === "clients")}>Klanten</button>
       </div>
 
       {/* Success */}
       {result && (
         <div className="glass" style={{ padding: 24, borderRadius: "var(--radius-md)", marginBottom: 32, border: "1px solid #2E7D32" }}>
           <p style={{ fontWeight: 600, color: "#2E7D32" }}>
-            Import voltooid: {result.imported} {tab === "invoices" ? "facturen" : "bonnen"} geïmporteerd
+            Import voltooid: {result.imported} {resultLabel} geïmporteerd
+            {(result.updated ?? 0) > 0 && `, ${result.updated} bijgewerkt`}
             {result.skipped > 0 && `, ${result.skipped} overgeslagen`}
           </p>
         </div>
@@ -141,8 +199,9 @@ export default function ImportPage() {
             Stap 1: Upload CSV
           </h3>
           <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 16 }}>
-            Ondersteunt exports van Moneybird, e-Boekhouden, Excel en andere boekhoudprogramma&apos;s.
-            Zorg dat de eerste rij kolomnamen bevat.
+            {tab === "clients"
+              ? "Importeer klanten vanuit Moneybird, e-Boekhouden, Excel of andere bronnen. Zorg dat de eerste rij kolomnamen bevat."
+              : "Ondersteunt exports van Moneybird, e-Boekhouden, Excel en andere boekhoudprogramma\u0027s. Zorg dat de eerste rij kolomnamen bevat."}
           </p>
 
           <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -200,7 +259,7 @@ export default function ImportPage() {
       )}
 
       {/* Stap 2: Mapping + Preview */}
-      {preview && !result && (
+      {preview && !result && !showDuplicates && (
         <>
           <div className="glass" style={{ padding: 32, borderRadius: "var(--radius-md)", marginBottom: 32 }}>
             <h3 style={{ fontSize: "var(--text-body)", fontWeight: 600, marginBottom: 8 }}>
@@ -253,6 +312,132 @@ export default function ImportPage() {
             </div>
           </div>
 
+          {/* Import / Check duplicates knop */}
+          <div style={{ display: "flex", gap: 12 }}>
+            <button
+              onClick={handleClientImportNext}
+              disabled={importMut.isPending || duplicateMut.isPending}
+              className="label-strong"
+              style={{
+                padding: "14px 32px",
+                border: "none",
+                borderRadius: "var(--radius-sm)",
+                background: "var(--foreground)",
+                color: "var(--background)",
+                cursor: "pointer",
+                opacity: importMut.isPending || duplicateMut.isPending ? 0.5 : 1,
+              }}
+            >
+              {importMut.isPending
+                ? "IMPORTEREN..."
+                : duplicateMut.isPending
+                ? "CONTROLEREN..."
+                : tab === "clients"
+                ? `CONTROLEER ${preview.totalRows} KLANTEN`
+                : `IMPORTEER ${preview.totalRows} RIJEN`}
+            </button>
+            <button
+              onClick={() => { setPreview(null); setCsvText(""); }}
+              className="label-strong"
+              style={{
+                padding: "14px 24px",
+                border: "0.5px solid rgba(13,13,11,0.25)",
+                borderRadius: "var(--radius-sm)",
+                background: "transparent",
+                cursor: "pointer",
+              }}
+            >
+              TERUG
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Stap 3 (Klanten): Duplicate review */}
+      {showDuplicates && !result && (
+        <>
+          <div className="glass" style={{ padding: 32, borderRadius: "var(--radius-md)", marginBottom: 32 }}>
+            <h3 style={{ fontSize: "var(--text-body)", fontWeight: 600, marginBottom: 8 }}>
+              Stap 3: Duplicaten controleren
+            </h3>
+
+            {duplicates.length === 0 ? (
+              <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5 }}>
+                Geen duplicaten gevonden. Alle {preview?.totalRows} klanten zijn nieuw.
+              </p>
+            ) : (
+              <>
+                <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 16 }}>
+                  {duplicates.length} mogelijke duplica{duplicates.length === 1 ? "at" : "ten"} gevonden.
+                  Kies wat er met bestaande klanten moet gebeuren.
+                </p>
+
+                {/* Strategy selector */}
+                <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+                  {([
+                    { value: "skip" as const, label: "Overslaan", desc: "Bestaande klanten niet wijzigen" },
+                    { value: "merge" as const, label: "Samenvoegen", desc: "Bestaande klanten bijwerken met CSV-data" },
+                    { value: "create" as const, label: "Nieuw aanmaken", desc: "Altijd nieuwe klant aanmaken" },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setDuplicateStrategy(opt.value)}
+                      style={{
+                        flex: 1,
+                        padding: "16px",
+                        border: duplicateStrategy === opt.value
+                          ? "1.5px solid var(--foreground)"
+                          : "0.5px solid rgba(13,13,11,0.15)",
+                        borderRadius: "var(--radius-sm)",
+                        background: duplicateStrategy === opt.value ? "rgba(0,0,0,0.03)" : "transparent",
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      <span style={{ display: "block", fontWeight: 600, fontSize: "var(--text-body-sm)", marginBottom: 4 }}>
+                        {opt.label}
+                      </span>
+                      <span style={{ display: "block", fontSize: 12, opacity: 0.5 }}>
+                        {opt.desc}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Duplicate list */}
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                    <thead>
+                      <tr>
+                        <Th>CSV klant</Th>
+                        <Th>Bestaande klant</Th>
+                        <Th>Match op</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {duplicates.map((dup, i) => (
+                        <tr key={i}>
+                          <Td>
+                            <span style={{ fontWeight: 500 }}>
+                              {Object.values(dup.csvRow).filter(Boolean).slice(0, 3).join(" · ")}
+                            </span>
+                          </Td>
+                          <Td>
+                            {dup.existingClient.name}
+                            {dup.existingClient.email && (
+                              <span style={{ opacity: 0.5 }}> · {dup.existingClient.email}</span>
+                            )}
+                          </Td>
+                          <Td>{MATCH_FIELD_LABELS[dup.matchField] ?? dup.matchField}</Td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+
           {/* Import knop */}
           <div style={{ display: "flex", gap: 12 }}>
             <button
@@ -269,10 +454,10 @@ export default function ImportPage() {
                 opacity: importMut.isPending ? 0.5 : 1,
               }}
             >
-              {importMut.isPending ? "IMPORTEREN..." : `IMPORTEER ${preview.totalRows} RIJEN`}
+              {importMut.isPending ? "IMPORTEREN..." : `IMPORTEER ${preview?.totalRows ?? 0} KLANTEN`}
             </button>
             <button
-              onClick={() => { setPreview(null); setCsvText(""); }}
+              onClick={() => { setShowDuplicates(false); }}
               className="label-strong"
               style={{
                 padding: "14px 24px",

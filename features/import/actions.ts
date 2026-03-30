@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAuth } from "@/lib/supabase/server";
-import type { ActionResult } from "@/lib/types";
+import type { ActionResult, Client } from "@/lib/types";
 
 // ─── CSV parsing ───
 
@@ -96,11 +96,47 @@ const RECEIPT_COLUMN_MAP: Record<string, string> = {
   omschrijving: "vendor_name",
 };
 
+const CLIENT_COLUMN_MAP: Record<string, string> = {
+  naam: "name",
+  bedrijfsnaam: "name",
+  company: "name",
+  klant: "name",
+  klantnaam: "name",
+  name: "name",
+  contactpersoon: "contact_name",
+  contact: "contact_name",
+  contact_name: "contact_name",
+  email: "email",
+  "e-mail": "email",
+  mail: "email",
+  adres: "address",
+  straat: "address",
+  address: "address",
+  stad: "city",
+  plaats: "city",
+  city: "city",
+  postcode: "postal_code",
+  postal_code: "postal_code",
+  kvk: "kvk_number",
+  "kvk-nummer": "kvk_number",
+  kvk_number: "kvk_number",
+  kvknummer: "kvk_number",
+  btw: "btw_number",
+  "btw-nummer": "btw_number",
+  btw_number: "btw_number",
+  btwnummer: "btw_number",
+};
+
 function detectColumns(
   headers: string[],
-  type: "invoices" | "receipts",
+  type: "invoices" | "receipts" | "clients",
 ): Record<string, string> {
-  const map = type === "invoices" ? INVOICE_COLUMN_MAP : RECEIPT_COLUMN_MAP;
+  const maps: Record<string, Record<string, string>> = {
+    invoices: INVOICE_COLUMN_MAP,
+    receipts: RECEIPT_COLUMN_MAP,
+    clients: CLIENT_COLUMN_MAP,
+  };
+  const map = maps[type] ?? INVOICE_COLUMN_MAP;
   const mapping: Record<string, string> = {};
 
   for (const header of headers) {
@@ -363,4 +399,215 @@ export async function importReceipts(
   }
 
   return { error: null, data: { imported, skipped } };
+}
+
+// ─── Klanten import ───
+
+export async function previewImportClients(
+  csvText: string,
+): Promise<ActionResult<ImportPreview>> {
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return { error: "CSV bevat geen data." };
+
+  const headers = rows[0];
+  const mapping = detectColumns(headers, "clients");
+  const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.length > 0));
+
+  const preview = dataRows.slice(0, 5).map((row) => {
+    const obj: Record<string, string> = {};
+    headers.forEach((h, i) => {
+      obj[h] = row[i] ?? "";
+    });
+    return obj;
+  });
+
+  return {
+    error: null,
+    data: { headers, mapping, preview, totalRows: dataRows.length },
+  };
+}
+
+export interface DuplicateMatch {
+  rowIndex: number;
+  csvRow: Record<string, string>;
+  existingClient: Pick<Client, "id" | "name" | "email" | "kvk_number" | "btw_number">;
+  matchField: "name" | "kvk_number" | "btw_number";
+}
+
+export async function detectClientDuplicates(
+  csvText: string,
+  mapping: Record<string, string>,
+): Promise<ActionResult<{ duplicates: DuplicateMatch[]; totalRows: number }>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return { error: "Geen data gevonden." };
+
+  const headers = rows[0];
+  const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.length > 0));
+
+  const getMapped = (row: string[], targetField: string): string => {
+    for (const [header, mapped] of Object.entries(mapping)) {
+      if (mapped === targetField) {
+        const idx = headers.indexOf(header);
+        if (idx >= 0) return row[idx] ?? "";
+      }
+    }
+    return "";
+  };
+
+  // Fetch all existing clients for comparison
+  const { data: existingClients } = await supabase
+    .from("clients")
+    .select("id, name, email, kvk_number, btw_number")
+    .eq("user_id", user.id);
+
+  const clients = existingClients ?? [];
+  const duplicates: DuplicateMatch[] = [];
+
+  for (let i = 0; i < dataRows.length; i++) {
+    const row = dataRows[i];
+    const name = getMapped(row, "name");
+    const kvk = getMapped(row, "kvk_number");
+    const btw = getMapped(row, "btw_number");
+
+    const csvRow: Record<string, string> = {};
+    headers.forEach((h, idx) => { csvRow[h] = row[idx] ?? ""; });
+
+    // Check for duplicates: KVK first (most specific), then BTW, then name
+    let match: DuplicateMatch | null = null;
+
+    if (kvk) {
+      const found = clients.find((c) => c.kvk_number && c.kvk_number.toLowerCase() === kvk.toLowerCase());
+      if (found) match = { rowIndex: i, csvRow, existingClient: found, matchField: "kvk_number" };
+    }
+
+    if (!match && btw) {
+      const found = clients.find((c) => c.btw_number && c.btw_number.toLowerCase() === btw.toLowerCase());
+      if (found) match = { rowIndex: i, csvRow, existingClient: found, matchField: "btw_number" };
+    }
+
+    if (!match && name) {
+      const found = clients.find((c) => c.name.toLowerCase() === name.toLowerCase());
+      if (found) match = { rowIndex: i, csvRow, existingClient: found, matchField: "name" };
+    }
+
+    if (match) duplicates.push(match);
+  }
+
+  return { error: null, data: { duplicates, totalRows: dataRows.length } };
+}
+
+export async function importClients(
+  csvText: string,
+  mapping: Record<string, string>,
+  duplicateStrategy: "skip" | "merge" | "create",
+): Promise<ActionResult<{ imported: number; updated: number; skipped: number }>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return { error: "Geen data gevonden." };
+
+  const headers = rows[0];
+  const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.length > 0));
+
+  const getMapped = (row: string[], targetField: string): string => {
+    for (const [header, mapped] of Object.entries(mapping)) {
+      if (mapped === targetField) {
+        const idx = headers.indexOf(header);
+        if (idx >= 0) return row[idx] ?? "";
+      }
+    }
+    return "";
+  };
+
+  // Fetch existing clients for duplicate detection
+  const { data: existingClients } = await supabase
+    .from("clients")
+    .select("id, name, kvk_number, btw_number")
+    .eq("user_id", user.id);
+
+  const clients = existingClients ?? [];
+
+  let imported = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  for (const row of dataRows) {
+    const name = getMapped(row, "name");
+    if (!name) { skipped++; continue; }
+
+    const contactName = getMapped(row, "contact_name") || null;
+    const email = getMapped(row, "email") || null;
+    const address = getMapped(row, "address") || null;
+    const city = getMapped(row, "city") || null;
+    const postalCode = getMapped(row, "postal_code") || null;
+    const kvkNumber = getMapped(row, "kvk_number") || null;
+    const btwNumber = getMapped(row, "btw_number") || null;
+
+    // Find duplicate
+    let existing: typeof clients[number] | undefined;
+    if (kvkNumber) existing = clients.find((c) => c.kvk_number && c.kvk_number.toLowerCase() === kvkNumber.toLowerCase());
+    if (!existing && btwNumber) existing = clients.find((c) => c.btw_number && c.btw_number.toLowerCase() === btwNumber.toLowerCase());
+    if (!existing) existing = clients.find((c) => c.name.toLowerCase() === name.toLowerCase());
+
+    if (existing) {
+      if (duplicateStrategy === "skip") {
+        skipped++;
+        continue;
+      }
+
+      if (duplicateStrategy === "merge") {
+        const updates: Record<string, string> = {};
+        if (contactName) updates.contact_name = contactName;
+        if (email) updates.email = email;
+        if (address) updates.address = address;
+        if (city) updates.city = city;
+        if (postalCode) updates.postal_code = postalCode;
+        if (kvkNumber) updates.kvk_number = kvkNumber;
+        if (btwNumber) updates.btw_number = btwNumber;
+
+        if (Object.keys(updates).length > 0) {
+          const { error } = await supabase
+            .from("clients")
+            .update(updates)
+            .eq("id", existing.id);
+          if (!error) updated++;
+          else skipped++;
+        } else {
+          skipped++;
+        }
+        continue;
+      }
+    }
+
+    const { error: insertError, data: newClient } = await supabase
+      .from("clients")
+      .insert({
+        user_id: user.id,
+        name,
+        contact_name: contactName,
+        email,
+        address,
+        city,
+        postal_code: postalCode,
+        kvk_number: kvkNumber,
+        btw_number: btwNumber,
+      })
+      .select("id, name, kvk_number, btw_number")
+      .single();
+
+    if (insertError) {
+      skipped++;
+    } else {
+      imported++;
+      if (newClient) clients.push(newClient);
+    }
+  }
+
+  return { error: null, data: { imported, updated, skipped } };
 }
