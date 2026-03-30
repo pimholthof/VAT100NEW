@@ -1,396 +1,139 @@
 import type { InvoiceData } from "@/lib/types";
+import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 
-// ─── Helpers ───
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("nl-NL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+function fmtDate(d: string | null): string {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("nl-NL", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
+function fmtEur(n: number): string {
+  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
 }
 
-function unitLabel(unit: string): string {
-  if (unit === "dagen") return "dagen";
-  if (unit === "uren") return "uren";
-  return "stuks";
+function unit(u: string): string {
+  return u === "dagen" ? "dagen" : u === "uren" ? "uren" : "stuks";
 }
+
+// ─── Design tokens ───
+
+const INK = "#000";
+const GREY = "rgba(0,0,0,0.4)";
+const RULE = "rgba(0,0,0,0.08)";
+const F = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+const COL_R = 220;
+
+const lbl: React.CSSProperties = {
+  fontSize: 7, letterSpacing: "0.12em", color: GREY, textTransform: "uppercase", fontWeight: 400,
+};
+
+const body: React.CSSProperties = {
+  fontSize: 8.5, color: GREY, lineHeight: 1.6,
+};
 
 // ─── Component ───
 
 export function InvoiceHTML({ data }: { data: InvoiceData }) {
   const { invoice, lines, client, profile } = data;
-
-  const paymentDays = invoice.due_date
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(invoice.due_date).getTime() -
-            new Date(invoice.issue_date).getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : 30;
+  const isCreditNote = invoice.is_credit_note;
+  const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
+  const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
 
   return (
-    <div style={page}>
-      {/* ── Header ── */}
-      <div style={header}>
-        <div style={vat100Mark}>VAT100</div>
+    <div style={{ width: 595, minHeight: 842, padding: 48, fontFamily: F, color: INK, background: "#fff", position: "relative", boxSizing: "border-box" }}>
+
+      {/* Watermark */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontWeight: 700, fontSize: 120, letterSpacing: "-0.04em", color: INK, opacity: 0.045, lineHeight: 0.78 }}>VAT100</div>
       </div>
 
-      {/* ── Meta Row ── */}
-      <div style={metaRow}>
+      {/* Meta grid */}
+      <div style={{ display: "flex", marginBottom: 28 }}>
         <div style={{ flex: 1 }}>
-          <div style={partyName}>
-            {profile.studio_name || profile.full_name}
-          </div>
-          {profile.kvk_number && (
-            <div style={partyDetail}>KVK {profile.kvk_number}</div>
-          )}
-          {profile.btw_number && (
-            <div style={partyDetail}>BTW {profile.btw_number}</div>
-          )}
-          {profile.address && (
-            <div style={partyDetail}>{profile.address}</div>
-          )}
-          {(profile.postal_code || profile.city) && (
-            <div style={partyDetail}>
-              {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
-            </div>
-          )}
+          <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 4 }}>{profile.studio_name || profile.full_name}</div>
+          {profile.kvk_number && <div style={body}>KVK {profile.kvk_number}</div>}
+          {profile.btw_number && <div style={body}>BTW {profile.btw_number}</div>}
+          {profile.address && <div style={body}>{profile.address}</div>}
+          {(profile.postal_code || profile.city) && <div style={body}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</div>}
         </div>
-        <div style={{ flex: 1 }}>
-          <div style={metaLine}>
-            <span style={label}>Factuurnr</span>
-            <span style={value}>{invoice.invoice_number}</span>
-          </div>
-          <div style={metaLine}>
-            <span style={label}>Factuurdatum</span>
-            <span style={value}>{formatDate(invoice.issue_date)}</span>
+        <div style={{ width: COL_R }}>
+          <div style={{ ...lbl, fontWeight: 700, marginBottom: 12 }}>{isCreditNote ? "Creditnota" : "Factuur"}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 12 }}>{invoice.invoice_number}</div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+            <span style={lbl}>Datum</span>
+            <span style={{ fontSize: 9 }}>{fmtDate(invoice.issue_date)}</span>
           </div>
           {invoice.due_date && (
-            <div style={metaLine}>
-              <span style={label}>Vervaldatum</span>
-              <span style={value}>{formatDate(invoice.due_date)}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+              <span style={lbl}>Vervaldatum</span>
+              <span style={{ fontSize: 9 }}>{fmtDate(invoice.due_date)}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* ── Parties ── */}
-      <div style={partiesRow}>
-        <div style={partyCol}>
-          <div style={label}>Aan</div>
-          <div style={partyName}>{client.name}</div>
-          {client.contact_name && (
-            <div style={partyDetail}>{client.contact_name}</div>
-          )}
-          {client.address && (
-            <div style={partyDetail}>{client.address}</div>
-          )}
-          {(client.postal_code || client.city) && (
-            <div style={partyDetail}>
-              {[client.postal_code, client.city].filter(Boolean).join(" ")}
-            </div>
-          )}
-          {client.kvk_number && (
-            <div style={partyDetail}>KVK {client.kvk_number}</div>
-          )}
-        </div>
-        {invoice.notes && (
-          <div style={partyCol}>
-            <div style={label}>Omschrijving</div>
-            <div style={partyDetail}>{invoice.notes}</div>
-          </div>
-        )}
+      {/* Divider */}
+      <div style={{ borderBottom: `0.5px solid ${RULE}`, marginBottom: 20 }} />
+
+      {/* Client */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ ...lbl, marginBottom: 5 }}>Aan</div>
+        <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 2 }}>{client.name}</div>
+        {showContact && <div style={body}>{client.contact_name}</div>}
+        {client.address && <div style={body}>{client.address}</div>}
+        {(client.postal_code || client.city) && <div style={body}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</div>}
+        {client.kvk_number && <div style={body}>KVK {client.kvk_number}</div>}
       </div>
 
-      {/* ── Table ── */}
-      <div>
-        {/* Header */}
-        <div style={tableHeader}>
-          <div style={{ ...tableHeaderCell, width: "46%" }}>Omschrijving</div>
-          <div style={{ ...tableHeaderCell, width: "10%" }}>Aantal</div>
-          <div style={{ ...tableHeaderCell, width: "16%", textAlign: "right" }}>
-            Tarief
-          </div>
-          <div style={{ ...tableHeaderCell, width: "16%", textAlign: "right" }}>
-            Bedrag
-          </div>
-          <div style={{ width: "12%" }} />
+      {/* Notes */}
+      {invoice.notes && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ ...lbl, marginBottom: 4 }}>Omschrijving</div>
+          <div style={body}>{invoice.notes}</div>
         </div>
+      )}
 
-        {/* Rows */}
-        {lines.map((line, i) => (
-          <div style={i === lines.length - 1 ? tableRowLast : tableRow} key={line.id}>
-            <div style={{ ...tableCell, width: "46%" }}>
-              {line.description}
-            </div>
-            <div style={{ ...tableCell, width: "10%" }}>
-              {line.quantity} {unitLabel(line.unit)}
-            </div>
-            <div
-              style={{ ...tableCell, width: "16%", textAlign: "right" }}
-            >
-              {formatCurrency(line.rate)}
-            </div>
-            <div
-              style={{ ...tableCell, width: "16%", textAlign: "right" }}
-            >
-              {formatCurrency(line.amount)}
-            </div>
-            <div style={{ width: "12%" }} />
+      {/* Table */}
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ display: "flex", borderBottom: `0.5px solid ${INK}`, paddingBottom: 6 }}>
+          <div style={{ ...lbl, width: "48%" }}>Omschrijving</div>
+          <div style={{ ...lbl, width: "14%" }}>Aantal</div>
+          <div style={{ ...lbl, width: "18%", textAlign: "right" }}>Tarief</div>
+          <div style={{ ...lbl, width: "20%", textAlign: "right" }}>Bedrag</div>
+        </div>
+        {lines.map((l, i) => (
+          <div key={l.id} style={{ display: "flex", padding: "7px 0", borderBottom: `0.5px solid ${i === lines.length - 1 ? INK : RULE}` }}>
+            <div style={{ width: "48%", fontSize: 9 }}>{l.description}</div>
+            <div style={{ width: "14%", fontSize: 9 }}>{l.quantity} {unit(l.unit)}</div>
+            <div style={{ width: "18%", fontSize: 9, textAlign: "right" }}>{fmtEur(l.rate)}</div>
+            <div style={{ width: "20%", fontSize: 9, textAlign: "right" }}>{fmtEur(l.amount)}</div>
           </div>
         ))}
       </div>
 
-      {/* ── Totals ── */}
-      <div style={totalsContainer}>
-        <div style={totalsRow}>
-          <span style={totalsLabel}>Subtotaal excl. BTW</span>
-          <span style={totalsValue}>
-            {formatCurrency(invoice.subtotal_ex_vat)}
-          </span>
-        </div>
-        <div style={totalsRow}>
-          <span style={totalsLabel}>BTW {invoice.vat_rate ?? 21}%</span>
-          <span style={totalsValue}>
-            {formatCurrency(invoice.vat_amount)}
-          </span>
-        </div>
-        <div style={totalRow}>
-          <span style={totalLabel}>Totaal incl. BTW</span>
-          <span style={totalValue}>
-            {formatCurrency(invoice.total_inc_vat)}
-          </span>
+      {/* Totals */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+        <div style={{ width: COL_R }}>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 0" }}>
+            <span style={lbl}>Subtotaal</span>
+            <span style={{ fontSize: 9, color: GREY }}>{fmtEur(invoice.subtotal_ex_vat)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 0" }}>
+            <span style={lbl}>BTW {invoice.vat_rate ?? 21}%</span>
+            <span style={{ fontSize: 9, color: GREY }}>{fmtEur(invoice.vat_amount)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", marginTop: 4, borderTop: `1px solid ${INK}` }}>
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Totaal</span>
+            <span style={{ fontSize: 14, fontWeight: 700 }}>{fmtEur(invoice.total_inc_vat)}</span>
+          </div>
         </div>
       </div>
 
-      {/* ── Footer ── */}
-      <div style={footer}>
-        <div style={footerRow}>
-          {profile.iban && (
-            <div style={footerCol}>
-              <div style={footerLabel}>IBAN</div>
-              <div style={footerValue}>{profile.iban}</div>
-            </div>
-          )}
-          {profile.bic && (
-            <div style={footerCol}>
-              <div style={footerLabel}>BIC</div>
-              <div style={footerValue}>{profile.bic}</div>
-            </div>
-          )}
-          <div style={footerCol}>
-            <div style={footerLabel}>Betaaltermijn</div>
-            <div style={footerValue}>{paymentDays} dagen</div>
-          </div>
-        </div>
+      {/* Footer */}
+      <div style={{ position: "absolute", bottom: 48, left: 48, right: 48, display: "flex", gap: 32, borderTop: `0.5px solid ${RULE}`, paddingTop: 10 }}>
+        {profile.iban && <div><div style={{ ...lbl, fontSize: 6, marginBottom: 2 }}>IBAN</div><div style={{ fontSize: 8 }}>{profile.iban}</div></div>}
+        {profile.bic && <div><div style={{ ...lbl, fontSize: 6, marginBottom: 2 }}>BIC</div><div style={{ fontSize: 8 }}>{profile.bic}</div></div>}
+        <div><div style={{ ...lbl, fontSize: 6, marginBottom: 2 }}>Betaaltermijn</div><div style={{ fontSize: 8 }}>{days} dagen</div></div>
       </div>
     </div>
   );
 }
-
-// ─── Inline styles (mirror PDF layout exactly) ───
-
-const COLOR = "#0D0D0B";
-
-const page: React.CSSProperties = {
-  width: "595px",
-  minHeight: "842px",
-  padding: "56px",
-  fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-  fontWeight: 300,
-  color: COLOR,
-  backgroundColor: "#FFFFFF",
-  position: "relative",
-  boxSizing: "border-box",
-};
-
-const header: React.CSSProperties = {
-  marginBottom: "24px",
-};
-
-const vat100Mark: React.CSSProperties = {
-  fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-  fontWeight: 400,
-  fontSize: "40px",
-  letterSpacing: "-0.05em",
-  color: COLOR,
-};
-
-const metaRow: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  marginBottom: "48px",
-  gap: "24px",
-};
-
-const metaLine: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  marginBottom: "2px",
-};
-
-const label: React.CSSProperties = {
-  fontSize: "10px",
-  letterSpacing: "0.02em",
-  color: "rgba(13,13,11,0.5)",
-  fontWeight: 400,
-  marginBottom: "4px",
-};
-
-const value: React.CSSProperties = {
-  fontSize: "12px",
-  fontWeight: 300,
-  color: COLOR,
-};
-
-
-const partiesRow: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  marginBottom: "48px",
-};
-
-const partyCol: React.CSSProperties = {
-  flex: 1,
-};
-
-const partyName: React.CSSProperties = {
-  fontSize: "12px",
-  fontWeight: 500,
-  color: COLOR,
-  marginBottom: "2px",
-};
-
-const partyDetail: React.CSSProperties = {
-  fontSize: "12px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.5)",
-};
-
-const tableHeader: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  borderBottom: `0.5px solid ${COLOR}`,
-  padding: "8px 0",
-};
-
-const tableHeaderCell: React.CSSProperties = {
-  fontSize: "10px",
-  letterSpacing: "0.02em",
-  color: "rgba(13,13,11,0.5)",
-  fontWeight: 400,
-};
-
-const tableRow: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  padding: "8px 0",
-};
-
-const tableRowLast: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  padding: "8px 0",
-  borderBottom: `0.5px solid ${COLOR}`,
-};
-
-const tableCell: React.CSSProperties = {
-  fontSize: "12px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.7)",
-};
-
-const totalsContainer: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-end",
-  marginTop: "8px",
-};
-
-const totalsRow: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  width: "220px",
-  justifyContent: "space-between",
-  padding: "4px 0",
-};
-
-const totalsLabel: React.CSSProperties = {
-  fontSize: "10px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.35)",
-};
-
-const totalsValue: React.CSSProperties = {
-  fontSize: "10px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.35)",
-  textAlign: "right",
-};
-
-const totalRow: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  width: "220px",
-  justifyContent: "space-between",
-  padding: "6px 0",
-  borderTop: `0.5px solid ${COLOR}`,
-  marginTop: "4px",
-};
-
-const totalLabel: React.CSSProperties = {
-  fontSize: "14px",
-  fontWeight: 500,
-  color: COLOR,
-};
-
-const totalValue: React.CSSProperties = {
-  fontSize: "14px",
-  fontWeight: 500,
-  color: COLOR,
-  textAlign: "right",
-};
-
-const footer: React.CSSProperties = {
-  position: "absolute",
-  bottom: "56px",
-  left: "56px",
-  right: "56px",
-};
-
-const footerRow: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-};
-
-const footerCol: React.CSSProperties = {
-  marginRight: "40px",
-};
-
-const footerLabel: React.CSSProperties = {
-  fontSize: "9px",
-  fontWeight: 400,
-  color: "rgba(13,13,11,0.4)",
-  letterSpacing: "0.02em",
-  marginBottom: "2px",
-};
-
-const footerValue: React.CSSProperties = {
-  fontSize: "9px",
-  fontWeight: 300,
-  color: COLOR,
-  marginBottom: "8px",
-};

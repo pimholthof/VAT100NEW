@@ -12,11 +12,13 @@ export function ErrorMessage({
       role="alert"
       aria-live="polite"
       style={{
-        padding: 16,
+        padding: "12px 16px",
         marginBottom: 16,
-        background: "rgba(13,13,11,0.02)",
-        fontSize: "11px",
+        background: "rgba(165, 28, 48, 0.04)",
+        borderLeft: "2px solid var(--color-accent)",
+        fontSize: "12px",
         fontWeight: 400,
+        lineHeight: 1.5,
         ...style,
       }}
     >

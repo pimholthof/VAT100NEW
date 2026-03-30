@@ -6,7 +6,6 @@ import { ErrorMessage } from "@/components/ui";
 import Image from "next/image";
 
 const uploadTextStyle: React.CSSProperties = {
-  fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-body-md)",
   fontWeight: 300,
   margin: 0,
@@ -32,11 +31,33 @@ export function ReceiptUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
 
-  const handleFileSelect = (file: File) => {
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleFileSelect = async (file: File) => {
+    setValidationError(null);
+
+    // Valideer magic bytes
+    const header = await file.slice(0, 4).arrayBuffer();
+    const bytes = new Uint8Array(header);
+    const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
+    const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+    const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49; // RIFF
+    const isHeic = bytes[0] === 0x00 && bytes[1] === 0x00 && bytes[2] === 0x00;
+    const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46; // %PDF
+
+    if (!isJpeg && !isPng && !isWebp && !isHeic && !isPdf) {
+      setValidationError("Ongeldig bestandstype. Upload een JPEG, PNG, WebP afbeelding of PDF.");
+      return;
+    }
+
     setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => setFilePreview(e.target?.result as string);
-    reader.readAsDataURL(file);
+    if (!isPdf) {
+      const reader = new FileReader();
+      reader.onload = (e) => setFilePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
     onFileSelected(file);
   };
 
@@ -49,14 +70,14 @@ export function ReceiptUpload({
 
   return (
     <div style={{ maxWidth: 600 }}>
-      {uploadError && (
-        <ErrorMessage style={{ marginBottom: 24 }}>{uploadError}</ErrorMessage>
+      {(uploadError || validationError) && (
+        <ErrorMessage style={{ marginBottom: 24 }}>{uploadError || validationError}</ErrorMessage>
       )}
 
       <div
         role="button"
         tabIndex={0}
-        aria-label="Klik of sleep een afbeelding om te uploaden"
+        aria-label="Klik of sleep een afbeelding of PDF om te uploaden"
         onClick={() => fileInputRef.current?.click()}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -88,8 +109,7 @@ export function ReceiptUpload({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
-          capture="environment"
+          accept="image/*,.pdf,application/pdf"
           style={{ display: "none" }}
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -121,9 +141,37 @@ export function ReceiptUpload({
               {selectedFile.name}
             </p>
           </>
+        ) : selectedFile && !filePreview ? (
+          <>
+            <div
+              style={{
+                width: 80,
+                height: 100,
+                border: "0.5px solid rgba(13,13,11,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "var(--text-label)",
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase" as const,
+                opacity: 0.4,
+              }}
+            >
+              PDF
+            </div>
+            <p
+              style={{
+                ...uploadTextStyle,
+                fontSize: "var(--text-label)",
+              }}
+            >
+              {selectedFile.name}
+            </p>
+          </>
         ) : (
           <p style={uploadTextStyle}>
-            Sleep een foto van je bon hierheen of klik om te uploaden
+            Sleep een foto of PDF van je bon hierheen of klik om te uploaden
           </p>
         )}
       </div>
@@ -136,7 +184,6 @@ export function ReceiptUpload({
           marginTop: 16,
           background: "none",
           border: "none",
-          fontFamily: "var(--font-body), sans-serif",
           fontSize: "var(--text-label)",
           fontWeight: 500,
           letterSpacing: "0.08em",

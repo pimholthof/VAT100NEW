@@ -38,20 +38,63 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const publicRoutes = ["/login", "/register", "/auth/callback", "/invoice"];
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const authOnlyRoutes = ["/onboarding", "/abonnement"];
+  const isPublicRoute =
+    pathname === "/" ||
+    publicRoutes.some((route) => pathname.startsWith(route));
+  const isAuthOnlyRoute = authOnlyRoutes.some((route) => pathname.startsWith(route));
 
-  if (!user && !isPublicRoute) {
+  if (!user && !isPublicRoute && !isAuthOnlyRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname === "/login" || pathname === "/register")) {
+  // Authenticated users on landing/auth pages → dashboard
+  if (user && (pathname === "/" || pathname === "/login" || pathname === "/register")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
+  }
+
+  // Profile checks: admin role + suspended status + subscription
+  if (user && !isPublicRoute && !isAuthOnlyRoute) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, status")
+      .eq("id", user.id)
+      .single();
+
+    // Suspended user protection
+    if (profile?.status === "suspended") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      await supabase.auth.signOut();
+      return NextResponse.redirect(url);
+    }
+
+    // Admin route protection: verify role
+    if (pathname.startsWith("/admin") && (!profile || profile.role !== "admin")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+
+    // TEMPORARILY DISABLED: Subscription gating
+    // if (pathname.startsWith("/dashboard") && profile?.role !== "admin") {
+    //   const { data: subscription } = await supabase
+    //     .from("subscriptions")
+    //     .select("status")
+    //     .eq("user_id", user.id)
+    //     .in("status", ["active", "past_due"])
+    //     .single();
+    //
+    //   if (!subscription) {
+    //     const url = request.nextUrl.clone();
+    //     url.pathname = "/abonnement/kies";
+    //     return NextResponse.redirect(url);
+    //   }
+    // }
   }
 
   return supabaseResponse;

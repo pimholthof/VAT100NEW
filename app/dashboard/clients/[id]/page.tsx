@@ -17,6 +17,7 @@ import {
   FieldGroup,
   Th,
   Td,
+  TableWrapper,
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
@@ -24,6 +25,7 @@ import {
   inputStyle,
 } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
 import { STATUS_LABELS } from "@/lib/constants/status";
 
 export default function ClientDetailPage() {
@@ -85,6 +87,14 @@ export default function ClientDetailPage() {
       setError("Bedrijfsnaam is verplicht.");
       return;
     }
+    const emailErr = validateEmail(email);
+    if (emailErr) { setError(emailErr); return; }
+
+    const kvkErr = validateKvk(kvkNumber);
+    if (kvkErr) { setError(kvkErr); return; }
+
+    const btwErr = validateBtw(btwNumber);
+    if (btwErr) { setError(btwErr); return; }
 
     setSaving(true);
     setError(null);
@@ -346,10 +356,11 @@ export default function ClientDetailPage() {
           Nog geen facturen voor deze klant.
         </p>
       ) : (
-        <table
+        <TableWrapper><table
           style={{
             width: "100%",
             borderCollapse: "collapse",
+            minWidth: 500,
           }}
         >
           <thead>
@@ -417,7 +428,7 @@ export default function ClientDetailPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></TableWrapper>
       )}
     </div>
   );

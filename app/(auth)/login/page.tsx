@@ -4,6 +4,19 @@ import { login } from "../actions";
 import Link from "next/link";
 import { useState } from "react";
 
+const inputStyle: React.CSSProperties = {
+  fontSize: "14px",
+  fontWeight: 400,
+  padding: "14px 0",
+  border: "none",
+  borderBottom: "0.5px solid rgba(0,0,0,0.12)",
+  background: "transparent",
+  color: "var(--color-black)",
+  outline: "none",
+  width: "100%",
+  transition: "border-color 0.2s ease",
+};
+
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -25,97 +38,50 @@ export default function LoginPage() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "grid",
-        gridTemplateColumns: "1fr",
         alignItems: "center",
         justifyItems: "center",
-        padding: 24,
-        position: "relative",
-        overflow: "hidden",
+        padding: "24px 16px",
+        background: "var(--background)",
+        backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1400' height='520'%3E%3Ctext x='8' y='430' font-family='Helvetica Neue%2CHelvetica%2CArial%2Csans-serif' font-weight='800' font-size='420' letter-spacing='-16' fill='%23000' fill-opacity='0.012'%3EVAT100%3C%2Ftext%3E%3C%2Fsvg%3E\")",
+        backgroundRepeat: "repeat",
       }}
     >
-      {/* Giant background logo watermark */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: -40,
-          left: -20,
-          
-          fontSize: "min(14rem, 28vw)",
-          fontWeight: 700,
-          letterSpacing: "var(--tracking-display)",
-          lineHeight: 0.85,
-          color: "var(--color-black)",
-          opacity: 0.05,
-          pointerEvents: "none",
-          userSelect: "none",
-          whiteSpace: "nowrap",
-        }}
-      >
-        VAT100
-      </div>
+      <div style={{ width: "100%", maxWidth: 380 }}>
+        {/* Header */}
+        <div style={{ marginBottom: 48 }}>
+          <h1
+            style={{
+              fontSize: "clamp(4rem, 9vw, 6.5rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.04em",
+              lineHeight: 0.85,
+              margin: 0,
+              color: "var(--color-black)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            VAT100
+          </h1>
+        </div>
 
-      <div style={{ width: "100%", maxWidth: 340, position: "relative", zIndex: 1 }}>
-        {/* Logo */}
-        <h1
-          style={{
-            
-            fontSize: "var(--text-display-hero)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 0.85,
-            margin: 0,
-            color: "var(--color-black)",
-          }}
-        >
-          VAT
-          <br />
-          100
-        </h1>
-
-        {/* Tagline */}
-        <p
-          className="label"
-          style={{
-            marginTop: 24,
-            marginBottom: 72,
-            letterSpacing: "var(--tracking-caps)",
-            opacity: 0.4,
-          }}
-        >
-          Administratie voor ondernemers
-        </p>
-
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+        {/* Form — flat, no card */}
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="email" className="label">
-              E-mail
-            </label>
+            <label htmlFor="email" className="label">E-mail</label>
             <input
               id="email"
               name="email"
               type="email"
               required
               autoComplete="email"
-              style={{
-                fontSize: "13px",
-                fontWeight: 400,
-                padding: "14px 0",
-                border: "none",
-                borderBottom: "var(--border-light)",
-                background: "transparent",
-                color: "var(--color-black)",
-                outline: "none",
-              }}
+              style={inputStyle}
             />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="password" className="label">
-              Wachtwoord
-            </label>
+            <label htmlFor="password" className="label">Wachtwoord</label>
             <input
               id="password"
               name="password"
@@ -123,70 +89,45 @@ export default function LoginPage() {
               required
               minLength={6}
               autoComplete="current-password"
-              style={{
-                fontFamily: "var(--font-geist), sans-serif",
-                fontSize: "13px",
-                fontWeight: 400,
-                padding: "14px 0",
-                border: "none",
-                borderBottom: "var(--border-light)",
-                background: "transparent",
-                color: "var(--color-black)",
-                outline: "none",
-              }}
+              style={inputStyle}
             />
           </div>
 
           {error && (
-            <div
+            <p
+              role="alert"
               style={{
-                padding: 16,
-                background: "rgba(13,13,11,0.02)",
-                fontSize: "11px",
+                margin: 0,
+                fontSize: "12px",
+                color: "var(--color-accent)",
               }}
             >
               {error}
-            </div>
+            </p>
           )}
 
           <button
             type="submit"
             disabled={pending}
-            style={{
-              fontFamily: "var(--font-geist), sans-serif",
-              fontSize: "var(--text-label)",
-              fontWeight: 500,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              padding: "24px",
-              border: "none",
-              background: "var(--color-black)",
-              color: "var(--color-white)",
-              cursor: "pointer",
-              width: "100%",
-              transition: "all 0.2s ease",
-            }}
+            className="btn-primary"
+            style={{ marginTop: 8, width: "100%" }}
           >
-            {pending ? "Inloggen..." : "Inloggen"}
+            {pending ? "Even wachten..." : "Inloggen"}
           </button>
         </form>
 
         <p
           className="label"
-          style={{
-            marginTop: 40,
-            opacity: 0.4,
-          }}
+          style={{ marginTop: 32, opacity: 0.35 }}
         >
           Nog geen account?{" "}
           <Link
             href="/register"
             style={{
-              fontWeight: 500,
+              fontWeight: 700,
               color: "var(--color-black)",
               textDecoration: "none",
-              opacity: 1,
-              borderBottom: "var(--border-light)",
+              borderBottom: "0.5px solid rgba(0,0,0,0.25)",
               paddingBottom: 1,
             }}
           >

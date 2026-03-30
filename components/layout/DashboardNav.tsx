@@ -38,44 +38,23 @@ export function DashboardNav({
   }
 
   return (
-    <div style={{ position: "sticky", top: 0, zIndex: 1000, background: "var(--background)", borderBottom: "var(--border-light)" }}>
-      <header style={{ padding: isMobile ? "16px 20px" : "40px 4vw", maxWidth: 1600, margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <Link 
-              href="/dashboard"
-              className="label" 
-              style={{ 
-                fontSize: "12px", 
-                letterSpacing: "0.25em", 
-                color: "var(--foreground)", 
-                opacity: 0.3,
-                textDecoration: "none",
-                textTransform: "uppercase"
-              }}
-            >
-              VAT0921
+    <div className="dashboard-nav">
+      <header className="dashboard-nav-header">
+        <div className="dashboard-nav-inner">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="display-hero dashboard-nav-brand">
+              VAT100
             </Link>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 32 }}>
+          <div className="dashboard-nav-actions">
             {!isMobile && (
-              <span className="label" style={{ opacity: 0.2 }}>{studioName}</span>
+              <span className="nav-studio-name">{studioName}</span>
             )}
             <button
-              className="label-strong"
-              style={{
-                fontSize: "12px", 
-                letterSpacing: "0.25em", 
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: "4px 0",
-                transition: "opacity 0.2s ease",
-                color: "var(--foreground)",
-                fontWeight: 700
-              }}
+              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+              className="label-strong dashboard-nav-menu"
+              data-open={isDrawerOpen}
             >
               [ UPLOAD ]
             </button>
@@ -107,51 +86,37 @@ export function DashboardNav({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            style={{ overflow: "hidden", background: "var(--background)", borderBottom: "var(--border-light)" }}
+            className="dashboard-drawer"
           >
-            <div style={{ 
-              padding: isMobile ? "32px 20px 40px" : "40px 80px 80px 80px", 
-              display: "grid", 
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", 
-              gap: isMobile ? "32px" : "40px" 
-            }}>
+            <div className="dashboard-drawer-inner">
               
-              {/* Navigation Column 1 */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <span className="label" style={{ marginBottom: 16 }}>Overzicht</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)" }}>OVERZICHT</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>FACTUREN</Link>
-                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>KLANTEN</Link>
+              {/* Navigation */}
+              <div className="dashboard-drawer-col">
+                <span className="label mb-4">Menu</span>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">Overzicht</Link>
+                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
+                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
+                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uitgaven</Link>
+                <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Activa</Link>
+                <Link href="/dashboard/hours" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uren</Link>
+                <Link href="/dashboard/trips" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Kilometers</Link>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
+                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Importeren</Link>
               </div>
 
-              {/* Navigation Column 2 */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <span className="label" style={{ marginBottom: 16 }}>Beheer</span>
-                <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>TRANSACTIES</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>BELASTING</Link>
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>INSTELLINGEN</Link>
-              </div>
-
-              {/* Action Column */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: isMobile ? "flex-start" : "flex-end" }}>
-                <span className="label" style={{ marginBottom: 16 }}>Account</span>
+              {/* Account */}
+              <div className="dashboard-drawer-col dashboard-drawer-col-end">
+                <span className="label mb-4">Account</span>
                 {isMobile && studioName && (
-                  <span className="label" style={{ opacity: 0.4, marginBottom: 8 }}>{studioName}</span>
+                  <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="label-strong"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                    opacity: 0.5,
-                    color: "var(--foreground)"
-                  }}
+                  className="drawer-logout"
                 >
-                  UITLOGGEN
+                  Uitloggen
                 </button>
               </div>
 

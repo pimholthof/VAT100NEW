@@ -4,13 +4,23 @@ import { useEffect, useState, useCallback } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 
+interface ChatMessage {
+  role: "user" | "ai";
+  content: string;
+}
+
+interface ChatApiResponse {
+  text?: string;
+  error?: string;
+}
+
 export function CommandMenu() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  
+
   // AI Chat State
   const [chatMode, setChatMode] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'ai', content: string}[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const router = useRouter();
@@ -43,7 +53,8 @@ export function CommandMenu() {
   const askAI = async (userQuery: string) => {
     if (!userQuery.trim()) return;
     setChatMode(true);
-    setChatMessages(prev => [...prev, { role: 'user', content: userQuery }]);
+    const updatedMessages: ChatMessage[] = [...chatMessages, { role: 'user', content: userQuery }];
+    setChatMessages(updatedMessages);
     setQuery("");
     setIsChatLoading(true);
 
@@ -51,10 +62,13 @@ export function CommandMenu() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: userQuery }),
+        body: JSON.stringify({
+          query: userQuery,
+          history: updatedMessages.slice(0, -1),
+        }),
       });
-      const data = await res.json();
-      setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error }]);
+      const data: ChatApiResponse = await res.json();
+      setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error || "Geen antwoord ontvangen." }]);
     } catch {
       setChatMessages(prev => [...prev, { role: 'ai', content: "Er ging iets mis. Probeer het opnieuw." }]);
     } finally {
@@ -66,6 +80,9 @@ export function CommandMenu() {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Commandomenu"
       style={{
         position: "fixed",
         top: 0,
@@ -90,7 +107,7 @@ export function CommandMenu() {
           maxWidth: 640,
           background: "var(--background)",
           border: "1px solid var(--color-black)",
-          borderRadius: 0,
+          borderRadius: "var(--radius)",
           overflow: "hidden",
           boxShadow: "none",
         }}
@@ -230,7 +247,7 @@ export function CommandMenu() {
                   background: msg.role === 'user' ? 'var(--color-black)' : 'transparent',
                   color: msg.role === 'user' ? 'var(--color-white)' : 'var(--color-black)',
                   padding: '12px 16px',
-                  borderRadius: 0,
+                  borderRadius: 'var(--radius-sm)',
                   maxWidth: '85%',
                   whiteSpace: 'pre-wrap',
                   fontFamily: "var(--font-geist), sans-serif",

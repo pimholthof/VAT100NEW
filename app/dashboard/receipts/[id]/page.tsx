@@ -121,6 +121,19 @@ export default function ReceiptDetailPage() {
       ) : (
         <>
           {imageUrl && (
+            receipt.storage_path?.endsWith(".pdf") ? (
+              <iframe
+                src={imageUrl}
+                title="PDF bon"
+                style={{
+                  width: "100%",
+                  maxWidth: 500,
+                  height: 500,
+                  border: "0.5px solid rgba(13,13,11,0.15)",
+                  marginBottom: 32,
+                }}
+              />
+            ) : (
               <div style={{ position: "relative", width: "100%", maxWidth: 300, height: 400, marginBottom: 32 }}>
                 <Image
                   src={imageUrl}
@@ -130,9 +143,10 @@ export default function ReceiptDetailPage() {
                     objectFit: "contain",
                     border: "0.5px solid rgba(13,13,11,0.15)",
                   }}
-                  unoptimized // Omdat de URL van Supabase Storage komt
+                  unoptimized
                 />
               </div>
+            )
           )}
 
           <div

@@ -20,77 +20,75 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
       setStatusMsg(res.error);
     } else {
       setStatusMsg("Herinnering verzonden.");
-      // Eno-inspired ritual: glass-ping for precision
       playSound("glass-ping");
     }
     setSendingId(null);
   };
 
   return (
-    <div style={{ marginBottom: 120, position: "relative" }}>
-      {/* Playful editorial background line */}
-      <div style={{ position: "absolute", left: "5%", top: 0, bottom: 0, borderLeft: "var(--border-light)", zIndex: 0 }} />
-      
+    <div style={{ position: "relative" }}>
       {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
-      
-      <div style={{ 
-        display: "flex", 
-        flexDirection: "column", 
-        gap: 160, // Extreme gap for editorial spacing
-        position: "relative",
-        zIndex: 1
+
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 0,
       }}>
-        {invoices.map((inv, index) => {
+        {invoices.map((inv) => {
           const isOverdue = inv.days_overdue > 0;
-          // Asymmetrical staggered layout: alternate margins
-          const alignClass = index % 2 === 0 ? "items-start pl-0 lg:pl-[10%]" : "items-end pr-0 lg:pr-[10%]";
-          
+
           return (
-            <div 
-              key={inv.id} 
-              className={`flex flex-col relative ${alignClass}`}
+            <div
+              key={inv.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 24,
+                padding: "24px 0",
+                borderBottom: "0.5px solid rgba(0,0,0,0.04)",
+                flexWrap: "wrap",
+              }}
             >
-              {/* Top tiny label */}
-              <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16 }}>
-                <span className="label-strong" style={{ fontSize: 10, letterSpacing: "0.1em" }}>
-                  FACTURE // {inv.invoice_number}
-                </span>
-                <span className="label" style={{ 
-                  color: isOverdue ? "#DE350B" : "inherit", 
-                  opacity: isOverdue ? 1 : 0.4 
+              <div style={{ display: "flex", alignItems: "baseline", gap: 16, flex: 1, minWidth: 0 }}>
+                <span className="label" style={{
+                  opacity: 0.25,
+                  flexShrink: 0,
                 }}>
-                  [{isOverdue ? `${inv.days_overdue}D DELAY` : "ACTIVE"}]
+                  {inv.invoice_number}
                 </span>
+
+                <Link
+                  href={`/dashboard/invoices/${inv.id}`}
+                  style={{
+                    fontSize: "clamp(1.25rem, 3vw, 2rem)",
+                    fontWeight: 600,
+                    letterSpacing: "-0.02em",
+                    textDecoration: "none",
+                    color: "var(--foreground)",
+                    lineHeight: 1,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {inv.client_name}
+                </Link>
+
+                {isOverdue && (
+                  <span className="status-badge status-badge--overdue" style={{ flexShrink: 0 }}>
+                    {inv.days_overdue}D
+                  </span>
+                )}
               </div>
 
-              {/* Main Subject */}
-              <Link
-                href={`/dashboard/invoices/${inv.id}`}
-                className="display-title"
-                style={{
-                  fontSize: "clamp(3rem, 6vw, 6rem)", // Massive scaling
-                  textDecoration: "none",
-                  color: "var(--foreground)",
-                  lineHeight: 0.9,
-                  display: "inline-block",
-                  borderBottom: "4px solid transparent",
-                  transition: "border-color 0.3s ease",
-                  marginBottom: 24,
-                  letterSpacing: "-0.04em"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "var(--foreground)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "transparent";
-                }}
-              >
-                {inv.client_name.toUpperCase()}
-              </Link>
-              
-              {/* Bottom Details & Action */}
-              <div style={{ display: "flex", gap: 32, alignItems: "baseline" }}>
-                <span className="label-strong" style={{ fontSize: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 24, flexShrink: 0 }}>
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  fontVariantNumeric: "tabular-nums",
+                  color: isOverdue ? "var(--color-accent)" : "var(--foreground)",
+                }}>
                   {formatCurrency(inv.total_inc_vat)}
                 </span>
 
@@ -105,13 +103,14 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
                       borderBottom: "1px solid var(--foreground)",
                       cursor: "pointer",
                       padding: "0 0 2px 0",
-                      opacity: sendingId === inv.id ? 0.2 : 0.8,
+                      opacity: sendingId === inv.id ? 0.2 : 0.6,
+                      transition: "opacity 0.15s ease",
                     }}
                   >
-                    {sendingId === inv.id ? "SYNC..." : "PING STUREN"}
+                    {sendingId === inv.id ? "SYNC..." : "HERINNEREN"}
                   </button>
                 ) : (
-                  <span className="label" style={{ opacity: 0.2 }}>
+                  <span className="label" style={{ opacity: 0.15 }}>
                     GEEN E-MAIL
                   </span>
                 )}

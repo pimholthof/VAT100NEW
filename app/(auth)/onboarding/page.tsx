@@ -44,10 +44,9 @@ export default function OnboardingPage() {
       <div style={{ width: "100%", maxWidth: 400 }}>
         <h1
           style={{
-            fontFamily: "var(--font-display), sans-serif",
             fontSize: "var(--text-display-lg)",
             fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
+            letterSpacing: "-0.03em",
             lineHeight: 0.9,
             margin: 0,
           }}
@@ -63,7 +62,7 @@ export default function OnboardingPage() {
             opacity: 0.4,
           }}
         >
-          Vul je bedrijfsgegevens aan
+          Vul je bedrijfsgegevens in
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
@@ -115,7 +114,7 @@ export default function OnboardingPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <label htmlFor="iban" className="label">IBAN</label>
-                <input id="iban" name="iban" type="text" required placeholder="NL00BANK0000000000" autoComplete="off" style={monoInputStyle} />
+                <input id="iban" name="iban" type="text" required placeholder="NL00BANK0000000000" pattern="[A-Z]{2}[0-9]{2}[A-Z]{4}[0-9]{10}" title="bijv. NL00BANK0000000000" autoComplete="off" style={monoInputStyle} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <label htmlFor="bic" className="label">BIC</label>
@@ -126,6 +125,7 @@ export default function OnboardingPage() {
 
           {error && (
             <div
+              role="alert"
               style={{
                 padding: 16,
                 background: "rgba(13,13,11,0.02)",
@@ -154,7 +154,7 @@ export default function OnboardingPage() {
               transition: "opacity 0.15s ease",
             }}
           >
-            {pending ? "Bezig..." : "Opslaan & doorgaan"}
+            {pending ? "Bezig..." : "Opslaan en doorgaan"}
           </button>
         </form>
       </div>

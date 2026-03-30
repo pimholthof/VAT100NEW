@@ -1,13 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { User } from "@supabase/supabase-js";
+import { getRequiredEnv } from "@/lib/utils/env";
 
 export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    getRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     {
       cookies: {
         getAll() {
@@ -46,4 +47,57 @@ export async function requireAuth(): Promise<AuthResult> {
 
   if (error || !user) return { error: "Niet ingelogd.", supabase: null, user: null };
   return { error: null, supabase, user };
+}
+
+/**
+ * Checks if the current user has a specific plan (or higher).
+ * Returns the subscription or an error if the user's plan doesn't match.
+ */
+export async function requirePlan(
+  requiredPlanId: "basis" | "compleet",
+): Promise<{ error: string | null; planId: string | null }> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error, planId: null };
+
+  const { data: subscription } = await auth.supabase
+    .from("subscriptions")
+    .select("plan_id, status")
+    .eq("user_id", auth.user.id)
+    .in("status", ["active", "past_due"])
+    .single();
+
+  if (!subscription) {
+    return { error: "Geen actief abonnement.", planId: null };
+  }
+
+  if (requiredPlanId === "compleet" && subscription.plan_id !== "compleet") {
+    return { error: "Upgrade naar Compleet om deze functie te gebruiken.", planId: subscription.plan_id };
+  }
+
+  return { error: null, planId: subscription.plan_id };
+}
+
+type AdminResult =
+  | { error: null; supabase: SupabaseServer; user: User }
+  | { error: string; supabase: null; user: null };
+
+/**
+ * Authenticates the current user AND verifies admin role.
+ * Returns error if not logged in or not an admin.
+ */
+export async function requireAdmin(): Promise<AdminResult> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error, supabase: null, user: null };
+
+  const { data: profile, error: profileError } = await auth.supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", auth.user.id)
+    .single();
+
+  if (profileError || !profile || profile.role !== "admin") {
+    return { error: "Geen toegang.", supabase: null, user: null };
+  }
+
+  return { error: null, supabase: auth.supabase, user: auth.user };
 }

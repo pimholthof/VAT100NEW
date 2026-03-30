@@ -4,6 +4,7 @@ import { z } from "zod";
 
 const trimmedString = z.string().trim();
 const optionalString = trimmedString.nullable().optional();
+export const uuidSchema = z.string().uuid("Ongeldig ID");
 
 // ─── Client ───
 
@@ -59,9 +60,72 @@ export const receiptSchema = z.object({
   category: optionalString,
   cost_code: z.number().nullable().optional(),
   receipt_date: z.string().nullable().optional(),
+  business_percentage: z.number().int().min(0).max(100).optional().default(100),
 });
 
 export type ReceiptSchema = z.infer<typeof receiptSchema>;
+
+// ─── Quote ───
+
+export const quoteSchema = z.object({
+  client_id: z.string().min(1, "Klant is verplicht"),
+  quote_number: trimmedString.min(1, "Offertenummer is verplicht"),
+  status: z.enum(["draft", "sent", "accepted", "invoiced", "rejected"]),
+  issue_date: z.string().min(1, "Offertedatum is verplicht"),
+  valid_until: z.string().nullable(),
+  vat_rate: z.union([z.literal(0), z.literal(9), z.literal(21)]),
+  notes: optionalString,
+  lines: z
+    .array(invoiceLineSchema)
+    .min(1, "Minimaal één offerteregel is verplicht"),
+});
+
+export type QuoteSchema = z.infer<typeof quoteSchema>;
+
+// ─── Tax Payment ───
+
+export const taxPaymentSchema = z.object({
+  type: z.enum(["ib", "btw"]),
+  period: trimmedString.min(1, "Periode is verplicht"),
+  amount: z.number().min(0, "Bedrag mag niet negatief zijn"),
+  paid_date: z.string().nullable().optional(),
+  reference: optionalString,
+});
+
+export type TaxPaymentSchema = z.infer<typeof taxPaymentSchema>;
+
+// ─── Asset ───
+
+export const assetSchema = z.object({
+  omschrijving: trimmedString.min(1, "Omschrijving is verplicht"),
+  aanschaf_datum: z.string().min(1, "Aanschafdatum is verplicht"),
+  aanschaf_prijs: z.number().positive("Aanschafprijs moet positief zijn"),
+  restwaarde: z.number().min(0, "Restwaarde mag niet negatief zijn").default(0),
+  levensduur: z.number().int().min(1).max(30).default(5),
+  categorie: optionalString,
+  receipt_id: z.string().uuid().nullable().optional(),
+  notitie: optionalString,
+  is_verkocht: z.boolean().optional().default(false),
+  verkoop_datum: z.string().nullable().optional(),
+  verkoop_prijs: z.number().min(0).nullable().optional(),
+});
+
+export type AssetSchema = z.infer<typeof assetSchema>;
+
+// ─── Opening Balance ───
+
+export const openingBalanceSchema = z.object({
+  eigen_vermogen: z.number().default(0),
+  vaste_activa: z.number().min(0).default(0),
+  bank_saldo: z.number().default(0),
+  debiteuren: z.number().min(0).default(0),
+  crediteuren: z.number().min(0).default(0),
+  btw_schuld: z.number().min(0).default(0),
+  overige_activa: z.number().min(0).default(0),
+  overige_passiva: z.number().min(0).default(0),
+});
+
+export type OpeningBalanceSchema = z.infer<typeof openingBalanceSchema>;
 
 // ─── Profile ───
 

@@ -11,6 +11,7 @@ import {
   ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
+import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
 
 interface ClientFormProps {
   client?: Client;
@@ -35,6 +36,15 @@ export function ClientForm({ client }: ClientFormProps) {
       setError("Bedrijfsnaam is verplicht.");
       return;
     }
+
+    const emailErr = validateEmail(email);
+    if (emailErr) { setError(emailErr); return; }
+
+    const kvkErr = validateKvk(kvkNumber);
+    if (kvkErr) { setError(kvkErr); return; }
+
+    const btwErr = validateBtw(btwNumber);
+    if (btwErr) { setError(btwErr); return; }
 
     setSaving(true);
     setError(null);

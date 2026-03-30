@@ -44,9 +44,20 @@ export async function sendInvoiceEmail(
   const invoiceNum = escapeHtml(invoice.invoice_number);
   const filename = `factuur-${invoice.invoice_number}.pdf`;
 
+  const notesHtml = invoice.notes
+    ? `<p style="font-size:14px;line-height:1.6;margin:0 0 24px;color:#666;font-style:italic;">${escapeHtml(invoice.notes).replace(/\n/g, "<br>")}</p>`
+    : undefined;
+
+  const paymentLinkHtml = invoice.payment_link
+    ? `<p style="text-align:center;margin:24px 0;"><a href="${escapeHtml(invoice.payment_link)}" style="display:inline-block;background:#A51C30;color:#FAF9F6;padding:14px 32px;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;">Betaal nu online</a></p>`
+    : undefined;
+
+  const extraParts = [notesHtml, paymentLinkHtml].filter(Boolean).join("");
+
   const htmlBody = buildInvoiceEmailHtml(data, {
     introParagraph: `Hierbij ontvangt u factuur <strong>${invoiceNum}</strong> van ${senderName}.`,
     amountLabel: "Totaal incl. BTW",
+    extraHtml: extraParts || undefined,
   });
 
   const { error: sendError } = await getResend().emails.send({

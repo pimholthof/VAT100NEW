@@ -69,6 +69,7 @@ export function InstitutionSelector({
               maxWidth: "480px",
               background: "var(--background)",
               border: "0.5px solid rgba(13, 13, 11, 0.15)",
+              borderRadius: "var(--radius)",
               boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
               zIndex: 101,
               padding: "32px",
@@ -80,7 +81,6 @@ export function InstitutionSelector({
             <div>
               <h3
                 style={{
-                  fontFamily: "var(--font-display), sans-serif",
                   fontSize: "var(--text-display-sm)",
                   fontWeight: 700,
                   letterSpacing: "0.05em",
@@ -92,7 +92,6 @@ export function InstitutionSelector({
               </h3>
               <p
                 style={{
-                  fontFamily: "var(--font-body), sans-serif",
                   fontSize: "var(--text-body-md)",
                   fontWeight: 300,
                   opacity: 0.5,
@@ -115,7 +114,6 @@ export function InstitutionSelector({
                 background: "transparent",
                 border: "none",
                 borderBottom: "1px solid rgba(13, 13, 11, 0.15)",
-                fontFamily: "var(--font-body), sans-serif",
                 fontSize: "var(--text-body-lg)",
                 outline: "none",
                 color: "var(--foreground)",
@@ -142,7 +140,6 @@ export function InstitutionSelector({
                     background: "transparent",
                     border: "none",
                     cursor: isPending ? "default" : "pointer",
-                    fontFamily: "var(--font-body), sans-serif",
                     fontSize: "var(--text-body-md)",
                     color: "var(--foreground)",
                     opacity: isPending ? 0.5 : 1,
@@ -165,7 +162,6 @@ export function InstitutionSelector({
                 style={{
                   background: "none",
                   border: "none",
-                  fontFamily: "var(--font-body), sans-serif",
                   fontSize: "var(--text-body-sm)",
                   fontWeight: 500,
                   textTransform: "uppercase",

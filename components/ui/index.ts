@@ -1,4 +1,4 @@
-export { Th, Td } from "./Table";
+export { Th, Td, TableWrapper } from "./Table";
 export { StatCard, SkeletonCard } from "./StatCard";
 export { DetailCell } from "./DetailCell";
 export { FieldGroup } from "./FieldGroup";
@@ -14,3 +14,5 @@ export {
 export { SkeletonTable } from "./SkeletonTable";
 export { ErrorMessage } from "./ErrorMessage";
 export { PageHeader } from "./PageHeader";
+export { SearchFilter } from "./SearchFilter";
+export { ConfirmDialog } from "./ConfirmDialog";

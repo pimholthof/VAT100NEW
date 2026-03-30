@@ -12,7 +12,6 @@ import {
 
 const quickLabelStyle: React.CSSProperties = {
   display: "block",
-  fontFamily: "var(--font-body), sans-serif",
   fontSize: "var(--text-label)",
   fontWeight: 500,
   letterSpacing: "0.08em",
@@ -54,7 +53,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
       setErrorMsg(result.error);
     } else if (result.data) {
       setClientId(result.data.id);
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      await queryClient.invalidateQueries({ queryKey: ["clients"] });
       onClose();
     }
   };
@@ -70,7 +69,6 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
     >
       <p
         style={{
-          fontFamily: "var(--font-body), sans-serif",
           fontSize: "var(--text-label)",
           fontWeight: 500,
           letterSpacing: "0.08em",

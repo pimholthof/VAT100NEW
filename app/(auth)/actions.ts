@@ -48,7 +48,9 @@ export async function register(formData: FormData): Promise<AuthResult> {
     return { error: error.message };
   }
 
-  redirect("/onboarding");
+  const plan = formData.get("plan") as string | null;
+  const planParam = plan ? `?plan=${plan}` : "";
+  redirect(`/onboarding${planParam}`);
 }
 
 export async function completeOnboarding(
@@ -87,5 +89,5 @@ export async function completeOnboarding(
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  redirect("/dashboard"); // TEMPORARILY CHANGED: was "/abonnement/kies"
 }

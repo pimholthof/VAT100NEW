@@ -1,58 +1,159 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@/lib/supabase/server";
+import { isRateLimited } from "@/lib/rate-limit";
+import { CFO_TOOLS } from "@/lib/ai/tools";
+import { handleToolCall } from "@/lib/ai/tool-handlers";
 
-// Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Maximum tool-use iterations to prevent infinite loops
+const MAX_TOOL_ITERATIONS = 5;
+
+
 export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json();
+    // Authenticate user — prevents unauthorized API usage
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Niet ingelogd." },
+        { status: 401 }
+      );
+    }
+
+    // Feature-gate: AI chat is Compleet-only
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("plan_id, status")
+      .eq("user_id", user.id)
+      .in("status", ["active", "past_due"])
+      .single();
+
+    if (!subscription || subscription.plan_id !== "compleet") {
+      return NextResponse.json(
+        { error: "Upgrade naar Compleet om de AI boekhouder te gebruiken." },
+        { status: 403 }
+      );
+    }
+
+    // Rate limit per user (not IP — works across serverless instances)
+    const limited = await isRateLimited(`ai-chat:${user.id}`);
+    if (limited) {
+      return NextResponse.json(
+        { error: "Te veel verzoeken. Probeer het over een minuut opnieuw." },
+        { status: 429 }
+      );
+    }
+
+    const { query, history } = await request.json();
 
     if (!query) {
       return NextResponse.json({ error: "Geen vraag gesteld" }, { status: 400 });
     }
 
-    // 1. Manually fetch the user context to feed to the LLM (Naive RAG / Context Injection)
-    // Note: In production we would use pgvector and similarity search. 
-    // Here we inject an aggregated summary for the MVP.
-    // We can't easily use cookies in API routes without complex setup
-    // So for the sake of MVP we will use the service role or a simplified approach
-    // If not authenticated, we'll just mock the data fetch or use anon
-    
-    // However, since it's an MVP, let's just make it a general financial assistant first
-    // combined with whatever we can get. 
-    
-    // For now, we simulate pulling the current context
-    const contextStr = `
-(Let op: dit is momenteel een demo-omgeving. Je antwoordt als VAT100 AI Assistant.
-Je bent een slimme, proactieve CFO / boekhoud-assistent.
-Geef korte, bondige, en behulpzame antwoorden in het Nederlands.
-Je kunt uitleggen wat er allemaal mogelijk is wegens de "Liquid" architectuur.)
-`;
 
-    const systemPrompt = `Je bent de VAT100 Autonome CFO Assistent. 
-Je helpt zzp'ers en freelancers met inzicht in hun cashflow, facturen en bonnetjes.
-Houd je antwoorden professioneel, zeer beknopt, to-the-point en behulpzaam. Vermijd markdown formatting tenzij nodig (zoals opsommingen of vetgedrukt).
-Context van de gebruiker:\n${contextStr}`;
+    // Fetch user profile for context
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, studio_name, kvk_number, btw_number")
+      .eq("id", user.id)
+      .single();
 
-    const response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: [
-        {
-          role: "user",
-          content: query,
+    const today = new Date().toISOString().split("T")[0];
+    const currentQ = Math.floor(new Date().getMonth() / 3) + 1;
+
+    const systemPrompt = `Je bent de VAT100 Autonome CFO Assistent${profile?.studio_name ? ` voor ${profile.studio_name}` : ""}.
+Je helpt zzp'ers en freelancers met inzicht in hun cashflow, facturen, bonnetjes en belastingen.
+
+Bedrijfsgegevens:
+- Eigenaar: ${profile?.full_name ?? "onbekend"}
+- Studio: ${profile?.studio_name ?? "onbekend"}
+- KVK: ${profile?.kvk_number ?? "niet ingesteld"}
+- BTW-nummer: ${profile?.btw_number ?? "niet ingesteld"}
+- Vandaag: ${today}
+- Huidig kwartaal: Q${currentQ} ${new Date().getFullYear()}
+
+Instructies:
+- Gebruik de beschikbare tools om data op te zoeken voordat je antwoord geeft. Geef GEEN fictieve data.
+- Als je niet genoeg informatie hebt, gebruik dan een tool om het op te zoeken.
+- Antwoord altijd in het Nederlands.
+- Houd je antwoorden professioneel, beknopt en to-the-point.
+- Gebruik valutanotatie met €-teken (bijv. €1.234,56).
+- Bij bedragen: rond af op 2 decimalen.
+- Vermijd markdown formatting tenzij nodig (zoals opsommingen of vetgedrukt).`;
+
+    // Build messages: include history for multi-turn, then add new query
+    const messages: Anthropic.MessageParam[] = [];
+
+    if (Array.isArray(history)) {
+      for (const msg of history) {
+        if (msg.role === "user") {
+          messages.push({ role: "user", content: msg.content });
+        } else if (msg.role === "ai") {
+          messages.push({ role: "assistant", content: msg.content });
         }
-      ],
+      }
+    }
+
+    messages.push({ role: "user", content: query });
+
+    // Tool-use loop: Claude may request multiple tools before giving a final answer
+    let iterations = 0;
+    let response = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
+      system: systemPrompt,
+      tools: CFO_TOOLS,
+      messages,
     });
 
+    while (response.stop_reason === "tool_use" && iterations < MAX_TOOL_ITERATIONS) {
+      iterations++;
+
+      // Add assistant response (with tool_use blocks) to messages
+      messages.push({ role: "assistant", content: response.content });
+
+      // Process all tool calls in this response
+      const toolResults: Anthropic.ToolResultBlockParam[] = [];
+      for (const block of response.content) {
+        if (block.type === "tool_use") {
+          const result = await handleToolCall(
+            block.name,
+            block.input as Record<string, unknown>,
+            user.id,
+            supabase
+          );
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: result,
+          });
+        }
+      }
+
+      // Add tool results as user message
+      messages.push({ role: "user", content: toolResults });
+
+      // Get next response from Claude
+      response = await anthropic.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2048,
+        system: systemPrompt,
+        tools: CFO_TOOLS,
+        messages,
+      });
+    }
+
+    // Extract final text response
     const textContent = response.content.find((c) => c.type === "text");
-    
-    return NextResponse.json({ 
-      text: textContent?.type === "text" ? textContent.text : "Ik kon helaas geen antwoord formuleren." 
+
+    return NextResponse.json({
+      text: textContent?.type === "text" ? textContent.text : "Ik kon helaas geen antwoord formuleren."
     });
 
   } catch (error) {

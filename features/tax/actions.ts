@@ -2,6 +2,11 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
+import {
+  calculateZZPTaxProjection,
+  type TaxProjection,
+  type Investment,
+} from "@/lib/tax/dutch-tax-2026";
 
 export interface QuarterStats {
   quarter: string;
@@ -41,7 +46,7 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
       .gte("issue_date", startDate),
     supabase
       .from("receipts")
-      .select("receipt_date, vat_amount")
+      .select("receipt_date, vat_amount, business_percentage")
       .eq("user_id", user.id)
       .gte("receipt_date", startDate),
   ]);
@@ -84,7 +89,8 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
     if (!rec.receipt_date) continue;
     const key = getQuarterKey(rec.receipt_date);
     const q = getOrCreate(key);
-    q.inputVat += Number(rec.vat_amount) || 0;
+    const pct = (rec.business_percentage ?? 100) / 100;
+    q.inputVat += (Number(rec.vat_amount) || 0) * pct;
     q.receiptCount += 1;
   }
 
@@ -108,4 +114,89 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
   });
 
   return { error: null, data: sorted.slice(0, 8) };
+}
+
+// ─── Tax Projection: volledige IB-berekening met KIA + afschrijving ───
+
+export async function getTaxProjection(): Promise<
+  ActionResult<TaxProjection>
+> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const now = new Date();
+  const huidigJaar = now.getFullYear();
+  const yearStart = `${huidigJaar}-01-01`;
+  const yearEnd = `${huidigJaar}-12-31`;
+  const maandenVerstreken = now.getMonth() + 1;
+
+  const [invoicesRes, regularReceiptsRes, investmentReceiptsRes] =
+    await Promise.all([
+      // Facturen dit jaar (sent/paid) → omzet
+      supabase
+        .from("invoices")
+        .select("subtotal_ex_vat")
+        .eq("user_id", user.id)
+        .in("status", ["sent", "paid"])
+        .gte("issue_date", yearStart)
+        .lte("issue_date", yearEnd),
+
+      // Reguliere kosten dit jaar (niet cost_code 4230)
+      supabase
+        .from("receipts")
+        .select("amount_ex_vat, cost_code")
+        .eq("user_id", user.id)
+        .gte("receipt_date", yearStart)
+        .lte("receipt_date", yearEnd)
+        .or("cost_code.is.null,cost_code.neq.4230"),
+
+      // Investeringen (cost_code 4230) — ALLE jaren voor afschrijving
+      supabase
+        .from("receipts")
+        .select("id, vendor_name, amount_ex_vat, receipt_date")
+        .eq("user_id", user.id)
+        .eq("cost_code", 4230)
+        .not("amount_ex_vat", "is", null)
+        .not("receipt_date", "is", null),
+    ]);
+
+  if (invoicesRes.error) return { error: invoicesRes.error.message };
+  if (regularReceiptsRes.error)
+    return { error: regularReceiptsRes.error.message };
+  if (investmentReceiptsRes.error)
+    return { error: investmentReceiptsRes.error.message };
+
+  // Omzet ex BTW
+  const jaarOmzetExBtw = (invoicesRes.data ?? []).reduce(
+    (sum, inv) => sum + (Number(inv.subtotal_ex_vat) || 0),
+    0,
+  );
+
+  // Reguliere kosten ex BTW (incl. kleine investeringen < €450 die direct aftrekbaar zijn)
+  const jaarKostenExBtw = (regularReceiptsRes.data ?? []).reduce(
+    (sum, rec) => sum + (Number(rec.amount_ex_vat) || 0),
+    0,
+  );
+
+  // Investeringen omzetten naar Investment objecten
+  const investeringen: Investment[] = (investmentReceiptsRes.data ?? []).map(
+    (rec) => ({
+      id: rec.id,
+      omschrijving: rec.vendor_name ?? "Investering",
+      aanschafprijs: Number(rec.amount_ex_vat) || 0,
+      aanschafDatum: rec.receipt_date!,
+      levensduur: 5, // default 5 jaar
+      restwaarde: 0, // default €0
+    }),
+  );
+
+  const projection = calculateZZPTaxProjection({
+    jaarOmzetExBtw,
+    jaarKostenExBtw,
+    investeringen,
+    maandenVerstreken,
+  });
+
+  return { error: null, data: projection };
 }

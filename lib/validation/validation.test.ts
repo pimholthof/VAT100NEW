@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   clientSchema,
   invoiceSchema,
+  quoteSchema,
   receiptSchema,
   profileSchema,
   validate,
@@ -147,6 +148,44 @@ describe("profileSchema", () => {
       full_name: "",
     });
     expect(result.error).toBe("Naam is verplicht");
+  });
+});
+
+describe("quoteSchema", () => {
+  const validQuote = {
+    client_id: "abc-123",
+    quote_number: "OFF-001",
+    status: "draft" as const,
+    issue_date: "2026-03-15",
+    valid_until: "2026-04-15",
+    vat_rate: 21 as const,
+    notes: null,
+    lines: [
+      { id: "line-1", description: "Ontwerp", quantity: 20, unit: "uren" as const, rate: 85 },
+    ],
+  };
+
+  it("accepts valid quote", () => {
+    const result = validate(quoteSchema, validQuote);
+    expect(result.error).toBeNull();
+  });
+
+  it("rejects invalid status", () => {
+    const result = validate(quoteSchema, { ...validQuote, status: "expired" });
+    expect(result.error).not.toBeNull();
+  });
+
+  it("rejects empty lines", () => {
+    const result = validate(quoteSchema, { ...validQuote, lines: [] });
+    expect(result.error).toBe("Minimaal één offerteregel is verplicht");
+  });
+
+  it("rejects negative rate in line", () => {
+    const result = validate(quoteSchema, {
+      ...validQuote,
+      lines: [{ ...validQuote.lines[0], rate: -10 }],
+    });
+    expect(result.error).toBe("Tarief mag niet negatief zijn");
   });
 });
 

@@ -22,11 +22,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="dashboard-shell">
+      <a href="#main" className="skip-to-content">
+        Ga naar inhoud
+      </a>
       <DashboardNav
         studioName={profile?.studio_name ?? undefined}
       />
       <DashboardTransition>
-        <main className="dashboard-content">{children}</main>
+        <main id="main" className="dashboard-content">{children}</main>
       </DashboardTransition>
     </div>
   );

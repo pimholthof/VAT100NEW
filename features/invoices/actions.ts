@@ -6,32 +6,39 @@ import { sendReminderEmail } from "@/lib/email/send-reminder";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import type {
   ActionResult,
-  Invoice,
   InvoiceInput,
   InvoiceStatus,
   InvoiceWithDetails,
 } from "@/lib/types";
-import { invoiceSchema, validate } from "@/lib/validation";
-import { calculateLineTotals } from "@/lib/format";
-import { createServiceClient } from "@/lib/supabase/service";
-import type { InvoiceData } from "@/lib/types";
+import { invoiceSchema, uuidSchema, validate } from "@/lib/validation";
+import {
+  createInvoice as createInvoiceInService,
+  createCreditNote as createCreditNoteInService,
+  deleteDraftInvoice as deleteDraftInvoiceInService,
+  generateInvoiceNumber as generateInvoiceNumberInService,
+  generateShareToken as generateShareTokenInService,
+  getInvoice as getInvoiceInService,
+  getInvoices as getInvoicesInService,
+  getInvoiceSendInfo as getInvoiceSendInfoInService,
+  updateInvoice as updateInvoiceInService,
+  updateInvoiceStatus as updateInvoiceStatusInService,
+} from "@/lib/services/invoice-repository";
+import type { InvoiceWithClientName } from "@/lib/services/invoice-repository";
+import { processOverdueInvoices as processOverdueInvoicesInService } from "@/lib/use-cases/process-overdue-invoices";
 
-export type InvoiceWithClient = Invoice & {
-  client: { name: string } | null;
-};
+export type InvoiceWithClient = InvoiceWithClientName;
 
 export async function generateInvoiceNumber(): Promise<ActionResult<string>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { data, error } = await supabase.rpc("generate_invoice_number", {
-    p_user_id: user.id,
-  });
-
-  if (error) return { error: error.message };
-
-  return { error: null, data: data as string };
+  try {
+    const invoiceNumber = await generateInvoiceNumberInService(supabase, user.id);
+    return { error: null, data: invoiceNumber };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 export async function createInvoice(
@@ -44,84 +51,12 @@ export async function createInvoice(
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
 
-  const vat = calculateLineTotals(input.lines, input.vat_rate);
-  const totals = {
-    subtotal_ex_vat: vat.subtotalExVat,
-    vat_amount: vat.vatAmount,
-    total_inc_vat: vat.totalIncVat,
-  };
-
-  // Retry loop: if a unique constraint violation occurs on invoice_number
-  // (e.g. two tabs submitting simultaneously), regenerate the number and retry.
-  const MAX_RETRIES = 3;
-  let invoice: { id: string } | null = null;
-  let invoiceNumber = input.invoice_number;
-
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const { data, error: insertError } = await supabase
-      .from("invoices")
-      .insert({
-        user_id: user.id,
-        client_id: input.client_id,
-        invoice_number: invoiceNumber,
-        status: input.status,
-        issue_date: input.issue_date,
-        due_date: input.due_date,
-        vat_rate: input.vat_rate,
-        notes: input.notes,
-        ...totals,
-      })
-      .select("id")
-      .single();
-
-    if (!insertError) {
-      invoice = data;
-      break;
-    }
-
-    // Unique violation = PostgreSQL error code 23505
-    const isUniqueViolation =
-      insertError.code === "23505" ||
-      insertError.message?.includes("idx_invoices_user_number");
-
-    if (!isUniqueViolation || attempt === MAX_RETRIES - 1) {
-      return { error: insertError.message };
-    }
-
-    // Regenerate invoice number via the atomic DB function
-    const { data: newNumber, error: rpcError } = await supabase.rpc(
-      "generate_invoice_number",
-      { p_user_id: user.id }
-    );
-    if (rpcError) return { error: rpcError.message };
-    invoiceNumber = newNumber as string;
+  try {
+    const invoiceId = await createInvoiceInService(supabase, user.id, input);
+    return { error: null, data: invoiceId };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
   }
-
-  if (!invoice) return { error: "Factuurnummer kon niet worden gegenereerd." };
-
-  if (input.lines.length > 0) {
-    const lineRows = input.lines.map((line, index) => ({
-      invoice_id: invoice.id,
-      description: line.description,
-      quantity: line.quantity,
-      unit: line.unit,
-      rate: line.rate,
-      amount: Math.round(line.quantity * line.rate * 100) / 100,
-      sort_order: index,
-    }));
-
-    const { error: linesError } = await supabase
-      .from("invoice_lines")
-      .insert(lineRows);
-
-    if (linesError) {
-      // Rollback: delete the invoice if lines failed
-      await supabase.from("invoices").delete().eq("id", invoice.id);
-      return { error: linesError.message };
-    }
-  }
-
-  return { error: null, data: invoice.id };
 }
 
 export async function updateInvoice(
@@ -135,119 +70,65 @@ export async function updateInvoice(
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
 
-  const vat = calculateLineTotals(input.lines, input.vat_rate);
-  const totals = {
-    subtotal_ex_vat: vat.subtotalExVat,
-    vat_amount: vat.vatAmount,
-    total_inc_vat: vat.totalIncVat,
-  };
-
-  const { error: invoiceError } = await supabase
-    .from("invoices")
-    .update({
-      client_id: input.client_id,
-      invoice_number: input.invoice_number,
-      status: input.status,
-      issue_date: input.issue_date,
-      due_date: input.due_date,
-      vat_rate: input.vat_rate,
-      notes: input.notes,
-      ...totals,
-    })
-    .eq("id", id)
-    .eq("user_id", user.id);
-
-  if (invoiceError) return { error: invoiceError.message };
-
-  // Replace all lines: delete existing, insert new
-  const { error: deleteError } = await supabase
-    .from("invoice_lines")
-    .delete()
-    .eq("invoice_id", id);
-
-  if (deleteError) return { error: deleteError.message };
-
-  if (input.lines.length > 0) {
-    const lineRows = input.lines.map((line, index) => ({
-      invoice_id: id,
-      description: line.description,
-      quantity: line.quantity,
-      unit: line.unit,
-      rate: line.rate,
-      amount: Math.round(line.quantity * line.rate * 100) / 100,
-      sort_order: index,
-    }));
-
-    const { error: linesError } = await supabase
-      .from("invoice_lines")
-      .insert(lineRows);
-
-    if (linesError) return { error: linesError.message };
+  try {
+    await updateInvoiceInService(supabase, user.id, id, input);
+    return { error: null };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
   }
-
-  return { error: null };
 }
 
 export async function updateInvoiceStatus(
   id: string,
   status: InvoiceStatus
 ): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { error } = await supabase
-    .from("invoices")
-    .update({ status })
-    .eq("id", id)
-    .eq("user_id", user.id);
-
-  if (error) return { error: error.message };
-  return { error: null };
+  try {
+    await updateInvoiceStatusInService(supabase, user.id, id, status);
+    return { error: null };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 export async function deleteInvoice(id: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Only allow deleting drafts
-  const { data: invoice } = await supabase
-    .from("invoices")
-    .select("status")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
-  if (!invoice) return { error: "Factuur niet gevonden." };
-  if (invoice.status !== "draft") {
-    return { error: "Alleen conceptfacturen kunnen worden verwijderd." };
+  try {
+    await deleteDraftInvoiceInService(supabase, user.id, id);
+    return { error: null };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
   }
-
-  // Lines cascade-delete via FK
-  const { error } = await supabase
-    .from("invoices")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
-
-  if (error) return { error: error.message };
-  return { error: null };
 }
 
-export async function getInvoices(): Promise<ActionResult<InvoiceWithClient[]>> {
+export async function getInvoices(filters?: {
+  search?: string;
+  status?: InvoiceStatus;
+  dateFrom?: string;
+  dateTo?: string;
+}): Promise<ActionResult<InvoiceWithClient[]>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("*, client:clients(name)")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-
-  if (error) return { error: error.message };
-  return { error: null, data: (data ?? []) as unknown as InvoiceWithClient[] };
+  try {
+    const invoices = await getInvoicesInService(supabase, user.id, filters);
+    return { error: null, data: invoices };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 export async function getInvoice(
@@ -257,22 +138,12 @@ export async function getInvoice(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("*, lines:invoice_lines(*), client:clients(*)")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .order("sort_order", { referencedTable: "invoice_lines", ascending: true })
-    .single();
-
-  if (error) return { error: error.message };
-  if (!data) return { error: "Factuur niet gevonden." };
-
-  const { lines, client, ...invoice } = data as unknown as InvoiceWithDetails;
-  return {
-    error: null,
-    data: { ...invoice, lines: lines ?? [], client },
-  };
+  try {
+    const invoice = await getInvoiceInService(supabase, user.id, id);
+    return { error: null, data: invoice };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 export async function generateShareToken(
@@ -282,31 +153,12 @@ export async function generateShareToken(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Verify ownership
-  const { data: invoice } = await supabase
-    .from("invoices")
-    .select("share_token")
-    .eq("id", invoiceId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (!invoice) return { error: "Factuur niet gevonden." };
-
-  // Return existing token if already generated
-  if (invoice.share_token) {
-    return { error: null, data: invoice.share_token };
+  try {
+    const token = await generateShareTokenInService(supabase, user.id, invoiceId);
+    return { error: null, data: token };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
   }
-
-  const token = crypto.randomUUID().replace(/-/g, "");
-
-  const { error } = await supabase
-    .from("invoices")
-    .update({ share_token: token })
-    .eq("id", invoiceId)
-    .eq("user_id", user.id);
-
-  if (error) return { error: error.message };
-  return { error: null, data: token };
 }
 
 export async function sendReminder(invoiceId: string, customMessage?: string): Promise<ActionResult> {
@@ -314,57 +166,81 @@ export async function sendReminder(invoiceId: string, customMessage?: string): P
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Verify ownership, status, and client email in one query
-  const { data: invoice } = await supabase
-    .from("invoices")
-    .select("status, client:clients(email)")
-    .eq("id", invoiceId)
-    .eq("user_id", user.id)
-    .single();
+  try {
+    const info = await getInvoiceSendInfoInService(supabase, user.id, invoiceId);
 
-  if (!invoice) return { error: "Factuur niet gevonden." };
+    if (info.status !== "sent" && info.status !== "overdue") {
+      return {
+        error:
+          "Herinneringen kunnen alleen worden verstuurd voor verzonden of verlopen facturen.",
+      };
+    }
 
-  if (invoice.status !== "sent" && invoice.status !== "overdue") {
-    return { error: "Herinneringen kunnen alleen worden verstuurd voor verzonden of verlopen facturen." };
+    if (!info.clientEmail) {
+      return { error: "Klant heeft geen e-mailadres." };
+    }
+
+    const result = await fetchInvoiceData(invoiceId);
+    if (result.error || !result.data) {
+      return { error: result.error ?? "Kon factuurgegevens niet ophalen." };
+    }
+
+    // Email is not a DB interaction; keeping in action layer.
+    return sendReminderEmail(result.data, customMessage);
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
   }
-
-  const client = invoice.client as unknown as { email: string | null } | null;
-  if (!client?.email) {
-    return { error: "Klant heeft geen e-mailadres." };
-  }
-
-  const result = await fetchInvoiceData(invoiceId);
-  if (result.error || !result.data) {
-    return { error: result.error ?? "Kon factuurgegevens niet ophalen." };
-  }
-  return sendReminderEmail(result.data, customMessage);
 }
 
 export async function sendInvoice(id: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Verify ownership, status, and client email in one query
-  const { data: invoice } = await supabase
-    .from("invoices")
-    .select("status, client:clients(email)")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  try {
+    const info = await getInvoiceSendInfoInService(supabase, user.id, id);
 
-  if (!invoice) return { error: "Factuur niet gevonden." };
+    if (info.status === "draft") {
+      return { error: "Conceptfacturen kunnen niet worden verzonden." };
+    }
 
-  if (invoice.status === "draft") {
-    return { error: "Conceptfacturen kunnen niet worden verzonden." };
+    if (!info.clientEmail) {
+      return { error: "Klant heeft geen e-mailadres." };
+    }
+
+    // Auto-create Mollie payment link if not yet present
+    const { data: inv } = await supabase
+      .from("invoices")
+      .select("payment_link, invoice_number, subtotal_ex_vat, vat_amount, issue_date")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!inv?.payment_link) {
+      await createPaymentLink(id).catch(() => {});
+    }
+
+    // Auto-book to ledger (debiteur -> omzet + BTW)
+    if (inv) {
+      const { autoBookInvoice } = await import("@/features/ledger/actions");
+      await autoBookInvoice({
+        invoiceId: id,
+        userId: user.id,
+        entryDate: inv.issue_date || new Date().toISOString().split("T")[0],
+        description: `Factuur ${inv.invoice_number}`,
+        subtotalExVat: Number(inv.subtotal_ex_vat) || 0,
+        vatAmount: Number(inv.vat_amount) || 0,
+        supabase,
+      }).catch(() => {}); // Non-fatal
+    }
+
+    return sendInvoiceEmail(id);
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
   }
-
-  const client = invoice.client as unknown as { email: string | null } | null;
-  if (!client?.email) {
-    return { error: "Klant heeft geen e-mailadres." };
-  }
-
-  return sendInvoiceEmail(id);
 }
 
 /**
@@ -378,86 +254,158 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
     emailSent: boolean;
     actionCreated: boolean;
     error?: string;
-  }>; 
-}>> {
-  const supabase = createServiceClient();
-  const today = new Date().toISOString().split("T")[0];
-
-  // 1. Find and mark overdue invoices
-  let query = supabase
-    .from("invoices")
-    .update({ status: "overdue" })
-    .eq("status", "sent")
-    .lt("due_date", today);
-
-  if (userId) {
-    query = query.eq("user_id", userId);
+  }>;  }>> {
+  try {
+    const data = await processOverdueInvoicesInService(userId);
+    return { error: null, data };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
   }
+}
 
-  const { data: overdueInvoices, error } = await query.select(
-    "id, user_id, invoice_number, client_id, total_inc_vat, due_date, issue_date, subtotal_ex_vat, vat_amount"
-  );
+/**
+ * Duplicate an invoice as a new draft.
+ */
+export async function duplicateInvoice(
+  invoiceId: string
+): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
 
-  if (error) return { error: error.message };
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
-  const results: Array<{
-    invoiceNumber: string;
-    emailSent: boolean;
-    actionCreated: boolean;
-    error?: string;
-  }> = [];
-
-  for (const inv of overdueInvoices ?? []) {
-    let emailSent = false;
-    let actionCreated = false;
-    let errorMsg: string | undefined;
-
-    try {
-      const [clientResult, profileResult, itemsResult] = await Promise.all([
-        supabase.from("clients").select("*").eq("id", inv.client_id).single(),
-        supabase.from("profiles").select("*").eq("id", inv.user_id).single(),
-        supabase.from("invoice_items").select("*").eq("invoice_id", inv.id),
-      ]);
-
-      if (clientResult.data && profileResult.data && clientResult.data.email) {
-        const invoiceData: InvoiceData = {
-          invoice: {
-            ...inv,
-            status: "overdue" as const,
-          } as InvoiceData["invoice"],
-          lines: (itemsResult.data ?? []) as InvoiceData["lines"],
-          client: clientResult.data as InvoiceData["client"],
-          profile: profileResult.data as InvoiceData["profile"],
-        };
-
-        const emailResult = await sendReminderEmail(invoiceData);
-        emailSent = !emailResult.error;
-        if (emailResult.error) errorMsg = emailResult.error;
-      }
-
-      await supabase.from("action_feed").insert({
-        user_id: inv.user_id,
-        type: "tax_alert",
-        title: `Factuur ${inv.invoice_number} is verlopen`,
-        description: `Factuur ${inv.invoice_number} (${new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(inv.total_inc_vat)}) is verlopen. ${emailSent ? "Een herinnering is automatisch verstuurd." : "Stuur handmatig een herinnering."}`,
-        amount: inv.total_inc_vat,
-        ai_confidence: 1.0,
-      });
-      actionCreated = true;
-    } catch (e: unknown) {
-      errorMsg = e instanceof Error ? e.message : String(e);
-    }
-
-    results.push({
-      invoiceNumber: inv.invoice_number,
-      emailSent,
-      actionCreated,
-      error: errorMsg,
+  try {
+    const original = await getInvoiceInService(supabase, user.id, invoiceId);
+    const newNumber = await generateInvoiceNumberInService(supabase, user.id);
+    const newId = await createInvoiceInService(supabase, user.id, {
+      client_id: original.client_id,
+      invoice_number: newNumber,
+      status: "draft",
+      issue_date: new Date().toISOString().split("T")[0],
+      due_date: null,
+      vat_rate: original.vat_rate as import("@/lib/types").VatRate,
+      vat_scheme: original.vat_scheme ?? "standard",
+      notes: original.notes ?? null,
+      lines: original.lines.map((l) => ({
+        id: crypto.randomUUID(),
+        description: l.description,
+        quantity: l.quantity,
+        unit: l.unit as import("@/lib/types").InvoiceUnit,
+        rate: l.rate,
+      })),
     });
+    return { error: null, data: newId };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/**
+ * Create a credit note for an existing invoice.
+ * Copies the invoice with negative amounts and links to the original.
+ */
+export async function createCreditNote(
+  invoiceId: string
+): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  try {
+    const creditNoteId = await createCreditNoteInService(supabase, user.id, invoiceId);
+    return { error: null, data: creditNoteId };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+// ─── Mollie Payment Link ───
+
+export async function createPaymentLink(
+  invoiceId: string,
+): Promise<ActionResult<{ paymentLink: string }>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Haal factuurgegevens op (gebruik * voor compatibiliteit met migraties)
+  const { data: invoice, error: invoiceError } = await supabase
+    .from("invoices")
+    .select("*")
+    .eq("id", invoiceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (invoiceError || !invoice) {
+    return { error: "Factuur niet gevonden." };
   }
 
-  return { 
-    error: null, 
-    data: { updated: overdueInvoices?.length ?? 0, results } 
-  };
+  if (invoice.status === "paid") {
+    return { error: "Factuur is al betaald." };
+  }
+
+  // Als er al een betaallink is, retourneer die
+  const existingMollieId = (invoice as Record<string, unknown>).mollie_payment_id as string | null;
+  if (existingMollieId) {
+    const { getMolliePayment } = await import("@/lib/payments/mollie");
+    const { data: existing } = await getMolliePayment(existingMollieId);
+    if (existing?._links?.checkout?.href && existing.status === "open") {
+      return { error: null, data: { paymentLink: existing._links.checkout.href } };
+    }
+  }
+
+  const { createMolliePayment, isMollieConfigured } = await import("@/lib/payments/mollie");
+
+  if (!isMollieConfigured()) {
+    return { error: "Mollie is niet geconfigureerd. Voeg MOLLIE_API_KEY toe." };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.vat100.nl";
+  const token = invoice.share_token;
+
+  const { data: payment, error: paymentError } = await createMolliePayment({
+    invoiceId: invoice.id,
+    invoiceNumber: invoice.invoice_number,
+    amount: Number(invoice.total_inc_vat),
+    description: `Factuur ${invoice.invoice_number}`,
+    redirectUrl: token
+      ? `${baseUrl}/invoice/${token}?betaald=1`
+      : `${baseUrl}/dashboard/invoices/${invoice.id}`,
+    webhookUrl: `${baseUrl}/api/webhooks/mollie`,
+  });
+
+  if (paymentError || !payment) {
+    return { error: paymentError ?? "Kon betaallink niet aanmaken." };
+  }
+
+  const paymentLink = payment._links?.checkout?.href ?? null;
+
+  // Sla betaalgegevens op (kolommen bestaan mogelijk nog niet als migratie niet is gedraaid)
+  const { error: updateError } = await supabase
+    .from("invoices")
+    .update({
+      mollie_payment_id: payment.id,
+      payment_link: paymentLink,
+    } as Record<string, unknown>)
+    .eq("id", invoice.id)
+    .eq("user_id", user.id);
+
+  // Niet-fatale fout als kolommen nog niet bestaan
+  if (updateError) {
+    console.warn("Kon betaalgegevens niet opslaan (migratie nodig?):", updateError.message);
+  }
+
+  if (!paymentLink) {
+    return { error: "Mollie heeft geen betaallink teruggegeven." };
+  }
+
+  return { error: null, data: { paymentLink } };
 }

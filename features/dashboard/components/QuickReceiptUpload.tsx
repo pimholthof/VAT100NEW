@@ -47,13 +47,13 @@ export function QuickReceiptUpload() {
 
       // 3. Scan with AI
       setStatus("scanning");
-      setMessage("Bon wordt gelezen...");
+      setMessage("Bezig met scannen...");
       const scanResult = await scanReceiptWithAI(receiptId);
 
       if (scanResult.error) {
         // Receipt is still saved, just not AI-enriched
         setStatus("done");
-        setMessage("Bon opgeslagen, maar niet automatisch herkend.");
+        setMessage("Bon opgeslagen (AI kon niet alles lezen).");
         return;
       }
 
@@ -73,12 +73,12 @@ export function QuickReceiptUpload() {
         await markReceiptAiProcessed(receiptId);
       }
 
-    setStatus("done");
-    setMessage(
-      scanResult.data?.vendor_name
-        ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
-        : "Bon opgeslagen."
-    );
+      setStatus("done");
+      setMessage(
+        scanResult.data?.vendor_name
+          ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
+          : "Bon verwerkt."
+      );
     },
     onError: (err) => {
       setStatus("error");
@@ -99,7 +99,7 @@ export function QuickReceiptUpload() {
     (file: File) => {
       if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
         setStatus("error");
-        setMessage("Alleen afbeeldingen of PDF toegestaan.");
+        setMessage("Alleen afbeeldingen of PDF's. Probeer opnieuw.");
         return;
       }
       processMutation.mutate(file);
@@ -127,14 +127,20 @@ export function QuickReceiptUpload() {
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
       onClick={() => status === "idle" && fileRef.current?.click()}
-        style={{
-          border: "var(--border-light)",
-          padding: "64px 24px",
-          textAlign: "center",
-          cursor: status === "idle" ? "pointer" : "default",
-          transition: "background 0.2s ease",
-          background: isDragging ? "rgba(0,0,0,0.05)" : "rgba(0,0,0,0.02)",
-        }}
+      style={{
+        border: isDragging
+          ? "2px solid var(--color-black)"
+          : "var(--border-light)",
+        borderRadius: "var(--radius)",
+        padding: 24,
+        textAlign: "center",
+        cursor: status === "idle" ? "pointer" : "default",
+        transition: "all 0.2s ease",
+        background: isDragging
+          ? "var(--dashboard-surface-strong, rgba(0,0,0,0.04))"
+          : "var(--dashboard-surface, rgba(0,0,0,0.02))",
+        marginBottom: "var(--quick-upload-margin-bottom, var(--space-section))",
+      }}
     >
       <input
         ref={fileRef}
@@ -150,11 +156,17 @@ export function QuickReceiptUpload() {
 
       {status === "idle" && (
         <>
-          <p className="display-title" style={{ margin: "0 0 16px", fontSize: "var(--text-display-sm)" }}>
-            Bon uploaden
+          <p
+            style={{
+              fontSize: "var(--text-body-md)",
+              fontWeight: 500,
+              margin: "0 0 4px",
+            }}
+          >
+            Sleep je bon hierheen
           </p>
-          <p className="label" style={{ opacity: 0.4, margin: 0 }}>
-            Sleep een foto of PDF hierheen, of klik om te uploaden
+          <p className="label" style={{ opacity: 0.5, margin: 0 }}>
+            Foto of PDF wordt automatisch uitgelezen
           </p>
         </>
       )}
@@ -179,7 +191,6 @@ export function QuickReceiptUpload() {
           )}
           <p
             style={{
-              fontFamily: "var(--font-body), sans-serif",
               fontSize: "var(--text-body-md)",
               fontWeight: 400,
               margin: 0,
@@ -206,7 +217,6 @@ export function QuickReceiptUpload() {
       {status === "error" && (
         <p
           style={{
-            fontFamily: "var(--font-body), sans-serif",
             fontSize: "var(--text-body-md)",
             fontWeight: 400,
             margin: 0,
