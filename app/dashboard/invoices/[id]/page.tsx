@@ -58,6 +58,7 @@ export default function EditInvoicePage() {
         issueDate: inv.issue_date,
         dueDate: inv.due_date ?? "",
         vatRate: inv.vat_rate as VatRate,
+        vatScheme: inv.vat_scheme ?? "standard",
         notes: inv.notes ?? "",
         lines: inv.lines.map((l) => ({
           id: l.id,

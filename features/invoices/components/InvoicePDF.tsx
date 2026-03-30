@@ -9,428 +9,188 @@ import type { InvoiceData } from "@/lib/types";
 import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 import { formatCurrency, formatDate } from "@/lib/format";
 
-// ─── Design tokens (aligned with Luminous Conceptualism) ───
+// ─── Tokens ───
 
-const COLOR = "#000000";
-const ACCENT = "#A51C30";
-const MARGIN = 56;
+const INK = "#000000";
+const GREY = "rgba(0,0,0,0.4)";
+const RULE = "rgba(0,0,0,0.08)";
+const M = 48;
+const COL_L = 260;
+const COL_R = 499 - COL_L;
 
-const LABEL = {
-  fontSize: 10,
-  letterSpacing: 0.14 * 10,
-  color: "rgba(0,0,0,0.5)",
-  fontFamily: "Helvetica",
-  fontWeight: 400 as const,
-  textTransform: "uppercase" as const,
-};
-
-const VALUE = {
-  fontSize: 11,
-  fontFamily: "Helvetica",
-  fontWeight: 400 as const,
-  color: COLOR,
-};
-
-const HERO = {
-  fontFamily: "Helvetica",
-  fontWeight: 700 as const,
-  fontSize: 48,
-  letterSpacing: -0.04 * 48,
-  color: COLOR,
-};
-
-const RULE = {
-  borderBottomWidth: 0.5,
-  borderBottomColor: COLOR,
-  borderBottomStyle: "solid" as const,
-};
-
-const RULE_THIN = {
-  borderBottomWidth: 0.5,
-  borderBottomColor: "rgba(0,0,0,0.08)",
-  borderBottomStyle: "solid" as const,
-};
-
-// ─── Helpers ───
-
-function unitLabel(unit: string): string {
-  if (unit === "dagen") return "Dagen";
-  if (unit === "uren") return "Uren";
-  return "Stuks";
+function unitLabel(u: string): string {
+  return u === "dagen" ? "dagen" : u === "uren" ? "uren" : "stuks";
 }
 
 // ─── Styles ───
 
 const s = StyleSheet.create({
-  page: {
-    width: 595,
-    height: 842,
-    paddingTop: MARGIN,
-    paddingBottom: MARGIN,
-    paddingLeft: MARGIN,
-    paddingRight: MARGIN,
-    fontFamily: "Helvetica",
-    fontWeight: 400,
-    color: COLOR,
-    backgroundColor: "#FFFFFF",
-  },
+  page: { paddingTop: M, paddingBottom: M + 24, paddingLeft: M, paddingRight: M, fontFamily: "Helvetica", color: INK, backgroundColor: "#fff" },
 
-  // Header - Massive brutalist
-  header: {
-    marginBottom: 48,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    ...RULE,
-    paddingBottom: 16,
-  },
-  vat100Mark: {
-    ...HERO,
-    lineHeight: 0.85,
-  },
-  docType: {
-    fontSize: 11,
-    fontFamily: "Helvetica",
-    fontWeight: 700,
-    letterSpacing: 0.2 * 11,
-    color: ACCENT,
-    textTransform: "uppercase",
-  },
+  // Watermark
+  wm: { marginBottom: 24 },
+  wmT: { fontFamily: "Helvetica", fontWeight: 700, fontSize: 120, letterSpacing: -4.8, color: INK, opacity: 0.045, lineHeight: 0.78 },
 
-  // Asymmetric meta grid
-  metaGrid: {
-    flexDirection: "row",
-    marginBottom: 64,
-    gap: 48,
-  },
-  metaLeft: {
-    width: "55%",
-  },
-  metaRight: {
-    flex: 1,
-  },
-  metaBlock: {
-    marginBottom: 32,
-  },
-  metaLabel: {
-    ...LABEL,
-    marginBottom: 8,
-  },
-  metaValue: {
-    ...VALUE,
-    lineHeight: 1.4,
-  },
-  metaValueLarge: {
-    fontSize: 24,
-    fontFamily: "Helvetica",
-    fontWeight: 700,
-    letterSpacing: -0.02 * 24,
-    color: COLOR,
-  },
+  // Grid
+  row: { flexDirection: "row" },
+  cL: { width: COL_L },
+  cR: { width: COL_R },
 
-  // Party section - brutalist asymmetric
-  partiesSection: {
-    flexDirection: "row",
-    marginBottom: 64,
-    gap: 40,
-  },
-  partyBlock: {
-    flex: 1,
-  },
-  partyLabel: {
-    ...LABEL,
-    marginBottom: 12,
-  },
-  partyName: {
-    fontSize: 16,
-    fontFamily: "Helvetica",
-    fontWeight: 700,
-    color: COLOR,
-    letterSpacing: -0.01 * 16,
-    marginBottom: 4,
-  },
-  partyDetail: {
-    fontSize: 10,
-    fontFamily: "Helvetica",
-    fontWeight: 400,
-    color: "rgba(0,0,0,0.5)",
-    lineHeight: 1.5,
-  },
+  // Meta
+  meta: { marginBottom: 28 },
+  name: { fontSize: 11, fontFamily: "Helvetica", fontWeight: 700, color: INK, marginBottom: 4 },
+  line: { fontSize: 8.5, fontFamily: "Helvetica", color: GREY, lineHeight: 1.6 },
+  type: { fontSize: 7, fontFamily: "Helvetica", fontWeight: 700, letterSpacing: 1, color: GREY, textTransform: "uppercase", marginBottom: 12 },
+  num: { fontSize: 18, fontFamily: "Helvetica", fontWeight: 700, letterSpacing: -0.5, color: INK, marginBottom: 12 },
+  pair: { flexDirection: "row", justifyContent: "space-between", marginBottom: 2 },
+  lbl: { fontSize: 7, fontFamily: "Helvetica", letterSpacing: 1, color: GREY, textTransform: "uppercase" },
+  val: { fontSize: 9, fontFamily: "Helvetica", color: INK },
 
-  // Table - editorial grid
-  tableSection: {
-    marginBottom: 48,
-  },
-  tableHeader: {
-    flexDirection: "row",
-    ...RULE,
-    paddingVertical: 12,
-  },
-  tableHeaderCell: {
-    ...LABEL,
-  },
-  tableRow: {
-    flexDirection: "row",
-    paddingVertical: 12,
-    ...RULE_THIN,
-  },
-  tableRowLast: {
-    flexDirection: "row",
-    paddingVertical: 12,
-    ...RULE,
-  },
-  tableCell: {
-    fontSize: 10,
-    fontFamily: "Helvetica",
-    fontWeight: 400,
-    color: COLOR,
-    lineHeight: 1.4,
-  },
+  // Divider
+  div: { borderBottomWidth: 0.5, borderBottomColor: RULE, borderBottomStyle: "solid", marginBottom: 20 },
 
-  // Column widths - asymmetric
-  colDesc: { width: "50%" },
-  colQty: { width: "10%" },
-  colRate: { width: "15%", textAlign: "right" },
-  colAmount: { width: "20%", textAlign: "right" },
-  colPad: { width: "5%" },
+  // Client
+  cli: { marginBottom: 24 },
+  cliLbl: { fontSize: 7, fontFamily: "Helvetica", letterSpacing: 1, color: GREY, textTransform: "uppercase", marginBottom: 5 },
+  cliName: { fontSize: 11, fontFamily: "Helvetica", fontWeight: 700, color: INK, marginBottom: 2 },
+  cliLine: { fontSize: 8.5, fontFamily: "Helvetica", color: GREY, lineHeight: 1.6 },
 
-  // Totals - editorial style
-  totalsSection: {
-    alignItems: "flex-end",
-    marginTop: 32,
-  },
-  totalsGrid: {
-    width: 280,
-  },
-  totalsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-  },
-  totalsLabel: {
-    ...LABEL,
-    fontSize: 8,
-    color: "rgba(0,0,0,0.5)",
-  },
-  totalsValue: {
-    fontSize: 11,
-    fontFamily: "Helvetica",
-    fontWeight: 400,
-    color: "rgba(0,0,0,0.5)",
-    textAlign: "right",
-  },
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 12,
-    marginTop: 8,
-    borderTopWidth: 2,
-    borderTopColor: COLOR,
-  },
-  totalLabel: {
-    fontSize: 11,
-    fontFamily: "Helvetica",
-    fontWeight: 700,
-    letterSpacing: 0.1 * 11,
-    color: COLOR,
-    textTransform: "uppercase",
-  },
-  totalValue: {
-    fontSize: 20,
-    fontFamily: "Helvetica",
-    fontWeight: 700,
-    letterSpacing: -0.02 * 20,
-    color: COLOR,
-    textAlign: "right",
-  },
+  // Notes
+  notes: { marginBottom: 20 },
+  notesLbl: { fontSize: 7, fontFamily: "Helvetica", letterSpacing: 1, color: GREY, textTransform: "uppercase", marginBottom: 4 },
+  notesBody: { fontSize: 8.5, fontFamily: "Helvetica", color: GREY, lineHeight: 1.6 },
 
-  // Footer - minimal technical
-  footer: {
-    position: "absolute",
-    bottom: MARGIN,
-    left: MARGIN,
-    right: MARGIN,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    ...RULE_THIN,
-    paddingTop: 16,
-  },
-  footerCol: {},
-  footerLabel: {
-    ...LABEL,
-    fontSize: 7,
-    marginBottom: 4,
-  },
-  footerValue: {
-    fontSize: 9,
-    fontFamily: "Helvetica",
-    fontWeight: 400,
-    color: COLOR,
-  },
+  // Table
+  tbl: { marginBottom: 8 },
+  thead: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: INK, paddingBottom: 6 },
+  tr: { flexDirection: "row", paddingVertical: 7, borderBottomWidth: 0.5, borderBottomColor: RULE },
+  trLast: { flexDirection: "row", paddingVertical: 7, borderBottomWidth: 0.5, borderBottomColor: INK },
+  th: { fontSize: 7, fontFamily: "Helvetica", letterSpacing: 1, color: GREY, textTransform: "uppercase" },
+  td: { fontSize: 9, fontFamily: "Helvetica", color: INK },
+  cDesc: { width: "48%" },
+  cQty: { width: "14%" },
+  cRate: { width: "18%", textAlign: "right" },
+  cAmt: { width: "20%", textAlign: "right" },
+
+  // Totals
+  totWrap: { flexDirection: "row", justifyContent: "flex-end", marginTop: 12 },
+  totBlock: { width: COL_R },
+  totRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 },
+  totLbl: { fontSize: 7, fontFamily: "Helvetica", letterSpacing: 1, color: GREY, textTransform: "uppercase" },
+  totVal: { fontSize: 9, fontFamily: "Helvetica", color: GREY, textAlign: "right" },
+  totFinal: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, marginTop: 4, borderTopWidth: 1, borderTopColor: INK },
+  totFLbl: { fontSize: 9, fontFamily: "Helvetica", fontWeight: 700, letterSpacing: 1, color: INK, textTransform: "uppercase" },
+  totFVal: { fontSize: 14, fontFamily: "Helvetica", fontWeight: 700, color: INK, textAlign: "right" },
+
+  // Footer
+  foot: { position: "absolute", bottom: M, left: M, right: M, flexDirection: "row", borderTopWidth: 0.5, borderTopColor: RULE, borderTopStyle: "solid", paddingTop: 10, gap: 32 },
+  footLbl: { fontSize: 6, fontFamily: "Helvetica", letterSpacing: 1, color: GREY, textTransform: "uppercase", marginBottom: 2 },
+  footVal: { fontSize: 8, fontFamily: "Helvetica", color: INK },
 });
 
 // ─── Component ───
 
 export function InvoicePDF({ data }: { data: InvoiceData }) {
   const { invoice, lines, client, profile } = data;
-  const isCreditNote = invoice.is_credit_note;
-
-  const paymentDays = calculatePaymentDays({
-    issueDate: invoice.issue_date,
-    dueDate: invoice.due_date,
-    defaultDays: 30,
-  });
+  const cr = invoice.is_credit_note;
+  const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
+  const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
 
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        {/* ── Header ── */}
-        <View style={s.header}>
-          <Text style={s.vat100Mark}>VAT100</Text>
-          <Text style={s.docType}>
-            {isCreditNote ? "CREDITNOTA" : "FACTUUR"}
-          </Text>
-        </View>
+        <View style={s.wm}><Text style={s.wmT}>VAT100</Text></View>
 
-        {/* ── Asymmetric Meta Grid ── */}
-        <View style={s.metaGrid}>
-          <View style={s.metaLeft}>
-            <View style={s.metaBlock}>
-              <Text style={s.metaLabel}>Van</Text>
-              <Text style={s.metaValueLarge}>{profile.studio_name || profile.full_name}</Text>
-              {profile.kvk_number && (
-                <Text style={s.metaValue}>KVK {profile.kvk_number}</Text>
-              )}
-              {profile.btw_number && (
-                <Text style={s.metaValue}>BTW {profile.btw_number}</Text>
-              )}
-              {profile.address && (
-                <Text style={s.metaValue}>{profile.address}</Text>
-              )}
-              {(profile.postal_code || profile.city) && (
-                <Text style={s.metaValue}>
-                  {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
-                </Text>
-              )}
-            </View>
+        {/* Meta grid */}
+        <View style={[s.row, s.meta]}>
+          <View style={s.cL}>
+            <Text style={s.name}>{profile.studio_name || profile.full_name}</Text>
+            {profile.kvk_number && <Text style={s.line}>KVK {profile.kvk_number}</Text>}
+            {profile.btw_number && <Text style={s.line}>BTW {profile.btw_number}</Text>}
+            {profile.address && <Text style={s.line}>{profile.address}</Text>}
+            {(profile.postal_code || profile.city) && (
+              <Text style={s.line}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</Text>
+            )}
           </View>
-          <View style={s.metaRight}>
-            <View style={s.metaBlock}>
-              <Text style={s.metaLabel}>{isCreditNote ? "Creditnotanr" : "Factuurnr"}</Text>
-              <Text style={s.metaValueLarge}>{invoice.invoice_number}</Text>
-            </View>
-            <View style={s.metaBlock}>
-              <Text style={s.metaLabel}>Datum</Text>
-              <Text style={s.metaValue}>{formatDate(invoice.issue_date)}</Text>
+          <View style={s.cR}>
+            <Text style={s.type}>{cr ? "Creditnota" : "Factuur"}</Text>
+            <Text style={s.num}>{invoice.invoice_number}</Text>
+            <View style={s.pair}>
+              <Text style={s.lbl}>Datum</Text>
+              <Text style={s.val}>{formatDate(invoice.issue_date)}</Text>
             </View>
             {invoice.due_date && (
-              <View style={s.metaBlock}>
-                <Text style={s.metaLabel}>Vervaldatum</Text>
-                <Text style={s.metaValue}>{formatDate(invoice.due_date)}</Text>
+              <View style={s.pair}>
+                <Text style={s.lbl}>Vervaldatum</Text>
+                <Text style={s.val}>{formatDate(invoice.due_date)}</Text>
               </View>
             )}
           </View>
         </View>
 
-        {/* ── Parties ── */}
-        <View style={s.partiesSection}>
-          <View style={s.partyBlock}>
-            <Text style={s.partyLabel}>Aan</Text>
-            <Text style={s.partyName}>{client.name}</Text>
-            {client.contact_name && (
-              <Text style={s.partyDetail}>{client.contact_name}</Text>
-            )}
-            {client.address && (
-              <Text style={s.partyDetail}>{client.address}</Text>
-            )}
-            {(client.postal_code || client.city) && (
-              <Text style={s.partyDetail}>
-                {[client.postal_code, client.city].filter(Boolean).join(" ")}
-              </Text>
-            )}
-            {client.kvk_number && (
-              <Text style={s.partyDetail}>KVK {client.kvk_number}</Text>
-            )}
-          </View>
-          {invoice.notes && (
-            <View style={s.partyBlock}>
-              <Text style={s.partyLabel}>Omschrijving</Text>
-              <Text style={s.partyDetail}>{invoice.notes}</Text>
-            </View>
+        <View style={s.div} />
+
+        {/* Client */}
+        <View style={s.cli}>
+          <Text style={s.cliLbl}>Aan</Text>
+          <Text style={s.cliName}>{client.name}</Text>
+          {showContact && <Text style={s.cliLine}>{client.contact_name}</Text>}
+          {client.address && <Text style={s.cliLine}>{client.address}</Text>}
+          {(client.postal_code || client.city) && (
+            <Text style={s.cliLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</Text>
           )}
+          {client.kvk_number && <Text style={s.cliLine}>KVK {client.kvk_number}</Text>}
         </View>
 
-        {/* ── Table ── */}
-        <View style={s.tableSection}>
-          <View style={s.tableHeader}>
-            <Text style={[s.tableHeaderCell, s.colDesc]}>Omschrijving</Text>
-            <Text style={[s.tableHeaderCell, s.colQty]}>Aantal</Text>
-            <Text style={[s.tableHeaderCell, s.colRate]}>Tarief</Text>
-            <Text style={[s.tableHeaderCell, s.colAmount]}>Bedrag</Text>
-            <Text style={s.colPad} />
+        {/* Notes */}
+        {invoice.notes && (
+          <View style={s.notes}>
+            <Text style={s.notesLbl}>Omschrijving</Text>
+            <Text style={s.notesBody}>{invoice.notes}</Text>
           </View>
+        )}
 
-          {lines.map((line, i) => (
-            <View style={i === lines.length - 1 ? s.tableRowLast : s.tableRow} key={line.id}>
-              <Text style={[s.tableCell, s.colDesc]}>{line.description}</Text>
-              <Text style={[s.tableCell, s.colQty]}>
-                {line.quantity} {unitLabel(line.unit).toLowerCase()}
-              </Text>
-              <Text style={[s.tableCell, s.colRate]}>
-                {formatCurrency(line.rate)}
-              </Text>
-              <Text style={[s.tableCell, s.colAmount]}>
-                {formatCurrency(line.amount)}
-              </Text>
-              <Text style={s.colPad} />
+        {/* Table */}
+        <View style={s.tbl}>
+          <View style={s.thead}>
+            <Text style={[s.th, s.cDesc]}>Omschrijving</Text>
+            <Text style={[s.th, s.cQty]}>Aantal</Text>
+            <Text style={[s.th, s.cRate]}>Tarief</Text>
+            <Text style={[s.th, s.cAmt]}>Bedrag</Text>
+          </View>
+          {lines.map((l, i) => (
+            <View style={i === lines.length - 1 ? s.trLast : s.tr} key={l.id}>
+              <Text style={[s.td, s.cDesc]}>{l.description}</Text>
+              <Text style={[s.td, s.cQty]}>{l.quantity} {unitLabel(l.unit)}</Text>
+              <Text style={[s.td, s.cRate]}>{formatCurrency(l.rate)}</Text>
+              <Text style={[s.td, s.cAmt]}>{formatCurrency(l.amount)}</Text>
             </View>
           ))}
         </View>
 
-        {/* ── Totals ── */}
-        <View style={s.totalsSection}>
-          <View style={s.totalsGrid}>
-            <View style={s.totalsRow}>
-              <Text style={s.totalsLabel}>Subtotaal excl. BTW</Text>
-              <Text style={s.totalsValue}>
-                {formatCurrency(invoice.subtotal_ex_vat)}
-              </Text>
+        {/* Totals */}
+        <View style={s.totWrap}>
+          <View style={s.totBlock}>
+            <View style={s.totRow}>
+              <Text style={s.totLbl}>Subtotaal</Text>
+              <Text style={s.totVal}>{formatCurrency(invoice.subtotal_ex_vat)}</Text>
             </View>
-            <View style={s.totalsRow}>
-              <Text style={s.totalsLabel}>BTW {invoice.vat_rate ?? 21}%</Text>
-              <Text style={s.totalsValue}>
-                {formatCurrency(invoice.vat_amount)}
-              </Text>
+            <View style={s.totRow}>
+              <Text style={s.totLbl}>BTW {invoice.vat_rate ?? 21}%</Text>
+              <Text style={s.totVal}>{formatCurrency(invoice.vat_amount)}</Text>
             </View>
-            <View style={s.totalRow}>
-              <Text style={s.totalLabel}>Totaal</Text>
-              <Text style={s.totalValue}>
-                {formatCurrency(invoice.total_inc_vat)}
-              </Text>
+            <View style={s.totFinal}>
+              <Text style={s.totFLbl}>Totaal</Text>
+              <Text style={s.totFVal}>{formatCurrency(invoice.total_inc_vat)}</Text>
             </View>
           </View>
         </View>
 
-        {/* ── Footer ── */}
-        <View style={s.footer}>
-          {profile.iban && (
-            <View style={s.footerCol}>
-              <Text style={s.footerLabel}>IBAN</Text>
-              <Text style={s.footerValue}>{profile.iban}</Text>
-            </View>
-          )}
-          {profile.bic && (
-            <View style={s.footerCol}>
-              <Text style={s.footerLabel}>BIC</Text>
-              <Text style={s.footerValue}>{profile.bic}</Text>
-            </View>
-          )}
-          <View style={s.footerCol}>
-            <Text style={s.footerLabel}>Betaaltermijn</Text>
-            <Text style={s.footerValue}>
-              {paymentDays} dagen
-            </Text>
-          </View>
+        {/* Footer */}
+        <View style={s.foot}>
+          {profile.iban && <View><Text style={s.footLbl}>IBAN</Text><Text style={s.footVal}>{profile.iban}</Text></View>}
+          {profile.bic && <View><Text style={s.footLbl}>BIC</Text><Text style={s.footVal}>{profile.bic}</Text></View>}
+          <View><Text style={s.footLbl}>Betaaltermijn</Text><Text style={s.footVal}>{days} dagen</Text></View>
         </View>
       </Page>
     </Document>

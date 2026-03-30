@@ -25,11 +25,11 @@ export function InvoiceRecipientSection({
   setShowNewClient: (show: boolean) => void;
 }) {
   return (
-    <div style={{ marginBottom: 80 }}>
-      <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>
-        RECIPIENT
+    <div style={{ marginBottom: 48 }}>
+      <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>
+        ONTVANGER
       </p>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
         <select
           value={clientId}
           onChange={(e) => {
@@ -38,22 +38,22 @@ export function InvoiceRecipientSection({
           }}
           style={{
             ...inputStyle,
-            fontSize: "2.5rem",
+            fontSize: 14,
             fontWeight: 400,
-            letterSpacing: "-0.04em",
+            letterSpacing: "-0.01em",
             border: "none",
             padding: 0,
             width: "auto",
-            minWidth: 300,
+            minWidth: 160,
             background: "transparent",
           }}
         >
           <option value="">
             {clientsLoading
-              ? "Loading..."
+              ? "Laden..."
               : hasClientError
                 ? clientErrorMessage
-                : "Select Client"}
+                : "Selecteer klant"}
           </option>
           {clients.map((c) => (
             <option key={c.id} value={c.id}>

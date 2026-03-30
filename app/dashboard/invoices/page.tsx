@@ -111,7 +111,7 @@ function InvoicesTab() {
           <h1 className="display-title" style={{ marginBottom: 8 }}>
             Facturen
           </h1>
-          <p className="label" style={{ opacity: 0.25 }}>{invoices.length} FACTUREN</p>
+          <p className="label" style={{ opacity: 0.25 }}>{invoices.length} {invoices.length === 1 ? "FACTUUR" : "FACTUREN"}</p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <a
@@ -351,7 +351,7 @@ function QuotesTab() {
           <h1 className="display-title" style={{ marginBottom: 8 }}>
             Offertes
           </h1>
-          <p className="label" style={{ opacity: 0.3 }}>{quotes.length} OFFERTES</p>
+          <p className="label" style={{ opacity: 0.3 }}>{quotes.length} {quotes.length === 1 ? "OFFERTE" : "OFFERTES"}</p>
         </div>
         <Link
           href="/dashboard/quotes/new"

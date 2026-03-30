@@ -3,6 +3,7 @@ import type {
   InvoiceInput,
   InvoiceLineInput,
   VatRate,
+  VatScheme,
 } from "@/lib/types";
 import { calculateInvoiceTotals } from "@/lib/logic/invoice-calculations";
 
@@ -38,6 +39,7 @@ interface InvoiceFormState {
   issueDate: string;
   dueDate: string;
   vatRate: VatRate;
+  vatScheme: VatScheme;
   notes: string;
   lines: InvoiceLineInput[];
 
@@ -54,6 +56,7 @@ interface InvoiceFormState {
   setIssueDate: (date: string) => void;
   setDueDate: (date: string) => void;
   setVatRate: (rate: VatRate) => void;
+  setVatScheme: (scheme: VatScheme) => void;
   setNotes: (notes: string) => void;
 
   addLine: () => void;
@@ -68,6 +71,7 @@ interface InvoiceFormState {
     issueDate: string;
     dueDate: string;
     vatRate: VatRate;
+    vatScheme: VatScheme;
     notes: string;
     lines: InvoiceLineInput[];
   }) => void;
@@ -89,6 +93,7 @@ export const useInvoiceStore = create<InvoiceFormState>((set, get) => ({
   issueDate: today(),
   dueDate: in30Days(),
   vatRate: 21,
+  vatScheme: "standard",
   notes: "",
   lines: [createEmptyLine()],
   totals: { subtotal: 0, vatAmount: 0, total: 0 },
@@ -102,6 +107,15 @@ export const useInvoiceStore = create<InvoiceFormState>((set, get) => ({
   setVatRate: (rate) => {
     const { lines } = get();
     set({ vatRate: rate, totals: calcTotals(lines, rate), isDirty: true });
+  },
+  setVatScheme: (scheme) => {
+    const { lines } = get();
+    // EU reverse charge and export outside EU always have 0% VAT
+    if (scheme === "eu_reverse_charge" || scheme === "export_outside_eu") {
+      set({ vatScheme: scheme, vatRate: 0, totals: calcTotals(lines, 0), isDirty: true });
+    } else {
+      set({ vatScheme: scheme, isDirty: true });
+    }
   },
   setNotes: (notes) => set({ notes, isDirty: true }),
 
@@ -147,6 +161,7 @@ export const useInvoiceStore = create<InvoiceFormState>((set, get) => ({
       issueDate: today(),
       dueDate: in30Days(),
       vatRate: 21,
+      vatScheme: "standard",
       notes: "",
       lines: [createEmptyLine()],
       totals: { subtotal: 0, vatAmount: 0, total: 0 },
@@ -175,6 +190,7 @@ export const useInvoiceStore = create<InvoiceFormState>((set, get) => ({
       issue_date: s.issueDate,
       due_date: s.dueDate || null,
       vat_rate: s.vatRate,
+      vat_scheme: s.vatScheme,
       notes: s.notes || null,
       lines: s.lines.filter((l) => l.description.trim() !== ""),
     };
