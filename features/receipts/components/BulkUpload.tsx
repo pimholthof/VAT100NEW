@@ -169,27 +169,12 @@ export function BulkUpload() {
           continue;
         }
 
-        // 3. AI scan
+        // 3. AI scan (non-fatal: receipt is already saved)
         const scanResult = await scanReceiptWithAI(receiptId);
+        const aiData = scanResult.data ?? undefined;
 
-        if (scanResult.error) {
-          setResults((prev) => {
-            const updated = [...prev];
-            updated[i] = {
-              receiptId,
-              fileName: file.name,
-              status: "error",
-              error: scanResult.error ?? undefined,
-            };
-            return updated;
-          });
-          setProcessedCount((c) => c + 1);
-          continue;
-        }
-
-        // 4. Auto-save AI data to receipt
-        if (scanResult.data) {
-          const aiData = scanResult.data;
+        if (!scanResult.error && aiData) {
+          // 4. Auto-save AI data to receipt
           const category = aiData.cost_code
             ? KOSTENSOORTEN.find((k) => k.code === aiData.cost_code)?.label ?? "Overig"
             : "Overig";
@@ -210,18 +195,21 @@ export function BulkUpload() {
             receiptId,
             fileName: file.name,
             status: "success",
-            aiData: scanResult.data ?? undefined,
+            aiData: aiData ?? undefined,
+            aiError: scanResult.error ?? undefined,
           };
           return updated;
         });
-      } catch {
+      } catch (e) {
+        const message =
+          e instanceof Error ? e.message : "Onverwachte fout bij verwerking.";
         setResults((prev) => {
           const updated = [...prev];
           updated[i] = {
             receiptId,
             fileName: file.name,
             status: "error",
-            error: "Onverwachte fout bij verwerking.",
+            error: message,
           };
           return updated;
         });
