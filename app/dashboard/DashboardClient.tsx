@@ -178,33 +178,33 @@ export default function DashboardClient({
         </motion.div>
       )}
 
-      {/* ── QUICK LOG: Uren & Ritten ── */}
-      {!isLoading && (
+      <div className="w-full max-w-[1000px] mx-auto flex flex-col" style={{ gap: 32 }}>
+        {/* ── QUICK LOG: Uren & Ritten ── */}
+        {!isLoading && (
+          <motion.div variants={itemVariants}>
+            <h2 className="brutalist-section-title">
+              <span>Snel registreren</span>
+              <span className="brutalist-rule" />
+            </h2>
+            <QuickLogWidget />
+          </motion.div>
+        )}
+
+        {/* ── OPEN INVOICES ── */}
         <motion.div variants={itemVariants}>
           <h2 className="brutalist-section-title">
-            <span>Snel registreren</span>
+            <span>Openstaande facturen</span>
             <span className="brutalist-rule" />
           </h2>
-          <QuickLogWidget />
+          {isLoading ? (
+            <SkeletonTable />
+          ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
+            <UpcomingInvoiceTable invoices={upcomingInvoices} />
+          ) : (
+            <p className="empty-state">Geen openstaande facturen</p>
+          )}
         </motion.div>
-      )}
-
-      {/* ── OPEN INVOICES ── */}
-      <motion.div variants={itemVariants}>
-        <h2 className="brutalist-section-title">
-          <span>Openstaande facturen</span>
-          <span className="brutalist-rule" />
-        </h2>
-        {isLoading ? (
-          <SkeletonTable />
-        ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
-          <UpcomingInvoiceTable invoices={upcomingInvoices} />
-        ) : (
-          <p className="empty-state">Geen openstaande facturen</p>
-        )}
-      </motion.div>
-
-
+      </div>
     </motion.div>
   );
 }

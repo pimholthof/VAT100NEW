@@ -78,7 +78,7 @@ function RegisterForm() {
               color: "var(--foreground)",
             }}
           >
-            Account aanmaken
+            Account<br/>Aanmaken
           </h1>
         </div>
 
@@ -90,10 +90,10 @@ function RegisterForm() {
               <input id="full_name" name="full_name" type="text" required autoComplete="name" style={inputStyle} />
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label htmlFor="studio_name" className="label">Bedrijfsnaam</label>
-              <input id="studio_name" name="studio_name" type="text" required placeholder="bijv. Maya Kowalski Studio" autoComplete="organization" style={inputStyle} />
-            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <label htmlFor="studio_name" className="label">Bedrijfsnaam</label>
+            <input id="studio_name" name="studio_name" type="text" required placeholder="bijv. Studio Kowalski" autoComplete="organization" className="auth-input max-w-lg" style={inputStyle} />
+          </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label htmlFor="email" className="label">E-mail</label>
@@ -126,7 +126,7 @@ function RegisterForm() {
               className="btn-primary"
               style={{ marginTop: 8, width: "100%" }}
             >
-              {pending ? "Even wachten..." : "Account aanmaken"}
+              {pending ? "Account aanmaken..." : "Registreren"}
             </button>
           </form>
 

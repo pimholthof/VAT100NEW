@@ -21,51 +21,45 @@ export function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       style={{ 
-        padding: "28px",
+        padding: "32px", 
         display: "flex", 
         flexDirection: "column", 
-        justifyContent: "space-between",
-        gap: 20,
-        minHeight: 180,
+        minHeight: 200,
+        position: "relative",
+        overflow: "visible",
         border: "var(--border-light)",
+        background: "var(--color-grey-light)",
         borderRadius: "var(--radius)",
-        background: "var(--card-surface, var(--dashboard-surface, var(--background)))",
+        alignItems: "center",
+        textAlign: "center"
       }}
     >
-      <p className="label" style={{ margin: 0 }}>
-        {label}
-      </p>
+      <div style={{ flex: 1, display: "flex", alignItems: "flex-end", paddingBottom: 24, width: "100%", justifyContent: "center" }}>
+        <p className="label" style={{ margin: 0 }}>
+          Concept / {label}
+        </p>
+      </div>
 
-      <p
-        style={{
-          fontSize: "var(--text-display-md)",
-          fontWeight: 300,
-          letterSpacing: "-0.03em",
-          lineHeight: 1,
-          margin: 0,
-        }}
-      >
-        {numericValue !== undefined ? (
-          <AnimatedNumber value={numericValue} isCurrency={isCurrency} />
-        ) : (
-          value
-        )}
-      </p>
+      <div style={{ flex: "0 0 auto", width: "100%" }}>
+        <p className="display-title" style={{ fontWeight: 500, letterSpacing: "-0.04em", margin: 0 }}>
+          {numericValue !== undefined ? (
+            <AnimatedNumber 
+              value={numericValue} 
+              isCurrency={isCurrency}
+            />
+          ) : (
+            value
+          )}
+        </p>
+      </div>
 
-      {sub && (
-        <div>
-          <div style={{ width: 32, height: "0.5px", background: "rgba(0,0,0,0.08)", marginBottom: 10 }} />
-          <p
-            className="label"
-            style={{
-              margin: 0,
-              opacity: 0.4,
-            }}
-          >
+      <div style={{ flex: 1, display: "flex", alignItems: "flex-start", paddingTop: 24, width: "100%", justifyContent: "center" }}>
+        {sub ? (
+          <p className="label-strong" style={{ letterSpacing: "0.25em", margin: 0 }}>
             {sub}
           </p>
-        </div>
-      )}
+        ) : null}
+      </div>
     </motion.div>
   );
 }
