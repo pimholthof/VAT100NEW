@@ -422,6 +422,41 @@ export interface OpeningBalanceInput {
   overige_passiva: number;
 }
 
+// ─── Personal Tax Profile types ───
+
+export interface PersonalTaxProfile {
+  id: string;
+  user_id: string;
+  year: number;
+  hypotheekrente_per_jaar: number;
+  woz_waarde: number;
+  heeft_partner: boolean;
+  partner_inkomen: number;
+  giften: number;
+  zorgkosten: number;
+  studiekosten: number;
+  alimentatie: number;
+  voorlopige_aanslag_ib: number;
+  voorlopige_aanslag_zvw: number;
+  andere_inkomsten: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonalTaxProfileInput {
+  hypotheekrente_per_jaar: number;
+  woz_waarde: number;
+  heeft_partner: boolean;
+  partner_inkomen: number;
+  giften: number;
+  zorgkosten: number;
+  studiekosten: number;
+  alimentatie: number;
+  voorlopige_aanslag_ib: number;
+  voorlopige_aanslag_zvw: number;
+  andere_inkomsten: number;
+}
+
 // ─── Import types ───
 
 export interface ImportMapping {

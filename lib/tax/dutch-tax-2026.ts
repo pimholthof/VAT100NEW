@@ -83,6 +83,20 @@ export interface DepreciationRow {
   resterendeJaren: number;
 }
 
+export interface PersonalTaxInput {
+  hypotheekrente_per_jaar: number;
+  woz_waarde: number;
+  heeft_partner: boolean;
+  partner_inkomen: number;
+  giften: number;
+  zorgkosten: number;
+  studiekosten: number;
+  alimentatie: number;
+  voorlopige_aanslag_ib: number;
+  voorlopige_aanslag_zvw: number;
+  andere_inkomsten: number;
+}
+
 export interface TaxProjection {
   // Winstberekening
   brutoOmzet: number;
@@ -108,6 +122,13 @@ export interface TaxProjection {
   prognoseJaarOmzet: number;
   prognoseJaarKosten: number;
   prognoseJaarIB: number;
+
+  // Persoonlijk profiel
+  eigenWoningAftrek: number;
+  persoonsgebondenAftrek: number;
+  zvwBijdrage: number;
+  voorlopigeAanslag: number;
+  nogTeBetalen: number;
 
   // Details
   afschrijvingDetails: DepreciationRow[];
@@ -337,16 +358,36 @@ function generateBespaartips(
 
 // ─── Hoofdfunctie ───
 
+// ─── Zvw-bijdrage 2026 ───
+
+const ZVW_RATE = 0.0532;
+const ZVW_MAX_INCOME = 71_628;
+
+export function calculateZvwBijdrage(winst: number): number {
+  const basis = Math.min(Math.max(0, winst), ZVW_MAX_INCOME);
+  return round2(basis * ZVW_RATE);
+}
+
+// ─── Eigenwoningforfait 2026 ───
+
+function calculateEigenwoningforfait(wozWaarde: number): number {
+  if (wozWaarde <= 0) return 0;
+  // Simplified: 0.35% for most values (2026 rate)
+  return round2(wozWaarde * 0.0035);
+}
+
 export function calculateZZPTaxProjection(input: {
   jaarOmzetExBtw: number;
   jaarKostenExBtw: number;
   investeringen: Investment[];
   maandenVerstreken: number;
   huidigJaar?: number;
+  persoonlijk?: PersonalTaxInput;
 }): TaxProjection {
   const { jaarOmzetExBtw, jaarKostenExBtw, investeringen, maandenVerstreken } =
     input;
   const huidigJaar = input.huidigJaar ?? new Date().getFullYear();
+  const persoonlijk = input.persoonlijk;
 
   // Afschrijvingen berekenen
   const afschrijvingDetails: DepreciationRow[] = [];
@@ -396,9 +437,32 @@ export function calculateZZPTaxProjection(input: {
   const mkbVrijstelling = round2(winstNaAftrek * MKB_VRIJSTELLING_RATE);
   const kia = calculateKIA(totalInvestments);
 
+  // Persoonlijke aftrekposten
+  let eigenWoningAftrek = 0;
+  let persoonsgebondenAftrek = 0;
+
+  if (persoonlijk) {
+    // Eigen woning: hypotheekrente minus eigenwoningforfait
+    const ewf = calculateEigenwoningforfait(persoonlijk.woz_waarde);
+    eigenWoningAftrek = round2(Math.max(0, persoonlijk.hypotheekrente_per_jaar - ewf));
+
+    // Persoonsgebonden aftrekposten (giften boven drempel, zorgkosten boven drempel)
+    const drempelinkomen = Math.max(0, winstNaAftrek - mkbVrijstelling - kia);
+    const giftenDrempel = round2(drempelinkomen * 0.01); // 1% drempel
+    const zorgkostenDrempel = round2(drempelinkomen * 0.0125); // 1.25% drempel
+
+    const giftenAftrek = Math.max(0, persoonlijk.giften - giftenDrempel);
+    const zorgkostenAftrek = Math.max(0, persoonlijk.zorgkosten - zorgkostenDrempel);
+
+    persoonsgebondenAftrek = round2(
+      giftenAftrek + zorgkostenAftrek + persoonlijk.studiekosten + persoonlijk.alimentatie
+    );
+  }
+
   // Belastbaar inkomen
   const belastbaarInkomen = round2(
-    Math.max(0, winstNaAftrek - mkbVrijstelling - kia),
+    Math.max(0, winstNaAftrek - mkbVrijstelling - kia - eigenWoningAftrek - persoonsgebondenAftrek
+      + (persoonlijk?.andere_inkomsten ?? 0)),
   );
 
   // Inkomstenbelasting
@@ -410,6 +474,17 @@ export function calculateZZPTaxProjection(input: {
   const nettoIB = round2(
     Math.max(0, inkomstenbelasting - algemeneHeffingskorting - arbeidskorting),
   );
+
+  // Zvw-bijdrage
+  const zvwBijdrage = calculateZvwBijdrage(brutoWinst);
+
+  // Voorlopige aanslag
+  const voorlopigeAanslag = round2(
+    (persoonlijk?.voorlopige_aanslag_ib ?? 0) + (persoonlijk?.voorlopige_aanslag_zvw ?? 0)
+  );
+
+  // Nog te betalen
+  const nogTeBetalen = round2(nettoIB + zvwBijdrage - voorlopigeAanslag);
 
   const effectiefTarief =
     jaarOmzetExBtw > 0 ? round2((nettoIB / jaarOmzetExBtw) * 100) : 0;
@@ -467,6 +542,11 @@ export function calculateZZPTaxProjection(input: {
     prognoseJaarOmzet,
     prognoseJaarKosten,
     prognoseJaarIB,
+    eigenWoningAftrek,
+    persoonsgebondenAftrek,
+    zvwBijdrage,
+    voorlopigeAanslag,
+    nogTeBetalen,
     afschrijvingDetails,
     bespaartips,
   };

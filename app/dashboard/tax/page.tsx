@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
 import { getTaxPaymentsSummary, createTaxPayment, deleteTaxPayment } from "@/features/tax/payments-actions";
+import { getPersonalTaxProfile, updatePersonalTaxProfile } from "@/features/tax/tax-profile-actions";
+import type { PersonalTaxProfileInput } from "@/lib/types";
 import type { QuarterStats } from "@/features/tax/actions";
 import type { Bespaartip, DepreciationRow } from "@/lib/tax/dutch-tax-2026";
 import type { TaxPaymentType } from "@/lib/types";
@@ -177,10 +179,28 @@ export default function TaxPage() {
               <BreakdownLine label="Belastingkorting (algemeen)" value={-projection.algemeneHeffingskorting} negative />
               <BreakdownLine label="Belastingkorting (arbeid)" value={-projection.arbeidskorting} negative />
               <BreakdownTotal label="Geschatte inkomstenbelasting" value={projection.nettoIB} highlight />
+              {projection.eigenWoningAftrek > 0 && (
+                <BreakdownLine label="Eigen woning aftrek" value={-projection.eigenWoningAftrek} negative />
+              )}
+              {projection.persoonsgebondenAftrek > 0 && (
+                <BreakdownLine label="Persoonsgebonden aftrek" value={-projection.persoonsgebondenAftrek} negative />
+              )}
+              <BreakdownLine label="Zvw-bijdrage" value={projection.zvwBijdrage} />
+              {projection.voorlopigeAanslag > 0 && (
+                <BreakdownLine label="Voorlopige aanslag (betaald)" value={-projection.voorlopigeAanslag} negative />
+              )}
+              <BreakdownTotal
+                label={projection.nogTeBetalen >= 0 ? "Nog te betalen" : "Terug te ontvangen"}
+                value={Math.abs(projection.nogTeBetalen)}
+                highlight
+              />
             </BreakdownSection>
           </div>
         </div>
       )}
+
+      {/* Persoonlijk profiel */}
+      <PersonalTaxProfileSection />
 
       {/* Tips om belasting te besparen */}
       {projection && projection.bespaartips.length > 0 && (
@@ -400,6 +420,180 @@ export default function TaxPage() {
 }
 
 // ─── Subcomponenten ───
+
+const profileInputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "8px 12px",
+  border: "0.5px solid rgba(13,13,11,0.2)",
+  borderRadius: "var(--radius-sm)",
+  fontSize: "var(--text-body-sm)",
+  fontFamily: "inherit",
+  background: "transparent",
+  textAlign: "right",
+  fontVariantNumeric: "tabular-nums",
+};
+
+function PersonalTaxProfileSection() {
+  const queryClient = useQueryClient();
+  const year = new Date().getFullYear();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { data: profileResult } = useQuery({
+    queryKey: ["tax-profile", year],
+    queryFn: () => getPersonalTaxProfile(year),
+  });
+
+  const profile = profileResult?.data;
+
+  const [form, setForm] = useState<PersonalTaxProfileInput>({
+    hypotheekrente_per_jaar: 0,
+    woz_waarde: 0,
+    heeft_partner: false,
+    partner_inkomen: 0,
+    giften: 0,
+    zorgkosten: 0,
+    studiekosten: 0,
+    alimentatie: 0,
+    voorlopige_aanslag_ib: 0,
+    voorlopige_aanslag_zvw: 0,
+    andere_inkomsten: 0,
+  });
+
+  // Sync form with loaded profile
+  const [synced, setSynced] = useState(false);
+  if (profile && !synced) {
+    setForm({
+      hypotheekrente_per_jaar: profile.hypotheekrente_per_jaar,
+      woz_waarde: profile.woz_waarde,
+      heeft_partner: profile.heeft_partner,
+      partner_inkomen: profile.partner_inkomen,
+      giften: profile.giften,
+      zorgkosten: profile.zorgkosten,
+      studiekosten: profile.studiekosten,
+      alimentatie: profile.alimentatie,
+      voorlopige_aanslag_ib: profile.voorlopige_aanslag_ib,
+      voorlopige_aanslag_zvw: profile.voorlopige_aanslag_zvw,
+      andere_inkomsten: profile.andere_inkomsten,
+    });
+    setSynced(true);
+  }
+
+  const saveMut = useMutation({
+    mutationFn: () => updatePersonalTaxProfile(year, form),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tax-projection"] });
+      queryClient.invalidateQueries({ queryKey: ["tax-profile"] });
+    },
+  });
+
+  function updateField(field: keyof PersonalTaxProfileInput, value: number | boolean) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  return (
+    <div style={{ marginBottom: "var(--space-section)" }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: 0,
+          marginBottom: isOpen ? 16 : 0,
+        }}
+      >
+        <h3 className="section-header" style={{ margin: 0 }}>Persoonlijk profiel</h3>
+        <span style={{ fontSize: 12, opacity: 0.4 }}>{isOpen ? "▲" : "▼"}</span>
+      </button>
+
+      {isOpen && (
+        <div className="glass" style={{ padding: 32, borderRadius: "var(--radius-md)" }}>
+          <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 24 }}>
+            Dit is een schatting, geen fiscaal advies. Vul je persoonlijke gegevens in voor een nauwkeurigere IB-berekening.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+            {/* Eigen woning */}
+            <div>
+              <h4 style={{ fontSize: "var(--text-body-sm)", fontWeight: 600, marginBottom: 12 }}>Eigen woning</h4>
+              <ProfileField label="WOZ-waarde" value={form.woz_waarde} onChange={(v) => updateField("woz_waarde", v)} />
+              <ProfileField label="Hypotheekrente / jaar" value={form.hypotheekrente_per_jaar} onChange={(v) => updateField("hypotheekrente_per_jaar", v)} />
+            </div>
+
+            {/* Partner */}
+            <div>
+              <h4 style={{ fontSize: "var(--text-body-sm)", fontWeight: 600, marginBottom: 12 }}>Partner</h4>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "var(--text-body-sm)" }}>
+                  <input
+                    type="checkbox"
+                    checked={form.heeft_partner}
+                    onChange={(e) => updateField("heeft_partner", e.target.checked)}
+                  />
+                  Fiscaal partner
+                </label>
+              </div>
+              {form.heeft_partner && (
+                <ProfileField label="Partner inkomen" value={form.partner_inkomen} onChange={(v) => updateField("partner_inkomen", v)} />
+              )}
+            </div>
+
+            {/* Aftrekposten */}
+            <div>
+              <h4 style={{ fontSize: "var(--text-body-sm)", fontWeight: 600, marginBottom: 12 }}>Aftrekposten</h4>
+              <ProfileField label="Giften" value={form.giften} onChange={(v) => updateField("giften", v)} />
+              <ProfileField label="Zorgkosten" value={form.zorgkosten} onChange={(v) => updateField("zorgkosten", v)} />
+              <ProfileField label="Studiekosten" value={form.studiekosten} onChange={(v) => updateField("studiekosten", v)} />
+              <ProfileField label="Alimentatie" value={form.alimentatie} onChange={(v) => updateField("alimentatie", v)} />
+            </div>
+
+            {/* Voorlopige aanslag */}
+            <div>
+              <h4 style={{ fontSize: "var(--text-body-sm)", fontWeight: 600, marginBottom: 12 }}>Voorlopige aanslag</h4>
+              <ProfileField label="IB (per jaar)" value={form.voorlopige_aanslag_ib} onChange={(v) => updateField("voorlopige_aanslag_ib", v)} />
+              <ProfileField label="Zvw (per jaar)" value={form.voorlopige_aanslag_zvw} onChange={(v) => updateField("voorlopige_aanslag_zvw", v)} />
+              <ProfileField label="Andere inkomsten" value={form.andere_inkomsten} onChange={(v) => updateField("andere_inkomsten", v)} />
+            </div>
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <button
+              onClick={() => saveMut.mutate()}
+              disabled={saveMut.isPending}
+              className="btn-primary"
+              style={{ border: "none", cursor: "pointer" }}
+            >
+              {saveMut.isPending ? "Opslaan..." : "Opslaan en herberekenen"}
+            </button>
+            {saveMut.isSuccess && (
+              <span style={{ marginLeft: 12, fontSize: "var(--text-body-sm)", color: "#2E7D32" }}>Opgeslagen</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProfileField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <label style={{ display: "block", fontSize: 12, opacity: 0.5, marginBottom: 4 }}>{label}</label>
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        value={value || ""}
+        onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+        placeholder="0,00"
+        style={profileInputStyle}
+      />
+    </div>
+  );
+}
 
 function TipCard({ tip }: { tip: Bespaartip }) {
   return (

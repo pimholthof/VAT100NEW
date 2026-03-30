@@ -6,6 +6,7 @@ import {
   calculateZZPTaxProjection,
   type TaxProjection,
   type Investment,
+  type PersonalTaxInput,
 } from "@/lib/tax/dutch-tax-2026";
 
 export interface QuarterStats {
@@ -131,7 +132,7 @@ export async function getTaxProjection(): Promise<
   const yearEnd = `${huidigJaar}-12-31`;
   const maandenVerstreken = now.getMonth() + 1;
 
-  const [invoicesRes, regularReceiptsRes, investmentReceiptsRes] =
+  const [invoicesRes, regularReceiptsRes, investmentReceiptsRes, profileRes] =
     await Promise.all([
       // Facturen dit jaar (sent/paid) → omzet
       supabase
@@ -159,6 +160,14 @@ export async function getTaxProjection(): Promise<
         .eq("cost_code", 4230)
         .not("amount_ex_vat", "is", null)
         .not("receipt_date", "is", null),
+
+      // Persoonlijk belastingprofiel
+      supabase
+        .from("personal_tax_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("year", huidigJaar)
+        .maybeSingle(),
     ]);
 
   if (invoicesRes.error) return { error: invoicesRes.error.message };
@@ -191,11 +200,30 @@ export async function getTaxProjection(): Promise<
     }),
   );
 
+  // Build personal tax input if profile exists
+  const profile = profileRes.data;
+  const persoonlijk: PersonalTaxInput | undefined = profile
+    ? {
+        hypotheekrente_per_jaar: Number(profile.hypotheekrente_per_jaar) || 0,
+        woz_waarde: Number(profile.woz_waarde) || 0,
+        heeft_partner: profile.heeft_partner ?? false,
+        partner_inkomen: Number(profile.partner_inkomen) || 0,
+        giften: Number(profile.giften) || 0,
+        zorgkosten: Number(profile.zorgkosten) || 0,
+        studiekosten: Number(profile.studiekosten) || 0,
+        alimentatie: Number(profile.alimentatie) || 0,
+        voorlopige_aanslag_ib: Number(profile.voorlopige_aanslag_ib) || 0,
+        voorlopige_aanslag_zvw: Number(profile.voorlopige_aanslag_zvw) || 0,
+        andere_inkomsten: Number(profile.andere_inkomsten) || 0,
+      }
+    : undefined;
+
   const projection = calculateZZPTaxProjection({
     jaarOmzetExBtw,
     jaarKostenExBtw,
     investeringen,
     maandenVerstreken,
+    persoonlijk,
   });
 
   return { error: null, data: projection };
