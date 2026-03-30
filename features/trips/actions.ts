@@ -2,78 +2,54 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, Trip, TripInput } from "@/lib/types";
-import { uuidSchema } from "@/lib/validation";
 
-const KM_TARIEF = 0.23; // €0,23/km (2026)
+/** Kilometervergoeding 2026: €0,23/km */
+const KM_VERGOEDING = 0.23;
 
-export interface TripsSummary {
-  year: number;
-  totalKm: number;
-  totalDeduction: number;
-  tripCount: number;
-  entries: Trip[];
-}
-
-export async function getTripsSummary(year: number): Promise<ActionResult<TripsSummary>> {
+export async function getTrips(filters?: {
+  dateFrom?: string;
+  dateTo?: string;
+}): Promise<ActionResult<Trip[]>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const yearStart = `${year}-01-01`;
-  const yearEnd = `${year}-12-31`;
-
-  const { data, error } = await supabase
+  let query = supabase
     .from("trips")
     .select("*")
     .eq("user_id", user.id)
-    .gte("trip_date", yearStart)
-    .lte("trip_date", yearEnd)
-    .order("trip_date", { ascending: false });
+    .order("date", { ascending: false });
 
+  if (filters?.dateFrom) query = query.gte("date", filters.dateFrom);
+  if (filters?.dateTo) query = query.lte("date", filters.dateTo);
+
+  const { data, error } = await query.limit(500);
   if (error) return { error: error.message };
-
-  const entries = (data ?? []) as Trip[];
-  let totalKm = 0;
-
-  for (const trip of entries) {
-    const km = Number(trip.distance_km);
-    totalKm += trip.is_return_trip ? km * 2 : km;
-  }
-
-  const round2 = (v: number) => Math.round(v * 100) / 100;
-
-  return {
-    error: null,
-    data: {
-      year,
-      totalKm: round2(totalKm),
-      totalDeduction: round2(totalKm * KM_TARIEF),
-      tripCount: entries.length,
-      entries,
-    },
-  };
+  return { error: null, data: (data ?? []) as Trip[] };
 }
 
-export async function createTrip(input: TripInput): Promise<ActionResult<Trip>> {
+export async function createTrip(
+  input: TripInput,
+): Promise<ActionResult<Trip>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  if (!input.trip_date || !input.description || !input.distance_km || input.distance_km <= 0) {
-    return { error: "Vul datum, omschrijving en afstand in." };
+  if (!input.distance_km || input.distance_km <= 0) {
+    return { error: "Afstand moet positief zijn." };
   }
+
+  // If return trip, double the distance
+  const effectiveDistance = input.is_return_trip ? input.distance_km * 2 : input.distance_km;
 
   const { data, error } = await supabase
     .from("trips")
     .insert({
       user_id: user.id,
-      trip_date: input.trip_date,
-      description: input.description.trim(),
-      origin: input.origin?.trim() || null,
-      destination: input.destination?.trim() || null,
-      distance_km: input.distance_km,
+      date: input.date,
+      distance_km: effectiveDistance,
       is_return_trip: input.is_return_trip ?? false,
-      client_id: input.client_id || null,
+      purpose: input.purpose?.trim() || null,
     })
     .select()
     .single();
@@ -82,24 +58,23 @@ export async function createTrip(input: TripInput): Promise<ActionResult<Trip>> 
   return { error: null, data: data as Trip };
 }
 
-export async function updateTrip(id: string, input: TripInput): Promise<ActionResult<Trip>> {
-  const idCheck = uuidSchema.safeParse(id);
-  if (!idCheck.success) return { error: "Ongeldig ID." };
-
+export async function updateTrip(
+  id: string,
+  input: TripInput,
+): Promise<ActionResult<Trip>> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  const effectiveDistance = input.is_return_trip ? input.distance_km * 2 : input.distance_km;
+
   const { data, error } = await supabase
     .from("trips")
     .update({
-      trip_date: input.trip_date,
-      description: input.description?.trim() || "",
-      origin: input.origin?.trim() || null,
-      destination: input.destination?.trim() || null,
-      distance_km: input.distance_km,
+      date: input.date,
+      distance_km: effectiveDistance,
       is_return_trip: input.is_return_trip ?? false,
-      client_id: input.client_id || null,
+      purpose: input.purpose?.trim() || null,
     })
     .eq("id", id)
     .eq("user_id", user.id)
@@ -111,9 +86,6 @@ export async function updateTrip(id: string, input: TripInput): Promise<ActionRe
 }
 
 export async function deleteTrip(id: string): Promise<ActionResult> {
-  const idCheck = uuidSchema.safeParse(id);
-  if (!idCheck.success) return { error: "Ongeldig ID." };
-
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -126,4 +98,43 @@ export async function deleteTrip(id: string): Promise<ActionResult> {
 
   if (error) return { error: error.message };
   return { error: null };
+}
+
+/**
+ * Get year-to-date km totals and calculated deduction.
+ */
+export async function getYearTripSummary(
+  year?: number,
+): Promise<ActionResult<{ totalKm: number; deduction: number; kmRate: number }>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const targetYear = year ?? new Date().getFullYear();
+  const yearStart = `${targetYear}-01-01`;
+  const yearEnd = `${targetYear}-12-31`;
+
+  const { data, error } = await supabase
+    .from("trips")
+    .select("distance_km")
+    .eq("user_id", user.id)
+    .gte("date", yearStart)
+    .lte("date", yearEnd);
+
+  if (error) return { error: error.message };
+
+  const totalKm = (data ?? []).reduce(
+    (sum, t) => sum + (Number(t.distance_km) || 0), 0
+  );
+
+  const round2 = (v: number) => Math.round(v * 100) / 100;
+
+  return {
+    error: null,
+    data: {
+      totalKm: round2(totalKm),
+      deduction: round2(totalKm * KM_VERGOEDING),
+      kmRate: KM_VERGOEDING,
+    },
+  };
 }

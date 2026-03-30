@@ -2,7 +2,7 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
-import { calculateZZPTaxProjection, calculateKIA, type Investment } from "@/lib/tax/dutch-tax-2026";
+import { calculateZZPTaxProjection, calculateKIA } from "@/lib/tax/dutch-tax-2026";
 import * as Sentry from "@sentry/nextjs";
 
 export interface DashboardStats {
@@ -58,38 +58,29 @@ export interface DashboardData {
   safeToSpend: SafeToSpendData;
 }
 
-// Shape returned by the get_dashboard_stats RPC function
-interface RpcDashboardStats {
-  revenue_this_month: number;
-  open_invoice_count: number;
-  open_invoice_amount: number;
-  vat_to_pay: number;
-  receipts_this_month: number;
-  recent_invoices: Array<{
-    id: string;
-    invoice_number: string;
-    status: string;
-    issue_date: string;
-    total_inc_vat: number;
-    client_name: string;
-  }>;
-  upcoming_invoices: Array<{
-    id: string;
-    invoice_number: string;
-    status: string;
-    due_date: string;
-    total_inc_vat: number;
-    client_name: string;
-    client_email: string | null;
-    days_overdue: number;
-  }>;
-  cashflow_invoices: Array<{ issue_date: string; total_inc_vat: number }>;
-  cashflow_receipts: Array<{ receipt_date: string; total_amount: number }>;
-  vat_quarter_output: number;
-  vat_quarter_input: number;
-  bank_balance: number;
-  year_revenue: Array<{ total_inc_vat: number; vat_amount: number }>;
-  current_quarter: number;
+interface RpcCashflowEntry {
+  month: string;
+  amount: number;
+}
+
+interface RpcRecentInvoice {
+  id: string;
+  invoice_number: string;
+  status: string;
+  issue_date: string;
+  total_inc_vat: number;
+  client_name: string;
+}
+
+interface RpcUpcomingInvoice {
+  id: string;
+  invoice_number: string;
+  status: string;
+  due_date: string;
+  total_inc_vat: number;
+  client_name: string;
+  client_email: string | null;
+  days_overdue: number;
 }
 
 export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
@@ -99,7 +90,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
 
   const now = new Date();
 
-  // ── Single RPC call replaces 12 individual queries ──
+  // Single RPC call replaces 12 individual queries
   const { data: rpc, error: rpcError } = await supabase.rpc("get_dashboard_stats", {
     p_user_id: user.id,
   });
@@ -109,82 +100,55 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     return { error: rpcError.message };
   }
 
-  const stats = rpc as unknown as RpcDashboardStats;
+  if (!rpc) {
+    return { error: "Geen dashboard data ontvangen." };
+  }
 
-  // ── Recent invoices ──
-  const recentInvoices: RecentInvoice[] = (stats.recent_invoices ?? []).map((row) => ({
-    id: row.id,
-    invoice_number: row.invoice_number,
-    status: row.status,
-    issue_date: row.issue_date,
-    total_inc_vat: row.total_inc_vat,
-    client_name: row.client_name ?? "—",
+  // ── Parse RPC result ──
+  const recentInvoices: RecentInvoice[] = ((rpc.recentInvoices ?? []) as RpcRecentInvoice[]).map((r) => ({
+    id: r.id,
+    invoice_number: r.invoice_number,
+    status: r.status,
+    issue_date: r.issue_date,
+    total_inc_vat: Number(r.total_inc_vat) || 0,
+    client_name: r.client_name ?? "—",
   }));
 
-  // ── Upcoming invoices ──
-  const upcomingInvoices: UpcomingInvoice[] = (stats.upcoming_invoices ?? []).map((row) => ({
-    id: row.id,
-    invoice_number: row.invoice_number,
-    status: row.status,
-    due_date: row.due_date,
-    total_inc_vat: row.total_inc_vat,
-    client_name: row.client_name ?? "—",
-    client_email: row.client_email ?? null,
-    days_overdue: row.days_overdue ?? 0,
+  const upcomingInvoices: UpcomingInvoice[] = ((rpc.upcomingInvoices ?? []) as RpcUpcomingInvoice[]).map((r) => ({
+    id: r.id,
+    invoice_number: r.invoice_number,
+    status: r.status,
+    due_date: r.due_date,
+    total_inc_vat: Number(r.total_inc_vat) || 0,
+    client_name: r.client_name ?? "—",
+    client_email: r.client_email ?? null,
+    days_overdue: Number(r.days_overdue) || 0,
   }));
 
   // ── Cashflow ──
-  const revenueMap = new Map<string, number>();
-  const expenseMap = new Map<string, number>();
+  const cashflowRevenue: RpcCashflowEntry[] = (rpc.cashflowRevenue ?? []) as RpcCashflowEntry[];
+  const cashflowExpenses: RpcCashflowEntry[] = (rpc.cashflowExpenses ?? []) as RpcCashflowEntry[];
 
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    revenueMap.set(key, 0);
-    expenseMap.set(key, 0);
-  }
-
-  for (const inv of stats.cashflow_invoices ?? []) {
-    if (!inv.issue_date) continue;
-    const d = new Date(inv.issue_date);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    if (revenueMap.has(key)) {
-      revenueMap.set(key, (revenueMap.get(key) ?? 0) + (Number(inv.total_inc_vat) || 0));
-    }
-  }
-
-  for (const rec of stats.cashflow_receipts ?? []) {
-    if (!rec.receipt_date) continue;
-    const d = new Date(rec.receipt_date);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    if (expenseMap.has(key)) {
-      expenseMap.set(key, (expenseMap.get(key) ?? 0) + (Number(rec.total_amount) || 0));
-    }
-  }
-
-  const months = Array.from(revenueMap.keys());
-  const monthlyRevenue = months.map((m) => ({
-    month: m,
-    amount: Math.round((revenueMap.get(m) ?? 0) * 100) / 100,
+  const monthlyRevenue = cashflowRevenue.map((e) => ({
+    month: e.month,
+    amount: Math.round(Number(e.amount) * 100) / 100,
   }));
-  const monthlyExpenses = months.map((m) => ({
-    month: m,
-    amount: Math.round((expenseMap.get(m) ?? 0) * 100) / 100,
+  const monthlyExpenses = cashflowExpenses.map((e) => ({
+    month: e.month,
+    amount: Math.round(Number(e.amount) * 100) / 100,
   }));
 
-  const currentMonth = months[months.length - 1];
-  const lastMonth = months[months.length - 2];
-  const netThisMonth = Math.round(
-    ((revenueMap.get(currentMonth) ?? 0) - (expenseMap.get(currentMonth) ?? 0)) * 100
-  ) / 100;
-  const netLastMonth = Math.round(
-    ((revenueMap.get(lastMonth) ?? 0) - (expenseMap.get(lastMonth) ?? 0)) * 100
-  ) / 100;
+  const currentMonthRev = monthlyRevenue[monthlyRevenue.length - 1]?.amount ?? 0;
+  const currentMonthExp = monthlyExpenses[monthlyExpenses.length - 1]?.amount ?? 0;
+  const lastMonthRev = monthlyRevenue[monthlyRevenue.length - 2]?.amount ?? 0;
+  const lastMonthExp = monthlyExpenses[monthlyExpenses.length - 2]?.amount ?? 0;
+  const netThisMonth = Math.round((currentMonthRev - currentMonthExp) * 100) / 100;
+  const netLastMonth = Math.round((lastMonthRev - lastMonthExp) * 100) / 100;
   const trend: CashflowSummary["trend"] =
     netThisMonth > netLastMonth ? "up" : netThisMonth < netLastMonth ? "down" : "stable";
 
   // ── VAT deadline ──
-  const currentQ = stats.current_quarter;
+  const currentQ = Number(rpc.currentQuarter) || (Math.floor(now.getMonth() / 3) + 1);
   const deadlines: Record<number, { month: number; day: number; yearOffset: number }> = {
     1: { month: 3, day: 30, yearOffset: 0 },
     2: { month: 6, day: 31, yearOffset: 0 },
@@ -198,18 +162,32 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
   );
 
-  const outputVat = Number(stats.vat_quarter_output) || 0;
-  const inputVat = Number(stats.vat_quarter_input) || 0;
+  const outputVat = Number(rpc.outputVat) || 0;
+  const inputVat = Number(rpc.inputVat) || 0;
+
+  // ── Safe-to-Spend ──
+  const bankBalance = Number(rpc.bankBalance) || 0;
+  const yearRevenueRecords = (rpc.yearRevenueRecords ?? []) as Array<{
+    total_inc_vat: number;
+    vat_amount: number;
+  }>;
+
+  const safeToSpend = calculateSafeToSpend(
+    bankBalance,
+    yearRevenueRecords,
+    outputVat,
+    inputVat
+  );
 
   return {
     error: null,
     data: {
       stats: {
-        revenueThisMonth: Number(stats.revenue_this_month) || 0,
-        openInvoiceCount: Number(stats.open_invoice_count) || 0,
-        openInvoiceAmount: Number(stats.open_invoice_amount) || 0,
-        vatToPay: Number(stats.vat_to_pay) || 0,
-        receiptsThisMonth: Number(stats.receipts_this_month) || 0,
+        revenueThisMonth: Number(rpc.revenueThisMonth) || 0,
+        openInvoiceCount: Number(rpc.openInvoiceCount) || 0,
+        openInvoiceAmount: Number(rpc.openInvoiceAmount) || 0,
+        vatToPay: Number(rpc.vatToPay) || 0,
+        receiptsThisMonth: Number(rpc.receiptsThisMonth) || 0,
       },
       recentInvoices,
       upcomingInvoices,
@@ -225,18 +203,12 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         estimatedAmount: Math.round((outputVat - inputVat) * 100) / 100,
         forecastedAmount: Math.round(((outputVat - inputVat) * (90 / Math.max(1, 90 - daysRemaining))) * 100) / 100,
       },
-      safeToSpend: calculateSafeToSpend(
-        Number(stats.bank_balance) || 0,
-        stats.year_revenue ?? [],
-        outputVat,
-        inputVat
-      ),
+      safeToSpend,
     },
   };
 }
 
 // ── Safe-to-Spend Calculator ──
-// Uses real 2026 tax calculation instead of simplified 37% estimate
 function calculateSafeToSpend(
   currentBalance: number,
   yearRevenue: Array<{ total_inc_vat: number; vat_amount: number }>,

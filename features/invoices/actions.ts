@@ -53,23 +53,6 @@ export async function createInvoice(
 
   try {
     const invoiceId = await createInvoiceInService(supabase, user.id, input);
-
-    // Auto-create ledger entries for non-draft invoices
-    if (input.status !== "draft") {
-      const { createInvoiceLedgerEntries } = await import("@/features/ledger/actions");
-      const subtotal = input.lines.reduce((s, l) => s + l.quantity * l.rate, 0);
-      const vatAmount = Math.round(subtotal * (input.vat_rate / 100) * 100) / 100;
-      await createInvoiceLedgerEntries(
-        user.id,
-        invoiceId,
-        input.issue_date,
-        `Factuur ${input.invoice_number}`,
-        subtotal,
-        input.vat_scheme === "standard" ? vatAmount : 0,
-        input.vat_scheme ?? "standard",
-      ).catch(() => {});
-    }
-
     return { error: null, data: invoiceId };
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };
@@ -231,14 +214,27 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
     // Auto-create Mollie payment link if not yet present
     const { data: inv } = await supabase
       .from("invoices")
-      .select("payment_link")
+      .select("payment_link, invoice_number, subtotal_ex_vat, vat_amount, issue_date")
       .eq("id", id)
       .eq("user_id", user.id)
       .single();
 
     if (!inv?.payment_link) {
-      // Best-effort: don't block sending if payment link creation fails
       await createPaymentLink(id).catch(() => {});
+    }
+
+    // Auto-book to ledger (debiteur -> omzet + BTW)
+    if (inv) {
+      const { autoBookInvoice } = await import("@/features/ledger/actions");
+      await autoBookInvoice({
+        invoiceId: id,
+        userId: user.id,
+        entryDate: inv.issue_date || new Date().toISOString().split("T")[0],
+        description: `Factuur ${inv.invoice_number}`,
+        subtotalExVat: Number(inv.subtotal_ex_vat) || 0,
+        vatAmount: Number(inv.vat_amount) || 0,
+        supabase,
+      }).catch(() => {}); // Non-fatal
     }
 
     return sendInvoiceEmail(id);

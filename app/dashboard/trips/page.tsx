@@ -2,48 +2,49 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTripsSummary, createTrip, deleteTrip } from "@/features/trips/actions";
+import { getTrips, createTrip, deleteTrip, getYearTripSummary } from "@/features/trips/actions";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 
-const KM_TARIEF = 0.23;
-
 export default function TripsPage() {
   const now = new Date();
-  const [year] = useState(now.getFullYear());
+  const year = now.getFullYear();
   const [showForm, setShowForm] = useState(false);
   const [formDate, setFormDate] = useState(now.toISOString().split("T")[0]);
-  const [formDesc, setFormDesc] = useState("");
-  const [formOrigin, setFormOrigin] = useState("");
-  const [formDest, setFormDest] = useState("");
+  const [formPurpose, setFormPurpose] = useState("");
   const [formKm, setFormKm] = useState("");
   const [formReturn, setFormReturn] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
-  const { data: result, isLoading } = useQuery({
+  const yearStart = `${year}-01-01`;
+  const yearEnd = `${year}-12-31`;
+
+  const { data: tripsResult, isLoading: tripsLoading } = useQuery({
+    queryKey: ["trips", year],
+    queryFn: () => getTrips({ dateFrom: yearStart, dateTo: yearEnd }),
+  });
+
+  const { data: summaryResult, isLoading: summaryLoading } = useQuery({
     queryKey: ["trips-summary", year],
-    queryFn: () => getTripsSummary(year),
+    queryFn: () => getYearTripSummary(year),
   });
 
   const createMutation = useMutation({
     mutationFn: () =>
       createTrip({
-        trip_date: formDate,
-        description: formDesc,
-        origin: formOrigin || null,
-        destination: formDest || null,
+        date: formDate,
         distance_km: parseFloat(formKm) || 0,
         is_return_trip: formReturn,
+        purpose: formPurpose || null,
       }),
     onSuccess: (res) => {
       if (!res.error) {
+        queryClient.invalidateQueries({ queryKey: ["trips"] });
         queryClient.invalidateQueries({ queryKey: ["trips-summary"] });
         setShowForm(false);
-        setFormDesc("");
-        setFormOrigin("");
-        setFormDest("");
+        setFormPurpose("");
         setFormKm("");
         setFormReturn(false);
       }
@@ -53,11 +54,14 @@ export default function TripsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTrip(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
       queryClient.invalidateQueries({ queryKey: ["trips-summary"] });
     },
   });
 
-  const summary = result?.data;
+  const entries = tripsResult?.data ?? [];
+  const summary = summaryResult?.data;
+  const isLoading = tripsLoading || summaryLoading;
 
   return (
     <div>
@@ -65,7 +69,7 @@ export default function TripsPage() {
         <div>
           <h1 className="display-title">Kilometerregistratie</h1>
           <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
-            Fiscale aftrek: {formatCurrency(KM_TARIEF)}/km
+            Fiscale aftrek: {formatCurrency(summary?.kmRate ?? 0.23)}/km
           </p>
         </div>
         <button
@@ -95,8 +99,8 @@ export default function TripsPage() {
           marginBottom: "var(--space-section)",
         }}>
           <StatCard label="Totaal kilometers" value={`${summary.totalKm} km`} />
-          <StatCard label="Fiscale aftrek" value={formatCurrency(summary.totalDeduction)} />
-          <StatCard label="Aantal ritten" value={`${summary.tripCount}`} />
+          <StatCard label="Fiscale aftrek" value={formatCurrency(summary.deduction)} />
+          <StatCard label="Aantal ritten" value={`${entries.length}`} />
         </div>
       ) : null}
 
@@ -108,35 +112,25 @@ export default function TripsPage() {
           border: "0.5px solid rgba(13,13,11,0.06)",
           marginBottom: 24,
         }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr auto", gap: 12, alignItems: "end" }}>
             <div>
               <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Datum</label>
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)}
                 style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Omschrijving</label>
-              <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} placeholder="Klantbezoek"
+              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Doel van de rit</label>
+              <input type="text" value={formPurpose} onChange={(e) => setFormPurpose(e.target.value)} placeholder="Klantbezoek Amsterdam"
                 style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Van</label>
-              <input type="text" value={formOrigin} onChange={(e) => setFormOrigin(e.target.value)} placeholder="Amsterdam"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
-            </div>
-            <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Naar</label>
-              <input type="text" value={formDest} onChange={(e) => setFormDest(e.target.value)} placeholder="Rotterdam"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
-            </div>
-            <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Km</label>
+              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Km (enkele reis)</label>
               <input type="number" step="0.1" min="0.1" value={formKm} onChange={(e) => setFormKm(e.target.value)} placeholder="45"
                 style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
             </div>
             <button
               onClick={() => createMutation.mutate()}
-              disabled={createMutation.isPending || !formKm || !formDesc}
+              disabled={createMutation.isPending || !formKm}
               className="label-strong"
               style={{
                 padding: "10px 20px",
@@ -144,7 +138,7 @@ export default function TripsPage() {
                 background: "var(--foreground)",
                 color: "var(--background)",
                 cursor: "pointer",
-                opacity: createMutation.isPending || !formKm || !formDesc ? 0.5 : 1,
+                opacity: createMutation.isPending || !formKm ? 0.5 : 1,
               }}
             >
               {createMutation.isPending ? "Opslaan..." : "Opslaan"}
@@ -160,35 +154,32 @@ export default function TripsPage() {
       )}
 
       {/* Entries table */}
-      {isLoading ? (
-        <SkeletonTable columns="1fr 2fr 1fr 1fr 1fr 80px" rows={5} headerWidths={[60, 80, 60, 60, 50, 40]} bodyWidths={[50, 70, 50, 50, 40, 30]} />
-      ) : summary && summary.entries.length > 0 ? (
+      {tripsLoading ? (
+        <SkeletonTable columns="1fr 2fr 1fr 1fr 80px" rows={5} headerWidths={[60, 80, 60, 50, 40]} bodyWidths={[50, 70, 50, 40, 30]} />
+      ) : entries.length > 0 ? (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Datum</Th>
-              <Th>Omschrijving</Th>
-              <Th>Route</Th>
+              <Th>Doel</Th>
               <Th style={{ textAlign: "right" }}>Km</Th>
               <Th style={{ textAlign: "right" }}>Aftrek</Th>
               <Th style={{ textAlign: "right" }}>Acties</Th>
             </tr>
           </thead>
           <tbody>
-            {summary.entries.map((trip) => {
-              const effectiveKm = trip.is_return_trip ? Number(trip.distance_km) * 2 : Number(trip.distance_km);
+            {entries.map((trip) => {
+              const km = Number(trip.distance_km);
+              const rate = summary?.kmRate ?? 0.23;
               return (
                 <tr key={trip.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                  <Td><span className="mono-amount">{formatDate(trip.trip_date)}</span></Td>
-                  <Td>{trip.description}</Td>
+                  <Td><span className="mono-amount">{formatDate(trip.date)}</span></Td>
                   <Td>
-                    <span style={{ opacity: 0.5, fontSize: "var(--text-body-sm)" }}>
-                      {[trip.origin, trip.destination].filter(Boolean).join(" → ") || "—"}
-                      {trip.is_return_trip ? " (retour)" : ""}
-                    </span>
+                    {trip.purpose ?? "—"}
+                    {trip.is_return_trip && <span style={{ opacity: 0.4, fontSize: "var(--text-body-xs)" }}> (retour)</span>}
                   </Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{effectiveKm}</span></Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(effectiveKm * KM_TARIEF)}</span></Td>
+                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{km}</span></Td>
+                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(km * rate)}</span></Td>
                   <Td style={{ textAlign: "right" }}>
                     <button onClick={() => setDeleteTarget(trip.id)} className="table-action" style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}>
                       Verwijder

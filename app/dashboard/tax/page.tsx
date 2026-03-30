@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
 import { getTaxPaymentsSummary, createTaxPayment, deleteTaxPayment } from "@/features/tax/payments-actions";
-import { getVatReturns, prepareVatReturn, fileVatReturn, acceptVatReturn } from "@/features/tax/vat-returns-actions";
+import { getVatReturns, generateVatReturn, lockVatReturn, submitVatReturn } from "@/features/tax/vat-returns-actions";
 import type { QuarterStats } from "@/features/tax/actions";
 import type { Bespaartip, DepreciationRow } from "@/lib/tax/dutch-tax-2026";
 import type { TaxPaymentType, VatReturn } from "@/lib/types";
@@ -502,48 +502,42 @@ function BreakdownTotal({ label, value, highlight }: { label: string; value: num
 
 function BtwAangifteSection({ year }: { year: number }) {
   const queryClient = useQueryClient();
-  const [fileRef, setFileRef] = useState("");
-  const [fileNotes, setFileNotes] = useState("");
   const [preparingQ, setPreparingQ] = useState<number | null>(null);
-  const [filingId, setFilingId] = useState<string | null>(null);
 
   const { data: returnsResult, isLoading } = useQuery({
-    queryKey: ["vat-returns", year],
-    queryFn: () => getVatReturns(year),
+    queryKey: ["vat-returns"],
+    queryFn: () => getVatReturns(),
   });
 
-  const prepareMutation = useMutation({
-    mutationFn: (quarter: number) => prepareVatReturn(year, quarter),
+  const generateMutation = useMutation({
+    mutationFn: (quarter: number) => generateVatReturn(year, quarter),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vat-returns"] });
       setPreparingQ(null);
     },
   });
 
-  const fileMutation = useMutation({
-    mutationFn: (id: string) => fileVatReturn(id, { reference: fileRef, notes: fileNotes }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vat-returns"] });
-      setFilingId(null);
-      setFileRef("");
-      setFileNotes("");
-    },
-  });
-
-  const acceptMutation = useMutation({
-    mutationFn: (id: string) => acceptVatReturn(id),
+  const lockMutation = useMutation({
+    mutationFn: (id: string) => lockVatReturn(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vat-returns"] });
     },
   });
 
-  const returns = returnsResult?.data ?? [];
+  const submitMutation = useMutation({
+    mutationFn: (id: string) => submitVatReturn(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vat-returns"] });
+    },
+  });
+
+  const returns = (returnsResult?.data ?? []).filter((r) => r.year === year);
 
   const statusLabel = (status: string) => {
     switch (status) {
-      case "open": return "Open";
-      case "filed": return "Ingediend";
-      case "accepted": return "Geaccepteerd";
+      case "draft": return "Concept";
+      case "locked": return "Vergrendeld";
+      case "submitted": return "Ingediend";
       default: return status;
     }
   };
@@ -566,22 +560,22 @@ function BtwAangifteSection({ year }: { year: number }) {
         <div style={{ display: "flex", gap: 8 }}>
           {[1, 2, 3, 4].map((q) => {
             const existing = returns.find((r) => r.quarter === q);
-            if (existing) return null;
+            if (existing && existing.status !== "draft") return null;
             return (
               <button
                 key={q}
-                onClick={() => { setPreparingQ(q); prepareMutation.mutate(q); }}
-                disabled={prepareMutation.isPending}
+                onClick={() => { setPreparingQ(q); generateMutation.mutate(q); }}
+                disabled={generateMutation.isPending}
                 className="label-strong"
                 style={{
                   padding: "10px 16px",
                   border: "0.5px solid rgba(13,13,11,0.25)",
                   background: "transparent",
                   cursor: "pointer",
-                  opacity: prepareMutation.isPending && preparingQ === q ? 0.5 : 1,
+                  opacity: generateMutation.isPending && preparingQ === q ? 0.5 : 1,
                 }}
               >
-                {prepareMutation.isPending && preparingQ === q ? "Laden..." : `Q${q} voorbereiden`}
+                {generateMutation.isPending && preparingQ === q ? "Laden..." : existing ? `Q${q} herberekenen` : `Q${q} voorbereiden`}
               </button>
             );
           })}
@@ -595,123 +589,80 @@ function BtwAangifteSection({ year }: { year: number }) {
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Kwartaal</Th>
-              <Th style={{ textAlign: "right" }}>Omzet</Th>
-              <Th style={{ textAlign: "right" }}>BTW af te dragen</Th>
-              <Th style={{ textAlign: "right" }}>Voorbelasting</Th>
-              <Th style={{ textAlign: "right" }}>Netto</Th>
+              <Th style={{ textAlign: "right" }}>1a BTW (21%)</Th>
+              <Th style={{ textAlign: "right" }}>1b BTW (9%)</Th>
+              <Th style={{ textAlign: "right" }}>5b Voorbelasting</Th>
+              <Th style={{ textAlign: "right" }}>Saldo</Th>
               <Th>Status</Th>
               <Th style={{ textAlign: "right" }}>Actie</Th>
             </tr>
           </thead>
           <tbody>
-            {returns.map((r: VatReturn) => (
-              <tr key={r.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                <Td><span className="mono-amount">Q{r.quarter} {r.year}</span></Td>
-                <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.revenue_ex_vat)}</span></Td>
-                <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.output_vat)}</span></Td>
-                <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.input_vat)}</span></Td>
-                <Td style={{ textAlign: "right" }}>
-                  <span className="mono-amount" style={{ fontWeight: 600 }}>
-                    {formatCurrency(r.net_vat)}
-                  </span>
-                </Td>
-                <Td>
-                  <span className="label" style={{
-                    opacity: 1,
-                    color: r.status === "accepted" ? "green" : r.status === "filed" ? "var(--foreground)" : "inherit",
-                  }}>
-                    {statusLabel(r.status)}
-                  </span>
-                  {r.filed_at && (
-                    <span style={{ display: "block", fontSize: "var(--text-body-xs)", opacity: 0.4 }}>
-                      {formatDate(r.filed_at)}
+            {returns.map((r: VatReturn) => {
+              const totalBtw = r.rubriek_1a_btw + r.rubriek_1b_btw + r.rubriek_1c_btw;
+              const saldo = totalBtw - r.rubriek_5b;
+              return (
+                <tr key={r.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+                  <Td><span className="mono-amount">Q{r.quarter} {r.year}</span></Td>
+                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.rubriek_1a_btw)}</span></Td>
+                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.rubriek_1b_btw)}</span></Td>
+                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.rubriek_5b)}</span></Td>
+                  <Td style={{ textAlign: "right" }}>
+                    <span className="mono-amount" style={{ fontWeight: 600 }}>
+                      {formatCurrency(saldo)}
                     </span>
-                  )}
-                </Td>
-                <Td style={{ textAlign: "right" }}>
-                  {r.status === "open" && (
-                    <button
-                      onClick={() => setFilingId(r.id)}
-                      className="label-strong"
-                      style={{
-                        padding: "6px 14px",
-                        border: "0.5px solid rgba(13,13,11,0.25)",
-                        background: "var(--foreground)",
-                        color: "var(--background)",
-                        cursor: "pointer",
-                        fontSize: 11,
-                      }}
-                    >
-                      Indienen
-                    </button>
-                  )}
-                  {r.status === "filed" && (
-                    <button
-                      onClick={() => acceptMutation.mutate(r.id)}
-                      disabled={acceptMutation.isPending}
-                      className="table-action"
-                      style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5, fontSize: 11 }}
-                    >
-                      Markeer geaccepteerd
-                    </button>
-                  )}
-                </Td>
-              </tr>
-            ))}
+                  </Td>
+                  <Td>
+                    <span className="label" style={{
+                      opacity: 1,
+                      color: r.status === "submitted" ? "green" : r.status === "locked" ? "var(--foreground)" : "inherit",
+                    }}>
+                      {statusLabel(r.status)}
+                    </span>
+                    {r.submitted_at && (
+                      <span style={{ display: "block", fontSize: "var(--text-body-xs)", opacity: 0.4 }}>
+                        {formatDate(r.submitted_at)}
+                      </span>
+                    )}
+                  </Td>
+                  <Td style={{ textAlign: "right" }}>
+                    {r.status === "draft" && (
+                      <button
+                        onClick={() => lockMutation.mutate(r.id)}
+                        disabled={lockMutation.isPending}
+                        className="label-strong"
+                        style={{
+                          padding: "6px 14px",
+                          border: "0.5px solid rgba(13,13,11,0.25)",
+                          background: "var(--foreground)",
+                          color: "var(--background)",
+                          cursor: "pointer",
+                          fontSize: 11,
+                        }}
+                      >
+                        Vergrendelen
+                      </button>
+                    )}
+                    {r.status === "locked" && (
+                      <button
+                        onClick={() => submitMutation.mutate(r.id)}
+                        disabled={submitMutation.isPending}
+                        className="table-action"
+                        style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5, fontSize: 11 }}
+                      >
+                        Markeer ingediend
+                      </button>
+                    )}
+                  </Td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       ) : (
         <p className="empty-state" style={{ marginBottom: 24 }}>
           Nog geen BTW aangiftes. Bereid een kwartaal voor om te beginnen.
         </p>
-      )}
-
-      {/* Filing dialog */}
-      {filingId && (
-        <div style={{
-          padding: 20,
-          background: "rgba(13,13,11,0.02)",
-          border: "0.5px solid rgba(13,13,11,0.06)",
-          marginBottom: 24,
-        }}>
-          <p className="label-strong" style={{ margin: "0 0 16px" }}>BTW aangifte indienen</p>
-          <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.6, margin: "0 0 16px" }}>
-            Na het indienen wordt dit kwartaal vergrendeld. Wijzigingen zijn niet meer mogelijk.
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, alignItems: "end" }}>
-            <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Referentie (optioneel)</label>
-              <input type="text" value={fileRef} onChange={(e) => setFileRef(e.target.value)} placeholder="Belastingdienst ref."
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
-            </div>
-            <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Notities (optioneel)</label>
-              <input type="text" value={fileNotes} onChange={(e) => setFileNotes(e.target.value)} placeholder="Eventuele opmerkingen"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setFilingId(null)} className="label-strong"
-                style={{ padding: "10px 16px", border: "0.5px solid rgba(13,13,11,0.15)", background: "transparent", cursor: "pointer" }}>
-                Annuleer
-              </button>
-              <button
-                onClick={() => fileMutation.mutate(filingId)}
-                disabled={fileMutation.isPending}
-                className="label-strong"
-                style={{
-                  padding: "10px 20px",
-                  border: "0.5px solid rgba(13,13,11,0.25)",
-                  background: "var(--foreground)",
-                  color: "var(--background)",
-                  cursor: "pointer",
-                  opacity: fileMutation.isPending ? 0.5 : 1,
-                }}
-              >
-                {fileMutation.isPending ? "Indienen..." : "Definitief indienen"}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

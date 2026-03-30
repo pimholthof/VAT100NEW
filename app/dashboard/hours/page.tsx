@@ -2,42 +2,48 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getHoursSummary, createHoursEntry, deleteHoursEntry } from "@/features/hours/actions";
+import { getHoursLog, createHoursEntry, deleteHoursEntry, getYearTotalHours } from "@/features/hours/actions";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 
 export default function HoursPage() {
   const now = new Date();
-  const [year] = useState(now.getFullYear());
+  const year = now.getFullYear();
   const [showForm, setShowForm] = useState(false);
   const [formDate, setFormDate] = useState(now.toISOString().split("T")[0]);
   const [formHours, setFormHours] = useState("");
-  const [formDesc, setFormDesc] = useState("");
-  const [formProject, setFormProject] = useState("");
+  const [formCategory, setFormCategory] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
-  const { data: result, isLoading } = useQuery({
-    queryKey: ["hours-summary", year],
-    queryFn: () => getHoursSummary(year),
+  const yearStart = `${year}-01-01`;
+  const yearEnd = `${year}-12-31`;
+
+  const { data: logResult, isLoading: logLoading } = useQuery({
+    queryKey: ["hours-log", year],
+    queryFn: () => getHoursLog({ dateFrom: yearStart, dateTo: yearEnd }),
+  });
+
+  const { data: totalResult, isLoading: totalLoading } = useQuery({
+    queryKey: ["hours-total", year],
+    queryFn: () => getYearTotalHours(year),
   });
 
   const createMutation = useMutation({
     mutationFn: () =>
       createHoursEntry({
-        work_date: formDate,
+        date: formDate,
         hours: parseFloat(formHours) || 0,
-        description: formDesc || null,
-        project: formProject || null,
+        category: formCategory || null,
       }),
     onSuccess: (res) => {
       if (!res.error) {
-        queryClient.invalidateQueries({ queryKey: ["hours-summary"] });
+        queryClient.invalidateQueries({ queryKey: ["hours-log"] });
+        queryClient.invalidateQueries({ queryKey: ["hours-total"] });
         setShowForm(false);
         setFormHours("");
-        setFormDesc("");
-        setFormProject("");
+        setFormCategory("");
       }
     },
   });
@@ -45,12 +51,24 @@ export default function HoursPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteHoursEntry(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["hours-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["hours-log"] });
+      queryClient.invalidateQueries({ queryKey: ["hours-total"] });
     },
   });
 
-  const summary = result?.data;
+  const entries = logResult?.data ?? [];
+  const totals = totalResult?.data;
   const TARGET = 1225;
+  const isLoading = logLoading || totalLoading;
+  const totalHours = totals?.total ?? 0;
+  const remaining = Math.max(0, TARGET - totalHours);
+
+  // Weekly average
+  const yearStartDate = new Date(year, 0, 1);
+  const endDate = now.getFullYear() === year ? now : new Date(year, 11, 31);
+  const weeksElapsed = Math.max(1, Math.ceil((endDate.getTime() - yearStartDate.getTime()) / (7 * 24 * 3600 * 1000)));
+  const weeklyAverage = Math.round((totalHours / weeksElapsed) * 10) / 10;
+  const onTrack = weeklyAverage * 52 >= TARGET;
 
   return (
     <div>
@@ -79,7 +97,7 @@ export default function HoursPage() {
       {/* Progress */}
       {isLoading ? (
         <SkeletonCard />
-      ) : summary ? (
+      ) : (
         <div style={{ marginBottom: "var(--space-section)" }}>
           <div style={{
             display: "grid",
@@ -88,13 +106,10 @@ export default function HoursPage() {
             background: "rgba(13,13,11,0.08)",
             marginBottom: 24,
           }}>
-            <StatCard label="Totaal uren" value={`${summary.totalHours}`} />
+            <StatCard label="Totaal uren" value={`${totalHours}`} />
             <StatCard label="Doel" value={`${TARGET}`} />
-            <StatCard label="Resterend" value={`${summary.remaining}`} />
-            <StatCard
-              label="Status"
-              value={summary.onTrack ? "Op schema" : "Achterstand"}
-            />
+            <StatCard label="Resterend" value={`${remaining}`} />
+            <StatCard label="Status" value={onTrack ? "Op schema" : "Achterstand"} />
           </div>
 
           {/* Progress bar */}
@@ -107,17 +122,17 @@ export default function HoursPage() {
             <div
               style={{
                 height: "100%",
-                width: `${Math.min(100, (summary.totalHours / TARGET) * 100)}%`,
-                background: summary.onTrack ? "var(--foreground)" : "rgba(13,13,11,0.3)",
+                width: `${Math.min(100, (totalHours / TARGET) * 100)}%`,
+                background: onTrack ? "var(--foreground)" : "rgba(13,13,11,0.3)",
                 transition: "width 0.4s ease",
               }}
             />
           </div>
           <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, marginTop: 8 }}>
-            Gemiddeld {summary.weeklyAverage} uur per week
+            Gemiddeld {weeklyAverage} uur per week
           </p>
         </div>
-      ) : null}
+      )}
 
       {/* Form */}
       {showForm && (
@@ -127,7 +142,7 @@ export default function HoursPage() {
           border: "0.5px solid rgba(13,13,11,0.06)",
           marginBottom: 24,
         }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr 2fr auto", gap: 12, alignItems: "end" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr auto", gap: 12, alignItems: "end" }}>
             <div>
               <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Datum</label>
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)}
@@ -139,13 +154,8 @@ export default function HoursPage() {
                 style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Omschrijving</label>
-              <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} placeholder="Projectwerk"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
-            </div>
-            <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Project</label>
-              <input type="text" value={formProject} onChange={(e) => setFormProject(e.target.value)} placeholder="Optioneel"
+              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Categorie</label>
+              <input type="text" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} placeholder="Projectwerk"
                 style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
             </div>
             <button
@@ -168,26 +178,24 @@ export default function HoursPage() {
       )}
 
       {/* Entries table */}
-      {isLoading ? (
-        <SkeletonTable columns="1fr 1fr 2fr 2fr 80px" rows={5} headerWidths={[60, 40, 80, 70, 40]} bodyWidths={[50, 30, 70, 60, 30]} />
-      ) : summary && summary.entries.length > 0 ? (
+      {logLoading ? (
+        <SkeletonTable columns="1fr 1fr 2fr 80px" rows={5} headerWidths={[60, 40, 80, 40]} bodyWidths={[50, 30, 70, 30]} />
+      ) : entries.length > 0 ? (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
               <Th>Datum</Th>
               <Th style={{ textAlign: "right" }}>Uren</Th>
-              <Th>Omschrijving</Th>
-              <Th>Project</Th>
+              <Th>Categorie</Th>
               <Th style={{ textAlign: "right" }}>Acties</Th>
             </tr>
           </thead>
           <tbody>
-            {summary.entries.map((entry) => (
+            {entries.map((entry) => (
               <tr key={entry.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                <Td><span className="mono-amount">{formatDate(entry.work_date)}</span></Td>
+                <Td><span className="mono-amount">{formatDate(entry.date)}</span></Td>
                 <Td style={{ textAlign: "right" }}><span className="mono-amount">{entry.hours}</span></Td>
-                <Td>{entry.description ?? "—"}</Td>
-                <Td><span style={{ opacity: 0.5 }}>{entry.project ?? "—"}</span></Td>
+                <Td>{entry.category ?? "—"}</Td>
                 <Td style={{ textAlign: "right" }}>
                   <button onClick={() => setDeleteTarget(entry.id)} className="table-action" style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}>
                     Verwijder

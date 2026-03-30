@@ -1,76 +1,75 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import {
   runReconciliationAgent,
-  runPaymentDetectionAgent,
   runAnticipationAgent,
   runInvestmentAgent,
+  runPaymentDetectionAgent,
 } from "@/features/dashboard/action-feed";
 import * as Sentry from "@sentry/nextjs";
 
 /**
- * Unified Cron Endpoint for all AI Agents.
- *
- * Runs all four agents (reconciliation, payment detection, anticipation,
- * investment) for every user with an active bank connection.
- *
- * Called daily by Vercel Cron (see vercel.json).
- * Protected by CRON_SECRET bearer token.
+ * Cron: Run all AI agents for all active users (daily 03:00)
  */
-export async function GET(request: Request) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
-
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+export async function GET(request: NextRequest) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const supabase = createServiceClient();
+  const supabase = createServiceClient();
 
-    // Get all users with active bank connections
-    const { data: connections, error } = await supabase
-      .from("bank_connections")
-      .select("user_id")
-      .eq("status", "active");
+  // Fetch all active user IDs
+  const { data: users, error: usersError } = await supabase
+    .from("profiles")
+    .select("id");
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    const userIds = [...new Set((connections ?? []).map((c) => c.user_id))];
-
-    const results = await Promise.allSettled(
-      userIds.map(async (userId) => {
-        const [reconciliation, payment, anticipation, investment] = await Promise.allSettled([
-          runReconciliationAgent(userId, supabase),
-          runPaymentDetectionAgent(userId, supabase),
-          runAnticipationAgent(userId, supabase),
-          runInvestmentAgent(userId, supabase),
-        ]);
-
-        return {
-          userId,
-          reconciliation: reconciliation.status === "fulfilled" ? reconciliation.value : { error: "failed" },
-          payment: payment.status === "fulfilled" ? payment.value : { error: "failed" },
-          anticipation: anticipation.status === "fulfilled" ? anticipation.value : { error: "failed" },
-          investment: investment.status === "fulfilled" ? investment.value : { error: "failed" },
-        };
-      })
-    );
-
-    return NextResponse.json({
-      processed: userIds.length,
-      results: results.map((r) => r.status === "fulfilled" ? r.value : { error: "failed" }),
-    });
-  } catch (err) {
-    Sentry.captureException(err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
-      { status: 500 }
-    );
+  if (usersError) {
+    return NextResponse.json({ error: usersError.message }, { status: 500 });
   }
+
+  const results: Array<{ userId: string; reconciliation: number; payment: number; anticipation: number; investment: number; errors: string[] }> = [];
+
+  for (const user of users ?? []) {
+    const errors: string[] = [];
+    let reconciliation = 0;
+    let payment = 0;
+    let anticipation = 0;
+    let investment = 0;
+
+    const [recRes, payRes, antRes, invRes] = await Promise.all([
+      runReconciliationAgent(user.id, supabase).catch((e) => {
+        Sentry.captureException(e, { tags: { agent: "reconciliation", userId: user.id } });
+        errors.push(`reconciliation: ${e instanceof Error ? e.message : String(e)}`);
+        return { error: "failed", data: { created: 0 } };
+      }),
+      runPaymentDetectionAgent(user.id, supabase).catch((e) => {
+        Sentry.captureException(e, { tags: { agent: "payment-detection", userId: user.id } });
+        errors.push(`payment: ${e instanceof Error ? e.message : String(e)}`);
+        return { error: "failed", data: { created: 0 } };
+      }),
+      runAnticipationAgent(user.id, supabase).catch((e) => {
+        Sentry.captureException(e, { tags: { agent: "anticipation", userId: user.id } });
+        errors.push(`anticipation: ${e instanceof Error ? e.message : String(e)}`);
+        return { error: "failed", data: { created: 0 } };
+      }),
+      runInvestmentAgent(user.id, supabase).catch((e) => {
+        Sentry.captureException(e, { tags: { agent: "investment", userId: user.id } });
+        errors.push(`investment: ${e instanceof Error ? e.message : String(e)}`);
+        return { error: "failed", data: { created: 0 } };
+      }),
+    ]);
+
+    reconciliation = recRes.data?.created ?? 0;
+    payment = payRes.data?.created ?? 0;
+    anticipation = antRes.data?.created ?? 0;
+    investment = invRes.data?.created ?? 0;
+
+    results.push({ userId: user.id, reconciliation, payment, anticipation, investment, errors });
+  }
+
+  return NextResponse.json({
+    usersProcessed: results.length,
+    results,
+  });
 }
