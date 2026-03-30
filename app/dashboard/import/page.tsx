@@ -5,9 +5,11 @@ import { useMutation } from "@tanstack/react-query";
 import {
   previewImportCSV,
   previewImportClients,
+  previewImportBankCSV,
   importInvoices,
   importReceipts,
   importClients,
+  importBankTransactions,
   detectClientDuplicates,
 } from "@/features/import/actions";
 import type { ImportPreview, DuplicateMatch } from "@/features/import/actions";
@@ -35,7 +37,7 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
   cursor: "pointer",
 });
 
-type ImportType = "invoices" | "receipts" | "clients";
+type ImportType = "invoices" | "receipts" | "clients" | "bank";
 
 const MATCH_FIELD_LABELS: Record<string, string> = {
   name: "Naam",
@@ -60,6 +62,7 @@ export default function ImportPage() {
   const previewMut = useMutation({
     mutationFn: (text: string) => {
       if (tab === "clients") return previewImportClients(text);
+      if (tab === "bank") return previewImportBankCSV(text);
       return previewImportCSV(text, tab);
     },
     onSuccess: (res) => {
@@ -86,6 +89,7 @@ export default function ImportPage() {
   const importMut = useMutation({
     mutationFn: () => {
       if (tab === "clients") return importClients(csvText, mapping, duplicateStrategy);
+      if (tab === "bank") return importBankTransactions(csvText, mapping);
       if (tab === "invoices") return importInvoices(csvText, mapping);
       return importReceipts(csvText, mapping);
     },
@@ -131,6 +135,8 @@ export default function ImportPage() {
     ? ["invoice_number", "client_name", "issue_date", "due_date", "subtotal_ex_vat", "vat_amount", "total_inc_vat", "description", "status"]
     : tab === "receipts"
     ? ["vendor_name", "receipt_date", "amount_ex_vat", "vat_amount", "amount_inc_vat", "category"]
+    : tab === "bank"
+    ? ["booking_date", "amount", "description", "counterpart_name", "counterpart_iban", "currency", "direction"]
     : ["name", "contact_name", "email", "address", "city", "postal_code", "kvk_number", "btw_number"];
 
   const targetLabels: Record<string, string> = {
@@ -156,9 +162,15 @@ export default function ImportPage() {
     postal_code: "Postcode",
     kvk_number: "KVK-nummer",
     btw_number: "BTW-nummer",
+    booking_date: "Datum",
+    amount: "Bedrag",
+    counterpart_name: "Tegenpartij",
+    counterpart_iban: "Tegenrekening IBAN",
+    currency: "Valuta",
+    direction: "Af/Bij",
   };
 
-  const resultLabel = tab === "invoices" ? "facturen" : tab === "receipts" ? "bonnen" : "klanten";
+  const resultLabel = tab === "invoices" ? "facturen" : tab === "receipts" ? "bonnen" : tab === "bank" ? "transacties" : "klanten";
 
   return (
     <div>
@@ -177,6 +189,7 @@ export default function ImportPage() {
         <button onClick={() => handleTabChange("invoices")} style={tabStyle(tab === "invoices")}>Facturen</button>
         <button onClick={() => handleTabChange("receipts")} style={tabStyle(tab === "receipts")}>Bonnen / Uitgaven</button>
         <button onClick={() => handleTabChange("clients")} style={tabStyle(tab === "clients")}>Klanten</button>
+        <button onClick={() => handleTabChange("bank")} style={tabStyle(tab === "bank")}>Banktransacties</button>
       </div>
 
       {/* Success */}
@@ -187,6 +200,14 @@ export default function ImportPage() {
             {(result.updated ?? 0) > 0 && `, ${result.updated} bijgewerkt`}
             {result.skipped > 0 && `, ${result.skipped} overgeslagen`}
           </p>
+          {tab === "bank" && result.imported > 0 && (
+            <a
+              href="/dashboard/bank"
+              style={{ display: "inline-block", marginTop: 12, fontSize: "var(--text-body-sm)", color: "var(--foreground)", textDecoration: "underline" }}
+            >
+              Bekijk transacties &rarr;
+            </a>
+          )}
         </div>
       )}
 
@@ -201,6 +222,8 @@ export default function ImportPage() {
           <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 16 }}>
             {tab === "clients"
               ? "Importeer klanten vanuit Moneybird, e-Boekhouden, Excel of andere bronnen. Zorg dat de eerste rij kolomnamen bevat."
+              : tab === "bank"
+              ? "Importeer bankafschriften van ING, ABN AMRO, Rabobank of andere banken. Download je afschriften als CSV en upload ze hier."
               : "Ondersteunt exports van Moneybird, e-Boekhouden, Excel en andere boekhoudprogramma\u0027s. Zorg dat de eerste rij kolomnamen bevat."}
           </p>
 

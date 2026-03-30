@@ -129,12 +129,13 @@ const CLIENT_COLUMN_MAP: Record<string, string> = {
 
 function detectColumns(
   headers: string[],
-  type: "invoices" | "receipts" | "clients",
+  type: "invoices" | "receipts" | "clients" | "bank",
 ): Record<string, string> {
   const maps: Record<string, Record<string, string>> = {
     invoices: INVOICE_COLUMN_MAP,
     receipts: RECEIPT_COLUMN_MAP,
     clients: CLIENT_COLUMN_MAP,
+    bank: BANK_COLUMN_MAP,
   };
   const map = maps[type] ?? INVOICE_COLUMN_MAP;
   const mapping: Record<string, string> = {};
@@ -610,4 +611,160 @@ export async function importClients(
   }
 
   return { error: null, data: { imported, updated, skipped } };
+}
+
+// ─── Banktransacties import ───
+
+const BANK_COLUMN_MAP: Record<string, string> = {
+  // Datum
+  datum: "booking_date",
+  date: "booking_date",
+  boekdatum: "booking_date",
+  boekingsdatum: "booking_date",
+  booking_date: "booking_date",
+  transactiedatum: "booking_date",
+  // Bedrag
+  bedrag: "amount",
+  amount: "amount",
+  "bedrag (eur)": "amount",
+  // Omschrijving
+  omschrijving: "description",
+  description: "description",
+  mededeling: "description",
+  "naam / omschrijving": "description",
+  mededelingen: "description",
+  // Tegenpartij
+  tegenpartij: "counterpart_name",
+  naam: "counterpart_name",
+  name: "counterpart_name",
+  "naam/omschrijving": "counterpart_name",
+  tegenrekening: "counterpart_name",
+  // Tegenrekening IBAN
+  "tegenrekening iban": "counterpart_iban",
+  iban: "counterpart_iban",
+  "rekening tegenpartij": "counterpart_iban",
+  // Valuta
+  valuta: "currency",
+  currency: "currency",
+  munt: "currency",
+  // Af/Bij indicator (ING-style)
+  "af bij": "direction",
+  "af/bij": "direction",
+  afbij: "direction",
+};
+
+export async function previewImportBankCSV(
+  csvText: string,
+): Promise<ActionResult<ImportPreview>> {
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return { error: "CSV bevat geen data." };
+
+  const headers = rows[0];
+  const mapping = detectColumns(headers, "bank");
+  const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.length > 0));
+
+  const preview = dataRows.slice(0, 5).map((row) => {
+    const obj: Record<string, string> = {};
+    headers.forEach((h, i) => {
+      obj[h] = row[i] ?? "";
+    });
+    return obj;
+  });
+
+  return {
+    error: null,
+    data: { headers, mapping, preview, totalRows: dataRows.length },
+  };
+}
+
+export async function importBankTransactions(
+  csvText: string,
+  mapping: Record<string, string>,
+): Promise<ActionResult<{ imported: number; skipped: number }>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return { error: "Geen data gevonden." };
+
+  const headers = rows[0];
+  const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.length > 0));
+
+  const getMapped = (row: string[], targetField: string): string => {
+    for (const [header, mapped] of Object.entries(mapping)) {
+      if (mapped === targetField) {
+        const idx = headers.indexOf(header);
+        if (idx >= 0) return row[idx] ?? "";
+      }
+    }
+    return "";
+  };
+
+  let imported = 0;
+  let skipped = 0;
+
+  for (const row of dataRows) {
+    const bookingDate = parseDate(getMapped(row, "booking_date"));
+    let amount = parseNumber(getMapped(row, "amount"));
+    const description = getMapped(row, "description") || null;
+    const counterpartName = getMapped(row, "counterpart_name") || null;
+    const currency = getMapped(row, "currency") || "EUR";
+
+    if (!bookingDate || amount === null) {
+      skipped++;
+      continue;
+    }
+
+    // Handle "Af/Bij" direction indicator (ING, Rabobank style)
+    const direction = getMapped(row, "direction").toLowerCase().trim();
+    if (direction === "af" && amount > 0) {
+      amount = -amount;
+    } else if (direction === "bij" && amount < 0) {
+      amount = -amount;
+    }
+
+    // Generate a deterministic external_id for deduplication
+    const rawKey = `${bookingDate}|${amount}|${description ?? ""}|${counterpartName ?? ""}`;
+    const externalId = `csv-${simpleHash(rawKey)}`;
+
+    const isIncome = amount > 0;
+
+    const { error } = await supabase
+      .from("bank_transactions")
+      .upsert(
+        {
+          user_id: user.id,
+          bank_connection_id: null,
+          external_id: externalId,
+          booking_date: bookingDate,
+          amount,
+          currency: currency.toUpperCase(),
+          description,
+          counterpart_name: counterpartName,
+          is_income: isIncome,
+          source: "csv" as const,
+        },
+        { onConflict: "user_id,external_id" }
+      );
+
+    if (error) {
+      skipped++;
+    } else {
+      imported++;
+    }
+  }
+
+  return { error: null, data: { imported, skipped } };
+}
+
+/** Simple string hash for generating deterministic external IDs */
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(36);
 }

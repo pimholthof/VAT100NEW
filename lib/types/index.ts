@@ -170,10 +170,12 @@ export interface BankConnection {
   created_at: string;
 }
 
+export type BankTransactionSource = "gocardless" | "csv";
+
 export interface BankTransaction {
   id: string;
   user_id: string;
-  bank_connection_id: string;
+  bank_connection_id: string | null;
   external_id: string;
   booking_date: string;
   amount: number;
@@ -184,6 +186,7 @@ export interface BankTransaction {
   is_income: boolean;
   linked_invoice_id: string | null;
   linked_receipt_id: string | null;
+  source: BankTransactionSource;
   created_at: string;
 }
 
