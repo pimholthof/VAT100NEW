@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getReceipts, deleteReceipt } from "@/features/receipts/actions";
+import { getReceipts, deleteReceipt, deleteReceipts } from "@/features/receipts/actions";
 import { getKostensoortByCode, KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { Receipt } from "@/lib/types";
 import { Th, Td, SkeletonTable, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
@@ -19,6 +19,8 @@ export default function ReceiptsTab() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
   const handleFilter = useCallback((f: Record<string, string>) => {
@@ -41,7 +43,37 @@ export default function ReceiptsTab() {
     },
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => deleteReceipts(ids),
+    onSuccess: () => {
+      setSelected(new Set());
+      queryClient.invalidateQueries({ queryKey: ["receipts"] });
+    },
+  });
+
   const receipts = result?.data ?? [];
+
+  const allSelected = useMemo(
+    () => receipts.length > 0 && receipts.every((r: Receipt) => selected.has(r.id)),
+    [receipts, selected]
+  );
+
+  const toggleOne = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleAll = useCallback(() => {
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(receipts.map((r: Receipt) => r.id)));
+    }
+  }, [allSelected, receipts]);
 
   return (
     <div>
@@ -75,6 +107,53 @@ export default function ReceiptsTab() {
         onFilterChange={handleFilter}
       />
 
+      {selected.size > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            padding: "10px 16px",
+            marginBottom: 8,
+            background: "rgba(0,0,0,0.03)",
+            borderRadius: 8,
+            fontSize: "var(--text-body-sm)",
+          }}
+        >
+          <span style={{ fontWeight: 500 }}>
+            {selected.size} {selected.size === 1 ? "bon" : "bonnen"} geselecteerd
+          </span>
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            disabled={bulkDeleteMutation.isPending}
+            style={{
+              background: "none",
+              border: "1px solid rgba(0,0,0,0.15)",
+              borderRadius: 6,
+              padding: "4px 12px",
+              cursor: "pointer",
+              fontSize: "var(--text-body-sm)",
+              fontWeight: 500,
+              color: "#c00",
+            }}
+          >
+            {bulkDeleteMutation.isPending ? "Bezig..." : "Verwijderen"}
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "var(--text-body-sm)",
+              opacity: 0.5,
+            }}
+          >
+            Deselecteer
+          </button>
+        </div>
+      )}
+
       {isLoading ? (
         <SkeletonTable
           columns="24px 1fr 2fr 1fr 1fr 1fr 1fr 80px"
@@ -100,7 +179,15 @@ export default function ReceiptsTab() {
         <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-              <Th style={{ width: 24 }}></Th>
+              <Th style={{ width: 24 }}>
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  style={{ cursor: "pointer", accentColor: "#000" }}
+                  aria-label="Selecteer alle bonnen"
+                />
+              </Th>
               <Th>Datum</Th>
               <Th>Leverancier</Th>
               <Th>Kostensoort</Th>
@@ -115,15 +202,24 @@ export default function ReceiptsTab() {
               const kostensoort = receipt.cost_code
                 ? getKostensoortByCode(receipt.cost_code)
                 : null;
+              const isSelected = selected.has(receipt.id);
 
               return (
-                <tr key={receipt.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                  <Td style={{ width: 24, textAlign: "center", opacity: 0.4 }}>
-                    {receipt.storage_path
-                      ? receipt.storage_path.endsWith(".pdf")
-                        ? "📄"
-                        : "📷"
-                      : ""}
+                <tr
+                  key={receipt.id}
+                  style={{
+                    borderBottom: "0.5px solid rgba(13,13,11,0.06)",
+                    background: isSelected ? "rgba(0,0,0,0.02)" : undefined,
+                  }}
+                >
+                  <Td style={{ width: 24, textAlign: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleOne(receipt.id)}
+                      style={{ cursor: "pointer", accentColor: "#000" }}
+                      aria-label={`Selecteer bon ${receipt.vendor_name ?? receipt.id}`}
+                    />
                   </Td>
                   <Td>
                     <span className="mono-amount">
@@ -197,6 +293,18 @@ export default function ReceiptsTab() {
           setDeleteTarget(null);
         }}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        title="Bonnen verwijderen"
+        message={`Weet je zeker dat je ${selected.size} ${selected.size === 1 ? "bon" : "bonnen"} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`}
+        confirmLabel="Verwijderen"
+        onConfirm={() => {
+          bulkDeleteMutation.mutate(Array.from(selected));
+          setBulkDeleteOpen(false);
+        }}
+        onCancel={() => setBulkDeleteOpen(false)}
       />
     </div>
   );
