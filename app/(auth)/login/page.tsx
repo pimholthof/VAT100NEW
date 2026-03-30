@@ -112,7 +112,7 @@ export default function LoginPage() {
             className="btn-primary"
             style={{ marginTop: 8, width: "100%" }}
           >
-            {pending ? "Inloggen..." : "Inloggen"}
+            {pending ? "Even wachten..." : "Inloggen"}
           </button>
         </form>
 
