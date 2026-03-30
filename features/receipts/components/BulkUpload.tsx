@@ -194,7 +194,7 @@ export function BulkUpload() {
             ? KOSTENSOORTEN.find((k) => k.code === aiData.cost_code)?.label ?? "Overig"
             : "Overig";
 
-          await updateReceipt(receiptId, {
+          const saveResult = await updateReceipt(receiptId, {
             vendor_name: aiData.vendor_name ?? null,
             amount_ex_vat: aiData.amount_ex_vat ?? null,
             vat_rate: aiData.vat_rate ?? null,
@@ -202,6 +202,21 @@ export function BulkUpload() {
             cost_code: aiData.cost_code ?? null,
             receipt_date: aiData.receipt_date ?? today,
           });
+
+          if (saveResult.error) {
+            setResults((prev) => {
+              const updated = [...prev];
+              updated[i] = {
+                receiptId,
+                fileName: file.name,
+                status: "error",
+                error: saveResult.error ?? undefined,
+              };
+              return updated;
+            });
+            setProcessedCount((c) => c + 1);
+            continue;
+          }
         }
 
         setResults((prev) => {
@@ -214,14 +229,16 @@ export function BulkUpload() {
           };
           return updated;
         });
-      } catch {
+      } catch (e) {
+        const message =
+          e instanceof Error ? e.message : "Onverwachte fout bij verwerking.";
         setResults((prev) => {
           const updated = [...prev];
           updated[i] = {
             receiptId,
             fileName: file.name,
             status: "error",
-            error: "Onverwachte fout bij verwerking.",
+            error: message,
           };
           return updated;
         });
