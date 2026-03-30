@@ -342,20 +342,9 @@ export async function scanReceiptWithAI(
     const mimeType = fileData.type || "image/jpeg";
     const isPdfFile = buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46;
 
-    // Call Anthropic API
+    // Call Anthropic API with Structured Outputs
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen in het administratiesysteem VAT100. Analyseer het document en extraheer alle informatie. Retourneer UITSLUITEND valide JSON zonder expliciete markdown backticks rondom de JSON.
-Velden in het JSON object:
-- vendor_name (string): naam van de winkel/leverancier
-- receipt_date (string): datum in YYYY-MM-DD format
-- amount_ex_vat (number): bedrag exclusief BTW. Reken terug indien enkel het totaalbedrag en BTW-bedrag/percentage vermeld staan.
-- vat_rate (number): BTW-tarief als integer (21, 9, of 0). Leid correct af uit de bon.
-- cost_code (number): de meest passende kostensoort code uit deze lijst:
-  4100=Huur, 4105=Energie, 4195=Overige huisvesting, 4230=Kleine investering, 4300=Kantoorkosten, 4330=Computer & software, 4340=Telefoon, 4341=Webhosting & internet, 4350=Porto, 4360=Vakliteratuur, 4400=Verzekeringen, 4500=Vervoer (OV/auto), 4510=Reiskosten, 4520=Parkeren, 4600=Reclame & marketing, 4610=Representatie, 4620=Website & SEO, 4700=Accountant & advies, 4710=Boekhouding, 4720=Juridisch, 4750=Bankkosten, 4800=Abonnementen & licenties, 4900=Eten & drinken zakelijk, 4910=Gereedschap & materiaal, 4999=Overig
-- confidence (number 0-1): hoe zeker je bent van je extractie (bijv. 0.95)
-Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
 
     const documentContent = isPdfFile
       ? {
@@ -378,7 +367,16 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
-      system: systemPrompt,
+      system: `Je bent een OCR-specialist voor Nederlandse bonnen en facturen. Analyseer het document nauwkeurig en extraheer alle financiële gegevens.
+
+Belangrijke regels:
+- amount_ex_vat: het bedrag EXCLUSIEF BTW. Als alleen het totaalbedrag (incl. BTW) vermeld staat, reken dan terug: bedrag_ex = totaal / (1 + tarief/100). Voorbeeld: totaal €30,25 bij 21% BTW → ex BTW = 30,25 / 1,21 = €25,00.
+- vat_rate: het BTW-tarief als integer. In Nederland is dit 21% (standaard), 9% (laag, voor voedsel/boeken), of 0% (vrijgesteld).
+- receipt_date: de factuurdatum, NIET de vervaldatum of betaaldatum. Formaat YYYY-MM-DD.
+- vendor_name: de officiële naam van het bedrijf/leverancier, niet het adres.
+- cost_code: kies de meest passende code:
+  4100=Huur, 4105=Energie, 4195=Overige huisvesting, 4230=Kleine investering, 4300=Kantoorkosten, 4330=Computer & software, 4340=Telefoon, 4341=Webhosting & internet, 4350=Porto, 4360=Vakliteratuur, 4400=Verzekeringen, 4500=Vervoer (OV/auto), 4510=Reiskosten, 4520=Parkeren, 4600=Reclame & marketing, 4610=Representatie, 4620=Website & SEO, 4700=Accountant & advies, 4710=Boekhouding, 4720=Juridisch, 4750=Bankkosten, 4800=Abonnementen & licenties, 4900=Eten & drinken zakelijk, 4910=Gereedschap & materiaal, 4999=Overig
+- confidence: hoe zeker je bent (0.0–1.0). Gebruik < 0.7 als bedragen onduidelijk zijn.`,
       messages: [
         {
           role: "user",
@@ -386,28 +384,62 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
             documentContent,
             {
               type: "text",
-              text: "Analyseer deze bon en extraheer de gevraagde velden in JSON.",
+              text: "Analyseer dit document en extraheer de gevraagde velden.",
             },
           ],
         },
       ],
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object" as const,
+            properties: {
+              vendor_name: {
+                type: ["string", "null"] as const,
+                description: "Naam van de winkel of leverancier",
+              },
+              receipt_date: {
+                type: ["string", "null"] as const,
+                description: "Factuurdatum in YYYY-MM-DD formaat",
+              },
+              amount_ex_vat: {
+                type: ["number", "null"] as const,
+                description: "Bedrag exclusief BTW in euro's",
+              },
+              vat_rate: {
+                type: ["number", "null"] as const,
+                description: "BTW-tarief als integer (21, 9, of 0)",
+              },
+              cost_code: {
+                type: ["number", "null"] as const,
+                description: "Kostensoort code (bijv. 4340 voor Telefoon)",
+              },
+              confidence: {
+                type: "number" as const,
+                description: "Zekerheid van extractie tussen 0.0 en 1.0",
+              },
+            },
+            required: ["vendor_name", "receipt_date", "amount_ex_vat", "vat_rate", "cost_code", "confidence"],
+            additionalProperties: false,
+          },
+        },
+      },
     });
 
     const textContent = response.content.find((c) => c.type === "text");
     if (!textContent || textContent.type !== "text") {
-      return { error: "Geen parsable tekst gevonden in de uitslag van Claude Vision." };
+      return { error: "Geen tekst in AI-antwoord." };
     }
 
-    // Strip potential markdown JSON codeblocks returned by Claude
-    const cleanedText = textContent.text.replace(/```json\n|\n```/g, '');
-    const raw = JSON.parse(cleanedText);
+    const raw = JSON.parse(textContent.text);
     const aiReceiptSchema = z.object({
-      vendor_name: z.string().nullable().optional(),
-      receipt_date: z.string().nullable().optional(),
-      amount_ex_vat: z.number().nullable().optional(),
-      vat_rate: z.number().nullable().optional(),
-      cost_code: z.number().nullable().optional(),
-      confidence: z.number().min(0).max(1).optional(),
+      vendor_name: z.string().nullable(),
+      receipt_date: z.string().nullable(),
+      amount_ex_vat: z.number().nullable(),
+      vat_rate: z.number().nullable(),
+      cost_code: z.number().nullable(),
+      confidence: z.number().min(0).max(1),
     });
     const validated = aiReceiptSchema.safeParse(raw);
     if (!validated.success) {
