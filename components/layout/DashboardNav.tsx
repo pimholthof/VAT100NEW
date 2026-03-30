@@ -77,6 +77,7 @@ export function DashboardNav({
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
                 <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">Overzicht</Link>
+                <Link href="/dashboard/inbox" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Inbox</Link>
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uitgaven</Link>
