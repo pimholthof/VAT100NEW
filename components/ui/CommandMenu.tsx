@@ -56,7 +56,7 @@ export function CommandMenu() {
       const data = await res.json();
       setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error }]);
     } catch {
-      setChatMessages(prev => [...prev, { role: 'ai', content: "Systeem onderbroken. We herstellen de verbinding." }]);
+      setChatMessages(prev => [...prev, { role: 'ai', content: "Er ging iets mis. Probeer het opnieuw." }]);
     } finally {
       setIsChatLoading(false);
     }
@@ -113,7 +113,7 @@ export function CommandMenu() {
               </button>
             )}
             <Command.Input
-              placeholder={chatMode ? "Vraag de VAT100 CFO..." : "Wat wil je doen? (bijv. 'nieuwe factuur')"}
+              placeholder={chatMode ? "Stel een vraag..." : "Wat wil je doen?"}
               autoFocus
               value={query}
               onValueChange={setQuery}
@@ -152,7 +152,7 @@ export function CommandMenu() {
                   onClick={() => askAI(query)}
                   style={{ marginTop: 12, padding: "8px 16px", background: "var(--foreground)", color: "var(--background)", borderRadius: 0, cursor: "pointer", display: "inline-block" }}
                 >
-                  Vraag dit aan de AI CFO
+                  Vraag dit aan de assistent
                 </div>
               )}
             </Command.Empty>
@@ -164,7 +164,7 @@ export function CommandMenu() {
                 }}
                 className="cmdk-item"
               >
-                <span style={{color: 'var(--color-accent)'}}>Vraag AI CFO</span> {query ? `"${query}"` : "..."}
+                <span style={{color: 'var(--color-accent)'}}>Stel een vraag</span> {query ? `"${query}"` : "..."}
               </Command.Item>
             </Command.Group>
 
@@ -221,7 +221,7 @@ export function CommandMenu() {
             <div style={{ maxHeight: 400, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
               {chatMessages.length === 0 && (
                 <div style={{ textAlign: "center", opacity: 0.5, padding: "24px 0" }}>
-                  Hoe kan ik je vandaag helpen met je administratie?
+                  Hoe kan ik je helpen met je administratie?
                 </div>
               )}
               {chatMessages.map((msg, i) => (
@@ -237,13 +237,13 @@ export function CommandMenu() {
                   fontSize: "var(--text-body-md)",
                   border: msg.role === 'ai' ? 'var(--border-light)' : 'none'
                 }}>
-                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 AI CFO</strong>}
+                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 ASSISTENT</strong>}
                   {msg.content}
                 </div>
               ))}
               {isChatLoading && (
                 <div style={{ alignSelf: 'flex-start', opacity: 0.5, fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span className="spinner"></span> AI is aan het nadenken...
+                  <span className="spinner"></span> Even geduld...
                 </div>
               )}
             </div>

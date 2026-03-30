@@ -85,7 +85,7 @@ export default function LoginPage() {
             opacity: 0.4,
           }}
         >
-          Boekhouding zonder ruis
+          Administratie voor ondernemers
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
@@ -167,7 +167,7 @@ export default function LoginPage() {
               transition: "all 0.2s ease",
             }}
           >
-            {pending ? "Authenticatie..." : "Toegang"}
+            {pending ? "Inloggen..." : "Inloggen"}
           </button>
         </form>
 
@@ -178,7 +178,7 @@ export default function LoginPage() {
             opacity: 0.4,
           }}
         >
-          Geen dossier?{" "}
+          Nog geen account?{" "}
           <Link
             href="/register"
             style={{

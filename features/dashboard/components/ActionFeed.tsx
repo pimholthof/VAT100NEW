@@ -63,18 +63,18 @@ export function ActionFeed() {
         }}
       >
         <p
-          className="display-title"
+          className="section-header"
           style={{
-            fontSize: "var(--text-display-md)",
             margin: 0,
             textTransform: "uppercase",
+            opacity: 0.5
           }}
         >
-          SYSTEEM OPTIMAAL
+           Alles bijgewerkt
         </p>
         <p className="label" style={{ opacity: 0.4, margin: 0 }}>
-          Alle protocollen voltooid. Geen actie vereist.
-        </p>
+           Er zijn geen openstaande acties.
+         </p>
       </motion.div>
     );
   }
@@ -121,19 +121,19 @@ function ActionCard({
   const [draft, setDraft] = useState(action.draft_content || "");
 
   const typeLabel: Record<string, string> = {
-    missing_receipt: "DOCUMENTATIE",
-    match_suggestion: "RECONCILIATIE",
+    missing_receipt: "BON ONTBREEKT",
+    match_suggestion: "KOPPELING",
     tax_alert: "BELASTING",
-    uncategorized: "RUBRIEK",
-    reminder_suggestion: "COMMUNICATIE",
+    uncategorized: "CATEGORIE",
+    reminder_suggestion: "HERINNERING",
   };
 
   const actionLabel: Record<string, string> = {
     missing_receipt: "TOEVOEGEN",
-    match_suggestion: "AKKOORD",
-    tax_alert: "INZIEN",
+    match_suggestion: "KOPPELEN",
+    tax_alert: "BEKIJKEN",
     uncategorized: "VERWERKEN",
-    reminder_suggestion: "VERZENDEN",
+    reminder_suggestion: "VERSTUREN",
   };
 
   return (
@@ -148,20 +148,21 @@ function ActionCard({
         ease: "anticipate",
         layout: { duration: 0.3 }
       }}
-      whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
-      className="glass"
       style={{
-        padding: "20px 24px",
+        padding: "24px",
         display: "flex",
         flexDirection: "column",
         gap: 16,
         borderRadius: 0,
         opacity: isPending ? 0.5 : 1,
+        border: "var(--border-light)",
+        background: "rgba(0,0,0,0.02)",
+        marginBottom: 16
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
-          <p className="label" style={{ opacity: 0.5, margin: "0 0 6px" }}>
+          <p className="label" style={{ opacity: 0.5, margin: "0 0 8px", fontSize: 10 }}>
             {typeLabel[action.type] ?? action.type}
             {action.ai_confidence != null && (
               <span style={{ color: "var(--color-accent)", opacity: 0.8, marginLeft: 12 }}>

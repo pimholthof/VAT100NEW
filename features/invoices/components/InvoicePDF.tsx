@@ -90,11 +90,11 @@ const s = StyleSheet.create({
     marginBottom: 24,
   },
   vat100Mark: {
-    fontFamily: "Courier",
-    fontWeight: 700,
-    fontSize: 120,
-    lineHeight: 0.85,
-    letterSpacing: 0.02 * 120,
+    fontFamily: "Helvetica",
+    fontWeight: 400,
+    fontSize: 40,
+    lineHeight: 1,
+    letterSpacing: -0.05 * 40,
     color: COLOR,
   },
 

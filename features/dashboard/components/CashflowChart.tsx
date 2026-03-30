@@ -74,14 +74,7 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
           </linearGradient>
         </defs>
 
-        {/* Area under the line */}
-        <motion.path
-          d={areaPath}
-          fill="url(#areaGradient)"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        />
+        {/* Area removed for literal wireframe brutalism */}
 
         {/* The Sparkline */}
         <motion.path

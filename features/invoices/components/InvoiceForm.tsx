@@ -143,7 +143,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* ── Recipient: Large and focused ── */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>RECIPIENT</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 12 }}>KLANT</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
           <select
             value={clientId}
@@ -164,7 +164,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             }}
           >
             <option value="">
-              {clientsLoading ? "Loading..." : hasClientError ? clientErrorMessage : "Select Client"}
+              {clientsLoading ? "Laden..." : hasClientError ? clientErrorMessage : "Selecteer klant"}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
@@ -188,7 +188,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               opacity: 0.3
             }}
           >
-            {showNewClient ? "[-] CLOSE" : "[+] NEW"}
+            {showNewClient ? "[-] SLUIT" : "[+] NIEUW"}
           </button>
         </div>
         {showNewClient && (
@@ -204,7 +204,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* ── The Sum: Invoicing as Expression ── */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>EXPRESSION</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>REGELS</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {lines.map((line, index) => (
             <InvoiceLineRow
@@ -234,7 +234,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               textTransform: "uppercase"
             }}
           >
-            + ADD LINE
+            + REGEL TOEVOEGEN
           </button>
         </div>
       </div>
@@ -265,7 +265,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             cursor: "pointer"
           }}
         >
-          {saving ? "..." : "Save Draft"}
+          {saving ? "..." : "Concept opslaan"}
         </button>
         <button
           onClick={() => {
@@ -287,13 +287,13 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
           }}
         >
-          {saving ? "..." : "Issue & Preview"}
+          {saving ? "..." : "Versturen en bekijken"}
         </button>
       </div>
 
       {lastSavedAt && (
         <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, marginTop: 40, textAlign: "center" }}>
-          PROTOCOL Sync / {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
+          Laatst opgeslagen / {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
         </p>
       )}
     </motion.div>

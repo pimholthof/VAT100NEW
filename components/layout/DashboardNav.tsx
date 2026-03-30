@@ -38,43 +38,63 @@ export function DashboardNav({
   }
 
   return (
-    <div style={{ position: "sticky", top: 0, zIndex: 1000, background: "var(--background)" }}>
-      <header style={{ padding: isMobile ? "16px 20px" : "40px 80px" }}>
+    <div style={{ position: "sticky", top: 0, zIndex: 1000, background: "var(--background)", borderBottom: "var(--border-light)" }}>
+      <header style={{ padding: isMobile ? "16px 20px" : "40px 4vw", maxWidth: 1600, margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <Link 
               href="/dashboard"
-              className="display-hero" 
+              className="label" 
               style={{ 
-                fontSize: isMobile ? "2rem" : "clamp(3rem, 6vw, 6rem)", 
-                letterSpacing: "-0.05em", 
+                fontSize: "12px", 
+                letterSpacing: "0.25em", 
                 color: "var(--foreground)", 
-                textDecoration: "none" 
+                opacity: 0.3,
+                textDecoration: "none",
+                textTransform: "uppercase"
               }}
             >
-              VAT100
+              VAT0921
             </Link>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 32 }}>
             {!isMobile && (
-              <span className="label" style={{ opacity: 0.4 }}>{studioName}</span>
+              <span className="label" style={{ opacity: 0.2 }}>{studioName}</span>
             )}
             <button
-              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
               className="label-strong"
               style={{
+                fontSize: "12px", 
+                letterSpacing: "0.25em", 
                 background: "transparent",
                 border: "none",
                 cursor: "pointer",
                 padding: "4px 0",
-                borderBottom: isDrawerOpen ? "1px solid var(--foreground)" : "1px solid transparent",
-                transition: "border-color 0.2s ease",
-                color: "var(--foreground)"
+                transition: "opacity 0.2s ease",
+                color: "var(--foreground)",
+                fontWeight: 700
               }}
             >
-              {isDrawerOpen ? "CLOSE" : "MENU"}
+              [ UPLOAD ]
+            </button>
+            <button
+              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+              className="label-strong"
+              style={{
+                fontSize: "12px", 
+                letterSpacing: "0.25em", 
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px 0",
+                transition: "opacity 0.2s ease",
+                color: "var(--foreground)",
+                fontWeight: 700
+              }}
+            >
+              {isDrawerOpen ? "SLUIT" : "MENU"}
             </button>
           </div>
         </div>
@@ -98,7 +118,7 @@ export function DashboardNav({
               
               {/* Navigation Column 1 */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <span className="label" style={{ marginBottom: 16 }}>Index</span>
+                <span className="label" style={{ marginBottom: 16 }}>Overzicht</span>
                 <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)" }}>OVERZICHT</Link>
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>FACTUREN</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>KLANTEN</Link>
@@ -106,7 +126,7 @@ export function DashboardNav({
 
               {/* Navigation Column 2 */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <span className="label" style={{ marginBottom: 16 }}>Systemen</span>
+                <span className="label" style={{ marginBottom: 16 }}>Beheer</span>
                 <Link href="/dashboard/bank" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>TRANSACTIES</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>BELASTING</Link>
                 <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)", opacity: 0.4 }}>INSTELLINGEN</Link>
@@ -114,7 +134,7 @@ export function DashboardNav({
 
               {/* Action Column */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: isMobile ? "flex-start" : "flex-end" }}>
-                <span className="label" style={{ marginBottom: 16 }}>Sessie</span>
+                <span className="label" style={{ marginBottom: 16 }}>Account</span>
                 {isMobile && studioName && (
                   <span className="label" style={{ opacity: 0.4, marginBottom: 8 }}>{studioName}</span>
                 )}
@@ -131,7 +151,7 @@ export function DashboardNav({
                     color: "var(--foreground)"
                   }}
                 >
-                  VERLATEN
+                  UITLOGGEN
                 </button>
               </div>
 

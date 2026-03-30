@@ -26,62 +26,53 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
       style={{ 
-        padding: "80px 100px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        position: "relative",
-        minHeight: 320,
-        border: "var(--border-light)",
-        background: "var(--background)"
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 32,
+        width: "100%",
       }}
     >
-      <div className="vertical-label">Fiscale Index</div>
-      
-      <div style={{ flex: 1 }}>
-        <p className="label" style={{ marginBottom: 20 }}>Netto Liquiditeit</p>
-        <div style={{ position: "relative" }}>
+      {/* Box 1: Balance */}
+      <div style={{ border: "var(--border-light)", padding: "32px", background: "var(--color-grey-light)", borderRadius: "var(--radius)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", minHeight: 220 }}>
+        
+        <div style={{ flex: 1, display: "flex", alignItems: "flex-end", paddingBottom: 24, width: "100%", justifyContent: "center" }}>
+          <p className="label" style={{ margin: 0 }}>
+            Vrij besteedbaar
+          </p>
+        </div>
+
+        <div style={{ flex: "0 0 auto", width: "100%" }}>
           <AnimatedNumber 
             value={safeToSpend} 
             style={{
-              
-              fontSize: "clamp(4rem, 12vw, 10rem)",
               fontWeight: 500,
               lineHeight: 0.8,
-              letterSpacing: "-0.02em",
+              letterSpacing: "-0.04em",
               color: "var(--foreground)"
             }}
           />
-          <p className="mono-amount" style={{ 
-            position: "absolute", 
-            bottom: -48, 
-            left: 0, 
-            fontSize: "var(--text-label)",
-            letterSpacing: "var(--tracking-label)",
-            textTransform: "uppercase",
-            fontWeight: 500
-          }}>
-            Beschikbaar Kapitaal / {formatCurrency(currentBalance)}
+        </div>
+
+        <div style={{ flex: 1, display: "flex", alignItems: "flex-start", paddingTop: 24, width: "100%", justifyContent: "center" }}>
+          <p className="label-strong" style={{ letterSpacing: "0.25em", margin: 0 }}>
+            Saldo / {formatCurrency(currentBalance)}
           </p>
         </div>
       </div>
 
-      <div style={{ marginLeft: 80, position: "relative" }}>
-        <SafeToSpendRing 
-          percentage={ratio} 
-          size={240}
-          strokeWidth={2}
-        />
-        {/* Subtle center marker for Rams-inspired clarity */}
-        <div style={{ 
-          position: "absolute", 
-          top: "50%", 
-          left: "50%", 
-          transform: "translate(-50%, -50%)",
-          textAlign: "center"
-        }}>
-          <p className="label" style={{ margin: 0, opacity: 0.4 }}>Ratio</p>
-          <p className="display-hero" style={{ fontSize: "2.8rem", margin: "4px 0 0" }}>{Math.round(ratio * 100)}%</p>
+      {/* Box 2: Ratio */}
+      <div style={{ border: "var(--border-light)", padding: "32px", background: "var(--color-grey-light)", borderRadius: "var(--radius)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", minHeight: 220 }}>
+        
+        <div style={{ flex: 1, display: "flex", alignItems: "flex-end", paddingBottom: 24, width: "100%", justifyContent: "center" }}>
+          <p className="label" style={{ margin: 0 }}>Verhouding</p>
+        </div>
+        
+        <div style={{ flex: "0 0 auto", width: "100%" }}>
+          <p className="display-hero" style={{ fontWeight: 400, opacity: 0.4, margin: 0 }}>{Math.round(ratio * 100)}%</p>
+        </div>
+
+        <div style={{ flex: 1, paddingTop: 24, width: "100%" }}>
+          {/* Empty struct to balance the flex: 1 of ratio with the box on the left */}
         </div>
       </div>
     </motion.div>

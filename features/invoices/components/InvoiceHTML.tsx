@@ -209,7 +209,7 @@ const page: React.CSSProperties = {
   width: "595px",
   minHeight: "842px",
   padding: "56px",
-  fontFamily: '"Barlow", Arial, Helvetica, sans-serif',
+  fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
   fontWeight: 300,
   color: COLOR,
   backgroundColor: "#FFFFFF",
@@ -222,12 +222,11 @@ const header: React.CSSProperties = {
 };
 
 const vat100Mark: React.CSSProperties = {
-  fontFamily: 'monospace, sans-serif',
+  fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
   fontWeight: 400,
   fontSize: "40px",
-  letterSpacing: "-0.04em",
+  letterSpacing: "-0.05em",
   color: COLOR,
-  opacity: 0.1,
 };
 
 const metaRow: React.CSSProperties = {

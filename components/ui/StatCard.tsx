@@ -7,11 +7,13 @@ export function StatCard({
   value,
   sub,
   numericValue,
+  isCurrency,
 }: {
   label: string;
-  value: string;
+  value: string | number;
   sub?: string;
   numericValue?: number;
+  isCurrency?: boolean;
 }) {
   return (
     <motion.div 
@@ -22,55 +24,42 @@ export function StatCard({
         padding: "32px", 
         display: "flex", 
         flexDirection: "column", 
-        justifyContent: "space-between",
-        minHeight: 180,
+        minHeight: 200,
         position: "relative",
-        overflow: "visible", // To allow vertical label to bleed out if needed
+        overflow: "visible",
         border: "var(--border-light)",
-        background: "var(--background)"
+        background: "var(--color-grey-light)",
+        borderRadius: "var(--radius)",
+        alignItems: "center",
+        textAlign: "center"
       }}
     >
-      <div className="vertical-label">{label}</div>
-
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <p className="label" style={{ margin: "0 0 12px" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "flex-end", paddingBottom: 24, width: "100%", justifyContent: "center" }}>
+        <p className="label" style={{ margin: 0 }}>
           Concept / {label}
         </p>
-        <p
-          className="display-hero"
-          style={{
-            fontSize: "var(--text-display-md)",
-            fontWeight: 500,
-            lineHeight: 0.9,
-            margin: 0,
-            letterSpacing: "-0.02em",
-          }}
-        >
+      </div>
+
+      <div style={{ flex: "0 0 auto", width: "100%" }}>
+        <p className="display-title" style={{ fontWeight: 500, letterSpacing: "-0.04em", margin: 0 }}>
           {numericValue !== undefined ? (
-            <AnimatedNumber value={numericValue} isCurrency={true} />
+            <AnimatedNumber 
+              value={numericValue} 
+              isCurrency={isCurrency}
+            />
           ) : (
             value
           )}
         </p>
       </div>
 
-      {sub && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ width: 40, height: 1, background: "rgba(0,0,0,0.05)", marginBottom: 12 }} />
-          <p
-            className="mono-amount"
-            style={{
-              fontSize: "var(--text-label)",
-              margin: 0,
-              textTransform: "uppercase",
-              letterSpacing: "var(--tracking-label)",
-              fontWeight: 500
-            }}
-          >
+      <div style={{ flex: 1, display: "flex", alignItems: "flex-start", paddingTop: 24, width: "100%", justifyContent: "center" }}>
+        {sub ? (
+          <p className="label-strong" style={{ letterSpacing: "0.25em", margin: 0 }}>
             {sub}
           </p>
-        </div>
-      )}
+        ) : null}
+      </div>
     </motion.div>
   );
 }
