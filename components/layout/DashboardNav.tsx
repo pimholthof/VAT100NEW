@@ -43,7 +43,7 @@ export function DashboardNav({
         <div className="dashboard-nav-inner">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="display-hero dashboard-nav-brand">
-              VAT0921
+              VAT100
             </Link>
           </div>
 
@@ -91,9 +91,9 @@ export function DashboardNav({
             <div className="dashboard-drawer-inner">
               
               {/* Navigation */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <span className="label" style={{ marginBottom: 16 }}>Overzicht</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="display-title" style={{ fontSize: isMobile ? "1.5rem" : "2rem", textDecoration: "none", color: "var(--foreground)" }}>OVERZICHT</Link>
+              <div className="dashboard-drawer-col">
+                <span className="label mb-4">Menu</span>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">Overzicht</Link>
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uitgaven</Link>
@@ -104,9 +104,9 @@ export function DashboardNav({
                 <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Importeren</Link>
               </div>
 
-              {/* Action Column */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: isMobile ? "flex-start" : "flex-end" }}>
-                <span className="label" style={{ marginBottom: 16 }}>Account</span>
+              {/* Account */}
+              <div className="dashboard-drawer-col dashboard-drawer-col-end">
+                <span className="label mb-4">Account</span>
                 {isMobile && studioName && (
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
@@ -116,7 +116,7 @@ export function DashboardNav({
                   onClick={handleLogout}
                   className="drawer-logout"
                 >
-                  UITLOGGEN
+                  Uitloggen
                 </button>
               </div>
 
