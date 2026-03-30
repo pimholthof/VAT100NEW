@@ -32,9 +32,11 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
       <div style={{
         display: "flex",
         flexDirection: "column",
-        gap: 0,
+        border: "0.5px solid rgba(0, 0, 0, 0.08)",
+        borderRadius: "var(--radius)",
+        overflow: "hidden",
       }}>
-        {invoices.map((inv) => {
+        {invoices.map((inv, idx) => {
           const isOverdue = inv.days_overdue > 0;
 
           return (
@@ -44,16 +46,19 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                gap: 24,
-                padding: "24px 0",
-                borderBottom: "0.5px solid rgba(0,0,0,0.04)",
+                gap: 20,
+                padding: "20px 24px",
+                borderBottom: idx < invoices.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none",
                 flexWrap: "wrap",
+                background: "var(--dashboard-surface, var(--background))",
+                transition: "background 0.15s ease",
               }}
             >
-              <div style={{ display: "flex", alignItems: "baseline", gap: 16, flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0 }}>
                 <span className="label" style={{
-                  opacity: 0.25,
+                  opacity: 0.2,
                   flexShrink: 0,
+                  fontSize: 10,
                 }}>
                   {inv.invoice_number}
                 </span>
@@ -61,12 +66,12 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
                 <Link
                   href={`/dashboard/invoices/${inv.id}`}
                   style={{
-                    fontSize: "clamp(1.25rem, 3vw, 2rem)",
+                    fontSize: 16,
                     fontWeight: 600,
-                    letterSpacing: "-0.02em",
+                    letterSpacing: "-0.01em",
                     textDecoration: "none",
                     color: "var(--foreground)",
-                    lineHeight: 1,
+                    lineHeight: 1.2,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -76,13 +81,13 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
                 </Link>
 
                 {isOverdue && (
-                  <span className="status-badge status-badge--overdue" style={{ flexShrink: 0 }}>
+                  <span className="status-badge status-badge--overdue" style={{ flexShrink: 0, fontSize: 9 }}>
                     {inv.days_overdue}D
                   </span>
                 )}
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 24, flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 20, flexShrink: 0 }}>
                 <span style={{
                   fontSize: 14,
                   fontWeight: 600,
@@ -100,17 +105,17 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
                     style={{
                       background: "transparent",
                       border: "none",
-                      borderBottom: "1px solid var(--foreground)",
                       cursor: "pointer",
-                      padding: "0 0 2px 0",
-                      opacity: sendingId === inv.id ? 0.2 : 0.6,
+                      padding: "4px 0",
+                      opacity: sendingId === inv.id ? 0.2 : 0.45,
                       transition: "opacity 0.15s ease",
+                      fontSize: 10,
                     }}
                   >
-                    {sendingId === inv.id ? "SYNC..." : "HERINNEREN"}
+                    {sendingId === inv.id ? "..." : "HERINNEREN"}
                   </button>
                 ) : (
-                  <span className="label" style={{ opacity: 0.15 }}>
+                  <span className="label" style={{ opacity: 0.12, fontSize: 10 }}>
                     GEEN E-MAIL
                   </span>
                 )}

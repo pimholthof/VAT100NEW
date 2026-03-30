@@ -17,7 +17,9 @@ export function FieldGroup({
         style={{
           display: "block",
           marginBottom: 8,
-          opacity: 0.4,
+          opacity: 0.35,
+          fontSize: 10,
+          letterSpacing: "0.1em",
         }}
       >
         {label}

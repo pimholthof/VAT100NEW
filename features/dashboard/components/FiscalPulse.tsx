@@ -18,48 +18,41 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 30 }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      style={{ 
-        padding: "clamp(48px, 8vw, 80px) clamp(32px, 8vw, 100px)",
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        padding: "clamp(36px, 6vw, 56px) clamp(28px, 5vw, 48px)",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
+        flexDirection: "column",
+        gap: 20,
         position: "relative",
-        minHeight: 280,
-        border: "var(--border-light)",
+        border: "0.5px solid rgba(0, 0, 0, 0.08)",
         borderRadius: "var(--radius)",
         background: "var(--dashboard-surface, var(--background))",
       }}
     >
-      <div style={{ flex: 1 }}>
-        <p className="label" style={{ marginBottom: 20 }}>Wat je vrij kunt besteden</p>
-        <div style={{ position: "relative" }}>
-          <AnimatedNumber 
-            value={safeToSpend} 
-            style={{
-              fontSize: "clamp(4rem, 12vw, 10rem)",
-              fontWeight: 300,
-              lineHeight: 0.85,
-              letterSpacing: "-0.03em",
-              color: "var(--foreground)"
-            }}
-          />
-          <p className="mono-amount" style={{ 
-            position: "absolute", 
-            bottom: -48, 
-            left: 0, 
-            fontSize: "var(--text-label)",
-            letterSpacing: "var(--tracking-label)",
-            textTransform: "uppercase",
-            fontWeight: 500
-          }}>
-            Vrij te besteden / {formatCurrency(currentBalance)}
-          </p>
-        </div>
-      </div>
+      <p className="label" style={{ margin: 0, fontSize: 10, letterSpacing: "0.12em" }}>Wat je vrij kunt besteden</p>
+      <AnimatedNumber
+        value={safeToSpend}
+        style={{
+          fontSize: "clamp(3rem, 8vw, 6rem)",
+          fontWeight: 300,
+          lineHeight: 0.9,
+          letterSpacing: "-0.03em",
+          color: "var(--foreground)"
+        }}
+      />
+      <div style={{ width: 32, height: "0.5px", background: "rgba(0,0,0,0.08)" }} />
+      <p className="label" style={{
+        margin: 0,
+        fontSize: 10,
+        letterSpacing: "0.12em",
+        opacity: 0.4,
+      }}>
+        Saldo {formatCurrency(currentBalance)}
+      </p>
     </motion.div>
   );
 }

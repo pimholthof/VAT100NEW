@@ -18,20 +18,22 @@ const CATEGORIEEN = [
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "10px 14px",
-  border: "0.5px solid rgba(13,13,11,0.2)",
-  borderRadius: "var(--radius-sm)",
-  fontSize: "var(--text-body)",
+  padding: "12px 16px",
+  border: "1px solid rgba(0, 0, 0, 0.10)",
+  borderRadius: "8px",
+  fontSize: "14px",
   fontFamily: "inherit",
-  background: "transparent",
+  background: "rgba(0, 0, 0, 0.015)",
 };
 
 const labelStyle: React.CSSProperties = {
   display: "block",
-  marginBottom: 6,
-  fontSize: "var(--text-body-sm)",
-  opacity: 0.5,
-  fontWeight: 500,
+  marginBottom: 8,
+  fontSize: "10px",
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  opacity: 0.4,
+  fontWeight: 600,
 };
 
 function EmptyForm(): AssetInput {
@@ -137,42 +139,27 @@ export default function AssetsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="page-header" style={{ marginBottom: 80 }}>
+      <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
         <div>
           <h1 className="display-title">Activastaat</h1>
-          <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
+          <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
             Vaste activa en afschrijvingen
           </p>
         </div>
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", gap: 8 }}>
           <a
             href="/api/export/activastaat"
             download
-            className="label-strong"
-            style={{
-              padding: "14px 24px",
-              border: "0.5px solid rgba(13,13,11,0.25)",
-              borderRadius: "var(--radius-sm)",
-              background: "transparent",
-              color: "var(--foreground)",
-              textDecoration: "none",
-            }}
+            className="btn-secondary"
           >
-            EXPORTEER CSV
+            Exporteer CSV
           </a>
           <button
             onClick={() => { setShowForm(true); setEditingId(null); setForm(EmptyForm()); setError(null); }}
-            className="label-strong"
-            style={{
-              padding: "14px 24px",
-              border: "none",
-              borderRadius: "var(--radius-sm)",
-              background: "var(--foreground)",
-              color: "var(--background)",
-              cursor: "pointer",
-            }}
+            className="btn-primary"
+            style={{ cursor: "pointer" }}
           >
-            + NIEUW ACTIVUM
+            + Nieuw activum
           </button>
         </div>
       </div>

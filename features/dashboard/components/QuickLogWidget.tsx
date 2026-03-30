@@ -46,61 +46,68 @@ export function QuickLogWidget() {
   }
 
   return (
-    <div className="quick-log-widget">
-      <div className="quick-log-section">
-        <span className="label">Uren vandaag</span>
-        <div className="quick-log-buttons">
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => handleQuickHours(4)}
-            disabled={isPending}
-          >
-            +4 uur
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => handleQuickHours(8)}
-            disabled={isPending}
-          >
-            +8 uur
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => handleQuickHours(10)}
-            disabled={isPending}
-          >
-            +10 uur
-          </button>
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+      gap: 16,
+    }}>
+      <div style={{
+        padding: 24,
+        border: "0.5px solid rgba(0, 0, 0, 0.08)",
+        borderRadius: "var(--radius)",
+        background: "var(--dashboard-surface, var(--background))",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}>
+        <span className="label" style={{ margin: 0, fontSize: 10 }}>Uren vandaag</span>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[4, 8, 10].map((h) => (
+            <button
+              key={h}
+              className="btn-secondary"
+              style={{ flex: 1, padding: "10px 12px", fontSize: 12 }}
+              onClick={() => handleQuickHours(h)}
+              disabled={isPending}
+            >
+              +{h} uur
+            </button>
+          ))}
         </div>
       </div>
-      <div className="quick-log-section">
-        <span className="label">Kilometers</span>
-        <div className="quick-log-buttons">
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => handleQuickTrip(25)}
-            disabled={isPending}
-          >
-            +25 km
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => handleQuickTrip(50)}
-            disabled={isPending}
-          >
-            +50 km
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => handleQuickTrip(100)}
-            disabled={isPending}
-          >
-            +100 km
-          </button>
+      <div style={{
+        padding: 24,
+        border: "0.5px solid rgba(0, 0, 0, 0.08)",
+        borderRadius: "var(--radius)",
+        background: "var(--dashboard-surface, var(--background))",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}>
+        <span className="label" style={{ margin: 0, fontSize: 10 }}>Kilometers</span>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[25, 50, 100].map((km) => (
+            <button
+              key={km}
+              className="btn-secondary"
+              style={{ flex: 1, padding: "10px 12px", fontSize: 12 }}
+              onClick={() => handleQuickTrip(km)}
+              disabled={isPending}
+            >
+              +{km} km
+            </button>
+          ))}
         </div>
       </div>
       {message && (
-        <p className="quick-log-message">{message}</p>
+        <p style={{
+          gridColumn: "1 / -1",
+          margin: 0,
+          fontSize: 13,
+          fontWeight: 500,
+          color: "var(--color-success)",
+          opacity: 0.8,
+        }}>{message}</p>
       )}
     </div>
   );
