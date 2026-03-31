@@ -61,67 +61,54 @@ export default function TaxPage() {
           ZONE 1: INKOMSTENBELASTING
       ══════════════════════════════════════════════════ */}
 
-      <h2 className="section-header" style={{ margin: "0 0 8px" }}>
-        Inkomstenbelasting {now.getFullYear()}
-      </h2>
-      <p className="label" style={{ margin: "0 0 24px", opacity: 0.4 }}>
-        Schatting op basis van je huidige omzet en kosten
-      </p>
-
-      {/* Hero: geschatte inkomstenbelasting */}
+      {/* Hero + Jaarprognose in one compact row */}
       {isLoading ? (
         <SkeletonCard />
       ) : projection ? (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
-            Geschatte inkomstenbelasting {now.getFullYear()}
-          </p>
-          <p style={{
-            fontSize: "var(--text-display-xl)",
-            fontWeight: 700,
-            lineHeight: 0.85,
-            letterSpacing: "var(--tracking-display)",
-            margin: 0,
-          }}>
-            {formatCurrency(Math.round(projection.nettoIB))}
-          </p>
-          <p style={{
-            fontSize: "var(--text-body-sm)",
-            fontWeight: 300,
-            opacity: 0.45,
-            margin: "12px 0 0",
-          }}>
-            Gemiddeld belastingpercentage: {projection.effectiefTarief.toFixed(1)}%
-          </p>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr 1fr",
+          gap: 1,
+          background: "rgba(13,13,11,0.08)",
+          marginBottom: "var(--space-block)",
+        }}>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Geschatte IB {now.getFullYear()}</p>
+            <p className="mono-amount" style={{ margin: "0 0 4px", fontSize: "var(--text-display-sm)", fontWeight: 700 }}>
+              {formatCurrency(Math.round(projection.nettoIB))}
+            </p>
+            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, margin: 0 }}>
+              Effectief tarief: {projection.effectiefTarief.toFixed(1)}%
+            </p>
+          </div>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaaromzet</p>
+            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
+              {formatCurrency(Math.round(projection.prognoseJaarOmzet))}
+            </p>
+          </div>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaarkosten</p>
+            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
+              {formatCurrency(Math.round(projection.prognoseJaarKosten))}
+            </p>
+          </div>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaar-IB</p>
+            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
+              {formatCurrency(Math.round(projection.prognoseJaarIB))}
+            </p>
+          </div>
         </div>
       ) : null}
 
-      {/* Jaarprognose */}
-      {projection && (
-        <div style={{
-          marginBottom: "var(--space-section)",
-          padding: "20px 24px",
-          background: "rgba(13,13,11,0.02)",
-          border: "0.5px solid rgba(13,13,11,0.06)",
-        }}>
-          <p className="label" style={{ margin: "0 0 12px", opacity: 0.4 }}>
-            Jaarprognose — als je in dit tempo doorgaat
-          </p>
-          <div style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
-            <ProjectionStat label="Verwachte jaaromzet" value={formatCurrency(Math.round(projection.prognoseJaarOmzet))} />
-            <ProjectionStat label="Verwachte jaarkosten" value={formatCurrency(Math.round(projection.prognoseJaarKosten))} />
-            <ProjectionStat label="Verwachte inkomstenbelasting" value={formatCurrency(Math.round(projection.prognoseJaarIB))} />
-          </div>
-        </div>
-      )}
-
       {/* Berekening */}
       {projection && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
+        <div style={{ marginBottom: "var(--space-block)" }}>
           <div style={{
             background: "var(--background)",
             border: "0.5px solid rgba(13,13,11,0.08)",
-            padding: 24,
+            padding: "16px 24px",
           }}>
             <BreakdownSection title="Winstberekening">
               <BreakdownLine label="Omzet (excl. BTW)" value={projection.brutoOmzet} />
@@ -159,8 +146,8 @@ export default function TaxPage() {
 
       {/* Tips om belasting te besparen */}
       {projection && projection.bespaartips.length > 0 && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <h3 className="section-header" style={{ margin: "0 0 16px" }}>
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <h3 className="section-header" style={{ margin: "0 0 12px" }}>
             Tips om belasting te besparen
           </h3>
           <div className="responsive-grid-2" style={{ gap: 1, background: "rgba(13,13,11,0.08)" }}>
@@ -173,8 +160,8 @@ export default function TaxPage() {
 
       {/* Investeringen & afschrijvingen */}
       {projection && projection.afschrijvingDetails.length > 0 && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <h3 className="section-header" style={{ margin: "0 0 16px" }}>
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <h3 className="section-header" style={{ margin: "0 0 12px" }}>
             Investeringen & afschrijvingen
           </h3>
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
@@ -237,15 +224,13 @@ export default function TaxPage() {
       {btwLoading ? (
         <SkeletonCard />
       ) : current ? (
-        <div style={{ marginBottom: "var(--space-block)" }}>
-          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+        <div style={{ marginBottom: 24 }}>
+          <p className="label" style={{ margin: "0 0 8px", opacity: 0.3 }}>
             {current.netVat >= 0 ? "Te betalen dit kwartaal" : "Terug te vorderen dit kwartaal"}
           </p>
-          <p style={{
-            fontSize: "var(--text-display-xl)",
+          <p className="mono-amount" style={{
+            fontSize: "var(--text-display-sm)",
             fontWeight: 700,
-            lineHeight: 0.85,
-            letterSpacing: "var(--tracking-display)",
             margin: 0,
           }}>
             {formatCurrency(Math.abs(current.netVat))}
@@ -254,7 +239,7 @@ export default function TaxPage() {
       ) : null}
 
       {/* Kwartaaloverzicht */}
-      <h3 className="section-header" style={{ margin: "0 0 16px" }}>Kwartaaloverzicht</h3>
+      <h3 className="section-header" style={{ margin: "0 0 12px" }}>Kwartaaloverzicht</h3>
 
       {btwLoading ? (
         <SkeletonTable columns="1fr 1fr 1fr 1fr 1fr 1fr" rows={4} headerWidths={[60, 80, 70, 70, 60, 50]} bodyWidths={[50, 70, 60, 60, 50, 40]} />
@@ -418,19 +403,10 @@ function DepreciationTableRow({ row }: { row: DepreciationRow }) {
 
 // ─── Breakdown componenten ───
 
-function ProjectionStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.5, margin: "0 0 4px" }}>{label}</p>
-      <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-body-lg)" }}>{value}</p>
-    </div>
-  );
-}
-
 function BreakdownSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <p className="label" style={{ margin: "0 0 10px", opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10 }}>
+    <div style={{ marginBottom: 16 }}>
+      <p className="label" style={{ margin: "0 0 6px", opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10 }}>
         {title}
       </p>
       {children}
