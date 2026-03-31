@@ -94,6 +94,7 @@ export function DashboardNav({
                 <Link href="/dashboard/hours" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uren</Link>
                 <Link href="/dashboard/trips" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Kilometers</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
+                <Link href="/dashboard/documents" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Documenten</Link>
                 <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Importeren</Link>
               </div>
 

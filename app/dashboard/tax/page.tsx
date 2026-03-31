@@ -281,65 +281,6 @@ export default function TaxPage() {
 
       <VoorlopigeAanslagSection year={now.getFullYear()} />
 
-      {/* ══════════════════════════════════════════════════
-          ZONE 5: JAARREKENING
-      ══════════════════════════════════════════════════ */}
-
-      <div
-        id="jaarrekening"
-        style={{
-          borderTop: "0.5px solid rgba(13,13,11,0.08)",
-          paddingTop: "var(--space-section)",
-          marginTop: "var(--space-section)",
-        }}
-      >
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          flexWrap: "wrap",
-          gap: 8,
-          margin: "0 0 16px",
-        }}>
-          <h2 className="section-header" style={{ margin: 0 }}>Jaarrekening</h2>
-        </div>
-        <p style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.6, margin: "0 0 24px" }}>
-          Volledig overzicht van winst & verlies, balans en fiscale samenvatting.
-        </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-          {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map((y) => (
-            <a
-              key={y}
-              href={`/api/jaarrekening/${y}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary"
-            >
-              Download {y}
-            </a>
-          ))}
-        </div>
-
-        <h3 className="section-header" style={{ margin: "24px 0 12px", fontSize: "var(--text-body)" }}>
-          IB Aangifte Export
-        </h3>
-        <p style={{ fontSize: "var(--text-body-sm)", fontWeight: 300, opacity: 0.5, margin: "0 0 12px" }}>
-          Exporteer je jaarrekening als IB-aangifte overzicht voor de Belastingdienst.
-        </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          {[now.getFullYear() - 1, now.getFullYear() - 2].map((y) => (
-            <a
-              key={y}
-              href={`/api/export/ib-aangifte?year=${y}`}
-              download
-              className="btn-secondary"
-            >
-              IB Aangifte {y}
-            </a>
-          ))}
-        </div>
-      </div>
-
       {/* ══ DISCLAIMER ══ */}
       <div style={{ padding: 20, background: "rgba(13,13,11,0.02)", fontSize: 11, fontWeight: 400, lineHeight: 1.6 }}>
         Dit is een schatting op basis van je facturen en bonnetjes.
