@@ -10,13 +10,15 @@ const BankTab = dynamic(() => import("./BankTab"));
 const tabStyle = (active: boolean): React.CSSProperties => ({
   background: "none",
   border: "none",
-  borderBottom: active ? "2px solid var(--foreground)" : "2px solid transparent",
-  padding: "0 0 8px 0",
-  fontSize: "var(--text-body-lg)",
-  fontWeight: active ? 500 : 300,
+  borderBottom: active ? "1.5px solid var(--foreground)" : "1.5px solid transparent",
+  padding: "0 0 12px 0",
+  fontSize: 14,
+  fontWeight: active ? 600 : 400,
   color: "var(--foreground)",
-  opacity: active ? 1 : 0.5,
+  opacity: active ? 1 : 0.4,
   cursor: "pointer",
+  letterSpacing: "-0.01em",
+  transition: "opacity 0.2s ease",
 });
 
 export default function ExpensesPage() {
@@ -27,7 +29,7 @@ export default function ExpensesPage() {
   return (
     <div>
       {/* Tabs */}
-      <div style={{ display: "flex", gap: "24px", marginBottom: "40px", borderBottom: "0.5px solid rgba(13,13,11,0.12)" }}>
+      <div style={{ display: "flex", gap: 28, marginBottom: 40, borderBottom: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
         <button onClick={() => setActiveTab("bonnen")} style={tabStyle(activeTab === "bonnen")}>
           Bonnen
         </button>

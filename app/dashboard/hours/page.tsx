@@ -72,23 +72,17 @@ export default function HoursPage() {
 
   return (
     <div>
-      <div className="page-header" style={{ marginBottom: 80 }}>
+      <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
         <div>
           <h1 className="display-title">Urenregistratie</h1>
-          <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
+          <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
             Urencriterium: minimaal 1.225 uur per jaar
           </p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="label-strong"
-          style={{
-            padding: "14px 24px",
-            border: "0.5px solid rgba(13,13,11,0.25)",
-            background: showForm ? "transparent" : "var(--foreground)",
-            color: showForm ? "var(--foreground)" : "var(--background)",
-            cursor: "pointer",
-          }}
+          className={showForm ? "btn-secondary" : "btn-primary"}
+          style={{ cursor: "pointer" }}
         >
           {showForm ? "Annuleer" : "+ Uren registreren"}
         </button>
@@ -101,9 +95,8 @@ export default function HoursPage() {
         <div style={{ marginBottom: "var(--space-section)" }}>
           <div style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr",
-            gap: 1,
-            background: "rgba(13,13,11,0.08)",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 16,
             marginBottom: 24,
           }}>
             <StatCard label="Totaal uren" value={`${totalHours}`} />
@@ -114,21 +107,22 @@ export default function HoursPage() {
 
           {/* Progress bar */}
           <div style={{
-            height: 6,
-            background: "rgba(13,13,11,0.06)",
-            borderRadius: 3,
+            height: 4,
+            background: "rgba(0, 0, 0, 0.04)",
+            borderRadius: 2,
             overflow: "hidden",
           }}>
             <div
               style={{
                 height: "100%",
                 width: `${Math.min(100, (totalHours / TARGET) * 100)}%`,
-                background: onTrack ? "var(--foreground)" : "rgba(13,13,11,0.3)",
-                transition: "width 0.4s ease",
+                background: onTrack ? "var(--foreground)" : "rgba(0, 0, 0, 0.2)",
+                borderRadius: 2,
+                transition: "width 0.6s var(--ease-out-expo)",
               }}
             />
           </div>
-          <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, marginTop: 8 }}>
+          <p style={{ fontSize: 12, opacity: 0.35, marginTop: 10 }}>
             Gemiddeld {weeklyAverage} uur per week
           </p>
         </div>
@@ -137,39 +131,33 @@ export default function HoursPage() {
       {/* Form */}
       {showForm && (
         <div style={{
-          padding: 20,
-          background: "rgba(13,13,11,0.02)",
-          border: "0.5px solid rgba(13,13,11,0.06)",
-          marginBottom: 24,
+          padding: 24,
+          background: "rgba(0, 0, 0, 0.02)",
+          border: "0.5px solid rgba(0, 0, 0, 0.06)",
+          borderRadius: "var(--radius)",
+          marginBottom: 28,
         }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr auto", gap: 12, alignItems: "end" }}>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Datum</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Datum</label>
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)}
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
+                className="input-field" />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Uren</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Uren</label>
               <input type="number" step="0.25" min="0.25" max="24" value={formHours} onChange={(e) => setFormHours(e.target.value)} placeholder="8"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
+                className="input-field" />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Categorie</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Categorie</label>
               <input type="text" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} placeholder="Projectwerk"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
+                className="input-field" />
             </div>
             <button
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !formHours}
-              className="label-strong"
-              style={{
-                padding: "10px 20px",
-                border: "0.5px solid rgba(13,13,11,0.25)",
-                background: "var(--foreground)",
-                color: "var(--background)",
-                cursor: "pointer",
-                opacity: createMutation.isPending || !formHours ? 0.5 : 1,
-              }}
+              className="btn-primary"
+              style={{ cursor: "pointer" }}
             >
               {createMutation.isPending ? "Opslaan..." : "Opslaan"}
             </button>
@@ -226,9 +214,14 @@ export default function HoursPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ background: "var(--background)", padding: 20 }}>
-      <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>{label}</p>
-      <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-body-lg)" }}>{value}</p>
+    <div style={{
+      background: "var(--background)",
+      padding: 20,
+      border: "0.5px solid rgba(0, 0, 0, 0.06)",
+      borderRadius: "var(--radius)",
+    }}>
+      <p className="label" style={{ margin: "0 0 10px", opacity: 0.35, fontSize: 10 }}>{label}</p>
+      <p style={{ margin: 0, fontSize: 18, fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{value}</p>
     </div>
   );
 }

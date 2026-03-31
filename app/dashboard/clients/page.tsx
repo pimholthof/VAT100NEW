@@ -48,7 +48,7 @@ export default function ClientsPage() {
       </div>
 
       {/* Search */}
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 28 }}>
         <input
           type="text"
           value={search}

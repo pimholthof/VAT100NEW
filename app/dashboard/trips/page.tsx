@@ -65,23 +65,17 @@ export default function TripsPage() {
 
   return (
     <div>
-      <div className="page-header" style={{ marginBottom: 80 }}>
+      <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
         <div>
           <h1 className="display-title">Kilometerregistratie</h1>
-          <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
+          <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
             Fiscale aftrek: {formatCurrency(summary?.kmRate ?? 0.23)}/km
           </p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="label-strong"
-          style={{
-            padding: "14px 24px",
-            border: "0.5px solid rgba(13,13,11,0.25)",
-            background: showForm ? "transparent" : "var(--foreground)",
-            color: showForm ? "var(--foreground)" : "var(--background)",
-            cursor: "pointer",
-          }}
+          className={showForm ? "btn-secondary" : "btn-primary"}
+          style={{ cursor: "pointer" }}
         >
           {showForm ? "Annuleer" : "+ Rit registreren"}
         </button>
@@ -93,9 +87,8 @@ export default function TripsPage() {
       ) : summary ? (
         <div style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: 1,
-          background: "rgba(13,13,11,0.08)",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 16,
           marginBottom: "var(--space-section)",
         }}>
           <StatCard label="Totaal kilometers" value={`${summary.totalKm} km`} />
@@ -107,45 +100,39 @@ export default function TripsPage() {
       {/* Form */}
       {showForm && (
         <div style={{
-          padding: 20,
-          background: "rgba(13,13,11,0.02)",
-          border: "0.5px solid rgba(13,13,11,0.06)",
-          marginBottom: 24,
+          padding: 24,
+          background: "rgba(0, 0, 0, 0.02)",
+          border: "0.5px solid rgba(0, 0, 0, 0.06)",
+          borderRadius: "var(--radius)",
+          marginBottom: 28,
         }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr auto", gap: 12, alignItems: "end" }}>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Datum</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Datum</label>
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)}
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
+                className="input-field" />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Doel van de rit</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Doel van de rit</label>
               <input type="text" value={formPurpose} onChange={(e) => setFormPurpose(e.target.value)} placeholder="Klantbezoek Amsterdam"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
+                className="input-field" />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Km (enkele reis)</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Km (enkele reis)</label>
               <input type="number" step="0.1" min="0.1" value={formKm} onChange={(e) => setFormKm(e.target.value)} placeholder="45"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }} />
+                className="input-field" />
             </div>
             <button
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !formKm}
-              className="label-strong"
-              style={{
-                padding: "10px 20px",
-                border: "0.5px solid rgba(13,13,11,0.25)",
-                background: "var(--foreground)",
-                color: "var(--background)",
-                cursor: "pointer",
-                opacity: createMutation.isPending || !formKm ? 0.5 : 1,
-              }}
+              className="btn-primary"
+              style={{ cursor: "pointer" }}
             >
               {createMutation.isPending ? "Opslaan..." : "Opslaan"}
             </button>
           </div>
-          <div style={{ marginTop: 12 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, opacity: 0.6, cursor: "pointer" }}>
+          <div style={{ marginTop: 14 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, opacity: 0.5, cursor: "pointer" }}>
               <input type="checkbox" checked={formReturn} onChange={(e) => setFormReturn(e.target.checked)} />
               Heen-en-terug (verdubbelt kilometers)
             </label>
@@ -211,9 +198,14 @@ export default function TripsPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ background: "var(--background)", padding: 20 }}>
-      <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>{label}</p>
-      <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-body-lg)" }}>{value}</p>
+    <div style={{
+      background: "var(--background)",
+      padding: 20,
+      border: "0.5px solid rgba(0, 0, 0, 0.06)",
+      borderRadius: "var(--radius)",
+    }}>
+      <p className="label" style={{ margin: "0 0 10px", opacity: 0.35, fontSize: 10 }}>{label}</p>
+      <p style={{ margin: 0, fontSize: 18, fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{value}</p>
     </div>
   );
 }

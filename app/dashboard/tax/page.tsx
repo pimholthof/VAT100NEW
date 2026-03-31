@@ -40,44 +40,18 @@ export default function TaxPage() {
   return (
     <div>
       {/* ══ HEADER ══ */}
-      <div className="page-header" style={{ marginBottom: 80 }}>
+      <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
         <div>
           <h1 className="display-title">Belasting</h1>
-          <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
+          <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
             Overzicht van je geschatte inkomstenbelasting en BTW
           </p>
         </div>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a
-            href="/api/export/btw"
-            download
-            className="label-strong"
-            style={{
-              padding: "14px 24px",
-              border: "0.5px solid rgba(13,13,11,0.25)",
-              borderRadius: "var(--radius-sm)",
-              background: "transparent",
-              color: "var(--foreground)",
-              textDecoration: "none",
-              display: "inline-block",
-              transition: "opacity 0.2s ease",
-            }}
-          >
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <a href="/api/export/btw" download className="btn-secondary">
             Download lijst
           </a>
-          <a
-            href="/dashboard/tax/opening-balance"
-            className="label-strong"
-            style={{
-              padding: "14px 24px",
-              border: "0.5px solid rgba(13,13,11,0.25)",
-              borderRadius: "var(--radius-sm)",
-              background: "transparent",
-              color: "var(--foreground)",
-              textDecoration: "none",
-              display: "inline-block",
-            }}
-          >
+          <a href="/dashboard/tax/opening-balance" className="btn-secondary">
             Openingsbalans
           </a>
         </div>

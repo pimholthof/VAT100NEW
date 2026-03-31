@@ -84,7 +84,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
 
   return (
     <div>
-      <h1 className="display-title" style={{ margin: "0 0 80px" }}>
+      <h1 className="display-title" style={{ margin: "0 0 var(--space-xl)" }}>
         Jouw instellingen
       </h1>
 
@@ -103,7 +103,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
       <div style={{ maxWidth: 480 }}>
         {/* Persoonlijk */}
         <div style={{ marginBottom: "var(--space-block)" }}>
-          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+          <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 16, borderTop: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
             Persoonlijk
           </p>
 
@@ -130,7 +130,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
 
         {/* Bedrijfsgegevens */}
         <div style={{ marginBottom: "var(--space-block)" }}>
-          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+          <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 16, borderTop: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
             Bedrijfsgegevens
           </p>
 
@@ -189,7 +189,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
 
         {/* Bankgegevens */}
         <div style={{ marginBottom: "var(--space-block)" }}>
-          <p className="label-strong" style={{ margin: "0 0 28px", paddingTop: 12, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+          <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 16, borderTop: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
             Bankgegevens
           </p>
 
@@ -218,8 +218,8 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         {/* Save */}
         <div
           style={{
-            paddingTop: 28,
-            borderTop: "0.5px solid rgba(13,13,11,0.15)",
+            paddingTop: 24,
+            borderTop: "0.5px solid rgba(0, 0, 0, 0.08)",
           }}
         >
           <ButtonPrimary

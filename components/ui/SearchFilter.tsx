@@ -43,9 +43,9 @@ export function SearchFilter({
   return (
     <div style={{
       display: "flex",
-      gap: 24,
-      alignItems: "flex-end",
-      marginBottom: 32,
+      gap: 12,
+      alignItems: "center",
+      marginBottom: 28,
       flexWrap: "wrap",
     }}>
       <input
@@ -66,18 +66,16 @@ export function SearchFilter({
           value={filterValues[filter.key] ?? ""}
           onChange={(e) => handleFilterChange(filter.key, e.target.value)}
           style={{
-            padding: "14px 0",
-            border: "none",
-            borderBottom: "0.5px solid rgba(0,0,0,0.1)",
-            background: "transparent",
+            padding: "10px 16px",
+            border: "1px solid rgba(0, 0, 0, 0.10)",
+            borderRadius: 8,
+            background: "rgba(0, 0, 0, 0.015)",
             color: "var(--foreground)",
-            fontSize: 10,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
+            fontSize: 12,
             fontWeight: 500,
             outline: "none",
             cursor: "pointer",
-            minWidth: 120,
+            minWidth: 140,
           }}
         >
           <option value="">{filter.label}</option>
