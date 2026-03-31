@@ -7,7 +7,7 @@ import { getDashboardData } from "@/features/dashboard/actions";
 import { getTaxPaymentsSummary, createTaxPayment, deleteTaxPayment } from "@/features/tax/payments-actions";
 import { getVatReturns, generateVatReturn, lockVatReturn, submitVatReturn } from "@/features/tax/vat-returns-actions";
 import type { QuarterStats } from "@/features/tax/actions";
-import type { Bespaartip, DepreciationRow } from "@/lib/tax/dutch-tax-2026";
+import type { DepreciationRow } from "@/lib/tax/dutch-tax-2026";
 import type { TaxPaymentType, VatReturn } from "@/lib/types";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -140,20 +140,6 @@ export default function TaxPage() {
               <BreakdownLine label="Belastingkorting (arbeid)" value={-projection.arbeidskorting} negative />
               <BreakdownTotal label="Geschatte inkomstenbelasting" value={projection.nettoIB} highlight />
             </BreakdownSection>
-          </div>
-        </div>
-      )}
-
-      {/* Tips om belasting te besparen */}
-      {projection && projection.bespaartips.length > 0 && (
-        <div style={{ marginBottom: "var(--space-block)" }}>
-          <h3 className="section-header" style={{ margin: "0 0 12px" }}>
-            Tips om belasting te besparen
-          </h3>
-          <div className="responsive-grid-2" style={{ gap: 1, background: "rgba(13,13,11,0.08)" }}>
-            {projection.bespaartips.map((tip, i) => (
-              <TipCard key={i} tip={tip} />
-            ))}
           </div>
         </div>
       )}
@@ -366,22 +352,6 @@ export default function TaxPage() {
 }
 
 // ─── Subcomponenten ───
-
-function TipCard({ tip }: { tip: Bespaartip }) {
-  return (
-    <div style={{ background: "var(--background)", padding: 20 }}>
-      <p className="label-strong" style={{ margin: "0 0 6px" }}>{tip.titel}</p>
-      <p style={{ fontSize: "var(--text-body-sm)", fontWeight: 300, margin: "0 0 8px", lineHeight: 1.5 }}>
-        {tip.beschrijving}
-      </p>
-      {tip.besparing > 0 && (
-        <p className="mono-amount" style={{ margin: 0, opacity: 0.7, fontSize: "var(--text-body-xs)" }}>
-          Geschatte besparing: {formatCurrency(Math.round(tip.besparing))}
-        </p>
-      )}
-    </div>
-  );
-}
 
 function DepreciationTableRow({ row }: { row: DepreciationRow }) {
   return (
