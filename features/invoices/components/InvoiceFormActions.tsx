@@ -24,14 +24,14 @@ export function InvoiceFormActions({
           padding: "24px",
           background: "rgba(0,0,0,0.03)",
           border: "var(--border-rule)",
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 500,
           textTransform: "uppercase",
           letterSpacing: "0.2em",
           cursor: "pointer",
         }}
       >
-        {saving ? "..." : "Save Draft"}
+        {saving ? "..." : "Concept opslaan"}
       </button>
       <button
         onClick={() => {
@@ -45,7 +45,7 @@ export function InvoiceFormActions({
           background: "var(--foreground)",
           color: "var(--background)",
           border: "none",
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 600,
           textTransform: "uppercase",
           letterSpacing: "0.2em",
@@ -53,7 +53,7 @@ export function InvoiceFormActions({
           boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)",
         }}
       >
-        {saving ? "..." : "Issue & Preview"}
+        {saving ? "..." : "Versturen & Voorbeeld"}
       </button>
     </div>
   );

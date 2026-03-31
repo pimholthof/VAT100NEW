@@ -130,7 +130,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      style={{ maxWidth: 900, margin: "0 auto" }}
+      style={{ maxWidth: "100%" }}
     >
       {error && (
         <ErrorMessage style={{ marginBottom: 40 }}>{error}</ErrorMessage>

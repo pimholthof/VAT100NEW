@@ -22,7 +22,7 @@ export function InvoiceLinesSection({
   return (
     <div style={{ marginBottom: 80 }}>
       <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>
-        EXPRESSION
+        Factuurregels
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {lines.map((line, index) => (
@@ -45,7 +45,7 @@ export function InvoiceLinesSection({
             background: "none",
             border: "none",
             cursor: "pointer",
-            fontSize: 10,
+            fontSize: 12,
             textAlign: "left",
             padding: "12px 0",
             opacity: 0.2,
@@ -53,7 +53,7 @@ export function InvoiceLinesSection({
             textTransform: "uppercase",
           }}
         >
-          + ADD LINE
+          + Regel toevoegen
         </button>
       </div>
     </div>
