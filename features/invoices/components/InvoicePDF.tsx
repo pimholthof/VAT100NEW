@@ -216,7 +216,10 @@ function KlassiekPDF({ data }: { data: InvoiceData }) {
     <Document>
       <Page size="A4" style={s2.page}>
         <View style={s2.header}>
-          <Text style={s2.title}>{cr ? "Credit" : "Factuur"}</Text>
+          <View>
+            <Text style={s2.title}>VAT100</Text>
+            <Text style={{ fontSize: 8, letterSpacing: 1, color: GREY2, textTransform: "uppercase", marginTop: 8 }}>{cr ? "Creditnota" : "Factuur"}</Text>
+          </View>
           <View style={s2.headerRight}>
             <Text style={s2.headerDate}>{fmtDateLong(invoice.issue_date)}</Text>
             <Text style={s2.headerNum}>Nr. {invoice.invoice_number}</Text>
@@ -297,7 +300,7 @@ const M3 = 56;
 const s3 = StyleSheet.create({
   page: { paddingTop: 64, paddingBottom: M3 + 24, paddingLeft: M3, paddingRight: M3, fontFamily: "Helvetica", color: INK3, backgroundColor: "#FAF9F6" },
   studio: { marginBottom: 64 },
-  studioName: { fontSize: 40, fontWeight: 700, letterSpacing: -1.2, lineHeight: 1, textTransform: "uppercase" },
+  studioName: { fontSize: 48, fontWeight: 700, letterSpacing: -1.9, lineHeight: 0.85 },
   metaRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 48, paddingBottom: 16, borderBottomWidth: 0.5, borderBottomColor: RULE3 },
   metaCol: { textAlign: "right" },
   lbl: { fontSize: 6.5, letterSpacing: 1, color: GREY3, textTransform: "uppercase", marginBottom: 6 },
@@ -345,7 +348,7 @@ function StrakPDF({ data }: { data: InvoiceData }) {
     <Document>
       <Page size="A4" style={s3.page}>
         <View style={s3.studio}>
-          <Text style={s3.studioName}>{profile.studio_name || profile.full_name}</Text>
+          <Text style={s3.studioName}>VAT100</Text>
         </View>
 
         <View style={s3.metaRow}>

@@ -155,7 +155,10 @@ function KlassiekHTML({ data }: { data: InvoiceData }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 48 }}>
         <div>
           <div style={{ fontSize: 56, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.9, marginBottom: 8 }}>
-            {isCreditNote ? "Credit" : "Factuur"}
+            VAT100
+          </div>
+          <div style={{ fontSize: 8, letterSpacing: "0.12em", color: GREY, textTransform: "uppercase", marginTop: 8 }}>
+            {isCreditNote ? "Creditnota" : "Factuur"}
           </div>
         </div>
         <div style={{ textAlign: "right", paddingTop: 8 }}>
@@ -270,10 +273,10 @@ function StrakHTML({ data }: { data: InvoiceData }) {
 
   return (
     <div style={{ width: 595, minHeight: 842, padding: "64px 56px 56px", fontFamily: F, color: INK, background: "#FAF9F6", position: "relative", boxSizing: "border-box" }}>
-      {/* Studio name — large and bold like Jil Sander */}
+      {/* Brand — large and bold like Jil Sander */}
       <div style={{ marginBottom: 64 }}>
-        <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1, textTransform: "uppercase" }}>
-          {profile.studio_name || profile.full_name}
+        <div style={{ fontSize: 48, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.85 }}>
+          VAT100
         </div>
       </div>
 
