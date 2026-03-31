@@ -45,7 +45,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         value={line.description}
         onChange={(e) => onUpdate(line.id, "description", e.target.value)}
         placeholder="Omschrijving"
-        style={{ ...cellInputStyle, fontSize: 14, fontWeight: 400 }}
+        style={{ ...cellInputStyle, fontSize: 16, fontWeight: 400 }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <input
@@ -84,7 +84,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         />
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 16 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+        <div style={{ fontSize: 16, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
           {formatCurrency(amount)}
         </div>
         <button
@@ -113,7 +113,7 @@ const cellInputStyle: React.CSSProperties = {
   borderBottom: "none",
   background: "transparent",
   color: "var(--foreground)",
-  fontSize: "var(--text-body-sm)",
+  fontSize: "var(--text-body-md)",
   fontWeight: 400,
   outline: "none",
 };

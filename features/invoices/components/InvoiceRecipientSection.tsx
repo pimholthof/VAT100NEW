@@ -38,7 +38,7 @@ export function InvoiceRecipientSection({
           }}
           style={{
             ...inputStyle,
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: 400,
             letterSpacing: "-0.01em",
             border: "none",
@@ -71,13 +71,13 @@ export function InvoiceRecipientSection({
             background: "none",
             border: "none",
             cursor: "pointer",
-            fontSize: 10,
+            fontSize: 12,
             textTransform: "uppercase",
             letterSpacing: "0.2em",
             opacity: 0.3,
           }}
         >
-          {showNewClient ? "[-] CLOSE" : "[+] NEW"}
+          {showNewClient ? "[-] Sluiten" : "[+] Nieuw"}
         </button>
       </div>
       {showNewClient && (
