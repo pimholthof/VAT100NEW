@@ -59,6 +59,7 @@ export function PaymentLinkButton({
             letterSpacing: "0.05em",
             padding: "8px 20px",
             border: "1px solid #A51C30",
+            borderRadius: "var(--radius-sm)",
             background: "transparent",
             cursor: "pointer",
           }}
@@ -78,6 +79,7 @@ export function PaymentLinkButton({
             letterSpacing: "0.05em",
             padding: "8px 20px",
             border: "1px solid #A51C30",
+            borderRadius: "var(--radius-sm)",
             background: "transparent",
             cursor: loading ? "default" : "pointer",
             opacity: loading ? 0.5 : 1,

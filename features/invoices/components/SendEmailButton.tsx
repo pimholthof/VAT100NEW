@@ -50,6 +50,7 @@ export function SendEmailButton({
           letterSpacing: "0.05em",
           padding: "8px 20px",
           border: "1px solid rgba(13, 13, 11, 0.2)",
+          borderRadius: "var(--radius-sm)",
           background: "transparent",
           cursor: sending ? "default" : "pointer",
           opacity: sending ? 0.5 : 1,
