@@ -83,7 +83,7 @@ export function DashboardNav({
           >
             <div className="dashboard-drawer-inner">
               
-              {/* Navigation */}
+              {/* Navigation - column 1 */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
                 <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">Overzicht</Link>
@@ -91,11 +91,16 @@ export function DashboardNav({
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uitgaven</Link>
                 <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Activa</Link>
+              </div>
+
+              {/* Navigation - column 2 */}
+              <div className="dashboard-drawer-col">
+                <span className="label mb-4">&nbsp;</span>
                 <Link href="/dashboard/hours" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uren</Link>
                 <Link href="/dashboard/trips" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Kilometers</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
-                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Importeren</Link>
-              </div>
+                <Link href="/dashboard/documents" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Documenten</Link>
+                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Importeren</Link>              </div>
 
               {/* Account */}
               <div className="dashboard-drawer-col dashboard-drawer-col-end">

@@ -65,17 +65,11 @@ export function SearchFilter({
           key={filter.key}
           value={filterValues[filter.key] ?? ""}
           onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+          className="input-field"
           style={{
-            padding: "10px 16px",
-            border: "1px solid rgba(0, 0, 0, 0.10)",
-            borderRadius: 8,
-            background: "rgba(0, 0, 0, 0.015)",
-            color: "var(--foreground)",
-            fontSize: 12,
-            fontWeight: 500,
-            outline: "none",
-            cursor: "pointer",
+            width: "auto",
             minWidth: 140,
+            cursor: "pointer",
           }}
         >
           <option value="">{filter.label}</option>

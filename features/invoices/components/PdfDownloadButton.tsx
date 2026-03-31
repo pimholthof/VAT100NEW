@@ -9,26 +9,24 @@ export function PdfDownloadButton({ invoiceId }: { invoiceId: string }) {
   const [template, setTemplate] = useState<InvoiceTemplate>("minimaal");
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
-    if (saved && ["minimaal", "klassiek", "strak"].includes(saved)) {
-      setTemplate(saved);
+    function syncTemplate() {
+      const t = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
+      if (t && ["minimaal", "klassiek", "strak"].includes(t)) {
+        setTemplate(t);
+      }
     }
 
-    function onStorage() {
-      const t = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
-      if (t) setTemplate(t);
-    }
-    // Listen for changes from the template picker
-    window.addEventListener("storage", onStorage);
-    const interval = setInterval(() => {
-      const t = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
-      if (t && t !== template) setTemplate(t);
-    }, 500);
+    syncTemplate();
+
+    // Listen for cross-tab changes
+    window.addEventListener("storage", syncTemplate);
+    // Poll for same-tab changes (localStorage.setItem doesn't fire storage in same tab)
+    const interval = setInterval(syncTemplate, 300);
     return () => {
-      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("storage", syncTemplate);
       clearInterval(interval);
     };
-  });
+  }, []);
 
   return (
     <a

@@ -7,7 +7,7 @@ import { getDashboardData } from "@/features/dashboard/actions";
 import { getTaxPaymentsSummary, createTaxPayment, deleteTaxPayment } from "@/features/tax/payments-actions";
 import { getVatReturns, generateVatReturn, lockVatReturn, submitVatReturn } from "@/features/tax/vat-returns-actions";
 import type { QuarterStats } from "@/features/tax/actions";
-import type { Bespaartip, DepreciationRow } from "@/lib/tax/dutch-tax-2026";
+import type { DepreciationRow } from "@/lib/tax/dutch-tax-2026";
 import type { TaxPaymentType, VatReturn } from "@/lib/types";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -61,67 +61,54 @@ export default function TaxPage() {
           ZONE 1: INKOMSTENBELASTING
       ══════════════════════════════════════════════════ */}
 
-      <h2 className="section-header" style={{ margin: "0 0 8px" }}>
-        Inkomstenbelasting {now.getFullYear()}
-      </h2>
-      <p className="label" style={{ margin: "0 0 24px", opacity: 0.4 }}>
-        Schatting op basis van je huidige omzet en kosten
-      </p>
-
-      {/* Hero: geschatte inkomstenbelasting */}
+      {/* Hero + Jaarprognose in one compact row */}
       {isLoading ? (
         <SkeletonCard />
       ) : projection ? (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
-            Geschatte inkomstenbelasting {now.getFullYear()}
-          </p>
-          <p style={{
-            fontSize: "var(--text-display-xl)",
-            fontWeight: 700,
-            lineHeight: 0.85,
-            letterSpacing: "var(--tracking-display)",
-            margin: 0,
-          }}>
-            {formatCurrency(Math.round(projection.nettoIB))}
-          </p>
-          <p style={{
-            fontSize: "var(--text-body-sm)",
-            fontWeight: 300,
-            opacity: 0.45,
-            margin: "12px 0 0",
-          }}>
-            Gemiddeld belastingpercentage: {projection.effectiefTarief.toFixed(1)}%
-          </p>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr 1fr",
+          gap: 1,
+          background: "rgba(13,13,11,0.08)",
+          marginBottom: "var(--space-block)",
+        }}>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Geschatte IB {now.getFullYear()}</p>
+            <p className="mono-amount" style={{ margin: "0 0 4px", fontSize: "var(--text-display-sm)", fontWeight: 700 }}>
+              {formatCurrency(Math.round(projection.nettoIB))}
+            </p>
+            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, margin: 0 }}>
+              Effectief tarief: {projection.effectiefTarief.toFixed(1)}%
+            </p>
+          </div>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaaromzet</p>
+            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
+              {formatCurrency(Math.round(projection.prognoseJaarOmzet))}
+            </p>
+          </div>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaarkosten</p>
+            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
+              {formatCurrency(Math.round(projection.prognoseJaarKosten))}
+            </p>
+          </div>
+          <div style={{ background: "var(--background)", padding: 20 }}>
+            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaar-IB</p>
+            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
+              {formatCurrency(Math.round(projection.prognoseJaarIB))}
+            </p>
+          </div>
         </div>
       ) : null}
 
-      {/* Jaarprognose */}
-      {projection && (
-        <div style={{
-          marginBottom: "var(--space-section)",
-          padding: "20px 24px",
-          background: "rgba(13,13,11,0.02)",
-          border: "0.5px solid rgba(13,13,11,0.06)",
-        }}>
-          <p className="label" style={{ margin: "0 0 12px", opacity: 0.4 }}>
-            Jaarprognose — als je in dit tempo doorgaat
-          </p>
-          <div style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
-            <ProjectionStat label="Verwachte jaaromzet" value={formatCurrency(Math.round(projection.prognoseJaarOmzet))} />
-            <ProjectionStat label="Verwachte jaarkosten" value={formatCurrency(Math.round(projection.prognoseJaarKosten))} />
-            <ProjectionStat label="Verwachte inkomstenbelasting" value={formatCurrency(Math.round(projection.prognoseJaarIB))} />
-          </div>
-        </div>
-      )}
-
       {/* Berekening */}
       {projection && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
+        <div style={{ marginBottom: "var(--space-block)" }}>
           <div style={{
             background: "var(--background)",
             border: "0.5px solid rgba(13,13,11,0.08)",
-            padding: 24,
+            padding: "16px 24px",
           }}>
             <BreakdownSection title="Winstberekening">
               <BreakdownLine label="Omzet (excl. BTW)" value={projection.brutoOmzet} />
@@ -157,24 +144,10 @@ export default function TaxPage() {
         </div>
       )}
 
-      {/* Tips om belasting te besparen */}
-      {projection && projection.bespaartips.length > 0 && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <h3 className="section-header" style={{ margin: "0 0 16px" }}>
-            Tips om belasting te besparen
-          </h3>
-          <div className="responsive-grid-2" style={{ gap: 1, background: "rgba(13,13,11,0.08)" }}>
-            {projection.bespaartips.map((tip, i) => (
-              <TipCard key={i} tip={tip} />
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Investeringen & afschrijvingen */}
       {projection && projection.afschrijvingDetails.length > 0 && (
-        <div style={{ marginBottom: "var(--space-section)" }}>
-          <h3 className="section-header" style={{ margin: "0 0 16px" }}>
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <h3 className="section-header" style={{ margin: "0 0 12px" }}>
             Investeringen & afschrijvingen
           </h3>
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
@@ -237,15 +210,13 @@ export default function TaxPage() {
       {btwLoading ? (
         <SkeletonCard />
       ) : current ? (
-        <div style={{ marginBottom: "var(--space-block)" }}>
-          <p className="label" style={{ margin: "0 0 16px", opacity: 0.3 }}>
+        <div style={{ marginBottom: 24 }}>
+          <p className="label" style={{ margin: "0 0 8px", opacity: 0.3 }}>
             {current.netVat >= 0 ? "Te betalen dit kwartaal" : "Terug te vorderen dit kwartaal"}
           </p>
-          <p style={{
-            fontSize: "var(--text-display-xl)",
+          <p className="mono-amount" style={{
+            fontSize: "var(--text-display-sm)",
             fontWeight: 700,
-            lineHeight: 0.85,
-            letterSpacing: "var(--tracking-display)",
             margin: 0,
           }}>
             {formatCurrency(Math.abs(current.netVat))}
@@ -254,7 +225,7 @@ export default function TaxPage() {
       ) : null}
 
       {/* Kwartaaloverzicht */}
-      <h3 className="section-header" style={{ margin: "0 0 16px" }}>Kwartaaloverzicht</h3>
+      <h3 className="section-header" style={{ margin: "0 0 12px" }}>Kwartaaloverzicht</h3>
 
       {btwLoading ? (
         <SkeletonTable columns="1fr 1fr 1fr 1fr 1fr 1fr" rows={4} headerWidths={[60, 80, 70, 70, 60, 50]} bodyWidths={[50, 70, 60, 60, 50, 40]} />
@@ -310,65 +281,6 @@ export default function TaxPage() {
 
       <VoorlopigeAanslagSection year={now.getFullYear()} />
 
-      {/* ══════════════════════════════════════════════════
-          ZONE 5: JAARREKENING
-      ══════════════════════════════════════════════════ */}
-
-      <div
-        id="jaarrekening"
-        style={{
-          borderTop: "0.5px solid rgba(13,13,11,0.08)",
-          paddingTop: "var(--space-section)",
-          marginTop: "var(--space-section)",
-        }}
-      >
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          flexWrap: "wrap",
-          gap: 8,
-          margin: "0 0 16px",
-        }}>
-          <h2 className="section-header" style={{ margin: 0 }}>Jaarrekening</h2>
-        </div>
-        <p style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.6, margin: "0 0 24px" }}>
-          Volledig overzicht van winst & verlies, balans en fiscale samenvatting.
-        </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-          {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map((y) => (
-            <a
-              key={y}
-              href={`/api/jaarrekening/${y}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary"
-            >
-              Download {y}
-            </a>
-          ))}
-        </div>
-
-        <h3 className="section-header" style={{ margin: "24px 0 12px", fontSize: "var(--text-body)" }}>
-          IB Aangifte Export
-        </h3>
-        <p style={{ fontSize: "var(--text-body-sm)", fontWeight: 300, opacity: 0.5, margin: "0 0 12px" }}>
-          Exporteer je jaarrekening als IB-aangifte overzicht voor de Belastingdienst.
-        </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          {[now.getFullYear() - 1, now.getFullYear() - 2].map((y) => (
-            <a
-              key={y}
-              href={`/api/export/ib-aangifte?year=${y}`}
-              download
-              className="btn-secondary"
-            >
-              IB Aangifte {y}
-            </a>
-          ))}
-        </div>
-      </div>
-
       {/* ══ DISCLAIMER ══ */}
       <div style={{ padding: 20, background: "rgba(13,13,11,0.02)", fontSize: 11, fontWeight: 400, lineHeight: 1.6 }}>
         Dit is een schatting op basis van je facturen en bonnetjes.
@@ -381,22 +293,6 @@ export default function TaxPage() {
 }
 
 // ─── Subcomponenten ───
-
-function TipCard({ tip }: { tip: Bespaartip }) {
-  return (
-    <div style={{ background: "var(--background)", padding: 20 }}>
-      <p className="label-strong" style={{ margin: "0 0 6px" }}>{tip.titel}</p>
-      <p style={{ fontSize: "var(--text-body-sm)", fontWeight: 300, margin: "0 0 8px", lineHeight: 1.5 }}>
-        {tip.beschrijving}
-      </p>
-      {tip.besparing > 0 && (
-        <p className="mono-amount" style={{ margin: 0, opacity: 0.7, fontSize: "var(--text-body-xs)" }}>
-          Geschatte besparing: {formatCurrency(Math.round(tip.besparing))}
-        </p>
-      )}
-    </div>
-  );
-}
 
 function DepreciationTableRow({ row }: { row: DepreciationRow }) {
   return (
@@ -418,19 +314,10 @@ function DepreciationTableRow({ row }: { row: DepreciationRow }) {
 
 // ─── Breakdown componenten ───
 
-function ProjectionStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.5, margin: "0 0 4px" }}>{label}</p>
-      <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-body-lg)" }}>{value}</p>
-    </div>
-  );
-}
-
 function BreakdownSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <p className="label" style={{ margin: "0 0 10px", opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10 }}>
+    <div style={{ marginBottom: 16 }}>
+      <p className="label" style={{ margin: "0 0 6px", opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10 }}>
         {title}
       </p>
       {children}
@@ -766,7 +653,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
               <select
                 value={formType}
                 onChange={(e) => setFormType(e.target.value as TaxPaymentType)}
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
               >
                 <option value="ib">Inkomstenbelasting</option>
                 <option value="btw">BTW</option>
@@ -779,7 +666,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 value={formPeriod}
                 onChange={(e) => setFormPeriod(e.target.value)}
                 placeholder={`${year} of ${year}-Q1`}
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
               />
             </div>
             <div>
@@ -791,7 +678,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 value={formAmount}
                 onChange={(e) => setFormAmount(e.target.value)}
                 placeholder="0,00"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
               />
             </div>
             <div>
@@ -800,7 +687,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 type="date"
                 value={formDate}
                 onChange={(e) => setFormDate(e.target.value)}
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
               />
             </div>
             <button
@@ -808,11 +695,14 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
               disabled={createMutation.isPending || !formAmount}
               className="label-strong"
               style={{
-                padding: "10px 20px",
-                border: "0.5px solid rgba(13,13,11,0.25)",
+                padding: "12px 20px",
+                border: "none",
+                borderRadius: 8,
                 background: "var(--foreground)",
                 color: "var(--background)",
                 cursor: "pointer",
+                height: 48,
+                boxSizing: "border-box",
                 opacity: createMutation.isPending || !formAmount ? 0.5 : 1,
               }}
             >
