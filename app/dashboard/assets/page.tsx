@@ -24,6 +24,8 @@ const inputStyle: React.CSSProperties = {
   fontSize: "14px",
   fontFamily: "inherit",
   background: "rgba(0, 0, 0, 0.015)",
+  boxSizing: "border-box",
+  height: "48px",
 };
 
 const labelStyle: React.CSSProperties = {

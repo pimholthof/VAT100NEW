@@ -598,7 +598,6 @@ a {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
-  padding: 0 var(--page-gutter);
 }
 
 .dashboard-nav-inner {
@@ -608,6 +607,7 @@ a {
   height: 64px;
   max-width: var(--content-max-width);
   margin: 0 auto;
+  padding: 0 var(--page-gutter);
 }
 
 .dashboard-nav-header {
@@ -658,7 +658,9 @@ a {
 }
 
 .dashboard-drawer-inner {
-  padding: var(--space-block) 0 var(--space-section);
+  padding: var(--space-block) var(--page-gutter) var(--space-section);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 40px;

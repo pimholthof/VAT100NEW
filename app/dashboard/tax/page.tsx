@@ -766,7 +766,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
               <select
                 value={formType}
                 onChange={(e) => setFormType(e.target.value as TaxPaymentType)}
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
               >
                 <option value="ib">Inkomstenbelasting</option>
                 <option value="btw">BTW</option>
@@ -779,7 +779,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 value={formPeriod}
                 onChange={(e) => setFormPeriod(e.target.value)}
                 placeholder={`${year} of ${year}-Q1`}
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
               />
             </div>
             <div>
@@ -791,7 +791,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 value={formAmount}
                 onChange={(e) => setFormAmount(e.target.value)}
                 placeholder="0,00"
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
               />
             </div>
             <div>
@@ -800,7 +800,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 type="date"
                 value={formDate}
                 onChange={(e) => setFormDate(e.target.value)}
-                style={{ width: "100%", padding: "10px 12px", border: "0.5px solid rgba(13,13,11,0.15)", background: "var(--background)", fontSize: 13 }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
               />
             </div>
             <button
@@ -808,11 +808,14 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
               disabled={createMutation.isPending || !formAmount}
               className="label-strong"
               style={{
-                padding: "10px 20px",
-                border: "0.5px solid rgba(13,13,11,0.25)",
+                padding: "12px 20px",
+                border: "none",
+                borderRadius: 8,
                 background: "var(--foreground)",
                 color: "var(--background)",
                 cursor: "pointer",
+                height: 48,
+                boxSizing: "border-box",
                 opacity: createMutation.isPending || !formAmount ? 0.5 : 1,
               }}
             >
