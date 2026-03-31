@@ -3,9 +3,12 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
 import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
+import type { InvoiceTemplate } from "@/lib/types";
+
+const VALID_TEMPLATES = ["minimaal", "klassiek", "strak"];
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
@@ -20,8 +23,10 @@ export async function GET(
 
   try {
     const data = result.data;
+    const templateParam = request.nextUrl.searchParams.get("template") ?? "minimaal";
+    const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "minimaal") as InvoiceTemplate;
 
-    const element = createElement(InvoicePDF, { data });
+    const element = createElement(InvoicePDF, { data, template });
     const buffer = await renderToBuffer(
       element as unknown as Parameters<typeof renderToBuffer>[0]
     );

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
-import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
+import { InvoicePreviewClient } from "@/features/invoices/components/InvoicePreviewClient";
 import { SendEmailButton } from "@/features/invoices/components/SendEmailButton";
 import { PaymentLinkButton } from "@/features/invoices/components/PaymentLinkButton";
+import { PdfDownloadButton } from "@/features/invoices/components/PdfDownloadButton";
 
 export default async function InvoicePreviewPage({
   params,
@@ -45,7 +46,7 @@ export default async function InvoicePreviewPage({
             color: "var(--foreground)",
           }}
         >
-          ← Terug naar facturen
+          &larr; Terug naar facturen
         </Link>
       </div>
     );
@@ -135,36 +136,12 @@ export default async function InvoicePreviewPage({
           >
             Download UBL
           </a>
-          <a
-            href={`/api/invoice/${id}/pdf`}
-            style={{
-              fontSize: "var(--text-body-md)",
-              fontFamily: "var(--font-body), sans-serif",
-              fontWeight: 500,
-              color: "var(--foreground)",
-              textDecoration: "none",
-              letterSpacing: "0.05em",
-              padding: "8px 20px",
-              border: "var(--border-light)",
-              borderRadius: "var(--radius-sm)",
-            }}
-          >
-            Download PDF
-          </a>
+          <PdfDownloadButton invoiceId={id} />
         </div>
       </div>
 
-      {/* Invoice Preview */}
-      <div
-        style={{
-          border: "var(--border-rule)",
-          width: "100%",
-          maxWidth: "595px",
-          overflowX: "auto",
-        }}
-      >
-        <InvoiceHTML data={data} />
-      </div>
+      {/* Invoice Preview with Template Picker */}
+      <InvoicePreviewClient data={data} />
     </div>
   );
 }

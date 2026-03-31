@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
 import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
 import { formatCurrency } from "@/lib/format";
+import type { InvoiceTemplate } from "@/lib/types";
+
+const VALID_TEMPLATES = ["minimaal", "klassiek", "strak"];
 
 export async function generateMetadata({
   params,
@@ -30,17 +33,23 @@ export async function generateMetadata({
 
 export default async function PublicInvoicePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { token } = await params;
+  const sp = await searchParams;
 
   const result = await fetchInvoiceByToken(token);
   if (result.error || !result.data) {
     notFound();
   }
 
-  const pdfUrl = `/api/invoice/public/${token}/pdf`;
+  const templateParam = typeof sp.template === "string" ? sp.template : "minimaal";
+  const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "minimaal") as InvoiceTemplate;
+
+  const pdfUrl = `/api/invoice/public/${token}/pdf?template=${template}`;
   const { invoice } = result.data;
   const showPayButton = invoice.payment_link && invoice.status !== "paid";
 
@@ -57,7 +66,7 @@ export default async function PublicInvoicePage({
         </a>
       </div>
       <div style={{ width: "100%", maxWidth: "595px", overflowX: "auto" }}>
-        <InvoiceHTML data={result.data} />
+        <InvoiceHTML data={result.data} template={template} />
       </div>
     </div>
   );

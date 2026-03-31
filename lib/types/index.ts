@@ -77,6 +77,10 @@ export interface Invoice {
   created_at: string;
 }
 
+// ─── Invoice templates ───
+
+export type InvoiceTemplate = "minimaal" | "klassiek" | "strak";
+
 // ─── Composed types for rendering ───
 
 export interface InvoiceData {
