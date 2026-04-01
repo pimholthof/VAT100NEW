@@ -12,6 +12,7 @@ import {
   suspendUser,
   reactivateUser,
 } from "@/features/admin/actions";
+import { exportUserData, anonymizeUser, deleteUserAccount } from "@/features/admin/actions/gdpr";
 import {
   PageHeader,
   StatCard,
@@ -112,6 +113,10 @@ export default function AdminCustomerDetailPage() {
   const [activeTab, setActiveTab] = useState<"profiel" | "facturen" | "klanten" | "uitgaven">("profiel");
   const [exportingInvoices, setExportingInvoices] = useState(false);
   const [exportingReceipts, setExportingReceipts] = useState(false);
+  const [showAnonymizeConfirm, setShowAnonymizeConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [exportingData, setExportingData] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["admin-customer", userId],
@@ -177,6 +182,43 @@ export default function AdminCustomerDetailPage() {
     if (res.data) downloadCSV(res.data, `uitgaven-${userId.slice(0, 8)}.csv`);
     setExportingReceipts(false);
   };
+
+  const handleExportAllData = async () => {
+    setExportingData(true);
+    const res = await exportUserData(userId);
+    if (res.data) {
+      const blob = new Blob([res.data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `gdpr-export-${userId.slice(0, 8)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    if (res.error) setActionError(res.error);
+    setExportingData(false);
+  };
+
+  const anonymizeMutation = useMutation({
+    mutationFn: () => anonymizeUser(userId),
+    onSuccess: (res) => {
+      if (res.error) setActionError(res.error);
+      else {
+        queryClient.invalidateQueries({ queryKey: ["admin-customer", userId] });
+        setActionError(null);
+      }
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteUserAccount(userId),
+    onSuccess: (res) => {
+      if (res.error) setActionError(res.error);
+      else {
+        window.location.href = "/admin/customers";
+      }
+    },
+  });
 
   if (isLoading) {
     return (
@@ -436,6 +478,44 @@ export default function AdminCustomerDetailPage() {
         </div>
       )}
 
+      {/* GDPR Confirm Dialogs */}
+      <ConfirmDialog
+        open={showAnonymizeConfirm}
+        title="Account anonimiseren"
+        message="Persoonsgegevens worden verwijderd maar financiële records blijven bewaard (wettelijke bewaarplicht 7 jaar). Dit kan niet ongedaan worden."
+        confirmLabel="Anonimiseren"
+        cancelLabel="Annuleren"
+        onConfirm={() => { setShowAnonymizeConfirm(false); anonymizeMutation.mutate(); }}
+        onCancel={() => setShowAnonymizeConfirm(false)}
+      />
+
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          open={showDeleteConfirm}
+          title="Account permanent verwijderen"
+          message={`Dit verwijdert alle data van deze gebruiker permanent. Typ "VERWIJDER" om te bevestigen.`}
+          confirmLabel="Definitief verwijderen"
+          cancelLabel="Annuleren"
+          onConfirm={() => { if (deleteInput === "VERWIJDER") { setShowDeleteConfirm(false); deleteMutation.mutate(); } }}
+          onCancel={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
+        >
+          <input
+            type="text"
+            value={deleteInput}
+            onChange={(e) => setDeleteInput(e.target.value)}
+            placeholder='Typ "VERWIJDER"'
+            style={{
+              width: "100%",
+              padding: "8px 12px",
+              border: "1px solid rgba(0,0,0,0.15)",
+              borderRadius: 6,
+              marginTop: 12,
+              fontSize: "var(--text-body)",
+            }}
+          />
+        </ConfirmDialog>
+      )}
+
       {/* Tab: Uitgaven */}
       {activeTab === "uitgaven" && (
         <div>
@@ -474,6 +554,31 @@ export default function AdminCustomerDetailPage() {
           )}
         </div>
       )}
+
+      {/* AVG/GDPR Sectie */}
+      <section style={{ marginTop: 64, padding: 28, border: "0.5px solid rgba(165,28,48,0.15)", borderRadius: "var(--radius)", background: "rgba(165,28,48,0.02)" }}>
+        <h3 style={{ fontSize: "var(--text-heading-sm)", fontWeight: 600, marginBottom: 8 }}>AVG / Gegevensbeheer</h3>
+        <p className="label" style={{ marginBottom: 24 }}>Acties voor gegevensbescherming en account beheer.</p>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <ButtonSecondary onClick={handleExportAllData} disabled={exportingData}>
+            {exportingData ? "Exporteren..." : "Exporteer alle data (JSON)"}
+          </ButtonSecondary>
+          <ButtonSecondary
+            onClick={() => setShowAnonymizeConfirm(true)}
+            disabled={anonymizeMutation.isPending}
+            style={{ borderColor: "rgba(165,28,48,0.3)", color: "var(--color-accent)" }}
+          >
+            {anonymizeMutation.isPending ? "Anonimiseren..." : "Anonimiseren"}
+          </ButtonSecondary>
+          <ButtonSecondary
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleteMutation.isPending}
+            style={{ borderColor: "rgba(165,28,48,0.5)", color: "var(--color-accent)", fontWeight: 600 }}
+          >
+            {deleteMutation.isPending ? "Verwijderen..." : "Account verwijderen"}
+          </ButtonSecondary>
+        </div>
+      </section>
     </div>
   );
 }

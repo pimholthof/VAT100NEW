@@ -11,6 +11,7 @@ interface ConfirmDialogProps {
   cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  children?: React.ReactNode;
 }
 
 export function ConfirmDialog({
@@ -21,6 +22,7 @@ export function ConfirmDialog({
   cancelLabel = "Annuleer",
   onConfirm,
   onCancel,
+  children,
 }: ConfirmDialogProps) {
   useEffect(() => {
     if (!open) return;
@@ -90,7 +92,8 @@ export function ConfirmDialog({
         >
           {message}
         </p>
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+        {children}
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: children ? 24 : 0 }}>
           <ButtonSecondary onClick={onCancel} autoFocus>
             {cancelLabel}
           </ButtonSecondary>
