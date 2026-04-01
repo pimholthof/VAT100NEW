@@ -91,6 +91,8 @@ export function DashboardNav({
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uitgaven</Link>
                 <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Activa</Link>
+                <Link href="/dashboard/resources" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Kennisbank</Link>
+                <Link href="/dashboard/assistant" onClick={() => setIsDrawerOpen(false)} className="drawer-link">AI Assistent</Link>
               </div>
 
               {/* Navigation - column 2 */}
@@ -109,6 +111,7 @@ export function DashboardNav({
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
                 <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
+                <Link href="/dashboard/settings/subscription" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Abonnement</Link>
                 <button
                   type="button"
                   onClick={handleLogout}

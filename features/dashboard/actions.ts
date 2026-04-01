@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAuth } from "@/lib/supabase/server";
+import { requireAuth, requireAdmin } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
 import { calculateZZPTaxProjection, calculateKIA } from "@/lib/tax/dutch-tax-2026";
 import * as Sentry from "@sentry/nextjs";
@@ -49,6 +49,14 @@ export interface VatDeadline {
   forecastedAmount: number;
 }
 
+export interface TaxAuditSummary {
+  score: number;
+  status: string;
+  quarter: number;
+  year: number;
+  findingsCount: number;
+}
+
 export interface DashboardData {
   stats: DashboardStats;
   recentInvoices: RecentInvoice[];
@@ -56,6 +64,7 @@ export interface DashboardData {
   cashflow: CashflowSummary;
   vatDeadline: VatDeadline;
   safeToSpend: SafeToSpendData;
+  latestTaxAudit?: TaxAuditSummary;
 }
 
 interface RpcCashflowEntry {
@@ -179,6 +188,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     inputVat
   );
 
+
   return {
     error: null,
     data: {
@@ -281,4 +291,55 @@ export async function getSetupProgress(): Promise<ActionResult<SetupProgress>> {
       hasBankConnection: (bankRes.data?.length ?? 0) > 0,
     },
   };
+}
+// ─── Controller & CEO Audit Actions ───
+
+export async function getControllerAuditData(): Promise<ActionResult<TaxAuditSummary>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const now = new Date();
+  const currentQ = (Math.floor(now.getMonth() / 3) + 1);
+
+  const { data: audit, error } = await supabase
+    .from("tax_audits")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) return { error: error.message };
+
+  const summary: TaxAuditSummary = audit ? {
+    score: audit.score,
+    status: audit.status,
+    quarter: audit.quarter,
+    year: audit.year,
+    findingsCount: (audit.findings?.missing_receipts?.length || 0) + 
+                    (audit.findings?.unlinked_invoices?.length || 0) + 
+                    (audit.findings?.hours_gap > 0 ? 1 : 0)
+  } : {
+    score: 100,
+    status: "GEREED VOOR SCAN",
+    quarter: currentQ,
+    year: now.getFullYear(),
+    findingsCount: 0
+  };
+
+  return { error: null, data: summary };
+}
+
+export async function getControllerAuditHistory(): Promise<ActionResult<any[]>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase } = auth;
+
+  const { data, error } = await supabase
+    .from("tax_audits")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) return { error: error.message };
+  return { error: null, data: data || [] };
 }
