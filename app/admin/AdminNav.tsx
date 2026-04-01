@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { m as motion, AnimatePresence } from "framer-motion";
 
 export function AdminNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -15,76 +18,107 @@ export function AdminNav() {
   }
 
   const navLinks = [
-    { href: "/admin", label: "Sales Pipeline", icon: "📊" },
-    { href: "/admin/audit", label: "Fiscale Controle", icon: "⚖️" },
-    { href: "/admin/users", label: "Gebruikers", icon: "👥" },
-    { href: "/admin/waitlist", label: "Wachtlijst", icon: "⏳" },
+    { href: "/admin", label: "Pipeline" },
+    { href: "/admin/customers", label: "Klantbeheer" },
+    { href: "/admin/users", label: "Gebruikers" },
+    { href: "/admin/waitlist", label: "Wachtlijst" },
+    { href: "/admin/audit", label: "Fiscale Controle" },
   ];
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "40px 24px" }}>
-      {/* Branding */}
-      <div style={{ marginBottom: "64px" }}>
-        <Link href="/admin" className="display-hero" style={{ fontSize: "2rem", textDecoration: "none", color: "var(--color-black)" }}>
-          VAT100
-        </Link>
-        <div style={{ 
-          marginTop: "8px",
-          display: "inline-block",
-          background: "var(--color-accent)",
-          color: "white",
-          padding: "2px 8px",
-          fontSize: "9px",
-          fontWeight: 700,
-          letterSpacing: "0.15em",
-          textTransform: "uppercase"
-        }}>
-          Founder Hub
-        </div>
-      </div>
+  const isActive = (href: string) => {
+    if (href === "/admin") return pathname === "/admin";
+    return pathname.startsWith(href);
+  };
 
-      {/* Navigation */}
-      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "24px" }}>
-        <span className="label" style={{ opacity: 0.3, marginBottom: "-8px" }}>Beheer</span>
-        {navLinks.map((link) => {
-          const isActive = pathname === link.href;
-          return (
-            <Link 
-              key={link.href} 
-              href={link.href} 
-              className="drawer-link"
-              style={{ 
-                fontSize: "1.25rem",
-                opacity: isActive ? 1 : 0.4,
-                textDecoration: "none",
-                color: "var(--color-black)",
-                fontWeight: isActive ? 700 : 400,
-                display: "flex",
-                alignItems: "center",
-                gap: "12px"
+  return (
+    <div className="dashboard-nav">
+      <header className="dashboard-nav-header">
+        <div className="dashboard-nav-inner">
+          <div className="flex items-center gap-4">
+            <Link href="/admin" className="display-hero dashboard-nav-brand">
+              VAT100
+            </Link>
+            <span
+              className="label-strong"
+              style={{
+                fontSize: "9px",
+                letterSpacing: "0.15em",
+                opacity: 0.4,
               }}
             >
-              <span style={{ fontSize: "1rem" }}>{link.icon}</span>
-              {link.label}
-            </Link>
-          );
-        })}
-      </nav>
+              BEHEER
+            </span>
+          </div>
 
-      {/* Footer Actions */}
-      <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.1)", paddingTop: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
-        <Link href="/dashboard" className="label-strong" style={{ textDecoration: "none", color: "var(--color-black)", opacity: 0.6 }}>
-          TERUG NAAR DASHBOARD
-        </Link>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="drawer-logout"
-          style={{ textAlign: "left", padding: 0 }}
-        >
-          UITLOGGEN
-        </button>
-      </div>
+          <div className="dashboard-nav-actions">
+            <button
+              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+              className="label-strong"
+              style={{
+                fontSize: "12px",
+                letterSpacing: "0.25em",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px 0",
+                transition: "opacity 0.2s ease",
+                color: "var(--foreground)",
+                fontWeight: 700,
+              }}
+            >
+              {isDrawerOpen ? "SLUITEN" : "MENU"}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <AnimatePresence>
+        {isDrawerOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="dashboard-drawer"
+          >
+            <div className="dashboard-drawer-inner">
+              {/* Navigatie */}
+              <div className="dashboard-drawer-col">
+                <span className="label mb-4">Navigatie</span>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={`drawer-link ${isActive(link.href) ? "drawer-link-active" : ""}`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Account */}
+              <div className="dashboard-drawer-col dashboard-drawer-col-end">
+                <span className="label mb-4">Account</span>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="drawer-link"
+                >
+                  Terug naar dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="drawer-logout"
+                >
+                  Uitloggen
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

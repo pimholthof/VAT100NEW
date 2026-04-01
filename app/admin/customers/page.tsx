@@ -3,38 +3,68 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { getUsers } from "@/features/admin/actions";
-import { PageHeader, TableWrapper, Th, Td, Input, Select, ButtonSecondary, SkeletonTable } from "@/components/ui";
+import { getCustomerOverview, exportAllCustomersCSV } from "@/features/admin/actions";
+import {
+  PageHeader,
+  TableWrapper,
+  Th,
+  Td,
+  Input,
+  Select,
+  ButtonSecondary,
+  SkeletonTable,
+} from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
-import type { AdminUser } from "@/lib/types";
+import type { CustomerOverviewItem } from "@/features/admin/actions";
 
-function StatusBadge({ status }: { status: string }) {
-  const isActive = status === "active";
-  return (
-    <span className={`status-badge ${isActive ? "status-badge--sent" : "status-badge--overdue"}`}>
-      {isActive ? "Actief" : "Geblokkeerd"}
-    </span>
-  );
+function downloadCSV(csv: string, filename: string) {
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-export default function AdminUsersPage() {
+export default function AdminCustomersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [exporting, setExporting] = useState(false);
   const pageSize = 25;
 
   const { data: result, isLoading } = useQuery({
-    queryKey: ["admin-users", search, statusFilter, page],
-    queryFn: () => getUsers({ search, status: statusFilter, page, pageSize }),
+    queryKey: ["admin-customers", search, statusFilter, page],
+    queryFn: () => getCustomerOverview({ search, status: statusFilter, page, pageSize }),
   });
 
-  const users = result?.data?.users ?? [];
+  const customers = result?.data?.customers ?? [];
   const total = result?.data?.total ?? 0;
   const totalPages = Math.ceil(total / pageSize);
 
+  const handleExportAll = async () => {
+    setExporting(true);
+    const res = await exportAllCustomersCSV();
+    if (res.data) {
+      downloadCSV(res.data, `vat100-klanten-${new Date().toISOString().slice(0, 10)}.csv`);
+    }
+    setExporting(false);
+  };
+
   return (
     <div>
-      <PageHeader title="Gebruikers" backHref="/admin" backLabel="Beheer" />
+      <PageHeader
+        title="Klantbeheer"
+        backHref="/admin"
+        backLabel="Beheer"
+        action={
+          <ButtonSecondary onClick={handleExportAll} disabled={exporting}>
+            {exporting ? "Exporteren..." : "Exporteer alle klanten"}
+          </ButtonSecondary>
+        }
+      />
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 12, marginBottom: 32, flexWrap: "wrap" }}>
@@ -56,27 +86,26 @@ export default function AdminUsersPage() {
         </Select>
       </div>
 
-      {/* Resultaten */}
       <p className="label" style={{ marginBottom: 16 }}>
-        {total} gebruiker{total !== 1 ? "s" : ""} gevonden
+        {total} klant{total !== 1 ? "en" : ""} gevonden
       </p>
 
       {isLoading ? (
         <SkeletonTable
-          columns="2fr 2fr 1fr 1fr 1fr 1fr"
+          columns="2fr 1fr 1fr 1fr 1fr 1fr"
           rows={8}
-          headerWidths={[60, 70, 50, 40, 50, 60]}
-          bodyWidths={[50, 60, 40, 30, 40, 50]}
+          headerWidths={[60, 50, 40, 40, 50, 50]}
+          bodyWidths={[50, 40, 30, 30, 40, 40]}
         />
-      ) : users.length === 0 ? (
-        <p className="empty-state">Geen gebruikers gevonden</p>
+      ) : customers.length === 0 ? (
+        <p className="empty-state">Geen klanten gevonden</p>
       ) : (
         <TableWrapper>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
                 <Th>Naam</Th>
-                <Th>E-mail</Th>
+                <Th>Plan</Th>
                 <Th>Status</Th>
                 <Th style={{ textAlign: "right" }}>Facturen</Th>
                 <Th style={{ textAlign: "right" }}>Omzet</Th>
@@ -84,35 +113,41 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user: AdminUser) => (
-                <tr key={user.id}>
+              {customers.map((customer: CustomerOverviewItem) => (
+                <tr key={customer.id}>
                   <Td>
                     <Link
-                      href={`/admin/users/${user.id}`}
+                      href={`/admin/customers/${customer.id}`}
                       style={{ textDecoration: "none", color: "var(--foreground)", fontWeight: 500 }}
                     >
-                      {user.full_name || "Naamloos"}
-                      {user.studio_name && (
+                      {customer.full_name || "Naamloos"}
+                      {customer.studio_name && (
                         <span className="label" style={{ display: "block", marginTop: 2, fontWeight: 400 }}>
-                          {user.studio_name}
+                          {customer.studio_name}
                         </span>
                       )}
                     </Link>
                   </Td>
-                  <Td style={{ fontSize: "var(--text-body-sm)" }}>
-                    {user.email}
+                  <Td>
+                    {customer.plan_name ? (
+                      <span className="label-strong" style={{ fontSize: 10 }}>{customer.plan_name}</span>
+                    ) : (
+                      <span className="label">{"\u2014"}</span>
+                    )}
                   </Td>
                   <Td>
-                    <StatusBadge status={user.status} />
+                    <span className={`status-badge ${customer.status === "active" ? "status-badge--sent" : "status-badge--overdue"}`}>
+                      {customer.status === "active" ? "Actief" : "Geblokkeerd"}
+                    </span>
                   </Td>
                   <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                    {user.invoice_count}
+                    {customer.invoice_count}
                   </Td>
                   <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCurrency(user.total_revenue)}
+                    {formatCurrency(customer.total_revenue)}
                   </Td>
                   <Td>
-                    <span className="label">{formatDate(user.created_at)}</span>
+                    <span className="label">{formatDate(customer.created_at)}</span>
                   </Td>
                 </tr>
               ))}

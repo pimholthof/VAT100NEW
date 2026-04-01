@@ -8,72 +8,39 @@ import {
   suspendUser,
   reactivateUser,
 } from "@/features/admin/actions";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { StatCard } from "@/components/ui/StatCard";
+import {
+  PageHeader,
+  StatCard,
+  TableWrapper,
+  Th,
+  Td,
+  ButtonSecondary,
+  ErrorMessage,
+  ConfirmDialog,
+} from "@/components/ui";
+import { formatCurrency, formatDate } from "@/lib/format";
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { className: string; label: string }> = {
+    draft: { className: "status-badge--draft", label: "Concept" },
+    sent: { className: "status-badge--sent", label: "Verzonden" },
+    paid: { className: "status-badge--paid", label: "Betaald" },
+    overdue: { className: "status-badge--overdue", label: "Te laat" },
+  };
+  const badge = map[status] ?? { className: "status-badge--draft", label: status };
+  return <span className={`status-badge ${badge.className}`}>{badge.label}</span>;
 }
 
-function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat("nl-NL", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(dateStr));
-}
-
-function StatusLabel({ label, value }: { label: string; value: string | null }) {
+function ProfileField({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <span
-        className="label"
-        style={{ opacity: 0.4, display: "block", marginBottom: 4, fontSize: 10 }}
-      >
+      <span className="label" style={{ display: "block", marginBottom: 4 }}>
         {label}
       </span>
-      <span style={{ fontWeight: 500 }}>{value || "—"}</span>
+      <span style={{ fontWeight: 500, fontSize: "var(--text-body-md)" }}>
+        {value || "\u2014"}
+      </span>
     </div>
-  );
-}
-
-function InvoiceStatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    draft: "rgba(0,0,0,0.06)",
-    sent: "rgba(59,130,246,0.1)",
-    paid: "rgba(34,197,94,0.1)",
-    overdue: "rgba(220,38,38,0.1)",
-  };
-  const textColors: Record<string, string> = {
-    draft: "var(--foreground)",
-    sent: "rgb(59,130,246)",
-    paid: "rgb(34,197,94)",
-    overdue: "rgb(220,38,38)",
-  };
-  const labels: Record<string, string> = {
-    draft: "Concept",
-    sent: "Verzonden",
-    paid: "Betaald",
-    overdue: "Te laat",
-  };
-
-  return (
-    <span
-      className="label"
-      style={{
-        padding: "2px 8px",
-        fontSize: 9,
-        letterSpacing: "0.1em",
-        textTransform: "uppercase",
-        background: colors[status] ?? "rgba(0,0,0,0.04)",
-        color: textColors[status] ?? "var(--foreground)",
-      }}
-    >
-      {labels[status] ?? status}
-    </span>
   );
 }
 
@@ -82,6 +49,7 @@ export default function AdminUserDetailPage() {
   const userId = params.id as string;
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["admin-user", userId],
@@ -116,7 +84,8 @@ export default function AdminUserDetailPage() {
     return (
       <div>
         <PageHeader title="Gebruiker laden..." backHref="/admin/users" backLabel="Gebruikers" />
-        <p className="label" style={{ opacity: 0.3 }}>Laden...</p>
+        <div className="skeleton" style={{ width: "60%", height: 20, marginBottom: 12 }} />
+        <div className="skeleton" style={{ width: "40%", height: 20 }} />
       </div>
     );
   }
@@ -125,7 +94,7 @@ export default function AdminUserDetailPage() {
     return (
       <div>
         <PageHeader title="Gebruiker" backHref="/admin/users" backLabel="Gebruikers" />
-        <p style={{ opacity: 0.5 }}>{result?.error ?? "Niet gevonden"}</p>
+        <ErrorMessage>{result?.error ?? "Niet gevonden"}</ErrorMessage>
       </div>
     );
   }
@@ -142,58 +111,41 @@ export default function AdminUserDetailPage() {
         action={
           <div style={{ display: "flex", gap: 8 }}>
             {isSuspended ? (
-              <button
+              <ButtonSecondary
                 onClick={() => reactivateMutation.mutate()}
                 disabled={reactivateMutation.isPending}
-                className="label-strong"
-                style={{
-                  padding: "10px 20px",
-                  border: "var(--border-light)",
-                  background: "transparent",
-                  cursor: "pointer",
-                }}
               >
-                {reactivateMutation.isPending
-                  ? "Heractiveren..."
-                  : "Heractiveren"}
-              </button>
+                {reactivateMutation.isPending ? "Heractiveren..." : "Heractiveren"}
+              </ButtonSecondary>
             ) : (
-              <button
-                onClick={() => {
-                  if (confirm("Weet je zeker dat je dit account wilt blokkeren?")) {
-                    suspendMutation.mutate();
-                  }
-                }}
+              <ButtonSecondary
+                onClick={() => setShowConfirm(true)}
                 disabled={suspendMutation.isPending}
-                className="label-strong"
-                style={{
-                  padding: "10px 20px",
-                  border: "1px solid rgba(220,38,38,0.3)",
-                  background: "transparent",
-                  color: "rgb(220,38,38)",
-                  cursor: "pointer",
-                }}
+                style={{ borderColor: "rgba(165,28,48,0.3)", color: "var(--color-accent)" }}
               >
                 {suspendMutation.isPending ? "Blokkeren..." : "Blokkeren"}
-              </button>
+              </ButtonSecondary>
             )}
           </div>
         }
       />
 
-      {actionError && (
-        <p
-          style={{
-            color: "rgb(220,38,38)",
-            marginBottom: 24,
-            fontSize: "var(--text-body)",
-          }}
-        >
-          {actionError}
-        </p>
-      )}
+      <ConfirmDialog
+        open={showConfirm}
+        title="Account blokkeren"
+        message="Weet je zeker dat je dit account wilt blokkeren? De gebruiker kan niet meer inloggen."
+        confirmLabel="Blokkeren"
+        cancelLabel="Annuleren"
+        onConfirm={() => {
+          setShowConfirm(false);
+          suspendMutation.mutate();
+        }}
+        onCancel={() => setShowConfirm(false)}
+      />
 
-      {/* Profile info */}
+      {actionError && <ErrorMessage>{actionError}</ErrorMessage>}
+
+      {/* Profiel */}
       <div
         style={{
           display: "grid",
@@ -201,39 +153,25 @@ export default function AdminUserDetailPage() {
           gap: 24,
           marginBottom: 48,
           padding: 28,
-          border: "var(--border-light)",
+          border: "0.5px solid rgba(0,0,0,0.08)",
+          borderRadius: "var(--radius)",
         }}
       >
-        <StatusLabel label="E-mail" value={profile.email} />
-        <StatusLabel label="Studio" value={profile.studio_name} />
-        <StatusLabel label="KVK" value={profile.kvk_number} />
-        <StatusLabel label="BTW" value={profile.btw_number} />
-        <StatusLabel label="IBAN" value={profile.iban} />
-        <StatusLabel label="Status" value={isSuspended ? "Geblokkeerd" : "Actief"} />
-        <StatusLabel label="Aangemeld" value={formatDate(profile.created_at)} />
-        <StatusLabel label="Stad" value={profile.city} />
+        <ProfileField label="E-mail" value={profile.email} />
+        <ProfileField label="Studio" value={profile.studio_name} />
+        <ProfileField label="KVK" value={profile.kvk_number} />
+        <ProfileField label="BTW" value={profile.btw_number} />
+        <ProfileField label="IBAN" value={profile.iban} />
+        <ProfileField label="Status" value={isSuspended ? "Geblokkeerd" : "Actief"} />
+        <ProfileField label="Aangemeld" value={formatDate(profile.created_at)} />
+        <ProfileField label="Stad" value={profile.city} />
       </div>
 
-      {/* Stats */}
-      <h2
-        className="label"
-        style={{
-          marginBottom: 16,
-          opacity: 0.4,
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-        }}
-      >
-        Statistieken
-      </h2>
+      {/* Statistieken */}
+      <h2 className="label" style={{ marginBottom: 16 }}>Statistieken</h2>
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 1,
-          border: "var(--border-light)",
-          marginBottom: 48,
-        }}
+        className="stat-cards-grid"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", marginBottom: 48 }}
       >
         <StatCard
           label="Facturen"
@@ -260,77 +198,40 @@ export default function AdminUserDetailPage() {
         />
       </div>
 
-      {/* Recent Invoices */}
-      <h2
-        className="label"
-        style={{
-          marginBottom: 16,
-          opacity: 0.4,
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-        }}
-      >
-        Recente facturen
-      </h2>
+      {/* Recente facturen */}
+      <h2 className="label" style={{ marginBottom: 16 }}>Recente facturen</h2>
 
       {recentInvoices.length === 0 ? (
-        <p className="label" style={{ opacity: 0.3 }}>
-          Geen facturen
-        </p>
+        <p className="empty-state">Geen facturen</p>
       ) : (
-        <div style={{ overflowX: "auto" }}>
+        <TableWrapper>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {["Nummer", "Klant", "Status", "Datum", "Bedrag"].map(
-                  (header) => (
-                    <th
-                      key={header}
-                      className="label"
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 16px",
-                        borderBottom: "var(--border-light)",
-                        opacity: 0.4,
-                        fontWeight: 500,
-                        fontSize: 10,
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {header}
-                    </th>
-                  )
-                )}
+                <Th>Nummer</Th>
+                <Th>Klant</Th>
+                <Th>Status</Th>
+                <Th>Datum</Th>
+                <Th style={{ textAlign: "right" }}>Bedrag</Th>
               </tr>
             </thead>
             <tbody>
               {recentInvoices.map((inv) => (
-                <tr key={inv.id} style={{ borderBottom: "var(--border-light)" }}>
-                  <td
-                    className="mono-amount"
-                    style={{ padding: "14px 16px", fontWeight: 500 }}
-                  >
+                <tr key={inv.id}>
+                  <Td style={{ fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
                     {inv.invoice_number}
-                  </td>
-                  <td style={{ padding: "14px 16px" }}>{inv.client_name}</td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <InvoiceStatusBadge status={inv.status} />
-                  </td>
-                  <td className="label" style={{ padding: "14px 16px", opacity: 0.5 }}>
-                    {formatDate(inv.issue_date)}
-                  </td>
-                  <td
-                    className="mono-amount"
-                    style={{ padding: "14px 16px", textAlign: "right" }}
-                  >
+                  </Td>
+                  <Td>{inv.client_name}</Td>
+                  <Td><StatusBadge status={inv.status} /></Td>
+                  <Td><span className="label">{formatDate(inv.issue_date)}</span></Td>
+                  <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
                     {formatCurrency(inv.total_inc_vat)}
-                  </td>
+                  </Td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </TableWrapper>
       )}
     </div>
   );

@@ -11,11 +11,7 @@ export function NudgeLeadButton({ leadId }: { leadId: string }) {
     setStatus("idle");
     startTransition(async () => {
       const result = await manualNudgeLead(leadId);
-      if (result.error) {
-        setStatus("error");
-      } else {
-        setStatus("success");
-      }
+      setStatus(result.error ? "error" : "success");
     });
   };
 
@@ -23,12 +19,19 @@ export function NudgeLeadButton({ leadId }: { leadId: string }) {
     <button
       onClick={handleNudge}
       disabled={isPending || status === "success"}
-      className={`w-full mt-2 text-[10px] font-black uppercase tracking-widest py-2 border-2 border-black hover:bg-black hover:text-white transition-all 
-        ${isPending ? 'opacity-50 cursor-wait' : ''} 
-        ${status === "success" ? 'bg-green-100 border-green-600 text-green-600' : ''}
-        ${status === "error" ? 'bg-red-100 border-red-600 text-red-600' : ''}`}
+      className="btn-secondary"
+      style={{
+        width: "100%",
+        marginTop: 12,
+        fontSize: 9,
+        padding: "8px 12px",
+        opacity: isPending ? 0.5 : 1,
+        cursor: isPending ? "wait" : "pointer",
+        borderColor: status === "success" ? "var(--color-success)" : status === "error" ? "var(--color-accent)" : undefined,
+        color: status === "success" ? "var(--color-success)" : status === "error" ? "var(--color-accent)" : undefined,
+      }}
     >
-      {isPending ? "Sending Nudge..." : status === "success" ? "Sent" : "Nudge Now"}
+      {isPending ? "Verzenden..." : status === "success" ? "Verzonden" : "Herinnering sturen"}
     </button>
   );
 }
@@ -41,11 +44,7 @@ export function BillingAlertButton({ userId }: { userId: string }) {
     setStatus("idle");
     startTransition(async () => {
       const result = await manualBillingAlert(userId);
-      if (result.error) {
-        setStatus("error");
-      } else {
-        setStatus("success");
-      }
+      setStatus(result.error ? "error" : "success");
     });
   };
 
@@ -53,12 +52,19 @@ export function BillingAlertButton({ userId }: { userId: string }) {
     <button
       onClick={handleAlert}
       disabled={isPending || status === "success"}
-      className={`w-full mt-2 text-[10px] font-black uppercase tracking-widest py-2 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all 
-        ${isPending ? 'opacity-50 cursor-wait' : ''}
-        ${status === "success" ? 'bg-green-100 border-green-600 text-green-600' : ''}
-        ${status === "error" ? 'bg-red-100 border-red-600 text-red-600' : ''}`}
+      className="btn-secondary"
+      style={{
+        width: "100%",
+        marginTop: 12,
+        fontSize: 9,
+        padding: "8px 12px",
+        opacity: isPending ? 0.5 : 1,
+        cursor: isPending ? "wait" : "pointer",
+        borderColor: status === "success" ? "var(--color-success)" : "var(--color-accent)",
+        color: status === "success" ? "var(--color-success)" : "var(--color-accent)",
+      }}
     >
-      {isPending ? "Sending Alert..." : status === "success" ? "Alert Sent" : "Alert Now"}
+      {isPending ? "Verzenden..." : status === "success" ? "Melding verzonden" : "Melding sturen"}
     </button>
   );
 }
