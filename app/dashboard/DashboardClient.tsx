@@ -27,28 +27,36 @@ export default function DashboardClient({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
     initialData: initialResult,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
 
   const data = dashboardResult?.data;
   const stats = data?.stats;
 
+  const openInvoices = data?.openInvoices;
   const upcomingInvoices = data?.upcomingInvoices;
   const safeToSpend = data?.safeToSpend;
   const vatDeadline = data?.vatDeadline;
 
   const urgentInvoiceCount = upcomingInvoices?.filter((invoice) => invoice.days_overdue > 0).length ?? 0;
-  const upcomingInvoiceAmount = upcomingInvoices?.reduce((sum, invoice) => sum + invoice.total_inc_vat, 0) ?? 0;
-  const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.days_overdue <= 0);
+  const openInvoiceAmount = openInvoices?.reduce((sum, invoice) => sum + invoice.total_inc_vat, 0) ?? 0;
+  const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.due_date && invoice.days_overdue <= 0);
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
+  const nextInvoiceDueLabel = nextInvoiceDue?.due_date
+    ? new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))
+    : null;
+
   const heroMessage = urgentInvoiceCount > 0
     ? `${urgentInvoiceCount} fact${urgentInvoiceCount === 1 ? "uur is" : "uren zijn"} te laat en vragen vandaag aandacht.`
-    : nextInvoiceDue
-      ? `De volgende betaaldeadline is voor ${nextInvoiceDue.client_name} op ${new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))}.`
+    : nextInvoiceDue && nextInvoiceDueLabel
+      ? `De volgende betaaldeadline is voor ${nextInvoiceDue.client_name} op ${nextInvoiceDueLabel}.`
       : "Je hebt op dit moment geen facturen die op korte termijn aandacht nodig hebben.";
 
   if (dashboardResult?.error) {
@@ -151,7 +159,7 @@ export default function DashboardClient({
                   Saldo {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "nog niet beschikbaar"}
                 </p>
               </div>
-
+ 
               <div className="dashboard-home-meta-item">
                 <span className="label">BTW deadline</span>
                 <span className="dashboard-home-meta-value">
@@ -162,15 +170,15 @@ export default function DashboardClient({
                 </p>
               </div>
 
-              <div className="dashboard-home-meta-item">
-                <span className="label">Openstaand bedrag</span>
-                <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
-                <p className="dashboard-home-meta-sub">
-                  {urgentInvoiceCount > 0
-                    ? `${urgentInvoiceCount} achterstallig`
-                    : `${upcomingInvoices?.length ?? 0} facturen op korte termijn`}
-                </p>
-              </div>
+            <div className="dashboard-home-meta-item">
+              <span className="label">Openstaand bedrag</span>
+              <span className="dashboard-home-meta-value">{formatCurrency(openInvoiceAmount)}</span>
+              <p className="dashboard-home-meta-sub">
+                {urgentInvoiceCount > 0
+                  ? `${urgentInvoiceCount} achterstallig`
+                  : `${stats?.openInvoiceCount ?? 0} openstaande facturen`}
+              </p>
+            </div>
             </div>
           </motion.div>
         </div>
@@ -234,8 +242,8 @@ export default function DashboardClient({
         </h2>
         {isLoading ? (
           <SkeletonTable />
-        ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
-          <UpcomingInvoiceTable invoices={upcomingInvoices} />
+        ) : openInvoices && openInvoices.length > 0 ? (
+          <UpcomingInvoiceTable invoices={openInvoices} />
         ) : (
           <p className="empty-state">Geen openstaande facturen</p>
         )}

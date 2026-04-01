@@ -22,11 +22,21 @@ export interface RecentInvoice {
   client_name: string;
 }
 
+export interface OpenInvoice {
+  id: string;
+  invoice_number: string;
+  status: string;
+  due_date: string | null;
+  total_inc_vat: number;
+  client_name: string;
+  client_email: string | null;
+}
+
 export interface UpcomingInvoice {
   id: string;
   invoice_number: string;
   status: string;
-  due_date: string;
+  due_date: string | null;
   total_inc_vat: number;
   client_name: string;
   client_email: string | null;
@@ -52,6 +62,7 @@ export interface VatDeadline {
 export interface DashboardData {
   stats: DashboardStats;
   recentInvoices: RecentInvoice[];
+  openInvoices: UpcomingInvoice[];
   upcomingInvoices: UpcomingInvoice[];
   cashflow: CashflowSummary;
   vatDeadline: VatDeadline;
@@ -76,11 +87,76 @@ interface RpcUpcomingInvoice {
   id: string;
   invoice_number: string;
   status: string;
-  due_date: string;
+  due_date: string | null;
   total_inc_vat: number;
   client_name: string;
   client_email: string | null;
   days_overdue: number;
+}
+
+interface FallbackOpenInvoiceRow {
+  id: string;
+  invoice_number: string;
+  status: string;
+  due_date: string | null;
+  total_inc_vat: number;
+  created_at: string;
+  client: { name: string | null; email: string | null } | Array<{ name: string | null; email: string | null }> | null;
+}
+
+function mapRpcUpcomingInvoice(r: RpcUpcomingInvoice): UpcomingInvoice {
+  return {
+    id: r.id,
+    invoice_number: r.invoice_number,
+    status: r.status,
+    due_date: r.due_date ?? null,
+    total_inc_vat: Number(r.total_inc_vat) || 0,
+    client_name: r.client_name ?? "—",
+    client_email: r.client_email ?? null,
+    days_overdue: Number(r.days_overdue) || 0,
+  };
+}
+
+function mapFallbackOpenInvoice(r: FallbackOpenInvoiceRow, today: Date): UpcomingInvoice {
+  const client = Array.isArray(r.client) ? r.client[0] ?? null : r.client;
+  const dueDate = r.due_date ? new Date(r.due_date) : null;
+  const daysOverdue = dueDate
+    ? Math.max(0, Math.ceil((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
+  return {
+    id: r.id,
+    invoice_number: r.invoice_number,
+    status: r.status,
+    due_date: r.due_date ?? null,
+    total_inc_vat: Number(r.total_inc_vat) || 0,
+    client_name: client?.name ?? "—",
+    client_email: client?.email ?? null,
+    days_overdue: daysOverdue,
+  };
+}
+
+function getNextVatFilingPeriod(now: Date) {
+  const currentYear = now.getFullYear();
+  const today = new Date(currentYear, now.getMonth(), now.getDate());
+  const filingPeriods = [
+    { quarter: 4, year: currentYear - 1, deadlineDate: new Date(currentYear, 0, 31) },
+    { quarter: 1, year: currentYear, deadlineDate: new Date(currentYear, 3, 30) },
+    { quarter: 2, year: currentYear, deadlineDate: new Date(currentYear, 6, 31) },
+    { quarter: 3, year: currentYear, deadlineDate: new Date(currentYear, 9, 31) },
+    { quarter: 4, year: currentYear, deadlineDate: new Date(currentYear + 1, 0, 31) },
+  ];
+
+  const nextPeriod = filingPeriods.find((period) => period.deadlineDate >= today) ?? filingPeriods[filingPeriods.length - 1];
+  const daysRemaining = Math.max(
+    0,
+    Math.ceil((nextPeriod.deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  );
+
+  return {
+    ...nextPeriod,
+    daysRemaining,
+  };
 }
 
 export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
@@ -89,6 +165,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   const { supabase, user } = auth;
 
   const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   // Single RPC call replaces 12 individual queries
   const { data: rpc, error: rpcError } = await supabase.rpc("get_dashboard_stats", {
@@ -114,16 +191,28 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     client_name: r.client_name ?? "—",
   }));
 
-  const upcomingInvoices: UpcomingInvoice[] = ((rpc.upcomingInvoices ?? []) as RpcUpcomingInvoice[]).map((r) => ({
-    id: r.id,
-    invoice_number: r.invoice_number,
-    status: r.status,
-    due_date: r.due_date,
-    total_inc_vat: Number(r.total_inc_vat) || 0,
-    client_name: r.client_name ?? "—",
-    client_email: r.client_email ?? null,
-    days_overdue: Number(r.days_overdue) || 0,
-  }));
+  let openInvoices: UpcomingInvoice[] = Array.isArray(rpc.openInvoices)
+    ? (rpc.openInvoices as RpcUpcomingInvoice[]).map(mapRpcUpcomingInvoice)
+    : [];
+
+  if (!Array.isArray(rpc.openInvoices)) {
+    const { data: fallbackOpenInvoices, error: fallbackOpenInvoicesError } = await supabase
+      .from("invoices")
+      .select("id, invoice_number, status, due_date, total_inc_vat, created_at, client:clients(name, email)")
+      .eq("user_id", user.id)
+      .in("status", ["sent", "overdue"])
+      .order("due_date", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(25);
+
+    if (fallbackOpenInvoicesError) {
+      Sentry.captureMessage(`Dashboard openInvoices fallback failed: ${fallbackOpenInvoicesError.message}`, "warning");
+    } else {
+      openInvoices = ((fallbackOpenInvoices ?? []) as FallbackOpenInvoiceRow[]).map((r) => mapFallbackOpenInvoice(r, today));
+    }
+  }
+
+  const upcomingInvoices: UpcomingInvoice[] = ((rpc.upcomingInvoices ?? []) as RpcUpcomingInvoice[]).map(mapRpcUpcomingInvoice);
 
   // ── Cashflow ──
   const cashflowRevenue: RpcCashflowEntry[] = (rpc.cashflowRevenue ?? []) as RpcCashflowEntry[];
@@ -147,20 +236,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   const trend: CashflowSummary["trend"] =
     netThisMonth > netLastMonth ? "up" : netThisMonth < netLastMonth ? "down" : "stable";
 
-  // ── VAT deadline ──
-  const currentQ = Number(rpc.currentQuarter) || (Math.floor(now.getMonth() / 3) + 1);
-  const deadlines: Record<number, { month: number; day: number; yearOffset: number }> = {
-    1: { month: 3, day: 30, yearOffset: 0 },
-    2: { month: 6, day: 31, yearOffset: 0 },
-    3: { month: 9, day: 31, yearOffset: 0 },
-    4: { month: 0, day: 31, yearOffset: 1 },
-  };
-  const dl = deadlines[currentQ];
-  const deadlineDate = new Date(now.getFullYear() + dl.yearOffset, dl.month, dl.day);
-  const daysRemaining = Math.max(
-    0,
-    Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  const nextVatFiling = getNextVatFilingPeriod(now);
 
   const outputVat = Number(rpc.outputVat) || 0;
   const inputVat = Number(rpc.inputVat) || 0;
@@ -190,18 +266,19 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         receiptsThisMonth: Number(rpc.receiptsThisMonth) || 0,
       },
       recentInvoices,
+      openInvoices,
       upcomingInvoices,
       cashflow: { monthlyRevenue, monthlyExpenses, netThisMonth, netLastMonth, trend },
       vatDeadline: {
-        quarter: `Q${currentQ} ${now.getFullYear()}`,
-        deadline: deadlineDate.toLocaleDateString("nl-NL", {
+        quarter: `Q${nextVatFiling.quarter} ${nextVatFiling.year}`,
+        deadline: nextVatFiling.deadlineDate.toLocaleDateString("nl-NL", {
           day: "numeric",
           month: "long",
           year: "numeric",
         }),
-        daysRemaining,
+        daysRemaining: nextVatFiling.daysRemaining,
         estimatedAmount: Math.round((outputVat - inputVat) * 100) / 100,
-        forecastedAmount: Math.round(((outputVat - inputVat) * (90 / Math.max(1, 90 - daysRemaining))) * 100) / 100,
+        forecastedAmount: Math.round(((outputVat - inputVat) * (90 / Math.max(1, 90 - nextVatFiling.daysRemaining))) * 100) / 100,
       },
       safeToSpend,
     },
