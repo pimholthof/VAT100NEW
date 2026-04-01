@@ -4,6 +4,7 @@ import { login } from "../actions";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useLocale } from "@/lib/i18n/context";
 
 const inputStyle: React.CSSProperties = {
   fontSize: "14px",
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [email, setEmail] = useState("");
+  const { t } = useLocale();
 
   useEffect(() => {
     if (emailParam) setEmail(emailParam);
@@ -79,10 +81,10 @@ export default function LoginPage() {
         {/* Form — flat, no card */}
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           {isNewAccount && (
-            <div 
-              style={{ 
-                background: "var(--color-black)", 
-                color: "white", 
+            <div
+              style={{
+                background: "var(--color-black)",
+                color: "white",
                 padding: "20px",
                 marginBottom: 12,
                 fontSize: "14px",
@@ -98,7 +100,7 @@ export default function LoginPage() {
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="email" className="label">E-mail</label>
+            <label htmlFor="email" className="label">{t.auth.email}</label>
             <input
               id="email"
               name="email"
@@ -112,7 +114,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="password" className="label">Wachtwoord</label>
+            <label htmlFor="password" className="label">{t.auth.password}</label>
             <input
               id="password"
               name="password"
@@ -143,7 +145,7 @@ export default function LoginPage() {
             className="btn-primary"
             style={{ marginTop: 8, width: "100%" }}
           >
-            {pending ? "Even wachten..." : "Inloggen"}
+            {pending ? t.common.waiting : t.auth.login}
           </button>
         </form>
 
@@ -151,7 +153,7 @@ export default function LoginPage() {
           className="label"
           style={{ marginTop: 32, opacity: 0.35 }}
         >
-          Nog geen account?{" "}
+          {t.auth.noAccount}{" "}
           <Link
             href="/register"
             style={{
@@ -162,7 +164,7 @@ export default function LoginPage() {
               paddingBottom: 1,
             }}
           >
-            Registreren
+            {t.auth.register}
           </Link>
         </p>
       </div>
