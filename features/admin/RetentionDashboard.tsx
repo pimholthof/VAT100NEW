@@ -2,34 +2,38 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { NudgeLeadButton, BillingAlertButton } from "./RetentionButtons";
 
 export async function getRetentionData() {
-  const supabase = createServiceClient();
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  try {
+    const supabase = createServiceClient();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const oneDayAgo = new Date();
-  oneDayAgo.setHours(oneDayAgo.getHours() - 24);
+    const oneDayAgo = new Date();
+    oneDayAgo.setHours(oneDayAgo.getHours() - 24);
 
-  const { data: atRiskLeads } = await supabase
-    .from("leads")
-    .select("*, plans!target_plan_id(name)")
-    .not("target_plan_id", "is", null)
-    .is("vat100_user_id", null)
-    .lt("updated_at", oneDayAgo.toISOString())
-    .limit(5);
+    const { data: atRiskLeads } = await supabase
+      .from("leads")
+      .select("*, plans!target_plan_id(name)")
+      .not("target_plan_id", "is", null)
+      .is("vat100_user_id", null)
+      .lt("updated_at", oneDayAgo.toISOString())
+      .limit(5);
 
-  const { data: pastDueSubs } = await supabase
-    .from("subscriptions")
-    .select("*, plan:plans(name), profile:profiles(full_name, studio_name)")
-    .eq("status", "past_due")
-    .limit(5);
+    const { data: pastDueSubs } = await supabase
+      .from("subscriptions")
+      .select("*, plan:plans(name), profile:profiles(full_name, studio_name)")
+      .eq("status", "past_due")
+      .limit(5);
 
-  const { data: inactiveUsers } = await supabase
-    .from("profiles")
-    .select("*")
-    .lt("updated_at", thirtyDaysAgo.toISOString())
-    .limit(5);
+    const { data: inactiveUsers } = await supabase
+      .from("profiles")
+      .select("*")
+      .lt("updated_at", thirtyDaysAgo.toISOString())
+      .limit(5);
 
-  return { atRiskLeads, pastDueSubs, inactiveUsers };
+    return { atRiskLeads, pastDueSubs, inactiveUsers };
+  } catch {
+    return { atRiskLeads: [], pastDueSubs: [], inactiveUsers: [] };
+  }
 }
 
 export default async function RetentionDashboard() {
