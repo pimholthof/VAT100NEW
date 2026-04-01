@@ -577,3 +577,34 @@ export interface PlatformStats {
   totalRevenue: number;
   newUsersThisMonth: number;
 }
+
+// ─── Lead & Sales Pipeline types ───
+
+export type LeadLifecycle = "Nieuw" | "Link Verstuurd" | "Plan Gekozen" | "Klant" | "On hold" | "Niet Relevant";
+export type LeadSource = "website" | "substack" | "referral" | "manual";
+
+export interface Lead {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  company_name: string | null;
+  source: LeadSource;
+  lifecycle_stage: LeadLifecycle;
+  target_plan_id: string | null;
+  score_fit: number;
+  score_engagement: number;
+  vat100_user_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LeadWithActivity extends Lead {
+  activities?: Array<{
+    id: string;
+    activity_type: string;
+    description: string;
+    created_at: string;
+  }>;
+}

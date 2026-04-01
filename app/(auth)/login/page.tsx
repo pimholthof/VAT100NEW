@@ -2,7 +2,8 @@
 
 import { login } from "../actions";
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useLocale } from "@/lib/i18n/context";
 
 const inputStyle: React.CSSProperties = {
@@ -19,9 +20,19 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const isNewAccount = searchParams.get("new_account") === "true";
+  const emailParam = searchParams.get("email") || "";
+
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [email, setEmail] = useState(emailParam || "");
   const { t } = useLocale();
+
+  useEffect(() => {
+    if (emailParam && emailParam !== email) setEmail(emailParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emailParam]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -70,6 +81,25 @@ export default function LoginPage() {
 
         {/* Form — flat, no card */}
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+          {isNewAccount && (
+            <div
+              style={{
+                background: "var(--color-black)",
+                color: "white",
+                padding: "20px",
+                marginBottom: 12,
+                fontSize: "14px",
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
+                lineHeight: 1.4
+              }}
+            >
+              <div style={{ textTransform: "uppercase", fontSize: "10px", marginBottom: 8, opacity: 0.6 }}>Onboarding</div>
+              HOERA! JE ACCOUNT IS ACTIEF.<br/>
+              LOG IN OM JE DASHBOARD TE OPENEN.
+            </div>
+          )}
+
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <label htmlFor="email" className="label">{t.auth.email}</label>
             <input
@@ -78,6 +108,8 @@ export default function LoginPage() {
               type="email"
               required
               autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               style={inputStyle}
             />
           </div>

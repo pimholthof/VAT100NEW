@@ -230,6 +230,7 @@ export default function DashboardClient({
         </div>
       )}
 
+
       {/* ── FISCAL PULSE ── */}
       {safeToSpend && !isLoading && (
         <motion.div variants={itemVariants}>
