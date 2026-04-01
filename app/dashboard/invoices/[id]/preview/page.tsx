@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoicePreviewClient } from "@/features/invoices/components/InvoicePreviewClient";
 import { SendEmailButton } from "@/features/invoices/components/SendEmailButton";
 import { PaymentLinkButton } from "@/features/invoices/components/PaymentLinkButton";
 import { PdfDownloadButton } from "@/features/invoices/components/PdfDownloadButton";
+import { getDictionary, getLocaleFromCookie } from "@/lib/i18n";
 
 export default async function InvoicePreviewPage({
   params,
@@ -12,6 +14,9 @@ export default async function InvoicePreviewPage({
 }) {
   const { id } = await params;
   const result = await fetchInvoiceData(id);
+  const cookieStore = await cookies();
+  const locale = getLocaleFromCookie(cookieStore.get("locale")?.value ? `locale=${cookieStore.get("locale")?.value}` : null);
+  const t = getDictionary(locale);
 
   if (result.error || !result.data) {
     return (
@@ -35,7 +40,7 @@ export default async function InvoicePreviewPage({
             marginBottom: 24,
           }}
         >
-          {result.error ?? "Factuur niet gevonden"}
+          {result.error ?? t.errors.invoiceNotFound}
         </div>
         <Link
           href="/dashboard/invoices"
@@ -46,7 +51,7 @@ export default async function InvoicePreviewPage({
             color: "var(--foreground)",
           }}
         >
-          &larr; Terug naar facturen
+          &larr; {t.invoices.backToInvoices}
         </Link>
       </div>
     );
@@ -90,7 +95,7 @@ export default async function InvoicePreviewPage({
               letterSpacing: "0.05em",
             }}
           >
-            &larr; Overzicht
+            &larr; {t.invoices.backToOverview}
           </Link>
           <Link
             href={`/dashboard/invoices/${id}`}
@@ -103,7 +108,7 @@ export default async function InvoicePreviewPage({
               letterSpacing: "0.05em",
             }}
           >
-            Bewerken
+            {t.invoices.editInvoice}
           </Link>
         </div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>

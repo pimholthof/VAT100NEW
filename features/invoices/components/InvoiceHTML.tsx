@@ -5,22 +5,26 @@ import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 
 // ─── Shared helpers ───
 
-function fmtDate(d: string | null): string {
+function fmtDate(d: string | null, locale: Locale = "nl"): string {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("nl-NL", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const l = locale === "en" ? "en-GB" : "nl-NL";
+  return new Date(d).toLocaleDateString(l, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function fmtDateLong(d: string | null): string {
+function fmtDateLong(d: string | null, locale: Locale = "nl"): string {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+  const l = locale === "en" ? "en-GB" : "nl-NL";
+  return new Date(d).toLocaleDateString(l, { day: "numeric", month: "long", year: "numeric" });
 }
 
 function fmtEur(n: number): string {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
 }
 
-function unit(u: string): string {
-  return u === "dagen" ? "dagen" : u === "uren" ? "uren" : "stuks";
+function unitLabel(u: string, t: ReturnType<typeof getDictionary>): string {
+  if (u === "dagen") return t.invoices.unitDays;
+  if (u === "uren") return t.invoices.unitHours;
+  return t.invoices.unitPieces;
 }
 
 // ─── Dispatcher ───
@@ -104,7 +108,7 @@ function MinimaalHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
         {lines.map((l, i) => (
           <div key={l.id} style={{ display: "flex", padding: "7px 0", borderBottom: `0.5px solid ${i === lines.length - 1 ? INK : RULE}` }}>
             <div style={{ width: "48%", fontSize: 9 }}>{l.description}</div>
-            <div style={{ width: "14%", fontSize: 9 }}>{l.quantity} {unit(l.unit)}</div>
+            <div style={{ width: "14%", fontSize: 9 }}>{l.quantity} {unitLabel(l.unit, t)}</div>
             <div style={{ width: "18%", fontSize: 9, textAlign: "right" }}>{fmtEur(l.rate)}</div>
             <div style={{ width: "20%", fontSize: 9, textAlign: "right" }}>{fmtEur(l.amount)}</div>
           </div>
@@ -166,7 +170,7 @@ function KlassiekHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
           </div>
         </div>
         <div style={{ textAlign: "right", paddingTop: 8 }}>
-          <div style={{ fontSize: 9, color: GREY, marginBottom: 4 }}>{fmtDateLong(invoice.issue_date)}</div>
+          <div style={{ fontSize: 9, color: GREY, marginBottom: 4 }}>{fmtDateLong(invoice.issue_date, locale)}</div>
           <div style={{ fontSize: 11, fontWeight: 700 }}>Nr. {invoice.invoice_number}</div>
         </div>
       </div>
@@ -212,7 +216,7 @@ function KlassiekHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
         {lines.map((l, i) => (
           <div key={l.id} style={{ display: "flex", padding: "10px 0", borderBottom: `0.5px solid ${i === lines.length - 1 ? INK : RULE}`, alignItems: "baseline" }}>
             <div style={{ width: "46%", fontSize: 10, fontWeight: 400 }}>{l.description}</div>
-            <div style={{ width: "16%", fontSize: 9, textAlign: "center", color: GREY }}>{l.quantity} {unit(l.unit)}</div>
+            <div style={{ width: "16%", fontSize: 9, textAlign: "center", color: GREY }}>{l.quantity} {unitLabel(l.unit, t)}</div>
             <div style={{ width: "18%", fontSize: 9, textAlign: "right", color: GREY }}>{fmtEur(l.rate)}</div>
             <div style={{ width: "20%", fontSize: 10, textAlign: "right", fontWeight: 500 }}>{fmtEur(l.amount)}</div>
           </div>
@@ -238,7 +242,7 @@ function KlassiekHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
       {/* Due date */}
       {invoice.due_date && (
         <div style={{ marginTop: 40 }}>
-          <div style={{ fontSize: 8.5, color: GREY }}>{t.invoiceDoc.paymentTerms}: {fmtDateLong(invoice.due_date)}</div>
+          <div style={{ fontSize: 8.5, color: GREY }}>{t.invoiceDoc.paymentTerms}: {fmtDateLong(invoice.due_date, locale)}</div>
         </div>
       )}
 
@@ -328,7 +332,7 @@ function StrakHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
         {lines.map((l) => (
           <div key={l.id} style={{ display: "flex", padding: "10px 0", borderBottom: `0.5px solid ${RULE}`, alignItems: "baseline" }}>
             <div style={{ width: "50%", fontSize: 9, fontWeight: 400 }}>{l.description}</div>
-            <div style={{ width: "14%", fontSize: 8, textAlign: "right", color: GREY }}>{l.quantity} {unit(l.unit)}</div>
+            <div style={{ width: "14%", fontSize: 8, textAlign: "right", color: GREY }}>{l.quantity} {unitLabel(l.unit, t)}</div>
             <div style={{ width: "18%", fontSize: 8, textAlign: "right", color: GREY }}>{fmtEur(l.rate)}</div>
             <div style={{ width: "18%", fontSize: 9, textAlign: "right", fontWeight: 500 }}>{fmtEur(l.amount)}</div>
           </div>

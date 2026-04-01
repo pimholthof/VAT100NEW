@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import type { InvoiceTemplate } from "@/lib/types";
+import { useLocale } from "@/lib/i18n/context";
 
 const STORAGE_KEY = "vat100-invoice-template";
 
 export function PdfDownloadButton({ invoiceId }: { invoiceId: string }) {
+  const { t } = useLocale();
   const [template, setTemplate] = useState<InvoiceTemplate>("minimaal");
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function PdfDownloadButton({ invoiceId }: { invoiceId: string }) {
         borderRadius: "var(--radius-sm)",
       }}
     >
-      Download PDF
+      {t.invoices.downloadPdf}
     </a>
   );
 }
