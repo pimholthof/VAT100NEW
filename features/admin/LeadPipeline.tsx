@@ -3,7 +3,8 @@
 import { Lead, LeadLifecycle } from "@/lib/types";
 import { LeadColumn } from "./LeadColumn";
 import { useState, useEffect } from "react";
-import { getRevenueMetrics, type RevenueMetrics } from "./actions";
+import { getRevenueMetrics } from "./actions";
+import type { RevenueMetrics } from "./actions";
 import { formatCurrency } from "@/lib/format";
 
 interface LeadPipelineProps {

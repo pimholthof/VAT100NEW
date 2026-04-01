@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getWaitlist, getWaitlistKpis } from "@/features/admin/actions";
-import { AdminPageKpis } from "@/features/admin/AdminPageKpis";
-import { PageHeader, TableWrapper, Th, Td, Input, ButtonSecondary, SkeletonTable } from "@/components/ui";
-import { formatDateLong } from "@/lib/format";
+import { getWaitlist } from "@/features/admin/actions";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { AdminStatePanel } from "../AdminStatePanel";
+
+function formatDate(dateStr: string): string {
+  return new Intl.DateTimeFormat("nl-NL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(dateStr));
+}
 
 export default function AdminWaitlistPage() {
   const [search, setSearch] = useState("");
@@ -21,92 +30,109 @@ export default function AdminWaitlistPage() {
   const total = result?.data?.total ?? 0;
   const totalPages = Math.ceil(total / pageSize);
 
+  if (result?.error) {
+    return (
+      <div className="admin-layout">
+        <PageHeader title="Wachtlijst" backHref="/admin" backLabel="Platform" />
+        <AdminStatePanel
+          eyebrow="Wachtlijst"
+          title="Wachtlijst kon niet worden geladen"
+          description={result.error}
+          actions={[{ href: "/admin", label: "Terug naar admin", variant: "secondary" }]}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <PageHeader title="Wachtlijst" backHref="/admin" backLabel="Beheer" />
+    <div className="admin-layout">
+      <PageHeader title="Wachtlijst" backHref="/admin" backLabel="Platform" />
 
-      {/* KPI's */}
-      <AdminPageKpis queryKey="waitlist-kpis" queryFn={getWaitlistKpis} />
-
-      {/* Zoeken */}
-      <div style={{ marginBottom: 32 }}>
-        <Input
+      {/* Search */}
+      <div className="admin-toolbar">
+        <input
           type="text"
           placeholder="Zoek op naam of e-mail..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          style={{ maxWidth: 400 }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="admin-field mono-amount"
         />
       </div>
 
-      <p className="label" style={{ marginBottom: 16 }}>
-        {total} aanmelding{total !== 1 ? "en" : ""}
-      </p>
+      <div className="admin-summary-row">
+        <p className="label">{total} aanmelding{total !== 1 ? "en" : ""}</p>
+        <p className="label">Pagina {page}{totalPages > 0 ? ` van ${totalPages}` : ""}</p>
+      </div>
 
       {isLoading ? (
-        <SkeletonTable
-          columns="0.5fr 2fr 2fr 1fr 1.5fr"
-          rows={10}
-          headerWidths={[30, 60, 70, 50, 60]}
-          bodyWidths={[20, 50, 60, 40, 50]}
-        />
+        <div className="admin-table-shell">
+          <div className="admin-empty-state">Wachtlijst laden...</div>
+        </div>
       ) : entries.length === 0 ? (
-        <p className="empty-state">Nog geen aanmeldingen</p>
+        <div className="admin-table-shell">
+          <div className="admin-empty-state">Nog geen aanmeldingen</div>
+        </div>
       ) : (
-        <TableWrapper>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="admin-table-shell">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
             <thead>
               <tr>
-                <Th>#</Th>
-                <Th>Naam</Th>
-                <Th>E-mail</Th>
-                <Th>Bron</Th>
-                <Th>Datum</Th>
+                {["#", "Naam", "E-mail", "Bron", "Datum"].map((header) => (
+                  <th key={header}>
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {entries.map((entry, i) => (
                 <tr key={entry.id}>
-                  <Td style={{ opacity: 0.3, fontVariantNumeric: "tabular-nums" }}>
+                  <td className="mono-amount label">
                     {(page - 1) * pageSize + i + 1}
-                  </Td>
-                  <Td style={{ fontWeight: 500 }}>
-                    {entry.name || "\u2014"}
-                  </Td>
-                  <Td style={{ fontSize: "var(--text-body-sm)" }}>
+                  </td>
+                  <td>
+                    {entry.name || "—"}
+                  </td>
+                  <td className="mono-amount">
                     {entry.email}
-                  </Td>
-                  <Td>
-                    <span className="label">{entry.referral || "\u2014"}</span>
-                  </Td>
-                  <Td>
-                    <span className="label">{formatDateLong(entry.created_at)}</span>
-                  </Td>
+                  </td>
+                  <td className="label">
+                    {entry.referral || "—"}
+                  </td>
+                  <td className="label">
+                    {formatDate(entry.created_at)}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </TableWrapper>
+        </div>
+        </div>
       )}
 
-      {/* Paginering */}
       {totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 32 }}>
-          <ButtonSecondary
+        <div className="admin-pagination">
+          <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
+            className="admin-page-button"
           >
             Vorige
-          </ButtonSecondary>
-          <span className="label" style={{ padding: "8px 16px" }}>
+          </button>
+          <span className="admin-page-button label">
             {page} / {totalPages}
           </span>
-          <ButtonSecondary
+          <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
+            className="admin-page-button"
           >
             Volgende
-          </ButtonSecondary>
+          </button>
         </div>
       )}
     </div>

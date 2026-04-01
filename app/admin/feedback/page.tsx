@@ -10,21 +10,24 @@ import {
 } from "@/features/admin/actions";
 import type { ChatConversationWithUser } from "@/features/admin/actions";
 import { AdminPageKpis } from "@/features/admin/AdminPageKpis";
-import {
-  PageHeader,
-  TableWrapper,
-  Th,
-  Td,
-  Input,
-  ButtonPrimary,
-  SkeletonTable,
-} from "@/components/ui";
-import { formatDateLong } from "@/lib/format";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { AdminStatePanel } from "../AdminStatePanel";
+
+function formatDate(dateStr: string): string {
+  return new Intl.DateTimeFormat("nl-NL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(dateStr));
+}
 
 export default function AdminFeedbackPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [selectedConversation, setSelectedConversation] = useState<ChatConversationWithUser | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<ChatConversationWithUser | null>(null);
   const [replyInput, setReplyInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const replyInputRef = useRef<HTMLInputElement>(null);
@@ -51,22 +54,23 @@ export default function AdminFeedbackPage() {
   const messages = messagesResult?.data ?? [];
 
   const { mutate: sendReply, isPending: isSending } = useMutation({
-    mutationFn: () => sendAdminChatMessage(selectedConversation!.id, replyInput.trim()),
-    onSuccess: (result) => {
-      if (!result.error) {
+    mutationFn: () =>
+      sendAdminChatMessage(selectedConversation!.id, replyInput.trim()),
+    onSuccess: (r) => {
+      if (!r.error) {
         setReplyInput("");
-        queryClient.invalidateQueries({ queryKey: ["admin-chat-messages", selectedConversation?.id] });
+        queryClient.invalidateQueries({
+          queryKey: ["admin-chat-messages", selectedConversation?.id],
+        });
         queryClient.invalidateQueries({ queryKey: ["admin-chat"] });
       }
     },
   });
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  // Focus reply input when conversation selected
   useEffect(() => {
     if (selectedConversation) replyInputRef.current?.focus();
   }, [selectedConversation]);
@@ -76,9 +80,25 @@ export default function AdminFeedbackPage() {
     sendReply();
   }
 
+  if (result?.error) {
+    return (
+      <div className="admin-layout">
+        <PageHeader title="Feedback" backHref="/admin" backLabel="Platform" />
+        <AdminStatePanel
+          eyebrow="Feedback"
+          title="Feedback kon niet worden geladen"
+          description={result.error}
+          actions={[
+            { href: "/admin", label: "Terug naar admin", variant: "secondary" },
+          ]}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <PageHeader title="Feedback" backHref="/admin" backLabel="Beheer" />
+    <div className="admin-layout">
+      <PageHeader title="Feedback" backHref="/admin" backLabel="Platform" />
 
       <AdminPageKpis queryKey="chat-kpis" queryFn={getChatKpis} />
 
@@ -92,8 +112,8 @@ export default function AdminFeedbackPage() {
       >
         {/* Conversations list */}
         <div>
-          <div style={{ marginBottom: 24 }}>
-            <Input
+          <div className="admin-toolbar">
+            <input
               type="text"
               placeholder="Zoek op naam of e-mail..."
               value={search}
@@ -101,125 +121,123 @@ export default function AdminFeedbackPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              style={{ maxWidth: 400 }}
+              className="admin-field mono-amount"
             />
           </div>
 
-          <p className="label" style={{ marginBottom: 16 }}>
-            {total} gesprek{total !== 1 ? "ken" : ""}
-          </p>
+          <div className="admin-summary-row">
+            <p className="label">
+              {total} gesprek{total !== 1 ? "ken" : ""}
+            </p>
+            <p className="label">
+              Pagina {page}
+              {totalPages > 0 ? ` van ${totalPages}` : ""}
+            </p>
+          </div>
 
           {isLoading ? (
-            <SkeletonTable
-              columns="2fr 3fr 1fr"
-              rows={10}
-              headerWidths={[60, 70, 50]}
-              bodyWidths={[50, 60, 40]}
-            />
+            <div className="admin-table-shell">
+              <div className="admin-empty-state">Gesprekken laden...</div>
+            </div>
           ) : entries.length === 0 ? (
-            <p className="empty-state">Nog geen gesprekken</p>
+            <div className="admin-table-shell">
+              <div className="admin-empty-state">Nog geen gesprekken</div>
+            </div>
           ) : (
-            <TableWrapper>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <Th>Gebruiker</Th>
-                    <Th>Laatste bericht</Th>
-                    <Th>Datum</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((entry) => (
-                    <tr
-                      key={entry.id}
-                      onClick={() => setSelectedConversation(entry)}
-                      style={{
-                        cursor: "pointer",
-                        background:
-                          selectedConversation?.id === entry.id
-                            ? "rgba(0,0,0,0.03)"
-                            : "transparent",
-                        transition: "background 0.15s ease",
-                      }}
-                    >
-                      <Td>
-                        <div>
+            <div className="admin-table-shell">
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      {["Gebruiker", "Laatste bericht", "Datum"].map((h) => (
+                        <th key={h}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entries.map((entry) => (
+                      <tr
+                        key={entry.id}
+                        onClick={() => setSelectedConversation(entry)}
+                        style={{
+                          cursor: "pointer",
+                          background:
+                            selectedConversation?.id === entry.id
+                              ? "rgba(0,0,0,0.03)"
+                              : undefined,
+                        }}
+                      >
+                        <td>
                           <span style={{ fontWeight: 500, display: "block" }}>
                             {entry.user_name || "—"}
                           </span>
                           <span
                             className="label"
-                            style={{ fontSize: "var(--text-body-xs)", opacity: 0.5 }}
+                            style={{ opacity: 0.5 }}
                           >
                             {entry.user_email}
                           </span>
-                        </div>
-                      </Td>
-                      <Td>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          {entry.last_sender === "user" && (
-                            <span
-                              style={{
-                                width: 6,
-                                height: 6,
-                                borderRadius: "50%",
-                                background: "var(--color-accent)",
-                                flexShrink: 0,
-                              }}
-                            />
-                          )}
+                        </td>
+                        <td>
                           <span
                             style={{
-                              fontSize: "var(--text-body-sm)",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              maxWidth: 250,
-                              display: "block",
-                              opacity: 0.6,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 8,
                             }}
                           >
-                            {entry.last_message || "—"}
+                            {entry.last_sender === "user" && (
+                              <span
+                                style={{
+                                  width: 6,
+                                  height: 6,
+                                  borderRadius: "50%",
+                                  background: "var(--color-accent)",
+                                  flexShrink: 0,
+                                }}
+                              />
+                            )}
+                            <span
+                              style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                maxWidth: 250,
+                                display: "block",
+                                opacity: 0.6,
+                              }}
+                            >
+                              {entry.last_message || "—"}
+                            </span>
                           </span>
-                        </div>
-                      </Td>
-                      <Td>
-                        <span className="label">
-                          {formatDateLong(entry.updated_at)}
-                        </span>
-                      </Td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </TableWrapper>
+                        </td>
+                        <td className="label">
+                          {formatDate(entry.updated_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 8,
-                marginTop: 32,
-              }}
-            >
+            <div className="admin-pagination">
               <button
-                className="btn-secondary"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
+                className="admin-page-button"
               >
                 Vorige
               </button>
-              <span className="label" style={{ padding: "8px 16px" }}>
+              <span className="admin-page-button label">
                 {page} / {totalPages}
               </span>
               <button
-                className="btn-secondary"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                className="admin-page-button"
               >
                 Volgende
               </button>
@@ -250,18 +268,19 @@ export default function AdminFeedbackPage() {
               }}
             >
               <div>
-                <span style={{ fontWeight: 600, fontSize: "var(--text-body-md)" }}>
-                  {selectedConversation.user_name || selectedConversation.user_email}
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: "var(--text-body-md)",
+                  }}
+                >
+                  {selectedConversation.user_name ||
+                    selectedConversation.user_email}
                 </span>
                 {selectedConversation.user_name && (
                   <span
                     className="label"
-                    style={{
-                      display: "block",
-                      fontSize: "var(--text-body-xs)",
-                      opacity: 0.4,
-                      marginTop: 2,
-                    }}
+                    style={{ display: "block", opacity: 0.4, marginTop: 2 }}
                   >
                     {selectedConversation.user_email}
                   </span>
@@ -315,16 +334,26 @@ export default function AdminFeedbackPage() {
                 <div
                   key={msg.id}
                   style={{
-                    alignSelf: msg.sender === "user" ? "flex-start" : "flex-end",
-                    background: msg.sender === "admin" ? "var(--color-black)" : "transparent",
-                    color: msg.sender === "admin" ? "var(--color-white)" : "var(--color-black)",
+                    alignSelf:
+                      msg.sender === "user" ? "flex-start" : "flex-end",
+                    background:
+                      msg.sender === "admin"
+                        ? "var(--color-black)"
+                        : "transparent",
+                    color:
+                      msg.sender === "admin"
+                        ? "var(--color-white)"
+                        : "var(--color-black)",
                     padding: "10px 14px",
                     borderRadius: "var(--radius-sm)",
                     maxWidth: "85%",
                     whiteSpace: "pre-wrap",
                     fontSize: "var(--text-body-sm)",
                     lineHeight: 1.5,
-                    border: msg.sender === "user" ? "0.5px solid rgba(0,0,0,0.12)" : "none",
+                    border:
+                      msg.sender === "user"
+                        ? "0.5px solid rgba(0,0,0,0.12)"
+                        : "none",
                   }}
                 >
                   {msg.message}
@@ -355,28 +384,21 @@ export default function AdminFeedbackPage() {
                 }}
                 placeholder="Typ een antwoord..."
                 disabled={isSending}
-                style={{
-                  flex: 1,
-                  padding: "10px 14px",
-                  border: "1px solid rgba(0,0,0,0.10)",
-                  borderRadius: "8px",
-                  background: "rgba(0,0,0,0.015)",
-                  color: "var(--foreground)",
-                  fontFamily:
-                    '"Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif',
-                  fontSize: "13px",
-                  fontWeight: 400,
-                  outline: "none",
-                  transition: "border-color 0.2s ease",
-                }}
+                className="admin-field"
+                style={{ flex: 1 }}
               />
-              <ButtonPrimary
+              <button
+                className="btn-primary"
                 onClick={handleSendReply}
                 disabled={!replyInput.trim() || isSending}
-                style={{ padding: "10px 16px", fontSize: "10px", flexShrink: 0 }}
+                style={{
+                  padding: "10px 16px",
+                  fontSize: "10px",
+                  flexShrink: 0,
+                }}
               >
                 {isSending ? "Versturen..." : "Verstuur"}
-              </ButtonPrimary>
+              </button>
             </div>
           </div>
         )}
