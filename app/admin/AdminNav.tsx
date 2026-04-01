@@ -23,6 +23,7 @@ export function AdminNav() {
     { href: "/admin/customers", label: "Klanten" },
     { href: "/admin/users", label: "Gebruikers" },
     { href: "/admin/waitlist", label: "Wachtlijst" },
+    { href: "/admin/feedback", label: "Feedback" },
     { href: "/admin/audit", label: "Controle" },
   ];
 
