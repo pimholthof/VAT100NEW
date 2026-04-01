@@ -35,18 +35,15 @@ export function LeadColumn({ title, leads, onLeadClick }: LeadColumnProps) {
             />
           ))
         ) : (
-          <div style={{ 
-            height: "100px", 
-            border: "1px dashed rgba(0,0,0,0.05)", 
-            display: "flex", 
-            alignItems: "center", 
+          <div style={{
+            height: "80px",
+            border: "0.5px dashed rgba(0,0,0,0.08)",
+            borderRadius: "var(--radius)",
+            display: "flex",
+            alignItems: "center",
             justifyContent: "center",
-            fontSize: "10px",
-            opacity: 0.4,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em"
           }}>
-            Leeg
+            <span className="label">Leeg</span>
           </div>
         )}
       </div>

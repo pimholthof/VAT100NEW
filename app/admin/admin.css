@@ -1,87 +1,112 @@
-/* app/admin/admin.css */
+/* Admin-specifieke stijlen — bouwt voort op dashboard design system */
 
-.admin-shell {
-  background-color: var(--color-white);
-  color: var(--color-black);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.admin-header {
-  border-bottom: 1px solid var(--color-black);
-  padding: 24px var(--page-gutter);
-  background: white;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
+/* Pipeline Grid — subtiele architectural lines */
 .pipeline-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 1px;
-  background-color: var(--color-black); /* Borders are created by the gap showing background */
-  border-bottom: 1px solid var(--color-black);
-  flex: 1;
+  gap: 0;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .pipeline-column {
-  background-color: var(--color-white);
-  min-height: calc(100vh - 120px);
+  background-color: var(--background);
+  min-height: calc(100vh - 200px);
   padding: 24px 16px;
+  border-right: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.pipeline-column:last-child {
+  border-right: none;
 }
 
 .pipeline-column-header {
-  margin-bottom: 32px;
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
   padding-bottom: 12px;
 }
 
 .pipeline-column-title {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 500;
-  text-transform: capitalize;
+  font-size: var(--text-body-md);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
 }
 
+/* Lead Cards */
 .lead-card {
-  background: white;
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: var(--background);
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 12px;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
-  cursor: grab;
+  transition: transform 0.2s var(--ease-out-expo), box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
 }
 
 .lead-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border-color: var(--color-black);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
-.lead-card:active {
-  cursor: grabbing;
-}
-
+/* Score Badge */
 .score-badge {
-  font-family: var(--font-geist);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  padding: 2px 6px;
+  padding: 2px 8px;
   background: var(--color-black);
-  color: white;
+  color: var(--background);
   text-transform: uppercase;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .score-badge.high {
   background: var(--color-accent);
 }
 
+/* Lead Email */
 .lead-email {
   font-size: 11px;
-  color: rgba(0,0,0,0.4);
+  color: rgba(0, 0, 0, 0.35);
   margin-top: 4px;
   word-break: break-all;
+}
+
+/* Metric Cards in Pipeline */
+.admin-metric-card {
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius);
+  padding: 24px;
+  background: var(--background);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Admin Section Spacing */
+.admin-section {
+  margin-bottom: var(--space-section);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .pipeline-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .pipeline-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pipeline-column {
+    min-height: auto;
+  }
 }

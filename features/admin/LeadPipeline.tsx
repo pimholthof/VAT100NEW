@@ -4,6 +4,7 @@ import { Lead, LeadLifecycle } from "@/lib/types";
 import { LeadColumn } from "./LeadColumn";
 import { useState, useEffect } from "react";
 import { getRevenueMetrics, type RevenueMetrics } from "./actions";
+import { formatCurrency } from "@/lib/format";
 
 interface LeadPipelineProps {
   initialLeads: Lead[];
@@ -23,8 +24,7 @@ export function LeadPipeline({ initialLeads }: LeadPipelineProps) {
     loadMetrics();
   }, []);
 
-  // Grouping logic for the 5 visual columns (Monitoring View)
-  const columns: { title: string, stages: LeadLifecycle[] }[] = [
+  const columns: { title: string; stages: LeadLifecycle[] }[] = [
     { title: "Nieuw", stages: ["Nieuw"] },
     { title: "Link Verstuurd", stages: ["Link Verstuurd"] },
     { title: "Plan Gekozen", stages: ["Plan Gekozen"] },
@@ -36,49 +36,56 @@ export function LeadPipeline({ initialLeads }: LeadPipelineProps) {
     window.location.href = `/admin/leads/${leadId}`;
   };
 
-  const formatCurrency = (cents: number) => {
-    return new Intl.NumberFormat("nl-NL", {
-      style: "currency",
-      currency: "EUR",
-    }).format(cents / 100);
+  const formatMetricCurrency = (cents: number) => {
+    return formatCurrency(cents / 100);
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
-      {/* Revenue Radar Bar */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-        gap: "24px" 
-      }}>
-        <div style={{ border: "2px solid black", padding: "24px", background: "white" }}>
-          <div style={{ fontSize: "10px", fontWeight: 800, textTransform: "uppercase", opacity: 0.4, marginBottom: 8 }}>Monthly Recurring Revenue</div>
-          <div style={{ fontSize: "28px", fontWeight: 900, fontStyle: "italic", letterSpacing: "-0.04em" }}>
-            {metrics ? formatCurrency(metrics.mrr_cents) : "€ --"}
+    <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+      {/* Omzet metriek kaarten */}
+      <div className="stat-cards-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+        <div className="admin-metric-card">
+          <span className="label">Maandelijkse terugkerende omzet</span>
+          <div
+            className="mono-amount-lg"
+            style={{ fontSize: "1.75rem", fontWeight: 400, marginTop: "12px" }}
+          >
+            {metrics ? formatMetricCurrency(metrics.mrr_cents) : "\u2014"}
           </div>
         </div>
-        <div style={{ border: "2px solid black", padding: "24px", background: "white" }}>
-          <div style={{ fontSize: "10px", fontWeight: 800, textTransform: "uppercase", opacity: 0.4, marginBottom: 8 }}>Conversion Rate</div>
-          <div style={{ fontSize: "28px", fontWeight: 900, fontStyle: "italic", letterSpacing: "-0.04em" }}>
-            {metrics ? `${metrics.conversion_rate}%` : "--%"}
+        <div className="admin-metric-card">
+          <span className="label">Conversiepercentage</span>
+          <div
+            className="mono-amount-lg"
+            style={{ fontSize: "1.75rem", fontWeight: 400, marginTop: "12px" }}
+          >
+            {metrics ? `${metrics.conversion_rate}%` : "\u2014"}
           </div>
         </div>
-        <div style={{ border: "2px solid black", padding: "24px", background: "white" }}>
-          <div style={{ fontSize: "10px", fontWeight: 800, textTransform: "uppercase", opacity: 0.4, marginBottom: 8 }}>Pipeline Projection</div>
-          <div style={{ fontSize: "28px", fontWeight: 900, fontStyle: "italic", letterSpacing: "-0.04em", opacity: 0.5 }}>
-            {metrics ? formatCurrency(metrics.pipeline_value_cents) : "€ --"}
+        <div className="admin-metric-card">
+          <span className="label">Pijplijnprognose</span>
+          <div
+            className="mono-amount-lg"
+            style={{
+              fontSize: "1.75rem",
+              fontWeight: 400,
+              marginTop: "12px",
+              opacity: 0.5,
+            }}
+          >
+            {metrics ? formatMetricCurrency(metrics.pipeline_value_cents) : "\u2014"}
           </div>
         </div>
       </div>
 
       <div className="pipeline-grid">
         {columns.map((col) => {
-          const filteredLeads = leads.filter((lead) => 
+          const filteredLeads = leads.filter((lead) =>
             col.stages.includes(lead.lifecycle_stage)
           );
 
           return (
-            <LeadColumn 
+            <LeadColumn
               key={col.title}
               title={col.title}
               leads={filteredLeads}

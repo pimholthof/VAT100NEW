@@ -4,10 +4,10 @@ import { LeadPipeline } from "@/features/admin/LeadPipeline";
 import StrategicBriefing from "@/features/admin/StrategicBriefing";
 import RetentionDashboard from "@/features/admin/RetentionDashboard";
 import { TaxAuditCard } from "@/features/dashboard/TaxAuditCard";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { StatCard } from "@/components/ui/StatCard";
+import { formatCurrency } from "@/lib/format";
 
 export default async function AdminDashboardPage() {
-  // Fetch leads, stats and audit in parallel for speed
   const [leadsResult, statsResult, auditResult] = await Promise.all([
     getLeads(),
     getPlatformStats(),
@@ -16,8 +16,8 @@ export default async function AdminDashboardPage() {
 
   if (leadsResult.error) {
     return (
-      <div style={{ padding: "40px" }}>
-        <h1 className="display-hero">Hub Error</h1>
+      <div>
+        <h1 className="display-title">Fout</h1>
         <p style={{ opacity: 0.5 }}>{leadsResult.error}</p>
       </div>
     );
@@ -28,45 +28,58 @@ export default async function AdminDashboardPage() {
   const audit = auditResult.data;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", paddingBottom: "100px" }}>
-      {/* Editorial Header */}
-      <header className="admin-header">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-          <div>
-            <h1 className="display-hero" style={{ margin: 0, fontSize: "4rem", lineHeight: 0.9 }}>
-              PIPELINE
-            </h1>
-            <p className="label" style={{ marginTop: "12px", opacity: 0.4 }}>
-              VOORTGANG VAN {leads.length} LEADS & PROSPECTS
-            </p>
-          </div>
-          
-          {/* Quick Hub Stats */}
-          {stats && (
-            <div style={{ display: "flex", gap: "48px", borderLeft: "1px solid rgba(0,0,0,0.1)", paddingLeft: "48px" }}>
-              <div>
-                <span className="label" style={{ opacity: 0.4 }}>ACTIEVE GEBRUIKERS</span>
-                <div style={{ fontSize: "1.5rem", fontWeight: 700 }}>{stats.activeUsers}</div>
-              </div>
-              <div>
-                <span className="label" style={{ opacity: 0.4 }}>OMZET PLATFORM</span>
-                <div style={{ fontSize: "1.5rem", fontWeight: 700 }}>€{stats.totalRevenue.toLocaleString("nl-NL")}</div>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-section)" }}>
+      {/* Header */}
+      <div>
+        <h1 className="display-title" style={{ marginBottom: "12px" }}>
+          Pipeline
+        </h1>
+        <p className="label" style={{ marginBottom: 0 }}>
+          Voortgang van {leads.length} leads en prospects
+        </p>
+      </div>
 
-      {/* The Sales Pipeline */}
-      <div style={{ marginBottom: "80px" }}>
+      {/* Platform statistieken */}
+      {stats && (
+        <div className="stat-cards-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+          <StatCard
+            label="Actieve gebruikers"
+            value={String(stats.activeUsers)}
+            numericValue={stats.activeUsers}
+            isCurrency={false}
+          />
+          <StatCard
+            label="Totale omzet"
+            value={formatCurrency(stats.totalRevenue)}
+            numericValue={stats.totalRevenue}
+          />
+          <StatCard
+            label="Totaal gebruikers"
+            value={String(stats.totalUsers)}
+            numericValue={stats.totalUsers}
+            isCurrency={false}
+          />
+          <StatCard
+            label="Nieuw deze maand"
+            value={String(stats.newUsersThisMonth)}
+            numericValue={stats.newUsersThisMonth}
+            isCurrency={false}
+          />
+        </div>
+      )}
+
+      {/* Sales Pipeline */}
+      <div>
         <LeadPipeline initialLeads={leads} />
       </div>
 
-      {/* Controller Section: Tax Auditor */}
+      {/* Fiscale Controle */}
       {audit && (
-        <div style={{ marginBottom: "80px", maxWidth: "800px" }}>
-          <h2 className="text-[10px] font-black uppercase tracking-widest mb-6 opacity-40">FISCAL CONTROLLER // CEO ONLY</h2>
-          <TaxAuditCard 
+        <div style={{ maxWidth: "800px" }}>
+          <h2 className="label" style={{ marginBottom: "24px" }}>
+            Fiscale controle
+          </h2>
+          <TaxAuditCard
             score={audit.score}
             findingsCount={audit.findingsCount}
             status={audit.status}
@@ -76,12 +89,10 @@ export default async function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Strategic Advisor (CFO) */}
-      <div style={{ marginBottom: "80px" }}>
-        <StrategicBriefing />
-      </div>
+      {/* Strategisch Overzicht */}
+      <StrategicBriefing />
 
-      {/* The Retention Radar */}
+      {/* Retentie Radar */}
       <RetentionDashboard />
     </div>
   );
