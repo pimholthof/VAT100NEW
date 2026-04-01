@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { m as motion , type Variants } from "framer-motion";
+import { m as motion, type Variants } from "framer-motion";
 import {
   getDashboardData,
   type DashboardData,
@@ -87,41 +87,90 @@ export default function DashboardClient({
       {/* ── HERO ── */}
       {!isLoading && (
         <div className="dashboard-home-hero">
-          <motion.div variants={itemVariants} className="dashboard-home-hero-copy">
-            <p className="label" style={{ margin: 0 }}>Vandaag</p>
-            <h1 className="dashboard-home-title">Alles wat je vandaag moet weten.</h1>
-            <p className="dashboard-home-intro">{heroMessage}</p>
+          <motion.div variants={itemVariants} className="dashboard-home-hero-copy" style={{ position: "relative" }}>
+            {/* Editorial moodboard background */}
+            <div style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "60%",
+              borderRadius: "var(--radius)",
+              overflow: "hidden",
+            }}>
+              <img
+                src="/images/office-walnut.png"
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center 30%",
+                  opacity: 0.14,
+                  filter: "grayscale(80%)",
+                }}
+              />
+            </div>
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <p className="label" style={{ margin: 0 }}>Vandaag</p>
+              <h1 className="dashboard-home-title">Alles wat je vandaag moet weten.</h1>
+              <p className="dashboard-home-intro">{heroMessage}</p>
+            </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="dashboard-home-hero-stats">
-            <div className="dashboard-home-meta-item">
-              <span className="label">Vrij besteedbaar</span>
-              <span className="dashboard-home-meta-value">
-                {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
-              </span>
-              <p className="dashboard-home-meta-sub">
-                Saldo {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "nog niet beschikbaar"}
-              </p>
+          <motion.div variants={itemVariants} style={{ position: "relative" }}>
+            {/* Subtle editorial image */}
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "var(--radius)",
+              overflow: "hidden",
+              zIndex: 0,
+            }}>
+              <img
+                src="/images/office-hero.png"
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                  opacity: 0.08,
+                  filter: "grayscale(100%)",
+                  mixBlendMode: "multiply",
+                }}
+              />
             </div>
+            <div className="dashboard-home-hero-stats" style={{ position: "relative", zIndex: 1 }}>
+              <div className="dashboard-home-meta-item">
+                <span className="label">Vrij besteedbaar</span>
+                <span className="dashboard-home-meta-value">
+                  {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
+                </span>
+                <p className="dashboard-home-meta-sub">
+                  Saldo {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "nog niet beschikbaar"}
+                </p>
+              </div>
 
-            <div className="dashboard-home-meta-item">
-              <span className="label">BTW deadline</span>
-              <span className="dashboard-home-meta-value">
-                {vatDeadline ? `${vatDeadline.daysRemaining} dagen` : "—"}
-              </span>
-              <p className="dashboard-home-meta-sub">
-                {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : "Geen deadline gevonden"}
-              </p>
-            </div>
+              <div className="dashboard-home-meta-item">
+                <span className="label">BTW deadline</span>
+                <span className="dashboard-home-meta-value">
+                  {vatDeadline ? `${vatDeadline.daysRemaining} dagen` : "—"}
+                </span>
+                <p className="dashboard-home-meta-sub">
+                  {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : "Geen deadline gevonden"}
+                </p>
+              </div>
 
-            <div className="dashboard-home-meta-item">
-              <span className="label">Openstaand bedrag</span>
-              <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
-              <p className="dashboard-home-meta-sub">
-                {urgentInvoiceCount > 0
-                  ? `${urgentInvoiceCount} achterstallig`
-                  : `${upcomingInvoices?.length ?? 0} facturen op korte termijn`}
-              </p>
+              <div className="dashboard-home-meta-item">
+                <span className="label">Openstaand bedrag</span>
+                <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
+                <p className="dashboard-home-meta-sub">
+                  {urgentInvoiceCount > 0
+                    ? `${urgentInvoiceCount} achterstallig`
+                    : `${upcomingInvoices?.length ?? 0} facturen op korte termijn`}
+                </p>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -169,9 +218,9 @@ export default function DashboardClient({
       {/* ── FISCAL PULSE ── */}
       {safeToSpend && !isLoading && (
         <motion.div variants={itemVariants}>
-          <FiscalPulse 
-            safeToSpend={safeToSpend.safeToSpend} 
-            currentBalance={safeToSpend.currentBalance} 
+          <FiscalPulse
+            safeToSpend={safeToSpend.safeToSpend}
+            currentBalance={safeToSpend.currentBalance}
             isLoading={isLoading}
           />
         </motion.div>
