@@ -1,99 +1,158 @@
-import { getLeads, getPlatformStats } from "@/features/admin/actions";
-import { getControllerAuditData } from "@/features/dashboard/actions";
-import { LeadPipeline } from "@/features/admin/LeadPipeline";
-import StrategicBriefing from "@/features/admin/StrategicBriefing";
-import RetentionDashboard from "@/features/admin/RetentionDashboard";
-import { TaxAuditCard } from "@/features/dashboard/TaxAuditCard";
+import { getAdminDashboardData } from "@/features/admin/actions";
 import { StatCard } from "@/components/ui/StatCard";
-import { formatCurrency } from "@/lib/format";
+import { AdminAlertList } from "@/features/admin/AdminAlertList";
+import { AdminMiniTable } from "@/features/admin/AdminMiniTable";
+import { AdminQuickActions } from "@/features/admin/AdminQuickActions";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 export default async function AdminDashboardPage() {
-  const [leadsResult, statsResult, auditResult] = await Promise.all([
-    getLeads(),
-    getPlatformStats(),
-    getControllerAuditData(),
-  ]);
+  const result = await getAdminDashboardData();
 
-  if (leadsResult.error) {
+  if (result.error) {
     return (
       <div>
         <h1 className="display-title">Fout</h1>
-        <p style={{ opacity: 0.5 }}>{leadsResult.error}</p>
+        <p style={{ opacity: 0.5 }}>{result.error}</p>
       </div>
     );
   }
 
-  const leads = leadsResult.data || [];
-  const stats = statsResult.data;
-  const audit = auditResult.data;
+  const { kpis, alerts, recentLeads, recentCustomers, quickActionsData, lastUpdated } = result.data!;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-section)" }}>
       {/* Header */}
-      <div>
-        <h1 className="display-title" style={{ marginBottom: "12px" }}>
-          Pipeline
-        </h1>
-        <p className="label" style={{ marginBottom: 0 }}>
-          Voortgang van {leads.length} leads en prospects
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <h1 className="display-title" style={{ marginBottom: 8 }}>
+            Platform in beeld
+          </h1>
+          <p className="label" style={{ margin: 0, opacity: 0.4 }}>
+            Operationeel overzicht
+          </p>
+        </div>
+        <span className="label" style={{ opacity: 0.3 }}>
+          Bijgewerkt: {new Date(lastUpdated).toLocaleString("nl-NL", {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
       </div>
 
-      {/* Platform statistieken */}
-      {stats && (
-        <div className="stat-cards-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-          <StatCard
-            label="Actieve gebruikers"
-            value={String(stats.activeUsers)}
-            numericValue={stats.activeUsers}
-            isCurrency={false}
-          />
-          <StatCard
-            label="Totale omzet"
-            value={formatCurrency(stats.totalRevenue)}
-            numericValue={stats.totalRevenue}
-          />
-          <StatCard
-            label="Totaal gebruikers"
-            value={String(stats.totalUsers)}
-            numericValue={stats.totalUsers}
-            isCurrency={false}
-          />
-          <StatCard
-            label="Nieuw deze maand"
-            value={String(stats.newUsersThisMonth)}
-            numericValue={stats.newUsersThisMonth}
-            isCurrency={false}
-          />
-        </div>
-      )}
-
-      {/* Sales Pipeline */}
-      <div>
-        <LeadPipeline initialLeads={leads} />
+      {/* KPI Cards */}
+      <div className="stat-cards-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+        <StatCard
+          label="Klanten"
+          value={String(kpis.totalCustomers)}
+          numericValue={kpis.totalCustomers}
+          isCurrency={false}
+        />
+        <StatCard
+          label="Actieve klanten"
+          value={String(kpis.activeCustomers)}
+          numericValue={kpis.activeCustomers}
+          isCurrency={false}
+          sub={`van ${kpis.totalCustomers} totaal`}
+        />
+        <StatCard
+          label="Leads"
+          value={String(kpis.totalLeads)}
+          numericValue={kpis.totalLeads}
+          isCurrency={false}
+        />
+        <StatCard
+          label="Omzet"
+          value={formatCurrency(kpis.totalRevenue)}
+          numericValue={kpis.totalRevenue}
+        />
+        <StatCard
+          label="Openstaand"
+          value={formatCurrency(kpis.openAmount)}
+          numericValue={kpis.openAmount}
+        />
       </div>
 
-      {/* Fiscale Controle */}
-      {audit && (
-        <div style={{ maxWidth: "800px" }}>
-          <h2 className="label" style={{ marginBottom: "24px" }}>
-            Fiscale controle
-          </h2>
-          <TaxAuditCard
-            score={audit.score}
-            findingsCount={audit.findingsCount}
-            status={audit.status}
-            quarter={audit.quarter}
-            year={audit.year}
-          />
-        </div>
-      )}
+      {/* Alerts */}
+      <AdminAlertList alerts={alerts} />
 
-      {/* Strategisch Overzicht */}
-      <StrategicBriefing />
+      {/* Two-column: Recent leads + Recent customers */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: 24 }}>
+        <AdminMiniTable
+          title="Recente leads"
+          linkPrefix="/admin/leads"
+          emptyMessage="Nog geen leads"
+          columns={[
+            { key: "name", label: "Naam" },
+            { key: "source", label: "Bron" },
+            {
+              key: "lifecycle_stage",
+              label: "Fase",
+              render: (val) => (
+                <span className="label-strong" style={{ fontSize: 10 }}>
+                  {String(val)}
+                </span>
+              ),
+            },
+            {
+              key: "created_at",
+              label: "Datum",
+              render: (val) => (
+                <span className="label">{formatDate(String(val))}</span>
+              ),
+            },
+          ]}
+          rows={recentLeads as unknown as Record<string, unknown>[]}
+        />
+        <AdminMiniTable
+          title="Recente klanten"
+          linkPrefix="/admin/customers"
+          emptyMessage="Nog geen klanten"
+          columns={[
+            { key: "name", label: "Naam" },
+            {
+              key: "status",
+              label: "Status",
+              render: (val) => (
+                <span className={`status-badge ${val === "active" ? "status-badge--sent" : "status-badge--overdue"}`}>
+                  {val === "active" ? "Actief" : "Geblokkeerd"}
+                </span>
+              ),
+            },
+            {
+              key: "total_revenue",
+              label: "Omzet",
+              align: "right" as const,
+              render: (val) => (
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(Number(val))}
+                </span>
+              ),
+            },
+            {
+              key: "created_at",
+              label: "Aangemeld",
+              render: (val) => (
+                <span className="label">{formatDate(String(val))}</span>
+              ),
+            },
+          ]}
+          rows={recentCustomers as unknown as Record<string, unknown>[]}
+        />
+      </div>
 
-      {/* Retentie Radar */}
-      <RetentionDashboard />
+      {/* Quick Actions */}
+      <AdminQuickActions
+        items={[
+          { label: "Pipeline", href: "/admin/pipeline" },
+          { label: "Alle klanten", href: "/admin/customers" },
+          { label: "Gebruikers", href: "/admin/users" },
+          { label: "Wachtlijst", href: "/admin/waitlist", count: quickActionsData.waitlistCount },
+          { label: "Geblokkeerd", href: "/admin/users", count: quickActionsData.suspendedCount },
+          { label: "Fiscale controle", href: "/admin/audit" },
+        ]}
+      />
     </div>
   );
 }

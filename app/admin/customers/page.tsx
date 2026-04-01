@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { getCustomerOverview, exportAllCustomersCSV } from "@/features/admin/actions";
+import { getCustomerOverview, getCustomerKpis, exportAllCustomersCSV } from "@/features/admin/actions";
+import { AdminPageKpis } from "@/features/admin/AdminPageKpis";
 import {
   PageHeader,
   TableWrapper,
@@ -65,6 +66,9 @@ export default function AdminCustomersPage() {
           </ButtonSecondary>
         }
       />
+
+      {/* KPI's */}
+      <AdminPageKpis queryKey="customer-kpis" queryFn={getCustomerKpis} />
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 12, marginBottom: 32, flexWrap: "wrap" }}>
