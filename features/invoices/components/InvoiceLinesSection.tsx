@@ -3,6 +3,7 @@
 import { InvoiceLineRow } from "./InvoiceLineRow";
 import { playSound } from "@/lib/utils/sound";
 import type { InvoiceLineInput } from "@/lib/types";
+import { useLocale } from "@/lib/i18n/context";
 
 export function InvoiceLinesSection({
   lines,
@@ -19,10 +20,11 @@ export function InvoiceLinesSection({
   ) => void;
   removeLine: (id: string) => void;
 }) {
+  const { t } = useLocale();
   return (
     <div style={{ marginBottom: 80 }}>
       <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>
-        Factuurregels
+        {t.invoices.invoiceLines}
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {lines.map((line, index) => (
@@ -53,7 +55,7 @@ export function InvoiceLinesSection({
             textTransform: "uppercase",
           }}
         >
-          + Regel toevoegen
+          {t.invoices.addLine}
         </button>
       </div>
     </div>

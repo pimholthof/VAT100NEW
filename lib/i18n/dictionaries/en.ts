@@ -282,6 +282,7 @@ const en = {
     selectClientPlaceholder: "Select client",
     closeQuickCreate: "[-] Close",
     openQuickCreate: "[+] New",
+    invoiceLines: "Invoice lines",
     issueAndPreview: "Issue & Preview",
     unitPieces: "Pieces",
     vatHigh: "High (21%)",

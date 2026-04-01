@@ -282,6 +282,7 @@ const nl = {
     selectClientPlaceholder: "Selecteer klant",
     closeQuickCreate: "[-] Sluiten",
     openQuickCreate: "[+] Nieuw",
+    invoiceLines: "Factuurregels",
     issueAndPreview: "Versturen & Voorbeeld",
     unitPieces: "Stuks",
     vatHigh: "Hoog (21%)",
