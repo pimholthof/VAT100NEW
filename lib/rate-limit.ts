@@ -14,15 +14,15 @@ const RATE_WINDOW_MS = 60_000;
 // In-memory fallback for when DB table doesn't exist
 const fallbackMap = new Map<string, { count: number; resetAt: number }>();
 
-function checkFallback(key: string): boolean {
+function checkFallback(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now();
   const entry = fallbackMap.get(key);
   if (!entry || now > entry.resetAt) {
-    fallbackMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    fallbackMap.set(key, { count: 1, resetAt: now + windowMs });
     return false;
   }
   entry.count++;
-  return entry.count > RATE_LIMIT;
+  return entry.count > limit;
 }
 
 /**
@@ -47,7 +47,7 @@ export async function isRateLimited(
 
     if (error) {
       // Table doesn't exist or other DB error — use fallback
-      return checkFallback(key);
+      return checkFallback(key, limit, windowMs);
     }
 
     if ((count ?? 0) >= limit) {
@@ -55,18 +55,21 @@ export async function isRateLimited(
     }
 
     // Record this request
-    await supabase.from("rate_limits").insert({ key });
+    const { error: insertError } = await supabase.from("rate_limits").insert({ key });
+    if (insertError) {
+      return checkFallback(key, limit, windowMs);
+    }
 
     // Cleanup old entries (async, non-blocking)
     supabase
       .from("rate_limits")
       .delete()
       .lt("created_at", windowStart)
-      .then(() => {});
+      .then(() => {}, () => {});
 
     return false;
   } catch {
     // Any error — fall back to in-memory
-    return checkFallback(key);
+    return checkFallback(key, limit, windowMs);
   }
 }

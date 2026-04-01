@@ -40,20 +40,21 @@ export default function TaxPage() {
   return (
     <div>
       {/* ══ HEADER ══ */}
-      <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr auto",
+        alignItems: "end",
+        borderBottom: "1px solid var(--color-black)",
+        paddingBottom: 20,
+        marginBottom: "var(--space-xl)",
+      }}>
         <div>
+          <p className="label" style={{ margin: "0 0 8px" }}>Fiscaal overzicht {now.getFullYear()}</p>
           <h1 className="display-title">Belasting</h1>
-          <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
-            Overzicht van je geschatte inkomstenbelasting en BTW
-          </p>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <a href="/api/export/btw" download className="btn-secondary">
-            Download lijst
-          </a>
-          <a href="/dashboard/tax/opening-balance" className="btn-secondary">
-            Openingsbalans
-          </a>
+        <div style={{ display: "flex", gap: 8 }}>
+          <a href="/api/export/btw" download className="btn-secondary">Download lijst</a>
+          <a href="/dashboard/tax/opening-balance" className="btn-secondary">Openingsbalans</a>
         </div>
       </div>
 
@@ -61,55 +62,72 @@ export default function TaxPage() {
           ZONE 1: INKOMSTENBELASTING
       ══════════════════════════════════════════════════ */}
 
-      {/* Hero + Jaarprognose in one compact row */}
       {isLoading ? (
         <SkeletonCard />
       ) : projection ? (
         <div style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr 1fr",
-          gap: 1,
-          background: "rgba(13,13,11,0.08)",
-          marginBottom: "var(--space-block)",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          borderTop: "1px solid var(--color-black)",
+          borderBottom: "1px solid var(--color-black)",
+          marginBottom: "var(--space-xl)",
         }}>
-          <div style={{ background: "var(--background)", padding: 20 }}>
-            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Geschatte IB {now.getFullYear()}</p>
-            <p className="mono-amount" style={{ margin: "0 0 4px", fontSize: "var(--text-display-sm)", fontWeight: 700 }}>
-              {formatCurrency(Math.round(projection.nettoIB))}
-            </p>
-            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, margin: 0 }}>
-              Effectief tarief: {projection.effectiefTarief.toFixed(1)}%
-            </p>
-          </div>
-          <div style={{ background: "var(--background)", padding: 20 }}>
-            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaaromzet</p>
-            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
-              {formatCurrency(Math.round(projection.prognoseJaarOmzet))}
-            </p>
-          </div>
-          <div style={{ background: "var(--background)", padding: 20 }}>
-            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaarkosten</p>
-            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
-              {formatCurrency(Math.round(projection.prognoseJaarKosten))}
-            </p>
-          </div>
-          <div style={{ background: "var(--background)", padding: 20 }}>
-            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Verwachte jaar-IB</p>
-            <p className="mono-amount" style={{ margin: 0, fontSize: "var(--text-display-sm)" }}>
-              {formatCurrency(Math.round(projection.prognoseJaarIB))}
-            </p>
-          </div>
+          {[
+            {
+              label: "Geschatte IB",
+              value: formatCurrency(Math.round(projection.nettoIB)),
+              sub: `Effectief tarief ${projection.effectiefTarief.toFixed(1)}%`,
+            },
+            {
+              label: "Jaaromzet",
+              value: formatCurrency(Math.round(projection.prognoseJaarOmzet)),
+              sub: `Verwacht ${now.getFullYear()}`,
+            },
+            {
+              label: "Jaarkosten",
+              value: formatCurrency(Math.round(projection.prognoseJaarKosten)),
+              sub: `Verwacht ${now.getFullYear()}`,
+            },
+            {
+              label: "Jaar-IB",
+              value: formatCurrency(Math.round(projection.prognoseJaarIB)),
+              sub: "Prognose op jaarbasis",
+            },
+          ].map((item, i) => (
+            <div
+              key={item.label}
+              style={{
+                padding: i === 0 ? "24px 24px 24px 0" : i === 3 ? "24px 0 24px 24px" : "24px",
+                borderLeft: i > 0 ? "0.5px solid rgba(0,0,0,0.08)" : "none",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                gap: 10,
+              }}
+            >
+              <p className="label" style={{ margin: 0 }}>{item.label}</p>
+              <p style={{ fontSize: "1.25rem", fontWeight: 600, letterSpacing: "-0.02em", margin: 0, lineHeight: 1 }}>
+                {item.value}
+              </p>
+              <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.35, margin: 0 }}>
+                {item.sub}
+              </p>
+            </div>
+          ))}
         </div>
       ) : null}
 
-      {/* Berekening */}
+      {/* Berekening — label links, inhoud rechts */}
       {projection && (
-        <div style={{ marginBottom: "var(--space-block)" }}>
-          <div style={{
-            background: "var(--background)",
-            border: "0.5px solid rgba(13,13,11,0.08)",
-            padding: "16px 24px",
-          }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "160px 1fr",
+          marginBottom: "var(--space-xl)",
+        }}>
+          <div style={{ paddingTop: 4 }}>
+            <p className="label" style={{ margin: 0, position: "sticky", top: 80 }}>Berekening</p>
+          </div>
+          <div style={{ borderLeft: "0.5px solid rgba(0,0,0,0.1)", paddingLeft: 32 }}>
             <BreakdownSection title="Winstberekening">
               <BreakdownLine label="Omzet (excl. BTW)" value={projection.brutoOmzet} />
               <BreakdownLine label="Kosten" value={-projection.kosten} negative />
@@ -144,145 +162,212 @@ export default function TaxPage() {
         </div>
       )}
 
-      {/* Investeringen & afschrijvingen */}
+      {/* Investeringen & afschrijvingen — zelfde grid rhythm */}
       {projection && projection.afschrijvingDetails.length > 0 && (
-        <div style={{ marginBottom: "var(--space-block)" }}>
-          <h3 className="section-header" style={{ margin: "0 0 12px" }}>
-            Investeringen & afschrijvingen
-          </h3>
-          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
-            <thead>
-              <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-                <Th>Omschrijving</Th>
-                <Th style={{ textAlign: "right" }}>Aanschafprijs</Th>
-                <Th style={{ textAlign: "right" }}>Afschrijving/jaar</Th>
-                <Th style={{ textAlign: "right" }}>Boekwaarde</Th>
-                <Th>Resterend</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {projection.afschrijvingDetails.map((row) => (
-                <DepreciationTableRow key={row.id} row={row} />
-              ))}
-            </tbody>
-            <tfoot>
-              <tr style={{ borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
-                <Td><span className="label-strong">Totaal</span></Td>
-                <Td style={{ textAlign: "right" }}>
-                  <span className="mono-amount">{formatCurrency(projection.afschrijvingDetails.reduce((s, r) => s + r.aanschafprijs, 0))}</span>
-                </Td>
-                <Td style={{ textAlign: "right" }}>
-                  <span className="mono-amount">{formatCurrency(projection.afschrijvingen)}</span>
-                </Td>
-                <Td style={{ textAlign: "right" }}>
-                  <span className="mono-amount">{formatCurrency(projection.afschrijvingDetails.reduce((s, r) => s + r.boekwaarde, 0))}</span>
-                </Td>
-                <Td />
-              </tr>
-            </tfoot>
-          </table>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "160px 1fr",
+          marginBottom: "var(--space-xl)",
+        }}>
+          <div style={{ paddingTop: 4 }}>
+            <p className="label" style={{ margin: 0 }}>Investeringen</p>
+          </div>
+          <div style={{ borderLeft: "0.5px solid rgba(0,0,0,0.1)", paddingLeft: 32 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--color-black)", textAlign: "left" }}>
+                  <Th>Omschrijving</Th>
+                  <Th style={{ textAlign: "right" }}>Aanschafprijs</Th>
+                  <Th style={{ textAlign: "right" }}>Afschrijving/jaar</Th>
+                  <Th style={{ textAlign: "right" }}>Boekwaarde</Th>
+                  <Th>Resterend</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {projection.afschrijvingDetails.map((row) => (
+                  <DepreciationTableRow key={row.id} row={row} />
+                ))}
+              </tbody>
+              <tfoot>
+                <tr style={{ borderTop: "1px solid var(--color-black)" }}>
+                  <Td><span className="label-strong">Totaal</span></Td>
+                  <Td style={{ textAlign: "right" }}>
+                    <span className="mono-amount">{formatCurrency(projection.afschrijvingDetails.reduce((s, r) => s + r.aanschafprijs, 0))}</span>
+                  </Td>
+                  <Td style={{ textAlign: "right" }}>
+                    <span className="mono-amount">{formatCurrency(projection.afschrijvingen)}</span>
+                  </Td>
+                  <Td style={{ textAlign: "right" }}>
+                    <span className="mono-amount">{formatCurrency(projection.afschrijvingDetails.reduce((s, r) => s + r.boekwaarde, 0))}</span>
+                  </Td>
+                  <Td />
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       )}
+      {/* ── Editorial breaker ── */}
+      <div style={{
+        margin: "var(--space-xl) 0",
+        height: 200,
+        borderRadius: "var(--radius)",
+        overflow: "hidden",
+        position: "relative",
+      }}>
+        <img
+          src="/images/office-walnut.png"
+          alt=""
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center 40%",
+            opacity: 0.12,
+            filter: "grayscale(100%)",
+          }}
+        />
+      </div>
 
       {/* ══════════════════════════════════════════════════
           ZONE 2: BTW (OMZETBELASTING)
       ══════════════════════════════════════════════════ */}
 
       <div style={{
-        borderTop: "0.5px solid rgba(13,13,11,0.08)",
-        paddingTop: "var(--space-section)",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "baseline",
-        flexWrap: "wrap",
-        gap: 8,
-        margin: "0 0 24px",
+        borderTop: "1px solid var(--color-black)",
+        paddingTop: "var(--space-xl)",
       }}>
-        <h2 className="section-header" style={{ margin: 0 }}>BTW (omzetbelasting)</h2>
-        {vatDeadline && (
-          <p className="label" style={{ margin: 0, opacity: 0.5 }}>
-            Volgende aangifte: {vatDeadline.quarter} — {vatDeadline.daysRemaining} dagen
-          </p>
-        )}
+        {/* BTW header */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto",
+          alignItems: "baseline",
+          marginBottom: "var(--space-lg)",
+        }}>
+          <h2 className="section-header" style={{ margin: 0 }}>BTW (omzetbelasting)</h2>
+          {vatDeadline && (
+            <p className="label" style={{ margin: 0 }}>
+              Volgende aangifte: {vatDeadline.quarter} — {vatDeadline.daysRemaining} dagen
+            </p>
+          )}
+        </div>
+
+        {/* BTW in same grid rhythm */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "160px 1fr",
+          marginBottom: "var(--space-xl)",
+        }}>
+          <div style={{ paddingTop: 4 }}>
+            <p className="label" style={{ margin: 0 }}>
+              {btwLoading ? "" : current ? (current.netVat >= 0 ? "Te betalen" : "Te vorderen") : ""}
+            </p>
+          </div>
+          <div style={{ borderLeft: "0.5px solid rgba(0,0,0,0.1)", paddingLeft: 32 }}>
+            {btwLoading ? (
+              <SkeletonCard />
+            ) : current ? (
+              <div style={{ marginBottom: 32 }}>
+                <p style={{
+                  fontSize: "clamp(2rem, 4vw, 3rem)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                  margin: "0 0 8px",
+                }}>
+                  {formatCurrency(Math.abs(current.netVat))}
+                </p>
+                <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.4, margin: 0 }}>
+                  {current.quarter} · Dit kwartaal
+                </p>
+              </div>
+            ) : null}
+
+            {/* Kwartaaloverzicht */}
+            <p className="label" style={{ margin: "0 0 16px" }}>Kwartaaloverzicht</p>
+
+            {btwLoading ? (
+              <SkeletonTable columns="1fr 1fr 1fr 1fr 1fr 1fr" rows={4} headerWidths={[60, 80, 70, 70, 60, 50]} bodyWidths={[50, 70, 60, 60, 50, 40]} />
+            ) : quarters.length > 0 ? (
+              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-lg)" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--color-black)", textAlign: "left" }}>
+                    <Th>Kwartaal</Th>
+                    <Th style={{ textAlign: "right" }}>Omzet</Th>
+                    <Th style={{ textAlign: "right" }}>BTW ontvangen</Th>
+                    <Th style={{ textAlign: "right" }}>BTW terugvraagbaar</Th>
+                    <Th style={{ textAlign: "right" }}>Netto BTW</Th>
+                    <Th>Status</Th>
+                    <Th style={{ textAlign: "right" }}>Aangifte</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {quarters.map((q: QuarterStats) => (
+                    <tr key={q.quarter} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+                      <Td><span className="mono-amount">{q.quarter}</span></Td>
+                      <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.revenueExVat)}</span></Td>
+                      <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.outputVat)}</span></Td>
+                      <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.inputVat)}</span></Td>
+                      <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.netVat)}</span></Td>
+                      <Td><span className="label" style={{ opacity: 1 }}>{q.netVat >= 0 ? "Te betalen" : "Te vorderen"}</span></Td>
+                      <Td style={{ textAlign: "right" }}>
+                        <a
+                          href={`/api/export/btw-aangifte?year=${q.quarter.split(" ")[1]}&quarter=${q.quarter.split(" ")[0].replace("Q", "")}`}
+                          download
+                          style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
+                          title="Download BTW aangifte CSV"
+                        >
+                          Aangifte &darr;
+                        </a>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="empty-state">Nog geen gegevens</p>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Hero: netto BTW dit kwartaal */}
-      {btwLoading ? (
-        <SkeletonCard />
-      ) : current ? (
-        <div style={{ marginBottom: 24 }}>
-          <p className="label" style={{ margin: "0 0 8px", opacity: 0.3 }}>
-            {current.netVat >= 0 ? "Te betalen dit kwartaal" : "Terug te vorderen dit kwartaal"}
-          </p>
-          <p className="mono-amount" style={{
-            fontSize: "var(--text-display-sm)",
-            fontWeight: 700,
-            margin: 0,
-          }}>
-            {formatCurrency(Math.abs(current.netVat))}
-          </p>
-        </div>
-      ) : null}
-
-      {/* Kwartaaloverzicht */}
-      <h3 className="section-header" style={{ margin: "0 0 12px" }}>Kwartaaloverzicht</h3>
-
-      {btwLoading ? (
-        <SkeletonTable columns="1fr 1fr 1fr 1fr 1fr 1fr" rows={4} headerWidths={[60, 80, 70, 70, 60, 50]} bodyWidths={[50, 70, 60, 60, 50, 40]} />
-      ) : quarters.length > 0 ? (
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "var(--space-block)" }}>
-          <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-              <Th>Kwartaal</Th>
-              <Th style={{ textAlign: "right" }}>Omzet</Th>
-              <Th style={{ textAlign: "right" }}>BTW ontvangen</Th>
-              <Th style={{ textAlign: "right" }}>BTW terugvraagbaar</Th>
-              <Th style={{ textAlign: "right" }}>Netto BTW</Th>
-              <Th>Status</Th>
-              <Th style={{ textAlign: "right" }}>Aangifte</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {quarters.map((q: QuarterStats) => (
-              <tr key={q.quarter} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                <Td><span className="mono-amount">{q.quarter}</span></Td>
-                <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.revenueExVat)}</span></Td>
-                <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.outputVat)}</span></Td>
-                <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.inputVat)}</span></Td>
-                <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.netVat)}</span></Td>
-                <Td><span className="label" style={{ opacity: 1 }}>{q.netVat >= 0 ? "Te betalen" : "Te vorderen"}</span></Td>
-                <Td style={{ textAlign: "right" }}>
-                  <a
-                    href={`/api/export/btw-aangifte?year=${q.quarter.split(" ")[1]}&quarter=${q.quarter.split(" ")[0].replace("Q", "")}`}
-                    download
-                    style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
-                    title="Download BTW aangifte CSV"
-                  >
-                    Aangifte &darr;
-                  </a>
-                </Td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p className="empty-state">Nog geen gegevens</p>
-      )}
-
       {/* ══════════════════════════════════════════════════
-          ZONE 3: BTW AANGIFTES (FISCUS-PROOF)
-      ══════════════════════════════════════════════════ */}
-
-      <BtwAangifteSection year={now.getFullYear()} />
-
-      {/* ══════════════════════════════════════════════════
-          ZONE 4: VOORLOPIGE AANSLAGEN
+          ZONE 3: VOORLOPIGE AANSLAGEN
       ══════════════════════════════════════════════════ */}
 
       <VoorlopigeAanslagSection year={now.getFullYear()} />
 
+      {/* ── Editorial breaker ── */}
+      <div style={{
+        margin: "var(--space-xl) 0",
+        height: 160,
+        borderRadius: "var(--radius)",
+        overflow: "hidden",
+      }}>
+        <img
+          src="/images/office-corridor.png"
+          alt=""
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center 60%",
+            opacity: 0.09,
+            filter: "grayscale(100%)",
+          }}
+        />
+      </div>
+
       {/* ══ DISCLAIMER ══ */}
-      <div style={{ padding: 20, background: "rgba(13,13,11,0.02)", fontSize: 11, fontWeight: 400, lineHeight: 1.6 }}>
+      <div style={{
+        padding: "20px 0",
+        marginTop: "var(--space-section)",
+        borderTop: "0.5px solid rgba(0,0,0,0.06)",
+        fontSize: 11,
+        fontWeight: 400,
+        lineHeight: 1.6,
+        opacity: 0.4,
+      }}>
         Dit is een schatting op basis van je facturen en bonnetjes.
         Doe je officiële BTW-aangifte via de Belastingdienst.
         Bewaar je administratie minimaal 7 jaar.
@@ -316,8 +401,8 @@ function DepreciationTableRow({ row }: { row: DepreciationRow }) {
 
 function BreakdownSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <p className="label" style={{ margin: "0 0 6px", opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10 }}>
+    <div style={{ marginBottom: 32 }}>
+      <p className="label" style={{ margin: "0 0 12px", fontSize: 10 }}>
         {title}
       </p>
       {children}
@@ -327,9 +412,9 @@ function BreakdownSection({ title, children }: { title: string; children: React.
 
 function BreakdownLine({ label, value, negative }: { label: string; value: number; negative?: boolean }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "var(--text-body-sm)" }}>
-      <span style={{ fontWeight: 300, opacity: 0.7 }}>{label}</span>
-      <span className="mono-amount" style={{ opacity: negative ? 0.5 : 0.9 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", fontSize: "var(--text-body-sm)" }}>
+      <span style={{ fontWeight: 400, opacity: 0.55 }}>{label}</span>
+      <span className="mono-amount" style={{ opacity: negative ? 0.4 : 0.85, marginLeft: 24 }}>
         {negative && value !== 0 ? "−" : ""}{formatCurrency(Math.abs(value))}
       </span>
     </div>
@@ -341,16 +426,17 @@ function BreakdownTotal({ label, value, highlight }: { label: string; value: num
     <div style={{
       display: "flex",
       justifyContent: "space-between",
-      padding: "8px 0 4px",
-      borderTop: "0.5px solid rgba(13,13,11,0.12)",
-      marginTop: 4,
+      padding: "12px 0 4px",
+      borderTop: "1px solid var(--color-black)",
+      marginTop: 6,
     }}>
-      <span style={{ fontWeight: 500, fontSize: "var(--text-body-sm)" }}>{label}</span>
+      <span style={{ fontWeight: 600, fontSize: "var(--text-body-sm)" }}>{label}</span>
       <span
         className="mono-amount"
         style={{
-          fontWeight: highlight ? 700 : 600,
-          fontSize: highlight ? "var(--text-body-lg)" : "var(--text-body-sm)",
+          fontWeight: 700,
+          fontSize: highlight ? "1.1rem" : "var(--text-body-md)",
+          color: highlight ? "var(--color-accent)" : "inherit",
         }}
       >
         {formatCurrency(Math.round(value))}
@@ -429,10 +515,14 @@ function BtwAangifteSection({ year }: { year: number }) {
                 disabled={generateMutation.isPending}
                 className="label-strong"
                 style={{
-                  padding: "10px 16px",
-                  border: "0.5px solid rgba(13,13,11,0.25)",
+                  padding: "12px 20px",
+                  border: "1px solid var(--color-black)",
+                  borderRadius: 9999,
                   background: "transparent",
                   cursor: "pointer",
+                  fontSize: 10,
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
                   opacity: generateMutation.isPending && preparingQ === q ? 0.5 : 1,
                 }}
               >
@@ -493,12 +583,15 @@ function BtwAangifteSection({ year }: { year: number }) {
                         disabled={lockMutation.isPending}
                         className="label-strong"
                         style={{
-                          padding: "6px 14px",
-                          border: "0.5px solid rgba(13,13,11,0.25)",
+                          padding: "10px 20px",
+                          border: "1px solid var(--color-black)",
+                          borderRadius: 9999,
                           background: "var(--foreground)",
                           color: "var(--background)",
                           cursor: "pointer",
-                          fontSize: 11,
+                          fontSize: 10,
+                          letterSpacing: "0.15em",
+                          textTransform: "uppercase",
                         }}
                       >
                         Vergrendelen
@@ -591,10 +684,14 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
           onClick={() => setShowForm(!showForm)}
           className="label-strong"
           style={{
-            padding: "10px 20px",
-            border: "0.5px solid rgba(13,13,11,0.25)",
+            padding: "12px 24px",
+            border: "1px solid var(--color-black)",
+            borderRadius: 9999,
             background: "transparent",
             cursor: "pointer",
+            fontSize: 10,
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
           }}
         >
           {showForm ? "Annuleer" : "+ Betaling toevoegen"}
@@ -606,16 +703,14 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
         <div style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: 1,
-          background: "rgba(13,13,11,0.08)",
-          marginBottom: 24,
+          marginBottom: 32,
         }}>
-          <div style={{ background: "var(--background)", padding: 20 }}>
-            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>Inkomstenbelasting</p>
-            <p className="mono-amount" style={{ margin: "0 0 4px", fontSize: "var(--text-body-lg)" }}>
-              {formatCurrency(summary.ibBetaald)} <span style={{ opacity: 0.4, fontSize: "var(--text-body-sm)" }}>betaald</span>
+          <div style={{ padding: "24px 24px 24px 0", borderRight: "0.5px solid rgba(0,0,0,0.08)" }}>
+            <p className="label" style={{ margin: "0 0 10px" }}>Inkomstenbelasting</p>
+            <p style={{ margin: "0 0 6px", fontSize: "var(--text-body-lg)", fontWeight: 600 }}>
+              {formatCurrency(summary.ibBetaald)} <span style={{ opacity: 0.35, fontSize: "var(--text-body-sm)", fontWeight: 400 }}>betaald</span>
             </p>
-            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.5, margin: 0 }}>
+            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, margin: 0 }}>
               Geschat: {formatCurrency(summary.geschatteIB)} — {summary.verschilIB > 0
                 ? `nog ${formatCurrency(summary.verschilIB)} te betalen`
                 : summary.verschilIB < 0
@@ -623,12 +718,12 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                   : "op schema"}
             </p>
           </div>
-          <div style={{ background: "var(--background)", padding: 20 }}>
-            <p className="label" style={{ margin: "0 0 8px", opacity: 0.4 }}>BTW</p>
-            <p className="mono-amount" style={{ margin: "0 0 4px", fontSize: "var(--text-body-lg)" }}>
-              {formatCurrency(summary.btwBetaald)} <span style={{ opacity: 0.4, fontSize: "var(--text-body-sm)" }}>betaald</span>
+          <div style={{ padding: "24px 0 24px 24px" }}>
+            <p className="label" style={{ margin: "0 0 10px" }}>BTW</p>
+            <p style={{ margin: "0 0 6px", fontSize: "var(--text-body-lg)", fontWeight: 600 }}>
+              {formatCurrency(summary.btwBetaald)} <span style={{ opacity: 0.35, fontSize: "var(--text-body-sm)", fontWeight: 400 }}>betaald</span>
             </p>
-            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.5, margin: 0 }}>
+            <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, margin: 0 }}>
               Geschat: {formatCurrency(summary.geschatteBTW)} — {summary.verschilBTW > 0
                 ? `nog ${formatCurrency(summary.verschilBTW)} te betalen`
                 : summary.verschilBTW < 0
@@ -642,35 +737,37 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
       {/* Formulier */}
       {showForm && (
         <div style={{
-          padding: 20,
-          background: "rgba(13,13,11,0.02)",
-          border: "0.5px solid rgba(13,13,11,0.06)",
-          marginBottom: 24,
+          padding: "24px 0",
+          borderTop: "0.5px solid rgba(0,0,0,0.06)",
+          borderBottom: "0.5px solid rgba(0,0,0,0.06)",
+          marginBottom: 32,
         }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 16, alignItems: "end" }}>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Type</label>
+              <label className="label" style={{ display: "block", marginBottom: 8 }}>Type</label>
               <select
                 value={formType}
                 onChange={(e) => setFormType(e.target.value as TaxPaymentType)}
-                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
+                className="input-field"
+                style={{ height: 48, boxSizing: "border-box" }}
               >
                 <option value="ib">Inkomstenbelasting</option>
                 <option value="btw">BTW</option>
               </select>
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Periode</label>
+              <label className="label" style={{ display: "block", marginBottom: 8 }}>Periode</label>
               <input
                 type="text"
                 value={formPeriod}
                 onChange={(e) => setFormPeriod(e.target.value)}
                 placeholder={`${year} of ${year}-Q1`}
-                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
+                className="input-field"
+                style={{ height: 48, boxSizing: "border-box" }}
               />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Bedrag</label>
+              <label className="label" style={{ display: "block", marginBottom: 8 }}>Bedrag</label>
               <input
                 type="number"
                 step="0.01"
@@ -678,32 +775,28 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 value={formAmount}
                 onChange={(e) => setFormAmount(e.target.value)}
                 placeholder="0,00"
-                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
+                className="input-field"
+                style={{ height: 48, boxSizing: "border-box" }}
               />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 6, opacity: 0.5 }}>Betaaldatum</label>
+              <label className="label" style={{ display: "block", marginBottom: 8 }}>Betaaldatum</label>
               <input
                 type="date"
                 value={formDate}
                 onChange={(e) => setFormDate(e.target.value)}
-                style={{ width: "100%", padding: "12px 16px", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 8, background: "rgba(0,0,0,0.015)", fontSize: 14, fontFamily: "inherit", height: 48, boxSizing: "border-box" }}
+                className="input-field"
+                style={{ height: 48, boxSizing: "border-box" }}
               />
             </div>
             <button
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !formAmount}
-              className="label-strong"
+              className="btn-primary"
               style={{
-                padding: "12px 20px",
-                border: "none",
-                borderRadius: 8,
-                background: "var(--foreground)",
-                color: "var(--background)",
-                cursor: "pointer",
                 height: 48,
                 boxSizing: "border-box",
-                opacity: createMutation.isPending || !formAmount ? 0.5 : 1,
+                opacity: createMutation.isPending || !formAmount ? 0.4 : 1,
               }}
             >
               {createMutation.isPending ? "Opslaan..." : "Opslaan"}
@@ -731,7 +824,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
               <tr key={p.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
                 <Td>
                   <span className="label" style={{ opacity: 1 }}>
-                    {p.type === "ib" ? "IB" : "BTW"}
+                    {p.type === "ib" ? "Inkomstenbelasting" : "BTW"}
                   </span>
                 </Td>
                 <Td><span className="mono-amount">{p.period}</span></Td>

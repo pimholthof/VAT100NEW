@@ -18,6 +18,7 @@ const validInput: InvoiceInput = {
   issue_date: "2026-03-15",
   due_date: null,
   vat_rate: 21,
+  vat_scheme: "standard",
   notes: null,
   lines: [
     { id: "line-1", description: "Ontwikkeling", quantity: 10, unit: "uren", rate: 95 },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { m as motion , type Variants } from "framer-motion";
+import { m as motion, type Variants } from "framer-motion";
 import {
   getDashboardData,
   type DashboardData,
@@ -37,6 +37,7 @@ export default function DashboardClient({
   const data = dashboardResult?.data;
   const stats = data?.stats;
 
+  const openInvoices = data?.openInvoices;
   const upcomingInvoices = data?.upcomingInvoices;
   const safeToSpend = data?.safeToSpend;
   const vatDeadline = data?.vatDeadline;
@@ -186,6 +187,7 @@ export default function DashboardClient({
                 </p>
               </div>
             </div>
+            </div>
           </motion.div>
         </div>
       )}
@@ -248,8 +250,8 @@ export default function DashboardClient({
         </h2>
         {isLoading ? (
           <SkeletonTable />
-        ) : upcomingInvoices && upcomingInvoices.length > 0 ? (
-          <UpcomingInvoiceTable invoices={upcomingInvoices} />
+        ) : openInvoices && openInvoices.length > 0 ? (
+          <UpcomingInvoiceTable invoices={openInvoices} />
         ) : (
           <p className="empty-state">{t.dashboard.noOpenInvoices}</p>
         )}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+import { requirePlan } from "@/lib/supabase/server";
 import { isRateLimited } from "@/lib/rate-limit";
 import { CFO_TOOLS } from "@/lib/ai/tools";
 import { handleToolCall } from "@/lib/ai/tool-handlers";
@@ -9,37 +10,31 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const historyMessageSchema = z.object({
+  role: z.enum(["user", "ai"]),
+  content: z.string().trim().min(1, "Berichtinhoud ontbreekt."),
+});
+
+const chatRequestSchema = z.object({
+  query: z.string().trim().min(1, "Geen vraag gesteld"),
+  history: z.array(historyMessageSchema).max(50, "Te veel eerdere berichten.").optional().default([]),
+});
+
 // Maximum tool-use iterations to prevent infinite loops
 const MAX_TOOL_ITERATIONS = 5;
-
 
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user — prevents unauthorized API usage
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const planCheck = await requirePlan("compleet");
+    if (planCheck.error !== null) {
       return NextResponse.json(
-        { error: "Niet ingelogd." },
-        { status: 401 }
+        { error: planCheck.error },
+        { status: planCheck.status }
       );
     }
 
-    // Feature-gate: AI chat is Compleet-only
-    const { data: subscription } = await supabase
-      .from("subscriptions")
-      .select("plan_id, status")
-      .eq("user_id", user.id)
-      .in("status", ["active", "past_due"])
-      .single();
-
-    if (!subscription || subscription.plan_id !== "compleet") {
-      return NextResponse.json(
-        { error: "Upgrade naar Compleet om de AI boekhouder te gebruiken." },
-        { status: 403 }
-      );
-    }
+    const { supabase, user } = planCheck;
 
     // Rate limit per user (not IP — works across serverless instances)
     const limited = await isRateLimited(`ai-chat:${user.id}`);
@@ -50,12 +45,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { query, history } = await request.json();
-
-    if (!query) {
-      return NextResponse.json({ error: "Geen vraag gesteld" }, { status: 400 });
+    const requestBody = await request.json().catch(() => null);
+    if (requestBody === null) {
+      return NextResponse.json({ error: "Ongeldige request body." }, { status: 400 });
     }
 
+    const parsedBody = chatRequestSchema.safeParse(requestBody);
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: parsedBody.error.issues[0]?.message ?? "Ongeldige request body." },
+        { status: 400 }
+      );
+    }
+
+    const { query, history } = parsedBody.data;
 
     // Fetch user profile for context
     const { data: profile } = await supabase
@@ -90,13 +93,11 @@ Instructies:
     // Build messages: include history for multi-turn, then add new query
     const messages: Anthropic.MessageParam[] = [];
 
-    if (Array.isArray(history)) {
-      for (const msg of history) {
-        if (msg.role === "user") {
-          messages.push({ role: "user", content: msg.content });
-        } else if (msg.role === "ai") {
-          messages.push({ role: "assistant", content: msg.content });
-        }
+    for (const msg of history) {
+      if (msg.role === "user") {
+        messages.push({ role: "user", content: msg.content });
+      } else if (msg.role === "ai") {
+        messages.push({ role: "assistant", content: msg.content });
       }
     }
 

@@ -1,7 +1,9 @@
 "use server";
 
+import { sanitizeSupabaseError } from "@/lib/errors";
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, HoursLog, HoursLogInput } from "@/lib/types";
+import { uuidSchema } from "@/lib/validation";
 
 export async function getHoursLog(filters?: {
   dateFrom?: string;
@@ -21,7 +23,15 @@ export async function getHoursLog(filters?: {
   if (filters?.dateTo) query = query.lte("date", filters.dateTo);
 
   const { data, error } = await query.limit(500);
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "getHoursLog",
+        userId: user.id,
+        filters,
+      }),
+    };
+  }
   return { error: null, data: (data ?? []) as HoursLog[] };
 }
 
@@ -47,7 +57,14 @@ export async function createHoursEntry(
     .select()
     .single();
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "createHoursEntry",
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null, data: data as HoursLog };
 }
 
@@ -55,9 +72,15 @@ export async function updateHoursEntry(
   id: string,
   input: HoursLogInput,
 ): Promise<ActionResult<HoursLog>> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldig urenregistratie-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
+
+  if (!input.hours || input.hours <= 0 || input.hours > 24) {
+    return { error: "Uren moeten tussen 0 en 24 liggen." };
+  }
 
   const { data, error } = await supabase
     .from("hours_log")
@@ -71,11 +94,21 @@ export async function updateHoursEntry(
     .select()
     .single();
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "updateHoursEntry",
+        entryId: id,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null, data: data as HoursLog };
 }
 
 export async function deleteHoursEntry(id: string): Promise<ActionResult> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldig urenregistratie-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -86,7 +119,15 @@ export async function deleteHoursEntry(id: string): Promise<ActionResult> {
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "deleteHoursEntry",
+        entryId: id,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null };
 }
 
@@ -111,7 +152,15 @@ export async function getYearTotalHours(
     .gte("date", yearStart)
     .lte("date", yearEnd);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "getYearTotalHours",
+        targetYear,
+        userId: user.id,
+      }),
+    };
+  }
 
   const total = (data ?? []).reduce((sum, h) => sum + (Number(h.hours) || 0), 0);
 

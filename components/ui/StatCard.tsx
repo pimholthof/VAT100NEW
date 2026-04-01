@@ -1,5 +1,5 @@
 import React from "react";
-import { m as motion  } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { AnimatedNumber } from "./AnimatedNumber";
 
 export function StatCard({
