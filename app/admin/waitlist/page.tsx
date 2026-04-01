@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getWaitlist } from "@/features/admin/actions";
+import { getWaitlist, getWaitlistKpis } from "@/features/admin/actions";
+import { AdminPageKpis } from "@/features/admin/AdminPageKpis";
 import { PageHeader, TableWrapper, Th, Td, Input, ButtonSecondary, SkeletonTable } from "@/components/ui";
 import { formatDateLong } from "@/lib/format";
 
@@ -23,6 +24,9 @@ export default function AdminWaitlistPage() {
   return (
     <div>
       <PageHeader title="Wachtlijst" backHref="/admin" backLabel="Beheer" />
+
+      {/* KPI's */}
+      <AdminPageKpis queryKey="waitlist-kpis" queryFn={getWaitlistKpis} />
 
       {/* Zoeken */}
       <div style={{ marginBottom: 32 }}>

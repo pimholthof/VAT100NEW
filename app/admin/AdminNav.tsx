@@ -18,11 +18,12 @@ export function AdminNav() {
   }
 
   const navLinks = [
-    { href: "/admin", label: "Pipeline" },
-    { href: "/admin/customers", label: "Klantbeheer" },
+    { href: "/admin", label: "Overzicht" },
+    { href: "/admin/pipeline", label: "Pipeline" },
+    { href: "/admin/customers", label: "Klanten" },
     { href: "/admin/users", label: "Gebruikers" },
     { href: "/admin/waitlist", label: "Wachtlijst" },
-    { href: "/admin/audit", label: "Fiscale Controle" },
+    { href: "/admin/audit", label: "Controle" },
   ];
 
   const isActive = (href: string) => {

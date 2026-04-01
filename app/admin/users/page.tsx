@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { getUsers } from "@/features/admin/actions";
+import { getUsers, getUserKpis } from "@/features/admin/actions";
+import { AdminPageKpis } from "@/features/admin/AdminPageKpis";
 import { PageHeader, TableWrapper, Th, Td, Input, Select, ButtonSecondary, SkeletonTable } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import type { AdminUser } from "@/lib/types";
@@ -35,6 +36,9 @@ export default function AdminUsersPage() {
   return (
     <div>
       <PageHeader title="Gebruikers" backHref="/admin" backLabel="Beheer" />
+
+      {/* KPI's */}
+      <AdminPageKpis queryKey="user-kpis" queryFn={getUserKpis} />
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 12, marginBottom: 32, flexWrap: "wrap" }}>
