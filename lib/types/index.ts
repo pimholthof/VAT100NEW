@@ -532,6 +532,23 @@ export interface ImportPreviewRow {
   [key: string]: string;
 }
 
+// ─── Chat types ───
+
+export interface ChatConversation {
+  id: string;
+  user_id: string;
+  updated_at: string;
+  created_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  sender: "user" | "admin";
+  message: string;
+  created_at: string;
+}
+
 // ─── Admin types ───
 
 export type UserRole = "user" | "admin";

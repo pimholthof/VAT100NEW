@@ -909,6 +909,16 @@ const en = {
     disclaimer: "This overview is indicative and not a substitute for professional accounting advice. Consult an accountant for your final annual report and tax return.",
   },
 
+  // ─── Chat ───
+  chat: {
+    button: "Support",
+    title: "SUPPORT",
+    placeholder: "Type a message...",
+    send: "Send",
+    sending: "Sending...",
+    empty: "Ask us a question, we\u2019ll reply as soon as possible.",
+  },
+
   // ─── Errors ───
   errors: {
     generic: "Something went wrong",

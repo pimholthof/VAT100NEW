@@ -910,6 +910,16 @@ const nl = {
     disclaimer: "Dit overzicht is indicatief en geen vervanging voor professioneel boekhoudkundig advies. Raadpleeg een accountant voor je definitieve jaarrekening en belastingaangifte.",
   },
 
+  // ─── Chat ───
+  chat: {
+    button: "Klantenservice",
+    title: "KLANTENSERVICE",
+    placeholder: "Typ een bericht...",
+    send: "Verstuur",
+    sending: "Versturen...",
+    empty: "Stel ons een vraag, we reageren zo snel mogelijk.",
+  },
+
   // ─── Errors ───
   errors: {
     generic: "Er is iets misgegaan",

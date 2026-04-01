@@ -15,8 +15,11 @@ export { getWaitlist, getWaitlistCount } from "./waitlist";
 
 export { getAuditLog } from "./audit";
 
+export { getChatConversations, getChatConversationMessages, sendAdminChatMessage, getChatKpis } from "./chat";
+
 // Type re-exports
 export type { RevenueMetrics, AdminAlert, AdminLeadRow, AdminCustomerRow, AdminDashboardData, PageKpis } from "./stats";
 export type { CustomerOverviewItem, CustomerDetail } from "./customers";
 export type { WaitlistEntry } from "./waitlist";
 export type { AuditLogEntry } from "./audit";
+export type { ChatConversationWithUser } from "./chat";

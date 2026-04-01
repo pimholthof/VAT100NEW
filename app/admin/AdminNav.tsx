@@ -14,6 +14,7 @@ export function AdminNav() {
     { href: "/admin", label: "Overzicht", match: "/admin" },
     { href: "/admin/users", label: "Gebruikers", match: "/admin/users" },
     { href: "/admin/waitlist", label: "Wachtlijst", match: "/admin/waitlist" },
+    { href: "/admin/feedback", label: "Feedback", match: "/admin/feedback" },
   ];
 
   function isActive(match: string) {
