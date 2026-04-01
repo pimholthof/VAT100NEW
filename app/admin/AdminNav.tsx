@@ -22,8 +22,12 @@ export function AdminNav() {
     { href: "/admin/pipeline", label: "Pipeline" },
     { href: "/admin/customers", label: "Klanten" },
     { href: "/admin/users", label: "Gebruikers" },
+    { href: "/admin/analytics", label: "Analytics" },
     { href: "/admin/waitlist", label: "Wachtlijst" },
     { href: "/admin/audit", label: "Controle" },
+    { href: "/admin/audit-log", label: "Audit Log" },
+    { href: "/admin/system", label: "Systeem" },
+    { href: "/admin/settings", label: "Instellingen" },
   ];
 
   const isActive = (href: string) => {
