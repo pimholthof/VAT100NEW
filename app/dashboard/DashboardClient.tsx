@@ -29,6 +29,9 @@ export default function DashboardClient({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
     initialData: initialResult,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
 
   const data = dashboardResult?.data;
@@ -40,7 +43,7 @@ export default function DashboardClient({
 
   const urgentInvoiceCount = upcomingInvoices?.filter((invoice) => invoice.days_overdue > 0).length ?? 0;
   const upcomingInvoiceAmount = upcomingInvoices?.reduce((sum, invoice) => sum + invoice.total_inc_vat, 0) ?? 0;
-  const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.days_overdue <= 0);
+  const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.due_date && invoice.days_overdue <= 0);
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
@@ -48,14 +51,18 @@ export default function DashboardClient({
   };
 
   const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
+  const nextInvoiceDueLabel = nextInvoiceDue?.due_date
+    ? new Intl.DateTimeFormat(dateLocale, { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))
+    : null;
+
   const heroMessage = urgentInvoiceCount > 0
     ? t.dashboard.invoicesOverdue
         .replace("{count}", String(urgentInvoiceCount))
         .replace("{plural}", urgentInvoiceCount === 1 ? t.dashboard.invoiceOverdueSingular : t.dashboard.invoiceOverduePlural)
-    : nextInvoiceDue
+    : nextInvoiceDue && nextInvoiceDueLabel
       ? t.dashboard.nextDeadline
           .replace("{client}", nextInvoiceDue.client_name)
-          .replace("{date}", new Intl.DateTimeFormat(dateLocale, { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date)))
+          .replace("{date}", nextInvoiceDueLabel)
       : t.dashboard.noUrgentInvoices;
 
   if (dashboardResult?.error) {
@@ -94,41 +101,90 @@ export default function DashboardClient({
       {/* ── HERO ── */}
       {!isLoading && (
         <div className="dashboard-home-hero">
-          <motion.div variants={itemVariants} className="dashboard-home-hero-copy">
-            <p className="label" style={{ margin: 0 }}>{t.dashboard.today}</p>
-            <h1 className="dashboard-home-title">{t.dashboard.heroTitle}</h1>
-            <p className="dashboard-home-intro">{heroMessage}</p>
+          <motion.div variants={itemVariants} className="dashboard-home-hero-copy" style={{ position: "relative" }}>
+            {/* Editorial moodboard background */}
+            <div style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "60%",
+              borderRadius: "var(--radius)",
+              overflow: "hidden",
+            }}>
+              <img
+                src="/images/office-walnut.png"
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center 30%",
+                  opacity: 0.14,
+                  filter: "grayscale(80%)",
+                }}
+              />
+            </div>
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <p className="label" style={{ margin: 0 }}>{t.dashboard.today}</p>
+              <h1 className="dashboard-home-title">{t.dashboard.heroTitle}</h1>
+              <p className="dashboard-home-intro">{heroMessage}</p>
+            </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="dashboard-home-hero-stats">
-            <div className="dashboard-home-meta-item">
-              <span className="label">{t.dashboard.freeToSpend}</span>
-              <span className="dashboard-home-meta-value">
-                {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
-              </span>
-              <p className="dashboard-home-meta-sub">
-                {t.dashboard.balance} {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : t.dashboard.balanceNotAvailable}
-              </p>
+          <motion.div variants={itemVariants} style={{ position: "relative" }}>
+            {/* Subtle editorial image */}
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "var(--radius)",
+              overflow: "hidden",
+              zIndex: 0,
+            }}>
+              <img
+                src="/images/office-hero.png"
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                  opacity: 0.08,
+                  filter: "grayscale(100%)",
+                  mixBlendMode: "multiply",
+                }}
+              />
             </div>
+            <div className="dashboard-home-hero-stats" style={{ position: "relative", zIndex: 1 }}>
+              <div className="dashboard-home-meta-item">
+                <span className="label">{t.dashboard.freeToSpend}</span>
+                <span className="dashboard-home-meta-value">
+                  {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
+                </span>
+                <p className="dashboard-home-meta-sub">
+                  {t.dashboard.balance} {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : t.dashboard.balanceNotAvailable}
+                </p>
+              </div>
 
-            <div className="dashboard-home-meta-item">
-              <span className="label">{t.dashboard.vatDeadline}</span>
-              <span className="dashboard-home-meta-value">
-                {vatDeadline ? `${vatDeadline.daysRemaining} ${t.dashboard.days}` : "—"}
-              </span>
-              <p className="dashboard-home-meta-sub">
-                {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : t.dashboard.noDeadline}
-              </p>
-            </div>
+              <div className="dashboard-home-meta-item">
+                <span className="label">{t.dashboard.vatDeadline}</span>
+                <span className="dashboard-home-meta-value">
+                  {vatDeadline ? `${vatDeadline.daysRemaining} ${t.dashboard.days}` : "—"}
+                </span>
+                <p className="dashboard-home-meta-sub">
+                  {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : t.dashboard.noDeadline}
+                </p>
+              </div>
 
-            <div className="dashboard-home-meta-item">
-              <span className="label">{t.dashboard.outstandingAmount}</span>
-              <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
-              <p className="dashboard-home-meta-sub">
-                {urgentInvoiceCount > 0
-                  ? `${urgentInvoiceCount} ${t.dashboard.overdue}`
-                  : `${upcomingInvoices?.length ?? 0} ${t.dashboard.invoicesShortTerm}`}
-              </p>
+              <div className="dashboard-home-meta-item">
+                <span className="label">{t.dashboard.outstandingAmount}</span>
+                <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
+                <p className="dashboard-home-meta-sub">
+                  {urgentInvoiceCount > 0
+                    ? `${urgentInvoiceCount} ${t.dashboard.overdue}`
+                    : `${upcomingInvoices?.length ?? 0} ${t.dashboard.invoicesShortTerm}`}
+                </p>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -176,9 +232,9 @@ export default function DashboardClient({
       {/* ── FISCAL PULSE ── */}
       {safeToSpend && !isLoading && (
         <motion.div variants={itemVariants}>
-          <FiscalPulse 
-            safeToSpend={safeToSpend.safeToSpend} 
-            currentBalance={safeToSpend.currentBalance} 
+          <FiscalPulse
+            safeToSpend={safeToSpend.safeToSpend}
+            currentBalance={safeToSpend.currentBalance}
             isLoading={isLoading}
           />
         </motion.div>
