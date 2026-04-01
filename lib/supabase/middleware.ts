@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const publicRoutes = ["/login", "/register", "/auth/callback", "/invoice"];
+  const publicRoutes = ["/login", "/register", "/auth/callback", "/invoice", "/setup-founder"];
   const authOnlyRoutes = ["/onboarding", "/abonnement"];
   const isPublicRoute =
     pathname === "/" ||

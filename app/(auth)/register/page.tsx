@@ -1,9 +1,10 @@
 "use client";
 
 import { register } from "../actions";
+import { getLeadByToken, initiateLeadPayment } from "@/features/admin/actions";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useLocale } from "@/lib/i18n/context";
 
 const inputStyle: React.CSSProperties = {
@@ -21,10 +22,30 @@ const inputStyle: React.CSSProperties = {
 
 function RegisterForm() {
   const searchParams = useSearchParams();
-  const plan = searchParams.get("plan");
+  const token = searchParams.get("token");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const { t } = useLocale();
+  const [leadData, setLeadData] = useState<{ id: string, email: string, full_name: string, company_name: string, plan_id: string | null } | null>(null);
+  const [isLoadingToken, setIsLoadingToken] = useState(!!token);
+
+  useEffect(() => {
+    if (token) {
+      const fetchLead = async () => {
+        setIsLoadingToken(true);
+        const result = await getLeadByToken(token);
+        if (result.data) {
+          setLeadData(result.data);
+        } else if (result.error) {
+          setError(result.error);
+        }
+        setIsLoadingToken(false);
+      };
+      fetchLead();
+    }
+  }, [token]);
+
+  const plan = leadData?.plan_id || searchParams.get("plan");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,6 +62,27 @@ function RegisterForm() {
 
     setPending(true);
     const formData = new FormData(form);
+
+    // AUTO-PILOT FLOW: If this is a lead with a token, redirect to Mollie
+    if (leadData?.id) {
+      const result = await initiateLeadPayment(
+        leadData.id,
+        plan || "",
+        formData.get("full_name") as string,
+        formData.get("studio_name") as string,
+        password
+      );
+
+      if (result.data?.checkoutUrl) {
+        window.location.href = result.data.checkoutUrl;
+      } else {
+        setError(result.error || "Kon betaallink niet genereren.");
+        setPending(false);
+      }
+      return;
+    }
+
+    // REGULAR REGISTRATION FLOW
     const result = await register(formData);
 
     if (result?.error) {
@@ -82,6 +124,22 @@ function RegisterForm() {
           >
             {t.auth.createAccount}
           </h1>
+          {leadData && (
+            <div style={{ 
+              marginTop: "16px", 
+              padding: "12px 16px", 
+              backgroundColor: "rgba(0,0,0,0.03)", 
+              borderLeft: "2px solid var(--color-black)",
+              fontSize: "13px"
+            }}>
+              <span style={{ fontWeight: 700 }}>Welkom terug!</span> We hebben je gegevens van de wachtlijst alvast klaargezet.
+            </div>
+          )}
+          {isLoadingToken && (
+            <div style={{ marginTop: "16px", fontSize: "12px", opacity: 0.5 }}>
+              Gegevens ophalen...
+            </div>
+          )}
         </div>
 
         {/* Form — flat, no card */}
@@ -89,17 +147,17 @@ function RegisterForm() {
             {plan && <input type="hidden" name="plan" value={plan} />}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label htmlFor="full_name" className="label">{t.auth.fullName}</label>
-              <input id="full_name" name="full_name" type="text" required autoComplete="name" style={inputStyle} />
+              <input id="full_name" name="full_name" type="text" required autoComplete="name" style={inputStyle} defaultValue={leadData?.full_name || ""} />
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label htmlFor="studio_name" className="label">{t.auth.companyName}</label>
-              <input id="studio_name" name="studio_name" type="text" required placeholder={t.auth.companyNamePlaceholder} autoComplete="organization" style={inputStyle} />
+              <input id="studio_name" name="studio_name" type="text" required placeholder={t.auth.companyNamePlaceholder} autoComplete="organization" style={inputStyle} defaultValue={leadData?.company_name || ""} />
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label htmlFor="email" className="label">{t.auth.email}</label>
-              <input id="email" name="email" type="email" required autoComplete="email" style={inputStyle} />
+              <input id="email" name="email" type="email" required autoComplete="email" style={inputStyle} defaultValue={leadData?.email || ""} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -128,7 +186,7 @@ function RegisterForm() {
               className="btn-primary"
               style={{ marginTop: 8, width: "100%" }}
             >
-              {pending ? t.common.waiting : t.auth.createAccount}
+              {pending ? t.common.waiting : (leadData ? "Betalen & Activeren" : t.auth.createAccount)}
             </button>
           </form>
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMolliePayment } from "@/lib/payments/mollie";
 import { createServiceClient } from "@/lib/supabase/service";
 import { activateSubscriptionAfterPayment } from "@/features/subscriptions/actions";
+import { autoProvisionAccount } from "@/features/admin/actions";
 
 /**
  * Mollie webhook: wordt aangeroepen wanneer een betaalstatus wijzigt.
@@ -21,7 +22,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error ?? "Betaling niet gevonden" }, { status: 500 });
     }
 
-    // Check if this is a subscription payment
+    // 1. Check for Lead Payment (Auto-Pilot)
+    if (payment.metadata?.type === "lead_payment") {
+      return handleLeadPayment(payment, paymentId);
+    }
+
+    // 2. Check if this is a subscription payment
     const isSubscriptionPayment =
       payment.metadata?.type === "subscription_first" ||
       payment.subscriptionId;
@@ -36,6 +42,42 @@ export async function POST(request: NextRequest) {
     const message = e instanceof Error ? e.message : "Onbekende fout";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+async function handleLeadPayment(
+  payment: Awaited<ReturnType<typeof getMolliePayment>>["data"] & {},
+  paymentId: string
+) {
+  if (payment.status === "paid") {
+    const leadId = payment.metadata?.lead_id;
+    if (leadId) {
+      console.log(`[Webhook] Lead payment success. Activating lead: ${leadId}`);
+      
+      // TRIGGER AUTO-PROVISIONING
+      const result = await autoProvisionAccount(leadId);
+      
+      if (result.error) {
+        console.error(`[Webhook] Error provisioning lead ${leadId}:`, result.error);
+        return NextResponse.json({ error: result.error }, { status: 500 });
+      }
+
+      return NextResponse.json({ status: "lead_activated", leadId });
+    }
+  }
+
+  if (payment.status === "failed" || payment.status === "expired" || payment.status === "canceled") {
+    const leadId = payment.metadata?.lead_id;
+    if (leadId) {
+      const supabase = createServiceClient();
+      await supabase.from("system_events").insert({
+        event_type: "lead.payment_expired",
+        payload: { lead_id: leadId, status: payment.status }
+      });
+      return NextResponse.json({ status: "lead_failure_logged", leadId });
+    }
+  }
+
+  return NextResponse.json({ status: "ignored", paymentStatus: payment.status });
 }
 
 async function handleSubscriptionPayment(
@@ -94,15 +136,29 @@ async function handleSubscriptionPayment(
     }
   }
 
-  if (payment.status === "failed") {
+  if (payment.status === "failed" || payment.status === "expired") {
     // Mark subscription as past_due
     if (payment.subscriptionId) {
-      await supabase
+      const { data: sub } = await supabase
         .from("subscriptions")
         .update({ status: "past_due", updated_at: new Date().toISOString() })
-        .eq("mollie_subscription_id", payment.subscriptionId);
+        .eq("mollie_subscription_id", payment.subscriptionId)
+        .select("id")
+        .single();
+
+      if (sub) {
+        // EMIT SYSTEM EVENT FOR RETENTION AGENT
+        await supabase.from("system_events").insert({
+          event_type: "subscription.payment_failed",
+          payload: { 
+            subscription_id: sub.id, 
+            mollie_payment_id: paymentId,
+            status: payment.status
+          }
+        });
+      }
     }
-    return NextResponse.json({ status: "payment_failed" });
+    return NextResponse.json({ status: "payment_failed_logged" });
   }
 
   return NextResponse.json({ status: "ignored", paymentStatus: payment.status });
