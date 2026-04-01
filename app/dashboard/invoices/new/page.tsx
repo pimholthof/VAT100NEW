@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function NewInvoicePage() {
+  const { t } = useLocale();
   const resetForm = useInvoiceStore((s) => s.resetForm);
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function NewInvoicePage() {
           margin: "0 0 32px",
         }}
       >
-        Nieuwe factuur
+        {t.invoices.newInvoice}
       </h1>
       <InvoiceForm />
     </div>

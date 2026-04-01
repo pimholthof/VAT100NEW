@@ -8,6 +8,7 @@ import { getKostensoortByCode, KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { Receipt } from "@/lib/types";
 import { Th, Td, SkeletonTable, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/context";
 
 const CATEGORY_OPTIONS = KOSTENSOORTEN.map((k) => ({
   value: k.label,
@@ -15,6 +16,7 @@ const CATEGORY_OPTIONS = KOSTENSOORTEN.map((k) => ({
 }));
 
 export default function ReceiptsTab() {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -79,7 +81,7 @@ export default function ReceiptsTab() {
     <div>
       <div className="page-header">
         <h1 className="display-title">
-          Bonnen
+          {t.receipts.title}
         </h1>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <a
@@ -87,21 +89,21 @@ export default function ReceiptsTab() {
             download
             className="btn-secondary"
           >
-            Exporteer CSV
+            {t.common.export}
           </a>
           <Link
             href="/dashboard/receipts/new"
             className="btn-primary"
           >
-            + Nieuwe bon
+            {t.receipts.newReceiptBtn}
           </Link>
         </div>
       </div>
 
       <SearchFilter
-        placeholder="Zoek op leverancier of bedrag..."
+        placeholder={t.receipts.searchPlaceholder}
         filters={[
-          { key: "category", label: "Alle categorieën", options: CATEGORY_OPTIONS },
+          { key: "category", label: t.receipts.allCategories, options: CATEGORY_OPTIONS },
         ]}
         onSearch={handleSearch}
         onFilterChange={handleFilter}
@@ -121,7 +123,7 @@ export default function ReceiptsTab() {
           }}
         >
           <span style={{ fontWeight: 500 }}>
-            {selected.size} {selected.size === 1 ? "bon" : "bonnen"} geselecteerd
+            {t.receipts.selectedCount.replace("{count}", String(selected.size)).replace("{plural}", selected.size === 1 ? t.receipts.bonSingular : t.receipts.bonPlural)}
           </span>
           <button
             onClick={() => setBulkDeleteOpen(true)}
@@ -137,7 +139,7 @@ export default function ReceiptsTab() {
               color: "#c00",
             }}
           >
-            {bulkDeleteMutation.isPending ? "Bezig..." : "Verwijderen"}
+            {bulkDeleteMutation.isPending ? t.common.busy : t.common.delete}
           </button>
           <button
             onClick={() => setSelected(new Set())}
@@ -149,7 +151,7 @@ export default function ReceiptsTab() {
               opacity: 0.5,
             }}
           >
-            Deselecteer
+            {t.common.deselect}
           </button>
         </div>
       )}
@@ -163,7 +165,7 @@ export default function ReceiptsTab() {
       ) : receipts.length === 0 ? (
         <div style={{ paddingTop: "var(--space-block)" }}>
           <p className="empty-state">
-            {search || categoryFilter ? "Geen bonnen gevonden" : "Nog geen bonnen"}
+            {search || categoryFilter ? t.receipts.noReceiptsFound : t.receipts.noReceiptsYet}
           </p>
           {!search && !categoryFilter && (
             <Link
@@ -171,7 +173,7 @@ export default function ReceiptsTab() {
               className="table-action"
               style={{ opacity: 0.4 }}
             >
-              Voeg je eerste bon toe
+              {t.receipts.addFirst}
             </Link>
           )}
         </div>
@@ -185,16 +187,16 @@ export default function ReceiptsTab() {
                   checked={allSelected}
                   onChange={toggleAll}
                   style={{ cursor: "pointer", accentColor: "#000" }}
-                  aria-label="Selecteer alle bonnen"
+                  aria-label={t.receipts.selectAll}
                 />
               </Th>
-              <Th>Datum</Th>
-              <Th>Leverancier</Th>
-              <Th>Kostensoort</Th>
-              <Th style={{ textAlign: "right" }}>Excl. BTW</Th>
-              <Th style={{ textAlign: "right" }}>BTW</Th>
-              <Th style={{ textAlign: "right" }}>Incl. BTW</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
+              <Th>{t.common.date}</Th>
+              <Th>{t.receipts.vendor}</Th>
+              <Th>{t.receipts.costType}</Th>
+              <Th style={{ textAlign: "right" }}>{t.receipts.exVat}</Th>
+              <Th style={{ textAlign: "right" }}>{t.receipts.vat}</Th>
+              <Th style={{ textAlign: "right" }}>{t.receipts.incVat}</Th>
+              <Th style={{ textAlign: "right" }}>{t.common.actions}</Th>
             </tr>
           </thead>
           <tbody>
@@ -218,7 +220,7 @@ export default function ReceiptsTab() {
                       checked={isSelected}
                       onChange={() => toggleOne(receipt.id)}
                       style={{ cursor: "pointer", accentColor: "#000" }}
-                      aria-label={`Selecteer bon ${receipt.vendor_name ?? receipt.id}`}
+                      aria-label={`${t.common.select} ${receipt.vendor_name ?? receipt.id}`}
                     />
                   </Td>
                   <Td>
@@ -230,7 +232,7 @@ export default function ReceiptsTab() {
                     {receipt.vendor_name ?? "—"}
                     {receipt.business_percentage < 100 && (
                       <span style={{ fontSize: "var(--text-body-xs)", opacity: 0.4, marginLeft: 6 }}>
-                        {receipt.business_percentage}% zakelijk
+                        {receipt.business_percentage}% {t.receipts.businessPercent}
                       </span>
                     )}
                   </Td>
@@ -258,7 +260,7 @@ export default function ReceiptsTab() {
                         href={`/dashboard/receipts/${receipt.id}`}
                         className="table-action"
                       >
-                        Bekijk
+                        {t.common.view}
                       </Link>
                       <button
                         onClick={() => {
@@ -272,7 +274,7 @@ export default function ReceiptsTab() {
                           opacity: 0.3,
                         }}
                       >
-                        Verwijder
+                        {t.common.delete}
                       </button>
                     </div>
                   </Td>
@@ -285,9 +287,9 @@ export default function ReceiptsTab() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Bon verwijderen"
-        message="Weet je zeker dat je deze bon wilt verwijderen?"
-        confirmLabel="Verwijderen"
+        title={t.receipts.deleteTitle}
+        message={t.receipts.deleteMessage}
+        confirmLabel={t.common.delete}
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget);
           setDeleteTarget(null);
@@ -297,9 +299,9 @@ export default function ReceiptsTab() {
 
       <ConfirmDialog
         open={bulkDeleteOpen}
-        title="Bonnen verwijderen"
-        message={`Weet je zeker dat je ${selected.size} ${selected.size === 1 ? "bon" : "bonnen"} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`}
-        confirmLabel="Verwijderen"
+        title={t.receipts.bulkDeleteTitle}
+        message={t.receipts.bulkDeleteMessage.replace("{count}", String(selected.size)).replace("{plural}", selected.size === 1 ? t.receipts.bonSingular : t.receipts.bonPlural)}
+        confirmLabel={t.common.delete}
         onConfirm={() => {
           bulkDeleteMutation.mutate(Array.from(selected));
           setBulkDeleteOpen(false);

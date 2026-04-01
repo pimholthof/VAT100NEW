@@ -5,8 +5,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getProfile, updateProfile } from "@/features/profile/actions";
 import type { Profile } from "@/lib/types";
 import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function SettingsPage() {
+  const { t } = useLocale();
   const { data: result, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: () => getProfile(),
@@ -30,7 +32,7 @@ export default function SettingsPage() {
     return (
       <div>
         <h1 className="display-title" style={{ margin: "0 0 80px" }}>
-          Jouw gegevens
+          {t.settings.errorTitle}
         </h1>
         <ErrorMessage>{result.error}</ErrorMessage>
       </div>
@@ -41,6 +43,7 @@ export default function SettingsPage() {
 }
 
 function SettingsForm({ profile }: { profile: Profile | null }) {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
 
   const [fullName, setFullName] = useState(profile?.full_name ?? "");
@@ -85,7 +88,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
   return (
     <div>
       <h1 className="display-title" style={{ margin: "0 0 var(--space-xl)" }}>
-        Jouw instellingen
+        {t.settings.title}
       </h1>
 
       {mutation.data?.error && (
@@ -96,7 +99,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
 
       {success && (
         <ErrorMessage style={{ marginBottom: 24 }}>
-          Opgeslagen!
+          {t.settings.saved}
         </ErrorMessage>
       )}
 
@@ -104,25 +107,25 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         {/* Persoonlijk */}
         <div style={{ marginBottom: "var(--space-block)" }}>
           <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 16, borderTop: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
-            Persoonlijk
+            {t.settings.personal}
           </p>
 
-          <FieldGroup label="Volledige naam">
+          <FieldGroup label={t.settings.fullName}>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Jouw naam"
+              placeholder={t.settings.fullNamePlaceholder}
               style={inputStyle}
             />
           </FieldGroup>
 
-          <FieldGroup label="Studionaam">
+          <FieldGroup label={t.settings.studioName}>
             <input
               type="text"
               value={studioName}
               onChange={(e) => setStudioName(e.target.value)}
-              placeholder="Naam van je studio"
+              placeholder={t.settings.studioNamePlaceholder}
               style={inputStyle}
             />
           </FieldGroup>
@@ -131,11 +134,11 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         {/* Bedrijfsgegevens */}
         <div style={{ marginBottom: "var(--space-block)" }}>
           <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 16, borderTop: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
-            Bedrijfsgegevens
+            {t.settings.companyDetails}
           </p>
 
           <div className="responsive-grid-2">
-            <FieldGroup label="KVK-nummer">
+            <FieldGroup label={t.settings.kvkNumber}>
               <input
                 type="text"
                 value={kvkNumber}
@@ -144,7 +147,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 style={{ ...inputStyle }}
               />
             </FieldGroup>
-            <FieldGroup label="BTW-nummer">
+            <FieldGroup label={t.settings.vatNumber}>
               <input
                 type="text"
                 value={btwNumber}
@@ -155,18 +158,18 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             </FieldGroup>
           </div>
 
-          <FieldGroup label="Straat + huisnummer">
+          <FieldGroup label={t.settings.streetNumber}>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Straatnaam 123"
+              placeholder={t.settings.streetPlaceholder}
               style={inputStyle}
             />
           </FieldGroup>
 
           <div className="responsive-grid-2" style={{ gridTemplateColumns: "1fr 2fr" }}>
-            <FieldGroup label="Postcode">
+            <FieldGroup label={t.settings.postalCode}>
               <input
                 type="text"
                 value={postalCode}
@@ -175,7 +178,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 style={inputStyle}
               />
             </FieldGroup>
-            <FieldGroup label="Plaats">
+            <FieldGroup label={t.settings.city}>
               <input
                 type="text"
                 value={city}
@@ -190,11 +193,11 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         {/* Bankgegevens */}
         <div style={{ marginBottom: "var(--space-block)" }}>
           <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 16, borderTop: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
-            Bankgegevens
+            {t.settings.bankDetails}
           </p>
 
           <div className="responsive-grid-2">
-            <FieldGroup label="IBAN">
+            <FieldGroup label={t.settings.iban}>
               <input
                 type="text"
                 value={iban}
@@ -203,7 +206,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 style={{ ...inputStyle }}
               />
             </FieldGroup>
-            <FieldGroup label="BIC">
+            <FieldGroup label={t.settings.bic}>
               <input
                 type="text"
                 value={bic}
@@ -226,7 +229,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             onClick={handleSave}
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "Bezig..." : "Opslaan"}
+            {mutation.isPending ? t.common.busy : t.common.save}
           </ButtonPrimary>
         </div>
       </div>

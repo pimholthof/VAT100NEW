@@ -5,8 +5,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getHoursLog, createHoursEntry, deleteHoursEntry, getYearTotalHours } from "@/features/hours/actions";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatDate } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function HoursPage() {
+  const { t } = useLocale();
   const now = new Date();
   const year = now.getFullYear();
   const [showForm, setShowForm] = useState(false);
@@ -74,9 +76,9 @@ export default function HoursPage() {
     <div>
       <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
         <div>
-          <h1 className="display-title">Urenregistratie</h1>
+          <h1 className="display-title">{t.hours.title}</h1>
           <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
-            Urencriterium: minimaal 1.225 uur per jaar
+            {t.hours.subtitle}
           </p>
         </div>
         <button
@@ -84,7 +86,7 @@ export default function HoursPage() {
           className={showForm ? "btn-secondary" : "btn-primary"}
           style={{ cursor: "pointer" }}
         >
-          {showForm ? "Annuleer" : "+ Uren registreren"}
+          {showForm ? t.common.cancel : t.hours.registerHours}
         </button>
       </div>
 
@@ -99,10 +101,10 @@ export default function HoursPage() {
             gap: 16,
             marginBottom: 24,
           }}>
-            <StatCard label="Totaal uren" value={`${totalHours}`} />
-            <StatCard label="Doel" value={`${TARGET}`} />
-            <StatCard label="Resterend" value={`${remaining}`} />
-            <StatCard label="Status" value={onTrack ? "Op schema" : "Achterstand"} />
+            <StatCard label={t.hours.totalHours} value={`${totalHours}`} />
+            <StatCard label={t.hours.goal} value={`${TARGET}`} />
+            <StatCard label={t.hours.remaining} value={`${remaining}`} />
+            <StatCard label={t.hours.statusLabel} value={onTrack ? t.hours.onTrack : t.hours.behind} />
           </div>
 
           {/* Progress bar */}
@@ -123,7 +125,7 @@ export default function HoursPage() {
             />
           </div>
           <p style={{ fontSize: 12, opacity: 0.35, marginTop: 10 }}>
-            Gemiddeld {weeklyAverage} uur per week
+            {t.hours.averageWeekly.replace("{hours}", String(weeklyAverage))}
           </p>
         </div>
       )}
@@ -139,18 +141,18 @@ export default function HoursPage() {
         }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr auto", gap: 12, alignItems: "end" }}>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Datum</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.common.date}</label>
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)}
                 className="input-field" />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Uren</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.hours.hoursLabel}</label>
               <input type="number" step="0.25" min="0.25" max="24" value={formHours} onChange={(e) => setFormHours(e.target.value)} placeholder="8"
                 className="input-field" />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Categorie</label>
-              <input type="text" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} placeholder="Projectwerk"
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.hours.categoryLabel}</label>
+              <input type="text" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} placeholder={t.hours.categoryPlaceholder}
                 className="input-field" />
             </div>
             <button
@@ -159,7 +161,7 @@ export default function HoursPage() {
               className="btn-primary"
               style={{ cursor: "pointer" }}
             >
-              {createMutation.isPending ? "Opslaan..." : "Opslaan"}
+              {createMutation.isPending ? t.common.saving : t.common.save}
             </button>
           </div>
         </div>
@@ -172,10 +174,10 @@ export default function HoursPage() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-              <Th>Datum</Th>
-              <Th style={{ textAlign: "right" }}>Uren</Th>
-              <Th>Categorie</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
+              <Th>{t.common.date}</Th>
+              <Th style={{ textAlign: "right" }}>{t.hours.hoursLabel}</Th>
+              <Th>{t.hours.categoryLabel}</Th>
+              <Th style={{ textAlign: "right" }}>{t.common.actions}</Th>
             </tr>
           </thead>
           <tbody>
@@ -186,7 +188,7 @@ export default function HoursPage() {
                 <Td>{entry.category ?? "—"}</Td>
                 <Td style={{ textAlign: "right" }}>
                   <button onClick={() => setDeleteTarget(entry.id)} className="table-action" style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}>
-                    Verwijder
+                    {t.common.delete}
                   </button>
                 </Td>
               </tr>
@@ -194,14 +196,14 @@ export default function HoursPage() {
           </tbody>
         </table>
       ) : (
-        <p className="empty-state">Nog geen uren geregistreerd</p>
+        <p className="empty-state">{t.hours.noHoursYet}</p>
       )}
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Uren verwijderen"
-        message="Weet je zeker dat je deze registratie wilt verwijderen?"
-        confirmLabel="Verwijderen"
+        title={t.hours.deleteTitle}
+        message={t.hours.deleteMessage}
+        confirmLabel={t.common.delete}
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget);
           setDeleteTarget(null);

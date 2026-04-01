@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
+import { useLocale } from "@/lib/i18n/context";
 
 function useIsMobile(breakpoint = 768) {
   const subscribe = useCallback((callback: () => void) => {
@@ -30,6 +31,7 @@ export function DashboardNav({
   const router = useRouter();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { locale, t, setLocale } = useLocale();
 
   async function handleLogout() {
     const supabase = createClient();
@@ -52,11 +54,31 @@ export function DashboardNav({
               <span className="nav-studio-name">{studioName}</span>
             )}
             <button
+              onClick={() => setLocale(locale === "nl" ? "en" : "nl")}
+              className="label-strong"
+              style={{
+                fontSize: "11px",
+                letterSpacing: "0.15em",
+                background: "transparent",
+                border: "0.5px solid rgba(0,0,0,0.12)",
+                borderRadius: "var(--radius-sm)",
+                cursor: "pointer",
+                padding: "4px 8px",
+                transition: "opacity 0.2s ease",
+                color: "var(--foreground)",
+                fontWeight: 600,
+                opacity: 0.5,
+              }}
+              aria-label={locale === "nl" ? "Switch to English" : "Schakel naar Nederlands"}
+            >
+              {locale === "nl" ? "EN" : "NL"}
+            </button>
+            <button
               onClick={() => setIsDrawerOpen(!isDrawerOpen)}
               className="label-strong"
               style={{
-                fontSize: "12px", 
-                letterSpacing: "0.25em", 
+                fontSize: "12px",
+                letterSpacing: "0.25em",
                 background: "transparent",
                 border: "none",
                 cursor: "pointer",
@@ -66,7 +88,7 @@ export function DashboardNav({
                 fontWeight: 700
               }}
             >
-              {isDrawerOpen ? "SLUIT" : "MENU"}
+              {isDrawerOpen ? t.nav.closeMenu : t.nav.menu}
             </button>
           </div>
         </div>
@@ -82,39 +104,40 @@ export function DashboardNav({
             className="dashboard-drawer"
           >
             <div className="dashboard-drawer-inner">
-              
+
               {/* Navigation - column 1 */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">Overzicht</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Facturen</Link>
-                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Klanten</Link>
-                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uitgaven</Link>
-                <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Activa</Link>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">{t.nav.overview}</Link>
+                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.invoices}</Link>
+                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.clients}</Link>
+                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.expenses}</Link>
+                <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.assets}</Link>
               </div>
 
               {/* Navigation - column 2 */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">&nbsp;</span>
-                <Link href="/dashboard/hours" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Uren</Link>
-                <Link href="/dashboard/trips" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Kilometers</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Belasting</Link>
-                <Link href="/dashboard/documents" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Documenten</Link>
-                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Importeren</Link>              </div>
+                <Link href="/dashboard/hours" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.hours}</Link>
+                <Link href="/dashboard/trips" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.trips}</Link>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.tax}</Link>
+                <Link href="/dashboard/documents" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.documents}</Link>
+                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.import}</Link>
+              </div>
 
               {/* Account */}
               <div className="dashboard-drawer-col dashboard-drawer-col-end">
-                <span className="label mb-4">Account</span>
+                <span className="label mb-4">{t.nav.account}</span>
                 {isMobile && studioName && (
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Instellingen</Link>
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.settings}</Link>
                 <button
                   type="button"
                   onClick={handleLogout}
                   className="drawer-logout"
                 >
-                  Uitloggen
+                  {t.nav.logout}
                 </button>
               </div>
 

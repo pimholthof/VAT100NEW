@@ -1,8 +1,10 @@
 "use client";
 
 import { formatCurrency } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function DocumentsPage() {
+  const { t } = useLocale();
   const now = new Date();
 
   return (
@@ -10,19 +12,19 @@ export default function DocumentsPage() {
       {/* Header */}
       <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
         <div>
-          <h1 className="display-title">Documenten</h1>
+          <h1 className="display-title">{t.documents.title}</h1>
           <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
-            Jaarrekeningen en fiscale exports
+            {t.documents.subtitle}
           </p>
         </div>
       </div>
 
       {/* Jaarrekening */}
       <h2 className="section-header" style={{ margin: "0 0 8px" }}>
-        Jaarrekening
+        {t.documents.annualReport}
       </h2>
       <p style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.6, margin: "0 0 24px" }}>
-        Volledig overzicht van winst & verlies, balans en fiscale samenvatting.
+        {t.documents.annualReportDesc}
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: "var(--space-section)" }}>
         {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map((y) => (
@@ -33,17 +35,17 @@ export default function DocumentsPage() {
             rel="noopener noreferrer"
             className="btn-secondary"
           >
-            Download {y}
+            {t.documents.downloadYear.replace("{year}", String(y))}
           </a>
         ))}
       </div>
 
       {/* IB Aangifte Export */}
       <h2 className="section-header" style={{ margin: "0 0 8px" }}>
-        IB Aangifte Export
+        {t.documents.ibExport}
       </h2>
       <p style={{ fontSize: "var(--text-body-sm)", fontWeight: 300, opacity: 0.5, margin: "0 0 24px" }}>
-        Exporteer je jaarrekening als IB-aangifte overzicht voor de Belastingdienst.
+        {t.documents.ibExportDesc}
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         {[now.getFullYear() - 1, now.getFullYear() - 2].map((y) => (
@@ -53,7 +55,7 @@ export default function DocumentsPage() {
             download
             className="btn-secondary"
           >
-            IB Aangifte {y}
+            {t.documents.ibYear.replace("{year}", String(y))}
           </a>
         ))}
       </div>

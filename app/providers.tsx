@@ -3,17 +3,25 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { useState } from "react";
+import { LocaleProvider } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  locale,
+}: {
+  children: React.ReactNode;
+  locale?: Locale;
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 2 * 60 * 1000, // 2 minuten — financiële data moet redelijk vers zijn
-            gcTime: 10 * 60 * 1000, // 10 minuten
+            staleTime: 2 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
             retry: 1,
-            refetchOnWindowFocus: true, // Ververst data bij terugkomen naar tab
+            refetchOnWindowFocus: true,
           },
         },
       })
@@ -22,7 +30,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <LazyMotion features={domAnimation} strict>
-        {children}
+        <LocaleProvider initialLocale={locale ?? "nl"}>
+          {children}
+        </LocaleProvider>
       </LazyMotion>
     </QueryClientProvider>
   );

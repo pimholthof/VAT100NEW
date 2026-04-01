@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { joinWaitlist } from "@/features/waitlist/actions";
+import { useLocale } from "@/lib/i18n/context";
 
 /* ─── Inline style helpers ─── */
 const inputStyle: React.CSSProperties = {
@@ -18,86 +19,64 @@ const inputStyle: React.CSSProperties = {
   transition: "border-color 0.2s ease",
 };
 
-/* ─── Data ─── */
-const features = [
-  {
-    title: "Facturen",
-    description:
-      "Maak professionele facturen in seconden. Automatische BTW-berekening, factuurnummering en directe verzending per e-mail.",
-  },
-  {
-    title: "BTW-aangifte",
-    description:
-      "Realtime BTW-overzicht per kwartaal. Je weet altijd precies wat je moet reserveren en wanneer de deadline is.",
-  },
-  {
-    title: "Bonnen scannen",
-    description:
-      "Fotografeer je bonnen — AI herkent automatisch het bedrag, de datum en de leverancier. Geen handmatig invoeren meer.",
-  },
-  {
-    title: "Klantenbeheer",
-    description:
-      "Alle klantgegevens op één plek. KVK-nummer, BTW-id, contactpersoon en factuurhistorie per klant.",
-  },
-  {
-    title: "Cashflow",
-    description:
-      "Maandelijks overzicht van inkomsten en uitgaven. Zie trends, vergelijk periodes en weet wat je veilig kunt uitgeven.",
-  },
-  {
-    title: "Offertes",
-    description:
-      "Stuur offertes die met één klik omgezet worden naar facturen. Geen dubbel werk, geen fouten.",
-  },
-];
-
-const pricingPlans = [
-  {
-    id: "basis",
-    name: "Basis",
-    price: "29",
-    period: "per maand",
-    description: "Voor actieve freelancers",
-    features: [
-      "Onbeperkt facturen & creditnota's",
-      "BTW-overzicht",
-      "Bonnen scannen (handmatig)",
-      "Offertes",
-      "Klantenbeheer",
-      "Betaallinks (Mollie)",
-      "E-mail herinneringen",
-      "CSV export",
-    ],
-    cta: "Aan de slag",
-    highlighted: false,
-  },
-  {
-    id: "compleet",
-    name: "Compleet",
-    price: "59",
-    period: "per maand",
-    description: "Voor groeiende studio's",
-    features: [
-      "Alles van Basis",
-      "AI bonnen scannen",
-      "AI boekhouder chat",
-      "Bankrekening koppeling",
-      "Automatische reconciliatie",
-      "Jaarrekening PDF export",
-      "Cashflow-analyse",
-      "Prioriteit support",
-    ],
-    cta: "Meest compleet",
-    highlighted: true,
-  },
-];
+/* ─── Data (translated via hook below) ─── */
 
 export default function LandingPage() {
   const [submitted, setSubmitted] = useState(false);
   const [position, setPosition] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const { locale, t, setLocale } = useLocale();
+
+  const features = [
+    { title: t.landing.featureInvoices, description: t.landing.featureInvoicesDesc },
+    { title: t.landing.featureVat, description: t.landing.featureVatDesc },
+    { title: t.landing.featureReceipts, description: t.landing.featureReceiptsDesc },
+    { title: t.landing.featureClients, description: t.landing.featureClientsDesc },
+    { title: t.landing.featureCashflow, description: t.landing.featureCashflowDesc },
+    { title: t.landing.featureQuotes, description: t.landing.featureQuotesDesc },
+  ];
+
+  const pricingPlans = [
+    {
+      id: "basis",
+      name: t.landing.basis,
+      price: "29",
+      period: t.landing.perMonth,
+      description: t.landing.basisDesc,
+      features: [
+        t.landing.unlimitedInvoices,
+        t.landing.vatOverview,
+        t.landing.manualReceipts,
+        t.landing.quotes,
+        t.landing.clientManagement,
+        t.landing.paymentLinks,
+        t.landing.emailReminders,
+        t.landing.csvExport,
+      ],
+      cta: t.landing.basisCta,
+      highlighted: false,
+    },
+    {
+      id: "compleet",
+      name: t.landing.compleet,
+      price: "59",
+      period: t.landing.perMonth,
+      description: t.landing.compleetDesc,
+      features: [
+        t.landing.allFromBasis,
+        t.landing.aiReceipts,
+        t.landing.aiChat,
+        t.landing.bankConnection,
+        t.landing.autoReconciliation,
+        t.landing.annualReport,
+        t.landing.cashflowAnalysis,
+        t.landing.prioritySupport,
+      ],
+      cta: t.landing.compleetCta,
+      highlighted: true,
+    },
+  ];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -182,7 +161,7 @@ export default function LandingPage() {
               opacity: 0.5,
             }}
           >
-            Functies
+            {t.landing.features}
           </a>
           <a
             href="#prijzen"
@@ -193,8 +172,26 @@ export default function LandingPage() {
               opacity: 0.5,
             }}
           >
-            Prijzen
+            {t.landing.pricing}
           </a>
+          <button
+            onClick={() => setLocale(locale === "nl" ? "en" : "nl")}
+            className="label-strong"
+            style={{
+              textDecoration: "none",
+              color: "var(--color-black)",
+              padding: "6px 10px",
+              border: "0.5px solid rgba(0,0,0,0.12)",
+              borderRadius: "var(--radius-sm)",
+              background: "transparent",
+              cursor: "pointer",
+              fontSize: "11px",
+              letterSpacing: "0.1em",
+              opacity: 0.5,
+            }}
+          >
+            {locale === "nl" ? "EN" : "NL"}
+          </button>
           <Link
             href="/login"
             className="label-strong"
@@ -207,7 +204,7 @@ export default function LandingPage() {
               transition: "border-color 0.15s ease",
             }}
           >
-            Inloggen
+            {t.landing.login}
           </Link>
         </nav>
       </header>
@@ -243,8 +240,7 @@ export default function LandingPage() {
             opacity: 0.6,
           }}
         >
-          De fiscale engine voor Nederlandse creatieve freelancers. Factureren,
-          BTW-aangifte en boekhouding — ontdaan van alle ruis.
+          {t.landing.heroSubtitle}
         </p>
         <div style={{ marginTop: 48, display: "flex", gap: 16, flexWrap: "wrap" }}>
           <a
@@ -256,7 +252,7 @@ export default function LandingPage() {
               display: "inline-block",
             }}
           >
-            Vroege toegang
+            {t.landing.earlyAccess}
           </a>
           <a
             href="#functies"
@@ -267,7 +263,7 @@ export default function LandingPage() {
               display: "inline-block",
             }}
           >
-            Ontdek meer
+            {t.landing.discoverMore}
           </a>
         </div>
       </section>
@@ -290,7 +286,7 @@ export default function LandingPage() {
         >
           <div>
             <p className="label" style={{ marginBottom: 16 }}>
-              Het idee
+              {t.landing.theIdea}
             </p>
             <h2
               style={{
@@ -301,9 +297,9 @@ export default function LandingPage() {
                 margin: 0,
               }}
             >
-              Minder software,
+              {t.landing.lessSoftware}
               <br />
-              meer helderheid.
+              {t.landing.moreClarity}
             </h2>
           </div>
           <div>
@@ -315,11 +311,7 @@ export default function LandingPage() {
                 opacity: 0.6,
               }}
             >
-              Als creatieve freelancer wil je maken, niet administreren. VAT100 reduceert
-              je boekhouding tot de essentie: bedrag + ontvanger. Geen overbodige menu&apos;s,
-              geen complexe workflows. Het systeem anticipeert op je fiscale deadlines en
-              stelt acties voor met één klik. Zo heb je altijd grip op je BTW, je cashflow
-              en je facturen — zonder dat het je creatieve flow onderbreekt.
+              {t.landing.ideaDescription}
             </p>
             <div
               style={{
@@ -330,10 +322,10 @@ export default function LandingPage() {
               }}
             >
               {[
-                { value: "< 30s", label: "Per factuur" },
-                { value: "100%", label: "BTW-inzicht" },
-                { value: "0", label: "Handmatig werk" },
-                { value: "24/7", label: "Overzicht" },
+                { value: "< 30s", label: t.landing.perInvoice },
+                { value: "100%", label: t.landing.vatInsight },
+                { value: "0", label: t.landing.manualWork },
+                { value: "24/7", label: t.landing.overview },
               ].map((stat) => (
                 <div key={stat.label}>
                   <p
@@ -377,7 +369,7 @@ export default function LandingPage() {
         }}
       >
         <p className="label" style={{ marginBottom: 16 }}>
-          Functies
+          {t.landing.features}
         </p>
         <h2
           style={{
@@ -389,9 +381,9 @@ export default function LandingPage() {
             marginBottom: "clamp(40px, 6vw, 80px)",
           }}
         >
-          Alles wat je nodig hebt.
+          {t.landing.featuresTitle}
           <br />
-          Niets wat je niet nodig hebt.
+          {t.landing.featuresSubtitle}
         </h2>
 
         <div
@@ -452,7 +444,7 @@ export default function LandingPage() {
         }}
       >
         <p className="label" style={{ marginBottom: 16 }}>
-          Prijzen
+          {t.landing.pricing}
         </p>
         <h2
           style={{
@@ -464,7 +456,7 @@ export default function LandingPage() {
             marginBottom: "clamp(40px, 6vw, 80px)",
           }}
         >
-          Eerlijk en transparant.
+          {t.landing.pricingTitle}
         </h2>
 
         <div
@@ -577,7 +569,7 @@ export default function LandingPage() {
                   display: "block",
                 }}
               >
-                {plan.highlighted ? "Aan de slag" : "Kies " + plan.name}
+                {plan.highlighted ? t.landing.getStarted : t.landing.choose + plan.name}
               </a>
             </div>
           ))}
@@ -617,7 +609,7 @@ export default function LandingPage() {
                 className="label-strong"
                 style={{ marginBottom: 8, fontSize: 13 }}
               >
-                Je staat op de wachtlijst
+                {t.landing.onWaitlist}
               </p>
               <p
                 style={{
@@ -627,14 +619,14 @@ export default function LandingPage() {
                   lineHeight: 1.6,
                 }}
               >
-                {position ? `Je bent nummer ${position}. ` : ""}
-                We sturen je een e-mail zodra je toegang krijgt.
+                {position ? t.landing.waitlistPosition.replace("{position}", String(position)) : ""}
+                {t.landing.waitlistConfirm}
               </p>
             </div>
           ) : (
             <div>
               <p className="label" style={{ marginBottom: 16 }}>
-                Vroege toegang
+                {t.landing.earlyAccess}
               </p>
               <h2
                 style={{
@@ -646,7 +638,7 @@ export default function LandingPage() {
                   marginBottom: 32,
                 }}
               >
-                Schrijf je in.
+                {t.landing.waitlistTitle}
               </h2>
 
               <form
@@ -664,14 +656,14 @@ export default function LandingPage() {
                       className="label"
                       style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
                     >
-                      Naam
+                      {t.landing.name}
                     </label>
                     <input
                       id="name"
                       name="name"
                       type="text"
                       required
-                      placeholder="Je volledige naam"
+                      placeholder={t.landing.namePlaceholder}
                       style={inputStyle}
                     />
                   </div>
@@ -681,14 +673,14 @@ export default function LandingPage() {
                       className="label"
                       style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
                     >
-                      E-mail
+                      {t.landing.email}
                     </label>
                     <input
                       id="email"
                       name="email"
                       type="email"
                       required
-                      placeholder="je@studio.nl"
+                      placeholder={t.landing.emailPlaceholder}
                       style={inputStyle}
                     />
                   </div>
@@ -717,7 +709,7 @@ export default function LandingPage() {
                     alignSelf: "flex-start",
                   }}
                 >
-                  {pending ? "Even wachten..." : "Op de wachtlijst"}
+                  {pending ? t.common.waiting : t.landing.waitlistButton}
                 </button>
               </form>
             </div>
@@ -749,7 +741,7 @@ export default function LandingPage() {
               color: "var(--color-black)",
             }}
           >
-            Inloggen
+            {t.landing.login}
           </Link>
           <Link
             href="/register"
@@ -760,7 +752,7 @@ export default function LandingPage() {
               color: "var(--color-black)",
             }}
           >
-            Registreren
+            {t.landing.register}
           </Link>
         </div>
       </footer>
