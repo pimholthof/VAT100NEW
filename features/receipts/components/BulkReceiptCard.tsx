@@ -14,6 +14,7 @@ import {
   KOSTENSOORTEN,
 } from "@/lib/constants/costs";
 import { formatCurrency } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/context";
 
 export interface BulkReceiptResult {
   receiptId: string;
@@ -32,6 +33,7 @@ interface BulkReceiptCardProps {
 }
 
 export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
+  const { t } = useLocale();
   const [editing, setEditing] = useState(!!result.aiError);
   const [vendorName, setVendorName] = useState(
     result.aiData?.vendor_name ?? ""
@@ -100,7 +102,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
           {result.fileName}
         </span>
         <ErrorMessage style={{ margin: 0, fontSize: "var(--text-body-sm)" }}>
-          {result.error ?? "Fout bij verwerking"}
+          {result.error ?? t.dashboard.processingError}
         </ErrorMessage>
       </div>
     );
@@ -223,7 +225,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
             padding: "4px 0",
           }}
         >
-          {editing ? "Sluiten" : "Bewerken"}
+          {editing ? t.receipts.closeEdit : t.receipts.editReceipt}
         </button>
       </div>
 
@@ -238,15 +240,14 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
             paddingLeft: 26,
           }}
         >
-          AI-scan niet beschikbaar — vul de gegevens handmatig in via
-          &quot;Bewerken&quot;.
+          {t.dashboard.aiScanUnavailable}
         </p>
       )}
 
       {/* Expandable edit form */}
       {editing && (
         <div style={{ marginTop: 16, maxWidth: 500 }}>
-          <FieldGroup label="Datum">
+          <FieldGroup label={t.common.date}>
             <input
               type="date"
               value={receiptDate}
@@ -255,17 +256,17 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
             />
           </FieldGroup>
 
-          <FieldGroup label="Leverancier">
+          <FieldGroup label={t.receipts.vendorLabel}>
             <input
               type="text"
               value={vendorName}
               onChange={(e) => setVendorName(e.target.value)}
-              placeholder="Naam leverancier"
+              placeholder={t.receipts.vendorPlaceholder}
               style={inputStyle}
             />
           </FieldGroup>
 
-          <FieldGroup label="Kostensoort">
+          <FieldGroup label={t.receipts.costTypeLabel}>
             <select
               value={costCode ?? ""}
               onChange={(e) =>
@@ -273,7 +274,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
               }
               style={inputStyle}
             >
-              <option value="">— Selecteer —</option>
+              <option value="">{t.receipts.selectCategory}</option>
               {groepen.map((groep) => (
                 <optgroup
                   key={groep}
@@ -294,7 +295,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
             </select>
           </FieldGroup>
 
-          <FieldGroup label="Bedrag excl. BTW">
+          <FieldGroup label={t.receipts.amountExVat}>
             <input
               type="number"
               step="0.01"
@@ -306,7 +307,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
             />
           </FieldGroup>
 
-          <FieldGroup label="BTW-tarief">
+          <FieldGroup label={t.receipts.vatRateLabel}>
             <select
               value={vatRate}
               onChange={(e) => setVatRate(e.target.value)}
@@ -326,11 +327,11 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
               opacity: 0.5,
             }}
           >
-            BTW: {formatCurrency(computedVat)} | Incl. BTW:{" "}
+            {t.receipts.vatLabel} {formatCurrency(computedVat)} | {t.receipts.incVatLabel}{" "}
             {formatCurrency(computedIncVat)}
           </p>
 
-          <ButtonSecondary onClick={handleSave}>Opslaan</ButtonSecondary>
+          <ButtonSecondary onClick={handleSave}>{t.common.save}</ButtonSecondary>
         </div>
       )}
     </div>

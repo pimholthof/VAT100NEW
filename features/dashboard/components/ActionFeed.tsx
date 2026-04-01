@@ -10,8 +10,10 @@ import {
 } from "@/features/dashboard/action-feed";
 import type { ActionFeedItem } from "@/lib/types";
 import { playSound } from "@/lib/utils/sound";
+import { useLocale } from "@/lib/i18n/context";
 
 export function ActionFeed() {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
 
   const { data: result, isLoading } = useQuery({
@@ -71,10 +73,10 @@ export function ActionFeed() {
             margin: 0,
           }}
         >
-          Je bent helemaal bij
+          {t.dashboard.allCaughtUp}
         </p>
         <p className="label" style={{ opacity: 0.4, margin: 0 }}>
-          Geen openstaande taken. Tijd voor koffie.
+          {t.dashboard.noTasksCoffee}
         </p>
       </motion.div>
     );
@@ -83,7 +85,7 @@ export function ActionFeed() {
   return (
     <div style={{ marginBottom: "var(--space-section)" }}>
       <h2 className="section-header" style={{ margin: "0 0 16px" }}>
-        Nog te doen [{actions.length}]
+        {t.dashboard.todoTitle} [{actions.length}]
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <AnimatePresence>
@@ -118,23 +120,24 @@ function ActionCard({
   onIgnore: () => void;
   isPending: boolean;
 }) {
+  const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(action.draft_content || "");
 
   const typeLabel: Record<string, string> = {
-    missing_receipt: "BONNETJE",
-    match_suggestion: "CONTROLE",
-    tax_alert: "BELASTING",
-    uncategorized: "CATEGORIE",
-    reminder_suggestion: "HERINNERING",
+    missing_receipt: t.dashboard.typeReceipt,
+    match_suggestion: t.dashboard.typeCheck,
+    tax_alert: t.dashboard.typeTax,
+    uncategorized: t.dashboard.typeCategory,
+    reminder_suggestion: t.dashboard.typeReminder,
   };
 
   const actionLabel: Record<string, string> = {
-    missing_receipt: "TOEVOEGEN",
-    match_suggestion: "KLopt",
-    tax_alert: "CHECK",
-    uncategorized: "INDELEN",
-    reminder_suggestion: "VERSTUREN",
+    missing_receipt: t.dashboard.actionAdd,
+    match_suggestion: t.dashboard.actionCorrect,
+    tax_alert: t.dashboard.actionCheck,
+    uncategorized: t.dashboard.actionCategorize,
+    reminder_suggestion: t.dashboard.actionSend,
   };
 
   return (
@@ -167,7 +170,7 @@ function ActionCard({
             {typeLabel[action.type] ?? action.type}
             {action.ai_confidence != null && (
               <span style={{ color: "var(--color-accent)", opacity: 0.8, marginLeft: 12 }}>
-                {Math.round(action.ai_confidence * 100)}% zeker
+                {Math.round(action.ai_confidence * 100)}% {t.dashboard.certain}
               </span>
             )}
           </p>
@@ -228,7 +231,7 @@ function ActionCard({
               outline: "none",
               resize: "none"
             }}
-            placeholder="Typ hier je herinnering..."
+            placeholder={t.dashboard.reminderPlaceholder}
           />
         </motion.div>
       )}
@@ -253,7 +256,7 @@ function ActionCard({
               transition: "all 0.2s ease"
             }}
           >
-            {isEditing ? "Sluiten" : "Bekijk concept"}
+            {isEditing ? t.common.close : t.dashboard.viewDraft}
           </button>
         )}
         <button
@@ -274,7 +277,7 @@ function ActionCard({
             transition: "all 0.2s ease"
           }}
         >
-          Negeren
+          {t.dashboard.ignore}
         </button>
         <button
           onClick={() => onResolve(isEditing ? draft : undefined)}

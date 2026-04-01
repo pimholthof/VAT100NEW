@@ -1,25 +1,27 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/context";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import { inputStyle } from "@/components/ui";
 import type { VatScheme } from "@/lib/types";
 
-const VAT_OPTIONS: Array<{ value: string; label: string; rate: number; scheme: VatScheme }> = [
-  { value: "21_standard", label: "Hoog (21%)", rate: 21, scheme: "standard" },
-  { value: "9_standard", label: "Laag (9%)", rate: 9, scheme: "standard" },
-  { value: "0_standard", label: "Vrijgesteld (0%)", rate: 0, scheme: "standard" },
-  { value: "0_eu_reverse_charge", label: "EU intracommunautair (0%)", rate: 0, scheme: "eu_reverse_charge" },
-  { value: "0_export_outside_eu", label: "Buiten EU export (0%)", rate: 0, scheme: "export_outside_eu" },
+const VAT_OPTIONS: Array<{ value: string; labelKey: string; rate: number; scheme: VatScheme }> = [
+  { value: "21_standard", labelKey: "vatHigh", rate: 21, scheme: "standard" },
+  { value: "9_standard", labelKey: "vatLow", rate: 9, scheme: "standard" },
+  { value: "0_standard", labelKey: "vatZero", rate: 0, scheme: "standard" },
+  { value: "0_eu_reverse_charge", labelKey: "vatEuIntra", rate: 0, scheme: "eu_reverse_charge" },
+  { value: "0_export_outside_eu", labelKey: "vatExportOutside", rate: 0, scheme: "export_outside_eu" },
 ];
 
-function vatLabel(rate: number, scheme: VatScheme): string {
-  if (scheme === "eu_reverse_charge") return "BTW verlegd (EU)";
-  if (scheme === "export_outside_eu") return "Geen BTW (export)";
-  if (rate === 0) return "BTW vrijgesteld";
-  return `BTW (${rate}%)`;
-}
-
 export function InvoiceMetadata() {
+  const { t } = useLocale();
+
+  function vatLabel(rate: number, scheme: VatScheme): string {
+    if (scheme === "eu_reverse_charge") return t.invoices.euReverseCharge;
+    if (scheme === "export_outside_eu") return t.invoices.exportOutsideEu;
+    if (rate === 0) return t.invoices.vatExempt;
+    return t.invoices.vatRateLabel.replace("{rate}", String(rate));
+  }
   const invoiceNumber = useInvoiceStore((s) => s.invoiceNumber);
   const setInvoiceNumber = useInvoiceStore((s) => s.setInvoiceNumber);
   const issueDate = useInvoiceStore((s) => s.issueDate);
@@ -53,7 +55,7 @@ export function InvoiceMetadata() {
         marginBottom: 80
       }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p className="label">REFERENTIE</p>
+        <p className="label">{t.invoices.referenceLabel}</p>
         <input
           type="text"
           value={invoiceNumber}
@@ -62,7 +64,7 @@ export function InvoiceMetadata() {
         />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p className="label">DATUM</p>
+        <p className="label">{t.invoices.dateLabel}</p>
         <input
           type="date"
           value={issueDate}
@@ -79,7 +81,7 @@ export function InvoiceMetadata() {
         >
           {VAT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
-              {opt.label}
+              {t.invoices[opt.labelKey as keyof typeof t.invoices]}
             </option>
           ))}
         </select>

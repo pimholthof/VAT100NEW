@@ -12,12 +12,14 @@ import {
   ErrorMessage,
 } from "@/components/ui";
 import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
+import { useLocale } from "@/lib/i18n/context";
 
 interface ClientFormProps {
   client?: Client;
 }
 
 export function ClientForm({ client }: ClientFormProps) {
+  const { t } = useLocale();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +35,7 @@ export function ClientForm({ client }: ClientFormProps) {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      setError("Bedrijfsnaam is verplicht.");
+      setError(t.clients.companyNameRequired);
       return;
     }
 
@@ -81,27 +83,27 @@ export function ClientForm({ client }: ClientFormProps) {
         <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
       )}
 
-      <FieldGroup label="Bedrijfsnaam *">
+      <FieldGroup label={`${t.clients.companyName} *`}>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Bedrijfsnaam"
+          placeholder={t.clients.companyName}
           style={inputStyle}
         />
       </FieldGroup>
 
-      <FieldGroup label="Contactpersoon">
+      <FieldGroup label={t.clients.contactPerson}>
         <input
           type="text"
           value={contactName}
           onChange={(e) => setContactName(e.target.value)}
-          placeholder="Naam contactpersoon"
+          placeholder={t.clients.contactPerson}
           style={inputStyle}
         />
       </FieldGroup>
 
-      <FieldGroup label="E-mailadres">
+      <FieldGroup label={t.clients.email}>
         <input
           type="email"
           value={email}
@@ -111,12 +113,12 @@ export function ClientForm({ client }: ClientFormProps) {
         />
       </FieldGroup>
 
-      <FieldGroup label="Adres">
+      <FieldGroup label={t.clients.address}>
         <input
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          placeholder="Straatnaam en huisnummer"
+          placeholder={t.clients.address}
           style={inputStyle}
         />
       </FieldGroup>
@@ -128,7 +130,7 @@ export function ClientForm({ client }: ClientFormProps) {
           gap: 16,
         }}
       >
-        <FieldGroup label="Postcode">
+        <FieldGroup label={t.clients.postalCode}>
           <input
             type="text"
             value={postalCode}
@@ -137,12 +139,12 @@ export function ClientForm({ client }: ClientFormProps) {
             style={inputStyle}
           />
         </FieldGroup>
-        <FieldGroup label="Stad">
+        <FieldGroup label={t.clients.city}>
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            placeholder="Stad"
+            placeholder={t.clients.city}
             style={inputStyle}
           />
         </FieldGroup>
@@ -155,7 +157,7 @@ export function ClientForm({ client }: ClientFormProps) {
           gap: 16,
         }}
       >
-        <FieldGroup label="KVK-nummer">
+        <FieldGroup label={t.clients.kvkNumber}>
           <input
             type="text"
             value={kvkNumber}
@@ -164,7 +166,7 @@ export function ClientForm({ client }: ClientFormProps) {
             style={{ ...inputStyle }}
           />
         </FieldGroup>
-        <FieldGroup label="BTW-nummer">
+        <FieldGroup label={t.clients.vatNumber}>
           <input
             type="text"
             value={btwNumber}
@@ -185,10 +187,10 @@ export function ClientForm({ client }: ClientFormProps) {
         }}
       >
         <ButtonSecondary onClick={() => router.back()}>
-          Annuleer
+          {t.common.cancel}
         </ButtonSecondary>
         <ButtonPrimary onClick={handleSubmit} disabled={saving}>
-          {saving ? "Opslaan..." : client ? "Bijwerken" : "Klant aanmaken"}
+          {saving ? t.common.saving : client ? t.clients.update : t.clients.createClient}
         </ButtonPrimary>
       </div>
     </div>

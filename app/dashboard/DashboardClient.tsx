@@ -172,7 +172,7 @@ export default function DashboardClient({
                   {vatDeadline ? `${vatDeadline.daysRemaining} ${t.dashboard.days}` : "—"}
                 </span>
                 <p className="dashboard-home-meta-sub">
-                  {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : t.dashboard.noDeadline}
+                  {vatDeadline ? `${vatDeadline.quarter} · ${new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" })}` : t.dashboard.noDeadline}
                 </p>
               </div>
 
@@ -223,7 +223,7 @@ export default function DashboardClient({
               label={t.dashboard.vatReserve}
               value={formatCurrency(stats.vatToPay)}
               numericValue={stats.vatToPay}
-              sub={vatDeadline ? vatDeadline.deadline : t.dashboard.thisQuarter}
+              sub={vatDeadline ? new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" }) : t.dashboard.thisQuarter}
             />
           </motion.div>
         </div>

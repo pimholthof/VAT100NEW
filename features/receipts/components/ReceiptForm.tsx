@@ -27,6 +27,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { ReceiptUpload } from "./ReceiptUpload";
 import { ReceiptProcessing } from "./ReceiptProcessing";
+import { useLocale } from "@/lib/i18n/context";
 
 type Step = "upload" | "processing" | "form";
 
@@ -36,6 +37,7 @@ interface ReceiptFormProps {
 }
 
 export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
+  const { t } = useLocale();
   const router = useRouter();
 
   const initialStep: Step = receipt ? "form" : "upload";
@@ -94,11 +96,11 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     const isImage = file.type.startsWith("image/");
     const isPdfFile = file.type === "application/pdf";
     if (!isImage && !isPdfFile) {
-      setUploadError("Alleen afbeeldingen en PDF-bestanden zijn toegestaan.");
+      setUploadError(t.receipts.onlyImages);
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setUploadError("Bestand is te groot (max 10MB).");
+      setUploadError(t.receipts.fileTooLarge);
       return;
     }
 
@@ -131,7 +133,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           receipt_date: today,
         });
         if (createResult.error || !createResult.data) {
-          setUploadError(createResult.error ?? "Kon bon niet aanmaken.");
+          setUploadError(createResult.error ?? t.receipts.couldNotCreate);
           setUploading(false);
           return;
         }
@@ -159,7 +161,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
       setStep("processing");
       await handleScan(receiptId);
     } catch {
-      setUploadError("Upload mislukt. Probeer opnieuw.");
+      setUploadError(t.receipts.uploadFailed);
       setUploading(false);
     }
   };
@@ -185,7 +187,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           setConfidence(result.data.confidence);
       }
     } catch {
-      setScanError("AI-analyse kon de bon niet verwerken. Controleer of de afbeelding scherp en leesbaar is, en vul de velden handmatig in.");
+      setScanError(t.receipts.aiFailed);
     }
 
     setStep("form");
@@ -193,7 +195,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
   const handleSubmit = async () => {
     if (!receiptDate) {
-      setError("Datum is verplicht.");
+      setError(t.receipts.dateRequiredError);
       return;
     }
 
@@ -275,7 +277,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             <div style={{ position: "relative", width: "100%", height: 400 }}>
               <Image
                 src={imageUrl || filePreview || ""}
-                alt="Bon"
+                alt={t.receipts.receipt}
                 fill
                 style={{
                   objectFit: "contain",
@@ -328,20 +330,20 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
               margin: "0 0 16px",
             }}
           >
-            AI-herkenning — controleer de velden
+            {t.receipts.aiRecognition}
           </p>
         )}
 
         {confidence !== null && confidence < 0.7 && (
           <ErrorMessage style={{ marginBottom: 24 }}>
-            Let op: lage betrouwbaarheid, controleer extra
+            {t.receipts.lowConfidence}
           </ErrorMessage>
         )}
 
         {scanError && <ErrorMessage style={{ marginBottom: 24 }}>{scanError}</ErrorMessage>}
         {error && <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>}
 
-        <FieldGroup label="Datum *">
+        <FieldGroup label={t.receipts.dateRequired}>
           <input
             type="date"
             value={receiptDate}
@@ -351,17 +353,17 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           />
         </FieldGroup>
 
-        <FieldGroup label="Leverancier">
+        <FieldGroup label={t.receipts.vendorLabel}>
           <input
             type="text"
             value={vendorName}
             onChange={(e) => setVendorName(e.target.value)}
-            placeholder="Naam leverancier"
+            placeholder={t.receipts.vendorPlaceholder}
             style={inputStyle}
           />
         </FieldGroup>
 
-        <FieldGroup label="Kostensoort">
+        <FieldGroup label={t.receipts.costTypeLabel}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <select
               value={costCode ?? ""}
@@ -370,7 +372,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
               }
               style={{ ...inputStyle, flex: 1 }}
             >
-              <option value="">— Selecteer —</option>
+              <option value="">{t.receipts.selectCategory}</option>
               {groepen.map((groep) => (
                 <optgroup
                   key={groep}
@@ -402,7 +404,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           </div>
         </FieldGroup>
 
-        <FieldGroup label="Bedrag excl. BTW">
+        <FieldGroup label={t.receipts.amountExVat}>
           <input
             type="number"
             step="0.01"
@@ -414,7 +416,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           />
         </FieldGroup>
 
-        <FieldGroup label="BTW-tarief">
+        <FieldGroup label={t.receipts.vatRateLabel}>
           <select
             value={vatRate}
             onChange={(e) => setVatRate(e.target.value)}
@@ -426,7 +428,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           </select>
         </FieldGroup>
 
-        <FieldGroup label="Zakelijk percentage">
+        <FieldGroup label={t.receipts.businessPercentage}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <input
               type="range"
@@ -456,8 +458,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
                 margin: "6px 0 0",
               }}
             >
-              {businessPercentage}% zakelijk — {100 - businessPercentage}% privé.
-              Alleen het zakelijke deel is aftrekbaar.
+              {t.receipts.businessSplit.replace("{business}", String(businessPercentage)).replace("{private}", String(100 - businessPercentage))}
             </p>
           )}
         </FieldGroup>
@@ -472,7 +473,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             borderBottom: "0.5px solid rgba(13,13,11,0.15)",
           }}
         >
-          BTW: {formatCurrency(computedVat)} | Incl. BTW:{" "}
+          {t.receipts.vatLabel} {formatCurrency(computedVat)} | {t.receipts.incVatLabel}{" "}
           {formatCurrency(computedIncVat)}
         </p>
 
@@ -486,10 +487,10 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           }}
         >
           <ButtonSecondary onClick={() => router.back()}>
-            Annuleer
+            {t.common.cancel}
           </ButtonSecondary>
           <ButtonPrimary onClick={handleSubmit} disabled={saving}>
-            {saving ? "Opslaan..." : "Bon opslaan"}
+            {saving ? t.common.saving : t.receipts.saveReceipt}
           </ButtonPrimary>
         </div>
       </div>

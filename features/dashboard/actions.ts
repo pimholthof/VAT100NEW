@@ -194,11 +194,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       cashflow: { monthlyRevenue, monthlyExpenses, netThisMonth, netLastMonth, trend },
       vatDeadline: {
         quarter: `Q${currentQ} ${now.getFullYear()}`,
-        deadline: deadlineDate.toLocaleDateString("nl-NL", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        }),
+        deadline: deadlineDate.toISOString(),
         daysRemaining,
         estimatedAmount: Math.round((outputVat - inputVat) * 100) / 100,
         forecastedAmount: Math.round(((outputVat - inputVat) * (90 / Math.max(1, 90 - daysRemaining))) * 100) / 100,

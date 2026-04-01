@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/context";
 import { playSound } from "@/lib/utils/sound";
 
 export function InvoiceFormActions({
@@ -11,6 +12,7 @@ export function InvoiceFormActions({
   onSaveDraft: () => void;
   onIssueAndPreview: () => void;
 }) {
+  const { t } = useLocale();
   return (
     <div style={{ display: "flex", gap: 24 }}>
       <button
@@ -31,7 +33,7 @@ export function InvoiceFormActions({
           cursor: "pointer",
         }}
       >
-        {saving ? "..." : "Concept opslaan"}
+        {saving ? "..." : t.invoices.saveDraft}
       </button>
       <button
         onClick={() => {
@@ -53,7 +55,7 @@ export function InvoiceFormActions({
           boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)",
         }}
       >
-        {saving ? "..." : "Versturen & Voorbeeld"}
+        {saving ? "..." : t.invoices.issueAndPreview}
       </button>
     </div>
   );

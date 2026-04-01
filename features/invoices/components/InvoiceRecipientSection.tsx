@@ -1,6 +1,7 @@
 "use client";
 
 import { m as motion } from "framer-motion";
+import { useLocale } from "@/lib/i18n/context";
 import { ClientQuickCreate } from "./ClientQuickCreate";
 import { inputStyle } from "@/components/ui";
 import { playSound } from "@/lib/utils/sound";
@@ -24,10 +25,11 @@ export function InvoiceRecipientSection({
   showNewClient: boolean;
   setShowNewClient: (show: boolean) => void;
 }) {
+  const { t } = useLocale();
   return (
     <div style={{ marginBottom: 48 }}>
       <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>
-        ONTVANGER
+        {t.invoices.recipientLabel}
       </p>
       <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
         <select
@@ -50,10 +52,10 @@ export function InvoiceRecipientSection({
         >
           <option value="">
             {clientsLoading
-              ? "Laden..."
+              ? t.common.loading
               : hasClientError
                 ? clientErrorMessage
-                : "Selecteer klant"}
+                : t.invoices.selectClientPlaceholder}
           </option>
           {clients.map((c) => (
             <option key={c.id} value={c.id}>
@@ -77,7 +79,7 @@ export function InvoiceRecipientSection({
             opacity: 0.3,
           }}
         >
-          {showNewClient ? "[-] Sluiten" : "[+] Nieuw"}
+          {showNewClient ? t.invoices.closeQuickCreate : t.invoices.openQuickCreate}
         </button>
       </div>
       {showNewClient && (

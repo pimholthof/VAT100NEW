@@ -2,6 +2,7 @@
 
 import { m as motion , AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n/context";
 
 const DUTCH_BANKS = [
   { id: "SANDBOXFINANCE_SDA1", name: "GoCardless Sandbox", country: "NL" },
@@ -27,6 +28,7 @@ export function InstitutionSelector({
   onSelect: (id: string) => void;
   isPending: boolean;
 }) {
+  const { t } = useLocale();
   const [search, setSearch] = useState("");
 
   const filteredBanks = DUTCH_BANKS.filter((b) =>
@@ -88,7 +90,7 @@ export function InstitutionSelector({
                   margin: "0 0 8px",
                 }}
               >
-                Kies je bank
+                {t.bank.chooseBank}
               </h3>
               <p
                 style={{
@@ -98,13 +100,13 @@ export function InstitutionSelector({
                   margin: 0,
                 }}
               >
-                Selecteer een instantie om je rekeningen veilig te koppelen.
+                {t.bank.selectInstitution}
               </p>
             </div>
 
             <input
               type="text"
-              placeholder="Zoek je bank..."
+              placeholder={t.bank.searchBank}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoFocus
@@ -152,7 +154,7 @@ export function InstitutionSelector({
                 </button>
               ))}
               {filteredBanks.length === 0 && (
-                <p style={{ padding: "12px", opacity: 0.4 }}>Geen banken gevonden.</p>
+                <p style={{ padding: "12px", opacity: 0.4 }}>{t.bank.noBanksFound}</p>
               )}
             </div>
 
@@ -170,7 +172,7 @@ export function InstitutionSelector({
                   opacity: 0.4,
                 }}
               >
-                Annuleren
+                {t.common.cancel}
               </button>
             </div>
           </motion.div>

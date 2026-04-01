@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import type { InvoiceLineInput, InvoiceUnit } from "@/lib/types";
+import { useLocale } from "@/lib/i18n/context";
 import { playSound } from "@/lib/utils/sound";
 import { calculateInvoiceLineAmount } from "@/lib/logic/invoice-calculations";
 import { formatCurrency } from "@/lib/format";
@@ -14,11 +15,7 @@ interface InvoiceLineRowProps {
   onRemove: (id: string) => void;
 }
 
-const units: { value: InvoiceUnit; label: string }[] = [
-  { value: "uren", label: "Uren" },
-  { value: "dagen", label: "Dagen" },
-  { value: "stuks", label: "Stuks" },
-];
+const unitKeys: InvoiceUnit[] = ["uren", "dagen", "stuks"];
 
 export const InvoiceLineRow = memo(function InvoiceLineRow({
   line,
@@ -26,7 +23,14 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
   onUpdate,
   onRemove,
 }: InvoiceLineRowProps) {
+  const { t } = useLocale();
   const amount = calculateInvoiceLineAmount(line);
+
+  const unitLabels: Record<InvoiceUnit, string> = {
+    uren: t.invoices.unitHours,
+    dagen: t.invoices.unitDays,
+    stuks: t.invoices.unitPieces,
+  };
 
   return (
     <div
@@ -44,7 +48,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         type="text"
         value={line.description}
         onChange={(e) => onUpdate(line.id, "description", e.target.value)}
-        placeholder="Omschrijving"
+        placeholder={t.invoices.descriptionPlaceholder}
         style={{ ...cellInputStyle, fontSize: 16, fontWeight: 400 }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -63,9 +67,9 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
           onChange={(e) => onUpdate(line.id, "unit", e.target.value)}
           style={{ ...cellInputStyle, opacity: 0.3, width: "auto" }}
         >
-          {units.map((u) => (
-            <option key={u.value} value={u.value}>
-              {u.label.toLowerCase()}
+          {unitKeys.map((u) => (
+            <option key={u} value={u}>
+              {unitLabels[u].toLowerCase()}
             </option>
           ))}
         </select>
