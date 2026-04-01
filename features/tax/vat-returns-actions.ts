@@ -2,6 +2,8 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, VatReturn, VatReturnStatus } from "@/lib/types";
+import { uuidSchema } from "@/lib/validation";
+import { sanitizeSupabaseError } from "@/lib/errors";
 
 /**
  * Generate a VAT return for a given year/quarter based on unlinked invoices/receipts.
@@ -20,13 +22,24 @@ export async function generateVatReturn(
   const { supabase, user } = auth;
 
   // Check if return already exists
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from("vat_returns")
     .select("id, status")
     .eq("user_id", user.id)
     .eq("year", year)
     .eq("quarter", quarter)
     .single();
+
+  if (existingError && existingError.code !== "PGRST116") {
+    return {
+      error: sanitizeSupabaseError(existingError, {
+        area: "generateVatReturn.existingReturn",
+        quarter,
+        userId: user.id,
+        year,
+      }),
+    };
+  }
 
   if (existing && existing.status !== "draft") {
     return { error: "Er bestaat al een vergrendelde of ingediende aangifte voor dit kwartaal." };
@@ -48,7 +61,16 @@ export async function generateVatReturn(
     .gte("issue_date", qStart)
     .lte("issue_date", qEnd);
 
-  if (invError) return { error: invError.message };
+  if (invError) {
+    return {
+      error: sanitizeSupabaseError(invError, {
+        area: "generateVatReturn.fetchInvoices",
+        quarter,
+        userId: user.id,
+        year,
+      }),
+    };
+  }
 
   // Fetch receipts
   const { data: receipts, error: recError } = await supabase
@@ -58,7 +80,16 @@ export async function generateVatReturn(
     .gte("receipt_date", qStart)
     .lte("receipt_date", qEnd);
 
-  if (recError) return { error: recError.message };
+  if (recError) {
+    return {
+      error: sanitizeSupabaseError(recError, {
+        area: "generateVatReturn.fetchReceipts",
+        quarter,
+        userId: user.id,
+        year,
+      }),
+    };
+  }
 
   const round2 = (v: number) => Math.round(v * 100) / 100;
 
@@ -149,7 +180,15 @@ export async function generateVatReturn(
       .eq("user_id", user.id)
       .select()
       .single();
-    if (error) return { error: error.message };
+    if (error) {
+      return {
+        error: sanitizeSupabaseError(error, {
+          area: "generateVatReturn.updateDraftReturn",
+          returnId: existing.id,
+          userId: user.id,
+        }),
+      };
+    }
     result = data;
   } else {
     const { data, error } = await supabase
@@ -157,7 +196,16 @@ export async function generateVatReturn(
       .insert(returnData)
       .select()
       .single();
-    if (error) return { error: error.message };
+    if (error) {
+      return {
+        error: sanitizeSupabaseError(error, {
+          area: "generateVatReturn.insertReturn",
+          quarter,
+          userId: user.id,
+          year,
+        }),
+      };
+    }
     result = data;
   }
 
@@ -170,6 +218,8 @@ export async function generateVatReturn(
 export async function lockVatReturn(
   id: string,
 ): Promise<ActionResult<VatReturn>> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldige BTW-aangifte-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -182,7 +232,19 @@ export async function lockVatReturn(
     .eq("user_id", user.id)
     .single();
 
-  if (fetchError || !vatReturn) return { error: "BTW-aangifte niet gevonden." };
+  if (fetchError) {
+    if (fetchError.code === "PGRST116") return { error: "BTW-aangifte niet gevonden." };
+
+    return {
+      error: sanitizeSupabaseError(fetchError, {
+        area: "lockVatReturn.fetchReturn",
+        returnId: id,
+        userId: user.id,
+      }),
+    };
+  }
+
+  if (!vatReturn) return { error: "BTW-aangifte niet gevonden." };
   if (vatReturn.status !== "draft") return { error: "Alleen conceptaangiftes kunnen vergrendeld worden." };
 
   // Quarter date range
@@ -193,7 +255,7 @@ export async function lockVatReturn(
   const qEnd = `${vatReturn.year}-${String(endMonth).padStart(2, "0")}-${lastDay}`;
 
   // Link all invoices in the quarter to this return
-  await supabase
+  const { error: linkInvoicesError } = await supabase
     .from("invoices")
     .update({ vat_return_id: id })
     .eq("user_id", user.id)
@@ -202,14 +264,34 @@ export async function lockVatReturn(
     .lte("issue_date", qEnd)
     .is("vat_return_id", null);
 
+  if (linkInvoicesError) {
+    return {
+      error: sanitizeSupabaseError(linkInvoicesError, {
+        area: "lockVatReturn.linkInvoices",
+        returnId: id,
+        userId: user.id,
+      }),
+    };
+  }
+
   // Link all receipts in the quarter to this return
-  await supabase
+  const { error: linkReceiptsError } = await supabase
     .from("receipts")
     .update({ vat_return_id: id })
     .eq("user_id", user.id)
     .gte("receipt_date", qStart)
     .lte("receipt_date", qEnd)
     .is("vat_return_id", null);
+
+  if (linkReceiptsError) {
+    return {
+      error: sanitizeSupabaseError(linkReceiptsError, {
+        area: "lockVatReturn.linkReceipts",
+        returnId: id,
+        userId: user.id,
+      }),
+    };
+  }
 
   // Lock the return
   const { data: locked, error: lockError } = await supabase
@@ -220,7 +302,15 @@ export async function lockVatReturn(
     .select()
     .single();
 
-  if (lockError) return { error: lockError.message };
+  if (lockError) {
+    return {
+      error: sanitizeSupabaseError(lockError, {
+        area: "lockVatReturn.lockReturn",
+        returnId: id,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null, data: locked as VatReturn };
 }
 
@@ -230,6 +320,8 @@ export async function lockVatReturn(
 export async function submitVatReturn(
   id: string,
 ): Promise<ActionResult<VatReturn>> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldige BTW-aangifte-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -241,7 +333,19 @@ export async function submitVatReturn(
     .eq("user_id", user.id)
     .single();
 
-  if (fetchError || !vatReturn) return { error: "BTW-aangifte niet gevonden." };
+  if (fetchError) {
+    if (fetchError.code === "PGRST116") return { error: "BTW-aangifte niet gevonden." };
+
+    return {
+      error: sanitizeSupabaseError(fetchError, {
+        area: "submitVatReturn.fetchReturn",
+        returnId: id,
+        userId: user.id,
+      }),
+    };
+  }
+
+  if (!vatReturn) return { error: "BTW-aangifte niet gevonden." };
   if (vatReturn.status === "submitted") return { error: "Aangifte is al ingediend." };
   if (vatReturn.status === "draft") return { error: "Vergrendel de aangifte eerst voordat je indient." };
 
@@ -257,7 +361,15 @@ export async function submitVatReturn(
     .select()
     .single();
 
-  if (submitError) return { error: submitError.message };
+  if (submitError) {
+    return {
+      error: sanitizeSupabaseError(submitError, {
+        area: "submitVatReturn.submitReturn",
+        returnId: id,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null, data: submitted as VatReturn };
 }
 
@@ -276,6 +388,13 @@ export async function getVatReturns(): Promise<ActionResult<VatReturn[]>> {
     .order("year", { ascending: false })
     .order("quarter", { ascending: false });
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "getVatReturns",
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null, data: (data ?? []) as VatReturn[] };
 }

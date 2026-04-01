@@ -4,6 +4,7 @@ import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth, requirePlan } from "@/lib/supabase/server";
 import { gocardless, checkGoCardlessRateLimit } from "@/lib/banking/gocardless";
+import { sanitizeSupabaseError } from "@/lib/errors";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
@@ -11,11 +12,8 @@ import { KOSTENSOORTEN } from "@/lib/constants/costs";
 export async function getBankConnections(): Promise<ActionResult<BankConnection[]>> {
   // Feature-gate: Bank koppeling is Compleet-only
   const planCheck = await requirePlan("compleet");
-  if (planCheck.error) return { error: planCheck.error };
-
-  const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error };
-  const { supabase, user } = auth;
+  if (planCheck.error !== null) return { error: planCheck.error };
+  const { supabase, user } = planCheck;
 
   const { data, error } = await supabase
     .from("bank_connections")
@@ -23,7 +21,14 @@ export async function getBankConnections(): Promise<ActionResult<BankConnection[
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "getBankConnections",
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null, data: data ?? [] };
 }
 
@@ -54,7 +59,15 @@ export async function getBankTransactions(filters?: {
 
   const { data, error } = await query;
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "getBankTransactions",
+        userId: user.id,
+        filters,
+      }),
+    };
+  }
   return { error: null, data: data ?? [] };
 }
 
@@ -75,7 +88,15 @@ export async function categorizeTransaction(
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "categorizeTransaction",
+        transactionId: id,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null };
 }
 
@@ -96,7 +117,16 @@ export async function linkTransactionToInvoice(
     .eq("id", transactionId)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "linkTransactionToInvoice",
+        transactionId,
+        invoiceId,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null };
 }
 
@@ -117,7 +147,16 @@ export async function linkTransactionToReceipt(
     .eq("id", transactionId)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "linkTransactionToReceipt",
+        transactionId,
+        receiptId,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null };
 }
 
@@ -153,7 +192,15 @@ export async function initiateBankConnection(
         reference,
       });
 
-    if (error) return { error: error.message };
+    if (error) {
+      return {
+        error: sanitizeSupabaseError(error, {
+          area: "initiateBankConnection",
+          institutionId,
+          userId: user.id,
+        }),
+      };
+    }
 
     return {
       error: null,
@@ -194,8 +241,16 @@ export async function completeBankConnection(
       .eq("requisition_id", requisitionId)
       .eq("user_id", user.id);
 
-    if (error) return { error: error.message };
-    
+    if (error) {
+      return {
+        error: sanitizeSupabaseError(error, {
+          area: "completeBankConnection",
+          requisitionId,
+          userId: user.id,
+        }),
+      };
+    }
+
     // Trigger initial sync
     await syncTransactions(requisitionId, true);
 
@@ -209,6 +264,10 @@ export async function syncTransactions(
   connectionIdOrReqId: string,
   isReqId = false
 ): Promise<ActionResult<number>> {
+  if (!connectionIdOrReqId.trim()) {
+    return { error: isReqId ? "Requisition-ID is verplicht." : "Bankverbinding-ID is verplicht." };
+  }
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -224,7 +283,22 @@ export async function syncTransactions(
     : query.eq("id", connectionIdOrReqId)
   ).single();
 
-  if (connError || !connection) {
+  if (connError) {
+    if (connError.code === "PGRST116") {
+      return { error: "Bankverbinding niet gevonden." };
+    }
+
+    return {
+      error: sanitizeSupabaseError(connError, {
+        area: "syncTransactions.connection",
+        connectionIdOrReqId,
+        isReqId,
+        userId: user.id,
+      }),
+    };
+  }
+
+  if (!connection) {
     return { error: "Bankverbinding niet gevonden." };
   }
 
@@ -240,7 +314,7 @@ export async function syncTransactions(
     const booked = response.transactions.booked || [];
 
     // 3. Map to our schema
-    const newTransactions = booked.map((t: {
+    const newTransactions = booked.flatMap((t: {
       internalTransactionId?: string;
       transactionId?: string;
       transactionAmount: { amount: string; currency: string };
@@ -252,18 +326,28 @@ export async function syncTransactions(
       creditorAccount?: { iban?: string };
       bookingDate?: string;
       valueDate?: string;
-    }) => ({
-      user_id: user.id,
-      bank_connection_id: connection.id,
-      external_id: t.internalTransactionId || t.transactionId,
-      amount: parseFloat(t.transactionAmount.amount),
-      currency: t.transactionAmount.currency,
-      description: t.remittanceInformationUnstructured || t.additionalInformation || "",
-      counterpart_name: t.debtorName || t.creditorName || "",
-      counterpart_iban: t.debtorAccount?.iban || t.creditorAccount?.iban || "",
-      booking_date: t.bookingDate || t.valueDate,
-      status: "booked",
-    }));
+    }) => {
+      const externalId = t.internalTransactionId || t.transactionId;
+      const bookingDate = t.bookingDate || t.valueDate;
+      const amount = Number.parseFloat(t.transactionAmount.amount);
+
+      if (!externalId || !bookingDate || !Number.isFinite(amount)) {
+        return [];
+      }
+
+      return [{
+        user_id: user.id,
+        bank_connection_id: connection.id,
+        external_id: externalId,
+        amount,
+        currency: t.transactionAmount.currency,
+        description: t.remittanceInformationUnstructured || t.additionalInformation || "",
+        counterpart_name: t.debtorName || t.creditorName || "",
+        counterpart_iban: t.debtorAccount?.iban || t.creditorAccount?.iban || "",
+        booking_date: bookingDate,
+        status: "booked",
+      }];
+    });
 
     // 4. Upsert (ignore duplicates based on external_id)
     if (newTransactions.length > 0) {
@@ -271,14 +355,32 @@ export async function syncTransactions(
         .from("bank_transactions")
         .upsert(newTransactions, { onConflict: "external_id" });
       
-      if (upsertError) return { error: upsertError.message };
+      if (upsertError) {
+        return {
+          error: sanitizeSupabaseError(upsertError, {
+            area: "syncTransactions.upsertTransactions",
+            connectionId: connection.id,
+            userId: user.id,
+          }),
+        };
+      }
     }
 
     // 5. Update last_synced_at
-    await supabase
+    const { error: updateConnectionError } = await supabase
       .from("bank_connections")
       .update({ last_synced_at: new Date().toISOString() })
       .eq("id", connection.id);
+
+    if (updateConnectionError) {
+      return {
+        error: sanitizeSupabaseError(updateConnectionError, {
+          area: "syncTransactions.updateLastSyncedAt",
+          connectionId: connection.id,
+          userId: user.id,
+        }),
+      };
+    }
 
     return { error: null, data: newTransactions.length };
   } catch (e: unknown) {
@@ -289,6 +391,8 @@ export async function syncTransactions(
 export async function deleteBankConnection(
   id: string
 ): Promise<ActionResult> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldig bankverbinding-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -299,7 +403,15 @@ export async function deleteBankConnection(
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "deleteBankConnection",
+        connectionId: id,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null };
 }
 
@@ -311,6 +423,14 @@ const AI_CATEGORIES = [
 export async function autoCategorizeTransactions(
   transactionIds: string[]
 ): Promise<ActionResult<Record<string, string>>> {
+  if (transactionIds.length === 0) {
+    return { error: null, data: {} };
+  }
+
+  if (!z.array(uuidSchema).safeParse(transactionIds).success) {
+    return { error: "Ongeldige transactie-ID(s)." };
+  }
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -322,16 +442,33 @@ export async function autoCategorizeTransactions(
     .eq("user_id", user.id)
     .in("id", transactionIds);
 
-  if (fetchError) return { error: fetchError.message };
+  if (fetchError) {
+    return {
+      error: sanitizeSupabaseError(fetchError, {
+        area: "autoCategorizeTransactions.fetchTransactions",
+        transactionIds,
+        userId: user.id,
+      }),
+    };
+  }
   if (!transactions || transactions.length === 0) {
     return { error: null, data: {} };
   }
 
   // Fetch existing categorization rules for this user
-  const { data: rules } = await supabase
+  const { data: rules, error: rulesError } = await supabase
     .from("categorization_rules")
     .select("counterpart_pattern, category, is_income")
     .eq("user_id", user.id);
+
+  if (rulesError) {
+    return {
+      error: sanitizeSupabaseError(rulesError, {
+        area: "autoCategorizeTransactions.fetchRules",
+        userId: user.id,
+      }),
+    };
+  }
 
   type CatRule = { counterpart_pattern: string; category: string; is_income: boolean };
   const rulesMap = new Map<string, CatRule>(
@@ -477,6 +614,14 @@ export async function learnFromCorrection(
       { onConflict: "user_id,counterpart_pattern" }
     );
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "learnFromCorrection.upsertRule",
+        transactionId,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null };
 }

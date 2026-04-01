@@ -58,6 +58,7 @@ describe("invoiceSchema", () => {
     issue_date: "2026-03-15",
     due_date: null,
     vat_rate: 21 as const,
+    vat_scheme: "standard" as const,
     notes: null,
     lines: [
       {

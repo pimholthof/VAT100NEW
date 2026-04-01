@@ -43,6 +43,7 @@ export const invoiceSchema = z.object({
   issue_date: z.string().min(1, "Factuurdatum is verplicht"),
   due_date: z.string().nullable(),
   vat_rate: z.union([z.literal(0), z.literal(9), z.literal(21)]),
+  vat_scheme: z.enum(["standard", "eu_reverse_charge", "export_outside_eu"]),
   notes: optionalString,
   lines: z
     .array(invoiceLineSchema)

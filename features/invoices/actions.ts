@@ -63,6 +63,9 @@ export async function updateInvoice(
   id: string,
   input: InvoiceInput
 ): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -134,6 +137,9 @@ export async function getInvoices(filters?: {
 export async function getInvoice(
   id: string
 ): Promise<ActionResult<InvoiceWithDetails>> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -149,6 +155,9 @@ export async function getInvoice(
 export async function generateShareToken(
   invoiceId: string
 ): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -162,6 +171,9 @@ export async function generateShareToken(
 }
 
 export async function sendReminder(invoiceId: string, customMessage?: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;

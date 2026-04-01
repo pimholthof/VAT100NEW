@@ -10,8 +10,9 @@ import {
   cancelMollieSubscription,
 } from "@/lib/payments/mollie-subscriptions";
 import type { Plan, SubscriptionWithPlan, ActionResult } from "@/lib/types";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { sanitizeSupabaseError } from "@/lib/errors";
+import { uuidSchema } from "@/lib/validation";
 
 async function getBaseUrl(): Promise<string> {
   const headersList = await headers();
@@ -37,12 +38,25 @@ export async function getActiveSubscription(): Promise<SubscriptionWithPlan | nu
   const auth = await requireAuth();
   if (auth.error !== null) return null;
 
-  const { data } = await auth.supabase
+  const { data, error } = await auth.supabase
     .from("subscriptions")
     .select("*, plan:plans(*)")
     .eq("user_id", auth.user.id)
     .in("status", ["active", "past_due", "pending"])
     .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+
+    sanitizeSupabaseError(error, {
+      area: "getActiveSubscription",
+      userId: auth.user.id,
+    });
+
+    return null;
+  }
 
   return data as SubscriptionWithPlan | null;
 }
@@ -63,30 +77,61 @@ export async function startSubscription(
     .eq("is_active", true)
     .single();
 
-  if (planError || !plan) {
+  if (planError) {
+    if (planError.code === "PGRST116") {
+      return { error: "Ongeldig abonnement." };
+    }
+
+    return {
+      error: sanitizeSupabaseError(planError, {
+        area: "startSubscription.plan",
+        planId,
+        userId: auth.user.id,
+      }),
+    };
+  }
+
+  if (!plan) {
     return { error: "Ongeldig abonnement." };
   }
 
   // Check for existing active subscription
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from("subscriptions")
     .select("id, status")
     .eq("user_id", auth.user.id)
     .in("status", ["active", "pending"])
     .single();
 
+  if (existingError && existingError.code !== "PGRST116") {
+    return {
+      error: sanitizeSupabaseError(existingError, {
+        area: "startSubscription.existingSubscription",
+        userId: auth.user.id,
+      }),
+    };
+  }
+
   if (existing) {
     return { error: "Je hebt al een actief abonnement." };
   }
 
   // Get user email
-  const { data: { user } } = await auth.supabase.auth.getUser();
-  const email = user?.email ?? "";
-  const { data: profile } = await auth.supabase
+  const email = auth.user.email ?? "";
+  const { data: profile, error: profileError } = await auth.supabase
     .from("profiles")
     .select("full_name, studio_name")
     .eq("id", auth.user.id)
     .single();
+
+  if (profileError && profileError.code !== "PGRST116") {
+    return {
+      error: sanitizeSupabaseError(profileError, {
+        area: "startSubscription.profile",
+        userId: auth.user.id,
+      }),
+    };
+  }
 
   const customerName = profile?.studio_name || profile?.full_name || email;
 
@@ -112,7 +157,17 @@ export async function startSubscription(
     .select("id")
     .single();
 
-  if (subError || !subscription) {
+  if (subError) {
+    return {
+      error: sanitizeSupabaseError(subError, {
+        area: "startSubscription.insertSubscription",
+        planId,
+        userId: auth.user.id,
+      }),
+    };
+  }
+
+  if (!subscription) {
     return { error: "Kon abonnement niet aanmaken." };
   }
 
@@ -188,16 +243,14 @@ export async function activateSubscriptionAfterPayment(
   if (!plan) return;
 
   // Create Mollie recurring subscription
-  const host = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
+  const baseUrl = await getBaseUrl();
 
   const mollieSubResult = await createMollieSubscription({
     customerId: mollieCustomerId,
     amount: plan.price_cents / 100,
     interval: "1 month",
     description: `VAT100 ${plan.name} — maandelijks`,
-    webhookUrl: `${host}/api/webhooks/mollie`,
+    webhookUrl: `${baseUrl}/api/webhooks/mollie`,
   });
 
   const now = new Date();
@@ -217,15 +270,31 @@ export async function activateSubscriptionAfterPayment(
 export async function checkSubscriptionStatus(
   subscriptionId: string,
 ): Promise<{ status: string }> {
+  if (!uuidSchema.safeParse(subscriptionId).success) return { status: "unknown" };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { status: "unknown" };
 
-  const { data } = await auth.supabase
+  const { data, error } = await auth.supabase
     .from("subscriptions")
     .select("status")
     .eq("id", subscriptionId)
     .eq("user_id", auth.user.id)
     .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return { status: "unknown" };
+    }
+
+    sanitizeSupabaseError(error, {
+      area: "checkSubscriptionStatus",
+      subscriptionId,
+      userId: auth.user.id,
+    });
+
+    return { status: "unknown" };
+  }
 
   return { status: data?.status ?? "unknown" };
 }
@@ -236,12 +305,25 @@ export async function cancelSubscription(): Promise<ActionResult> {
 
   const supabase = createServiceClient();
 
-  const { data: subscription } = await supabase
+  const { data: subscription, error: subscriptionError } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("user_id", auth.user.id)
     .in("status", ["active", "past_due"])
     .single();
+
+  if (subscriptionError) {
+    if (subscriptionError.code === "PGRST116") {
+      return { error: "Geen actief abonnement gevonden." };
+    }
+
+    return {
+      error: sanitizeSupabaseError(subscriptionError, {
+        area: "cancelSubscription.fetchActiveSubscription",
+        userId: auth.user.id,
+      }),
+    };
+  }
 
   if (!subscription) {
     return { error: "Geen actief abonnement gevonden." };
@@ -255,11 +337,21 @@ export async function cancelSubscription(): Promise<ActionResult> {
     );
   }
 
-  await supabase.from("subscriptions").update({
+  const { error: updateError } = await supabase.from("subscriptions").update({
     status: "cancelled",
     cancelled_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }).eq("id", subscription.id);
+
+  if (updateError) {
+    return {
+      error: sanitizeSupabaseError(updateError, {
+        area: "cancelSubscription.updateSubscription",
+        subscriptionId: subscription.id,
+        userId: auth.user.id,
+      }),
+    };
+  }
 
   return { error: null };
 }

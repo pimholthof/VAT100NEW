@@ -1,4 +1,5 @@
 import { requireAuth } from "@/lib/supabase/server";
+import { sanitizeSupabaseError } from "@/lib/errors";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
 import { formatDate } from "@/lib/format";
 import { NextResponse } from "next/server";
@@ -14,7 +15,17 @@ export async function GET() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json(
+      {
+        error: sanitizeSupabaseError(error, {
+          area: "exportInvoices",
+          userId: user.id,
+        }),
+      },
+      { status: 500 }
+    );
+  }
 
   const headers = [
     "Factuurnummer",

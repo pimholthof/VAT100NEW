@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { User } from "@supabase/supabase-js";
+import { sanitizeSupabaseError } from "@/lib/errors";
 import { getRequiredEnv } from "@/lib/utils/env";
 
 export async function createClient() {
@@ -53,33 +54,55 @@ export async function requireAuth(): Promise<AuthResult> {
  * Checks if the current user has a specific plan (or higher).
  * Returns the subscription or an error if the user's plan doesn't match.
  */
+type PlanResult =
+  | { error: null; planId: string; status: 200; supabase: SupabaseServer; user: User }
+  | { error: string; planId: null; status: 401 | 403 | 500; supabase: null; user: null };
+
 export async function requirePlan(
   requiredPlanId: "basis" | "compleet",
-): Promise<{ error: string | null; planId: string | null }> {
+): Promise<PlanResult> {
   const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error, planId: null };
+  if (auth.error !== null) return { error: auth.error, planId: null, status: 401, supabase: null, user: null };
 
-  const { data: subscription } = await auth.supabase
+  const { data: subscription, error: subscriptionError } = await auth.supabase
     .from("subscriptions")
     .select("plan_id, status")
     .eq("user_id", auth.user.id)
     .in("status", ["active", "past_due"])
     .single();
 
+  if (subscriptionError) {
+    if (subscriptionError.code === "PGRST116") {
+      return { error: "Geen actief abonnement.", planId: null, status: 403, supabase: null, user: null };
+    }
+
+    return {
+      error: sanitizeSupabaseError(subscriptionError, {
+        area: "requirePlan",
+        requiredPlanId,
+        userId: auth.user.id,
+      }),
+      planId: null,
+      status: 500,
+      supabase: null,
+      user: null,
+    };
+  }
+
   if (!subscription) {
-    return { error: "Geen actief abonnement.", planId: null };
+    return { error: "Geen actief abonnement.", planId: null, status: 403, supabase: null, user: null };
   }
 
   if (requiredPlanId === "compleet" && subscription.plan_id !== "compleet") {
-    return { error: "Upgrade naar Compleet om deze functie te gebruiken.", planId: subscription.plan_id };
+    return { error: "Upgrade naar Compleet om deze functie te gebruiken.", planId: null, status: 403, supabase: null, user: null };
   }
 
-  return { error: null, planId: subscription.plan_id };
+  return { error: null, planId: subscription.plan_id, status: 200, supabase: auth.supabase, user: auth.user };
 }
 
 type AdminResult =
-  | { error: null; supabase: SupabaseServer; user: User }
-  | { error: string; supabase: null; user: null };
+  | { error: null; status: 200; supabase: SupabaseServer; user: User }
+  | { error: string; status: 401 | 403 | 500; supabase: null; user: null };
 
 /**
  * Authenticates the current user AND verifies admin role.
@@ -87,7 +110,7 @@ type AdminResult =
  */
 export async function requireAdmin(): Promise<AdminResult> {
   const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error, supabase: null, user: null };
+  if (auth.error !== null) return { error: auth.error, status: 401, supabase: null, user: null };
 
   const { data: profile, error: profileError } = await auth.supabase
     .from("profiles")
@@ -95,9 +118,25 @@ export async function requireAdmin(): Promise<AdminResult> {
     .eq("id", auth.user.id)
     .single();
 
-  if (profileError || !profile || profile.role !== "admin") {
-    return { error: "Geen toegang.", supabase: null, user: null };
+  if (profileError) {
+    if (profileError.code === "PGRST116") {
+      return { error: "Geen toegang.", status: 403, supabase: null, user: null };
+    }
+
+    return {
+      error: sanitizeSupabaseError(profileError, {
+        area: "requireAdmin",
+        userId: auth.user.id,
+      }),
+      status: 500,
+      supabase: null,
+      user: null,
+    };
   }
 
-  return { error: null, supabase: auth.supabase, user: auth.user };
+  if (!profile || profile.role !== "admin") {
+    return { error: "Geen toegang.", status: 403, supabase: null, user: null };
+  }
+
+  return { error: null, status: 200, supabase: auth.supabase, user: auth.user };
 }

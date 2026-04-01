@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { sanitizeSupabaseError } from "@/lib/errors";
 import { requireAuth } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult, Receipt, ReceiptInput } from "@/lib/types";
@@ -42,7 +43,15 @@ export async function getReceipts(filters?: {
 
   const { data, error } = await query;
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "getReceipts",
+        userId: user.id,
+        filters,
+      }),
+    };
+  }
 
   return { error: null, data: (data ?? []) as Receipt[] };
 }
@@ -50,6 +59,9 @@ export async function getReceipts(filters?: {
 export async function getReceipt(
   id: string
 ): Promise<ActionResult<Receipt>> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -61,7 +73,17 @@ export async function getReceipt(
     .eq("user_id", user.id)
     .single();
 
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.code === "PGRST116") return { error: "Bon niet gevonden." };
+
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "getReceipt",
+        receiptId: id,
+        userId: user.id,
+      }),
+    };
+  }
   if (!data) return { error: "Bon niet gevonden." };
   return { error: null, data };
 }
@@ -112,7 +134,14 @@ export async function createReceipt(
       .select()
       .single();
 
-    if (error) return { error: error.message };
+    if (error) {
+      return {
+        error: sanitizeSupabaseError(error, {
+          area: "createReceipt",
+          userId: user.id,
+        }),
+      };
+    }
 
     // Auto-book to ledger
     const { autoBookReceipt } = await import("@/features/ledger/actions");
@@ -140,6 +169,9 @@ export async function updateReceipt(
   input: ReceiptInput
 ): Promise<ActionResult<Receipt>> {
   try {
+    const idCheck = uuidSchema.safeParse(id);
+    if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+
     const auth = await requireAuth();
     if (auth.error !== null) return { error: auth.error };
     const { supabase, user } = auth;
@@ -155,7 +187,7 @@ export async function updateReceipt(
 
     // Horeca: force deductible VAT to 0 (conform wetgeving)
     const isHoreca = category === "Eten & drinken horeca" || category === "Eten & drinken zakelijk";
-    let vatAmount = isHoreca ? 0 : vat.vatAmount;
+    const vatAmount = isHoreca ? 0 : vat.vatAmount;
 
     const amountIncVat = amountExVat + vatAmount;
 
@@ -181,7 +213,15 @@ export async function updateReceipt(
       .select()
       .single();
 
-    if (error) return { error: error.message };
+    if (error) {
+      return {
+        error: sanitizeSupabaseError(error, {
+          area: "updateReceipt",
+          receiptId: id,
+          userId: user.id,
+        }),
+      };
+    }
 
     // Remove old ledger entries for this receipt and re-book
     await supabase
@@ -224,7 +264,15 @@ export async function deleteReceipt(id: string): Promise<ActionResult> {
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "deleteReceipt",
+        receiptId: id,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null };
 }
 
@@ -247,7 +295,15 @@ export async function deleteReceipts(ids: string[]): Promise<ActionResult> {
     .in("id", ids)
     .eq("user_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "deleteReceipts",
+        receiptIds: ids,
+        userId: user.id,
+      }),
+    };
+  }
   return { error: null };
 }
 
@@ -256,6 +312,9 @@ export async function uploadReceiptImage(
   formData: FormData
 ): Promise<ActionResult<string>> {
   try {
+    const idCheck = uuidSchema.safeParse(receiptId);
+    if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+
     const auth = await requireAuth();
     if (auth.error !== null) return { error: auth.error };
     const { supabase, user } = auth;
@@ -292,7 +351,15 @@ export async function uploadReceiptImage(
       .from("receipts")
       .upload(storagePath, file, { upsert: true });
 
-    if (uploadError) return { error: uploadError.message };
+    if (uploadError) {
+      return {
+        error: sanitizeSupabaseError(uploadError, {
+          area: "uploadReceiptImage.upload",
+          receiptId,
+          userId: user.id,
+        }),
+      };
+    }
 
     const { error: updateError } = await supabase
       .from("receipts")
@@ -300,7 +367,15 @@ export async function uploadReceiptImage(
       .eq("id", receiptId)
       .eq("user_id", user.id);
 
-    if (updateError) return { error: updateError.message };
+    if (updateError) {
+      return {
+        error: sanitizeSupabaseError(updateError, {
+          area: "uploadReceiptImage.updateReceipt",
+          receiptId,
+          userId: user.id,
+        }),
+      };
+    }
 
     return { error: null, data: storagePath };
   } catch (e) {
@@ -319,7 +394,14 @@ export async function getReceiptImageUrl(
     .from("receipts")
     .createSignedUrl(storagePath, 3600);
 
-  if (error) return { error: error.message };
+  if (error) {
+    return {
+      error: sanitizeSupabaseError(error, {
+        area: "getReceiptImageUrl",
+        storagePath,
+      }),
+    };
+  }
   return { error: null, data: data.signedUrl };
 }
 
@@ -333,11 +415,8 @@ export async function scanReceiptWithAI(
     // Feature-gate: AI scan is Compleet-only
     const { requirePlan } = await import("@/lib/supabase/server");
     const planCheck = await requirePlan("compleet");
-    if (planCheck.error) return { error: planCheck.error };
-
-    const auth = await requireAuth();
-    if (auth.error !== null) return { error: auth.error };
-    const { supabase, user } = auth;
+    if (planCheck.error !== null) return { error: planCheck.error };
+    const { supabase, user } = planCheck;
 
     // Get receipt to find storage_path
     const { data: receipt, error: receiptError } = await supabase
@@ -447,6 +526,9 @@ export async function markReceiptAiProcessed(
   id: string
 ): Promise<ActionResult> {
   try {
+    const idCheck = uuidSchema.safeParse(id);
+    if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+
     const auth = await requireAuth();
     if (auth.error !== null) return { error: auth.error };
     const { supabase, user } = auth;
@@ -457,7 +539,15 @@ export async function markReceiptAiProcessed(
       .eq("id", id)
       .eq("user_id", user.id);
 
-    if (error) return { error: error.message };
+    if (error) {
+      return {
+        error: sanitizeSupabaseError(error, {
+          area: "markReceiptAiProcessed",
+          receiptId: id,
+          userId: user.id,
+        }),
+      };
+    }
     return { error: null };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Fout bij markeren als verwerkt." };
@@ -494,7 +584,14 @@ export async function processReceiptWebhook(payload: {
     .select()
     .single();
 
-  if (receiptError) return { error: receiptError.message };
+  if (receiptError) {
+    return {
+      error: sanitizeSupabaseError(receiptError, {
+        area: "processReceiptWebhook.createReceipt",
+        userId,
+      }),
+    };
+  }
 
   // 2. Try to find a matching bank transaction
   const txDate = new Date(receiptDate ?? new Date());

@@ -12,7 +12,7 @@ export async function GET(
   // Feature-gate: Jaarrekening is Compleet-only
   const planCheck = await requirePlan("compleet");
   if (planCheck.error) {
-    return NextResponse.json({ error: planCheck.error }, { status: 403 });
+    return NextResponse.json({ error: planCheck.error }, { status: planCheck.status });
   }
 
   const { year: yearStr } = await params;
