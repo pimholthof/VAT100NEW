@@ -698,6 +698,10 @@ export async function autoProvisionAccount(leadId: string): Promise<ActionResult
       studioName: targetCompanyName
     }).catch(err => console.error("[Provision] Email error:", err));
 
+    // 9. CREATE ONBOARDING TASKS
+    const { createOnboardingTasks } = await import("@/features/onboarding/actions");
+    createOnboardingTasks(userId, leadId).catch(err => console.error("[Provision] Onboarding tasks error:", err));
+
     return { error: null };
   } catch (e) {
     return { error: sanitizeError(e, { action: "autoProvisionAccount" }) };

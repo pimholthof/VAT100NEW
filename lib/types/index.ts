@@ -435,6 +435,8 @@ export interface HoursLogInput {
   date: string;
   hours: number;
   category: string | null;
+  quote_id?: string | null;
+  project_name?: string | null;
 }
 
 // ─── Trips types ───
@@ -581,7 +583,7 @@ export interface PlatformStats {
 // ─── Lead & Sales Pipeline types ───
 
 export type LeadLifecycle = "Nieuw" | "Link Verstuurd" | "Plan Gekozen" | "Klant" | "On hold" | "Niet Relevant";
-export type LeadSource = "website" | "substack" | "referral" | "manual";
+export type LeadSource = "website" | "substack" | "referral" | "manual" | "marketing" | "branding" | "waitlist" | "via_via";
 
 export interface Lead {
   id: string;
@@ -598,6 +600,48 @@ export interface Lead {
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+}
+
+// ─── Onboarding types ───
+
+export interface OnboardingTask {
+  id: string;
+  user_id: string;
+  lead_id: string | null;
+  task_key: string;
+  title: string;
+  description: string | null;
+  completed: boolean;
+  completed_at: string | null;
+  completed_by: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+// ─── Feedback types ───
+
+export type FeedbackType = "bug" | "feature" | "nps" | "general";
+export type FeedbackStatus = "open" | "in_progress" | "resolved" | "wont_fix";
+
+export interface Feedback {
+  id: string;
+  user_id: string;
+  type: FeedbackType;
+  score: number | null;
+  message: string;
+  page_url: string | null;
+  status: FeedbackStatus;
+  admin_notes: string | null;
+  created_at: string;
+  resolved_at: string | null;
+}
+
+// ─── Hours Log extended ───
+
+export interface HoursLogExtended extends HoursLog {
+  quote_id: string | null;
+  quote_line_id: string | null;
+  project_name: string | null;
 }
 
 export interface LeadWithActivity extends Lead {

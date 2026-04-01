@@ -20,8 +20,10 @@ export function AdminNav() {
   const navLinks = [
     { href: "/admin", label: "Pipeline" },
     { href: "/admin/customers", label: "Klantbeheer" },
+    { href: "/admin/onboarding", label: "Onboarding" },
     { href: "/admin/users", label: "Gebruikers" },
     { href: "/admin/waitlist", label: "Wachtlijst" },
+    { href: "/admin/feedback", label: "Feedback" },
     { href: "/admin/audit", label: "Fiscale Controle" },
   ];
 
