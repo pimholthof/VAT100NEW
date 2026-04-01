@@ -10,30 +10,21 @@ export function AdminNav() {
   const router = useRouter();
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const items = [
+    { href: "/admin", label: "Overzicht", match: "/admin" },
+    { href: "/admin/users", label: "Gebruikers", match: "/admin/users" },
+    { href: "/admin/waitlist", label: "Wachtlijst", match: "/admin/waitlist" },
+  ];
+
+  function isActive(match: string) {
+    return match === "/admin" ? pathname === "/admin" : pathname.startsWith(match);
+  }
 
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
   }
-
-  const navLinks = [
-    { href: "/admin", label: "Overzicht" },
-    { href: "/admin/pipeline", label: "Pipeline" },
-    { href: "/admin/customers", label: "Klanten" },
-    { href: "/admin/users", label: "Gebruikers" },
-    { href: "/admin/analytics", label: "Analytics" },
-    { href: "/admin/waitlist", label: "Wachtlijst" },
-    { href: "/admin/audit", label: "Controle" },
-    { href: "/admin/audit-log", label: "Audit Log" },
-    { href: "/admin/system", label: "Systeem" },
-    { href: "/admin/settings", label: "Instellingen" },
-  ];
-
-  const isActive = (href: string) => {
-    if (href === "/admin") return pathname === "/admin";
-    return pathname.startsWith(href);
-  };
 
   return (
     <div className="dashboard-nav">
@@ -43,35 +34,33 @@ export function AdminNav() {
             <Link href="/admin" className="display-hero dashboard-nav-brand">
               VAT100
             </Link>
-            <span
-              className="label-strong"
-              style={{
-                fontSize: "9px",
-                letterSpacing: "0.15em",
-                opacity: 0.4,
-              }}
-            >
-              BEHEER
+            <span className="admin-nav-badge">
+              Admin
             </span>
           </div>
 
           <div className="dashboard-nav-actions">
+            <nav className="admin-nav-links-desktop" aria-label="Admin navigatie">
+              {items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="admin-nav-link"
+                  data-active={isActive(item.match)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <Link href="/dashboard" className="admin-nav-link" data-active={false}>
+                Dashboard
+              </Link>
+            </nav>
             <button
               onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-              className="label-strong"
-              style={{
-                fontSize: "12px",
-                letterSpacing: "0.25em",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: "4px 0",
-                transition: "opacity 0.2s ease",
-                color: "var(--foreground)",
-                fontWeight: 700,
-              }}
+              className="label-strong dashboard-nav-menu"
+              data-open={isDrawerOpen}
             >
-              {isDrawerOpen ? "SLUITEN" : "MENU"}
+              {isDrawerOpen ? "CLOSE" : "MENU"}
             </button>
           </div>
         </div>
@@ -87,31 +76,29 @@ export function AdminNav() {
             className="dashboard-drawer"
           >
             <div className="dashboard-drawer-inner">
-              {/* Navigatie */}
               <div className="dashboard-drawer-col">
-                <span className="label mb-4">Navigatie</span>
-                {navLinks.map((link) => (
+                <span className="label mb-4">Beheer</span>
+                {items.map((item) => (
                   <Link
-                    key={link.href}
-                    href={link.href}
+                    key={item.href}
+                    href={item.href}
                     onClick={() => setIsDrawerOpen(false)}
-                    className={`drawer-link ${isActive(link.href) ? "drawer-link-active" : ""}`}
+                    className={`drawer-link${isActive(item.match) ? " drawer-link-active" : ""}`}
                   >
-                    {link.label}
+                    {item.label}
                   </Link>
                 ))}
               </div>
 
-              {/* Account */}
+              <div className="dashboard-drawer-col">
+                <span className="label mb-4">Navigatie</span>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link">
+                  Terug naar Dashboard
+                </Link>
+              </div>
+
               <div className="dashboard-drawer-col dashboard-drawer-col-end">
                 <span className="label mb-4">Account</span>
-                <Link
-                  href="/dashboard"
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="drawer-link"
-                >
-                  Terug naar dashboard
-                </Link>
                 <button
                   type="button"
                   onClick={handleLogout}

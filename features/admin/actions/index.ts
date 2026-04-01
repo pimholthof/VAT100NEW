@@ -5,7 +5,7 @@
 export { getPlatformStats, getRevenueMetrics, getAdminDashboardData, getCustomerKpis, getUserKpis, getWaitlistKpis } from "./stats";
 export type { RevenueMetrics, AdminAlert, AdminLeadRow, AdminCustomerRow, AdminDashboardData, PageKpis } from "./stats";
 
-export { getUsers, getUserDetail, suspendUser, reactivateUser } from "./users";
+export { getAdminOverview, getUsers, getUserDetail, suspendUser, reactivateUser } from "./users";
 
 export { getCustomerOverview, getCustomerDetail, updateCustomerProfile, updateInvoiceStatusAsAdmin, exportCustomerInvoicesCSV, exportCustomerReceiptsCSV, exportAllCustomersCSV } from "./customers";
 export type { CustomerOverviewItem, CustomerDetail } from "./customers";

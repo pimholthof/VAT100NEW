@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type {
   ActionResult,
+  AdminOverview,
   AdminUser,
   AdminUserDetail,
   InvoiceStatus,
@@ -11,6 +12,135 @@ import type {
 import { sanitizeError } from "@/lib/errors";
 import { logAdminAction } from "@/lib/admin/audit";
 
+
+export async function getAdminOverview(): Promise<ActionResult<AdminOverview>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .split("T")[0];
+    const weekStart = new Date(
+      now.getTime() - 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const thirtyDaysAgo = new Date(
+      now.getTime() - 30 * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    const [
+      totalUsersResult,
+      newUsersThisMonthResult,
+      usersThisWeekResult,
+      suspendedUsersResult,
+      totalInvoicesResult,
+      paidInvoicesResult,
+      overdueInvoicesResult,
+      activeInvoicesResult,
+      waitlistCountResult,
+      recentUsersResult,
+      recentWaitlistResult,
+    ] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true }),
+      supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", monthStart),
+      supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", weekStart),
+      supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "suspended"),
+      supabase
+        .from("invoices")
+        .select("*", { count: "exact", head: true }),
+      supabase
+        .from("invoices")
+        .select("total_inc_vat")
+        .eq("status", "paid"),
+      supabase
+        .from("invoices")
+        .select("total_inc_vat", { count: "exact" })
+        .eq("status", "overdue"),
+      supabase
+        .from("invoices")
+        .select("user_id")
+        .gte("created_at", thirtyDaysAgo),
+      supabase
+        .from("waitlist")
+        .select("*", { count: "exact", head: true }),
+      supabase
+        .from("profiles")
+        .select("id, full_name, studio_name, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("waitlist")
+        .select("id, email, name, referral, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
+
+    if (totalUsersResult.error) throw totalUsersResult.error;
+    if (newUsersThisMonthResult.error) throw newUsersThisMonthResult.error;
+    if (usersThisWeekResult.error) throw usersThisWeekResult.error;
+    if (suspendedUsersResult.error) throw suspendedUsersResult.error;
+    if (totalInvoicesResult.error) throw totalInvoicesResult.error;
+    if (paidInvoicesResult.error) throw paidInvoicesResult.error;
+    if (overdueInvoicesResult.error) throw overdueInvoicesResult.error;
+    if (activeInvoicesResult.error) throw activeInvoicesResult.error;
+    if (waitlistCountResult.error) throw waitlistCountResult.error;
+    if (recentUsersResult.error) throw recentUsersResult.error;
+    if (recentWaitlistResult.error) throw recentWaitlistResult.error;
+
+    const totalRevenue = (paidInvoicesResult.data ?? []).reduce(
+      (sum, inv) => sum + (Number(inv.total_inc_vat) || 0),
+      0
+    );
+    const overdueAmount = (overdueInvoicesResult.data ?? []).reduce(
+      (sum, inv) => sum + (Number(inv.total_inc_vat) || 0),
+      0
+    );
+    const activeUsers = new Set(
+      (activeInvoicesResult.data ?? []).map((invoice) => invoice.user_id)
+    ).size;
+
+    return {
+      error: null,
+      data: {
+        stats: {
+          totalUsers: totalUsersResult.count ?? 0,
+          activeUsers,
+          totalInvoices: totalInvoicesResult.count ?? 0,
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          newUsersThisMonth: newUsersThisMonthResult.count ?? 0,
+          suspendedUsers: suspendedUsersResult.count ?? 0,
+          waitlistCount: waitlistCountResult.count ?? 0,
+          usersThisWeek: usersThisWeekResult.count ?? 0,
+          overdueInvoices: overdueInvoicesResult.count ?? 0,
+          overdueAmount: Math.round(overdueAmount * 100) / 100,
+        },
+        recentUsers: (recentUsersResult.data ?? []).map((user) => ({
+          id: user.id,
+          full_name: user.full_name,
+          studio_name: user.studio_name,
+          status: user.status ?? "active",
+          created_at: user.created_at,
+        })),
+        recentWaitlist: recentWaitlistResult.data ?? [],
+      },
+    };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "getAdminOverview" }) };
+  }
+}
 
 // ─── Users List ───
 

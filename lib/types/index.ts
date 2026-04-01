@@ -578,6 +578,32 @@ export interface PlatformStats {
   newUsersThisMonth: number;
 }
 
+export interface AdminOverviewUserPreview {
+  id: string;
+  full_name: string | null;
+  studio_name: string | null;
+  status: UserStatus;
+  created_at: string;
+}
+
+export interface AdminOverview {
+  stats: PlatformStats & {
+    suspendedUsers: number;
+    waitlistCount: number;
+    usersThisWeek: number;
+    overdueInvoices: number;
+    overdueAmount: number;
+  };
+  recentUsers: AdminOverviewUserPreview[];
+  recentWaitlist: Array<{
+    id: string;
+    email: string;
+    name: string | null;
+    referral: string | null;
+    created_at: string;
+  }>;
+}
+
 // ─── Lead & Sales Pipeline types ───
 
 export type LeadLifecycle = "Nieuw" | "Link Verstuurd" | "Plan Gekozen" | "Klant" | "On hold" | "Niet Relevant";

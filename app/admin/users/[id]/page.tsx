@@ -8,39 +8,52 @@ import {
   suspendUser,
   reactivateUser,
 } from "@/features/admin/actions";
-import {
-  PageHeader,
-  StatCard,
-  TableWrapper,
-  Th,
-  Td,
-  ButtonSecondary,
-  ErrorMessage,
-  ConfirmDialog,
-} from "@/components/ui";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StatCard } from "@/components/ui/StatCard";
+import { AdminStatePanel } from "../../AdminStatePanel";
 
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { className: string; label: string }> = {
-    draft: { className: "status-badge--draft", label: "Concept" },
-    sent: { className: "status-badge--sent", label: "Verzonden" },
-    paid: { className: "status-badge--paid", label: "Betaald" },
-    overdue: { className: "status-badge--overdue", label: "Te laat" },
-  };
-  const badge = map[status] ?? { className: "status-badge--draft", label: status };
-  return <span className={`status-badge ${badge.className}`}>{badge.label}</span>;
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("nl-NL", {
+    style: "currency",
+    currency: "EUR",
+  }).format(amount);
 }
 
-function ProfileField({ label, value }: { label: string; value: string | null | undefined }) {
+function formatDate(dateStr: string): string {
+  return new Intl.DateTimeFormat("nl-NL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(dateStr));
+}
+
+function StatusLabel({ label, value }: { label: string; value: string | null }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <span className="label" style={{ display: "block", marginBottom: 4 }}>
-        {label}
-      </span>
-      <span style={{ fontWeight: 500, fontSize: "var(--text-body-md)" }}>
-        {value || "\u2014"}
-      </span>
+    <div className="admin-kv-item">
+      <span className="admin-kv-label">{label}</span>
+      <p className="admin-kv-value">{value || "—"}</p>
     </div>
+  );
+}
+
+function InvoiceStatusBadge({ status }: { status: string }) {
+  const classNames: Record<string, string> = {
+    draft: "admin-badge admin-badge-neutral",
+    sent: "admin-badge admin-badge-neutral",
+    paid: "admin-badge admin-badge-success",
+    overdue: "admin-badge admin-badge-critical",
+  };
+  const labels: Record<string, string> = {
+    draft: "Concept",
+    sent: "Verzonden",
+    paid: "Betaald",
+    overdue: "Te laat",
+  };
+
+  return (
+    <span className={classNames[status] ?? "admin-badge admin-badge-neutral"}>
+      {labels[status] ?? status}
+    </span>
   );
 }
 
@@ -49,7 +62,6 @@ export default function AdminUserDetailPage() {
   const userId = params.id as string;
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["admin-user", userId],
@@ -82,19 +94,25 @@ export default function AdminUserDetailPage() {
 
   if (isLoading) {
     return (
-      <div>
+      <div className="admin-layout">
         <PageHeader title="Gebruiker laden..." backHref="/admin/users" backLabel="Gebruikers" />
-        <div className="skeleton" style={{ width: "60%", height: 20, marginBottom: 12 }} />
-        <div className="skeleton" style={{ width: "40%", height: 20 }} />
+        <div className="admin-table-shell">
+          <div className="admin-empty-state">Gebruiker laden...</div>
+        </div>
       </div>
     );
   }
 
   if (result?.error || !result?.data) {
     return (
-      <div>
+      <div className="admin-layout">
         <PageHeader title="Gebruiker" backHref="/admin/users" backLabel="Gebruikers" />
-        <ErrorMessage>{result?.error ?? "Niet gevonden"}</ErrorMessage>
+        <AdminStatePanel
+          eyebrow="Gebruiker"
+          title="Gebruiker kon niet worden geladen"
+          description={result?.error ?? "Niet gevonden"}
+          actions={[{ href: "/admin/users", label: "Terug naar gebruikers", variant: "secondary" }]}
+        />
       </div>
     );
   }
@@ -103,135 +121,147 @@ export default function AdminUserDetailPage() {
   const isSuspended = profile.status === "suspended";
 
   return (
-    <div>
+    <div className="admin-layout">
       <PageHeader
         title={profile.full_name || "Naamloos"}
         backHref="/admin/users"
         backLabel="Gebruikers"
         action={
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="admin-inline-actions">
+            <span className={`admin-badge ${isSuspended ? "admin-badge-critical" : "admin-badge-success"}`}>
+              {isSuspended ? "Geblokkeerd" : "Actief"}
+            </span>
             {isSuspended ? (
-              <ButtonSecondary
+              <button
                 onClick={() => reactivateMutation.mutate()}
                 disabled={reactivateMutation.isPending}
+                className="admin-page-button"
               >
-                {reactivateMutation.isPending ? "Heractiveren..." : "Heractiveren"}
-              </ButtonSecondary>
+                {reactivateMutation.isPending
+                  ? "Heractiveren..."
+                  : "Heractiveren"}
+              </button>
             ) : (
-              <ButtonSecondary
-                onClick={() => setShowConfirm(true)}
+              <button
+                onClick={() => {
+                  if (confirm("Weet je zeker dat je dit account wilt blokkeren?")) {
+                    suspendMutation.mutate();
+                  }
+                }}
                 disabled={suspendMutation.isPending}
-                style={{ borderColor: "rgba(165,28,48,0.3)", color: "var(--color-accent)" }}
+                className="admin-page-button admin-page-button-danger"
               >
                 {suspendMutation.isPending ? "Blokkeren..." : "Blokkeren"}
-              </ButtonSecondary>
+              </button>
             )}
           </div>
         }
       />
 
-      <ConfirmDialog
-        open={showConfirm}
-        title="Account blokkeren"
-        message="Weet je zeker dat je dit account wilt blokkeren? De gebruiker kan niet meer inloggen."
-        confirmLabel="Blokkeren"
-        cancelLabel="Annuleren"
-        onConfirm={() => {
-          setShowConfirm(false);
-          suspendMutation.mutate();
-        }}
-        onCancel={() => setShowConfirm(false)}
-      />
+      {actionError && (
+        <p className="admin-error-text">
+          {actionError}
+        </p>
+      )}
 
-      {actionError && <ErrorMessage>{actionError}</ErrorMessage>}
-
-      {/* Profiel */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 24,
-          marginBottom: 48,
-          padding: 28,
-          border: "0.5px solid rgba(0,0,0,0.08)",
-          borderRadius: "var(--radius)",
-        }}
-      >
-        <ProfileField label="E-mail" value={profile.email} />
-        <ProfileField label="Studio" value={profile.studio_name} />
-        <ProfileField label="KVK" value={profile.kvk_number} />
-        <ProfileField label="BTW" value={profile.btw_number} />
-        <ProfileField label="IBAN" value={profile.iban} />
-        <ProfileField label="Status" value={isSuspended ? "Geblokkeerd" : "Actief"} />
-        <ProfileField label="Aangemeld" value={formatDate(profile.created_at)} />
-        <ProfileField label="Stad" value={profile.city} />
+      {/* Profile info */}
+      <div className="admin-kv-grid">
+        <StatusLabel label="E-mail" value={profile.email} />
+        <StatusLabel label="Studio" value={profile.studio_name} />
+        <StatusLabel label="KVK" value={profile.kvk_number} />
+        <StatusLabel label="BTW" value={profile.btw_number} />
+        <StatusLabel label="IBAN" value={profile.iban} />
+        <StatusLabel label="Status" value={isSuspended ? "Geblokkeerd" : "Actief"} />
+        <StatusLabel label="Aangemeld" value={formatDate(profile.created_at)} />
+        <StatusLabel label="Stad" value={profile.city} />
       </div>
 
-      {/* Statistieken */}
-      <h2 className="label" style={{ marginBottom: 16 }}>Statistieken</h2>
-      <div
-        className="stat-cards-grid"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", marginBottom: 48 }}
+      {/* Stats */}
+      <h2
+        className="label"
+        style={{ marginBottom: 4 }}
       >
+        Statistieken
+      </h2>
+      <div className="admin-stat-grid">
         <StatCard
           label="Facturen"
           value={String(stats.totalInvoices)}
           numericValue={stats.totalInvoices}
           isCurrency={false}
+          compact
         />
         <StatCard
           label="Omzet"
           value={formatCurrency(stats.totalRevenue)}
           numericValue={stats.totalRevenue}
+          compact
         />
         <StatCard
           label="Openstaand"
           value={formatCurrency(stats.openAmount)}
           numericValue={stats.openAmount}
           sub={`${stats.openInvoices} facturen`}
+          compact
         />
         <StatCard
           label="Klanten"
           value={String(stats.totalClients)}
           numericValue={stats.totalClients}
           isCurrency={false}
+          compact
         />
       </div>
 
-      {/* Recente facturen */}
-      <h2 className="label" style={{ marginBottom: 16 }}>Recente facturen</h2>
+      {/* Recent Invoices */}
+      <h2
+        className="label"
+        style={{ marginBottom: 4 }}
+      >
+        Recente facturen
+      </h2>
 
       {recentInvoices.length === 0 ? (
-        <p className="empty-state">Geen facturen</p>
+        <div className="admin-table-shell">
+          <div className="admin-empty-state">Geen facturen</div>
+        </div>
       ) : (
-        <TableWrapper>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="admin-table-shell">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
             <thead>
               <tr>
-                <Th>Nummer</Th>
-                <Th>Klant</Th>
-                <Th>Status</Th>
-                <Th>Datum</Th>
-                <Th style={{ textAlign: "right" }}>Bedrag</Th>
+                {["Nummer", "Klant", "Status", "Datum", "Bedrag"].map(
+                  (header) => (
+                    <th key={header}>
+                      {header}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
             <tbody>
               {recentInvoices.map((inv) => (
                 <tr key={inv.id}>
-                  <Td style={{ fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                  <td className="mono-amount">
                     {inv.invoice_number}
-                  </Td>
-                  <Td>{inv.client_name}</Td>
-                  <Td><StatusBadge status={inv.status} /></Td>
-                  <Td><span className="label">{formatDate(inv.issue_date)}</span></Td>
-                  <Td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                  </td>
+                  <td>{inv.client_name}</td>
+                  <td>
+                    <InvoiceStatusBadge status={inv.status} />
+                  </td>
+                  <td className="label">
+                    {formatDate(inv.issue_date)}
+                  </td>
+                  <td className="mono-amount admin-right">
                     {formatCurrency(inv.total_inc_vat)}
-                  </Td>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </TableWrapper>
+        </div>
+        </div>
       )}
     </div>
   );

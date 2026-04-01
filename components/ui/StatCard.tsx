@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { m as motion } from "framer-motion";
 import { AnimatedNumber } from "./AnimatedNumber";
@@ -8,12 +10,14 @@ export function StatCard({
   sub,
   numericValue,
   isCurrency = true,
+  compact = false,
 }: {
   label: string;
   value: string | number;
   sub?: string;
   numericValue?: number;
   isCurrency?: boolean;
+  compact?: boolean;
 }) {
   return (
     <motion.div
@@ -21,12 +25,12 @@ export function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        padding: "24px",
+        padding: compact ? "20px" : "24px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        gap: 16,
-        minHeight: 160,
+        gap: compact ? 12 : 16,
+        minHeight: compact ? 132 : 160,
         border: "0.5px solid rgba(0, 0, 0, 0.08)",
         borderRadius: "var(--radius)",
         background: "var(--card-surface, var(--dashboard-surface, var(--background)))",
@@ -39,7 +43,7 @@ export function StatCard({
 
       <p
         style={{
-          fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)",
+          fontSize: compact ? "clamp(1.35rem, 2.1vw, 2rem)" : "clamp(1.5rem, 2.5vw, 2.25rem)",
           fontWeight: 400,
           letterSpacing: "-0.03em",
           lineHeight: 1,
