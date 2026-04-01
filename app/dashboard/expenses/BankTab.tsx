@@ -27,13 +27,14 @@ const TRANSACTION_CATEGORIES = [
   ...KOSTENSOORTEN.map((k) => k.label),
 ];
 
-function getMonthOptions(): { value: string; label: string }[] {
+function getMonthOptions(locale: string): { value: string; label: string }[] {
   const options: { value: string; label: string }[] = [];
   const now = new Date();
+  const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
+    const label = d.toLocaleDateString(dateLocale, { month: "long", year: "numeric" });
     options.push({ value, label });
   }
   return options;
@@ -61,10 +62,10 @@ const selectStyle: React.CSSProperties = {
 };
 
 export default function BankTab() {
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const monthOptions = useMemo(() => getMonthOptions(), []);
+  const monthOptions = useMemo(() => getMonthOptions(locale), [locale]);
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0].value);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 

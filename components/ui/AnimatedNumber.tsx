@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { animate, useMotionValue, useTransform, m as motion } from "framer-motion";
+import { useLocale } from "@/lib/i18n/context";
 
 /**
  * AnimatedNumber — Smoothly counts up/down to a target value.
@@ -24,9 +25,11 @@ export function AnimatedNumber({
   className?: string;
   isCurrency?: boolean;
 }) {
+  const { locale } = useLocale();
+  const numLocale = locale === "en" ? "en-GB" : "nl-NL";
   const count = useMotionValue(value);
   const rounded = useTransform(count, (latest) => {
-    const formatter = new Intl.NumberFormat("nl-NL", {
+    const formatter = new Intl.NumberFormat(numLocale, {
       style: isCurrency ? "currency" : "decimal",
       currency: "EUR",
       minimumFractionDigits: isCurrency ? 0 : 0,
