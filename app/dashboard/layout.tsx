@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   return (
     <div className="dashboard-shell">
       <a href="#main" className="skip-to-content">
-        Ga naar inhoud
+        Skip to content
       </a>
       <DashboardNav
         studioName={profile?.studio_name ?? undefined}

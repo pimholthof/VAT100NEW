@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { sendInvoice } from "@/features/invoices/actions";
+import { useLocale } from "@/lib/i18n/context";
 
 export function SendEmailButton({
   invoiceId,
@@ -10,6 +11,7 @@ export function SendEmailButton({
   invoiceId: string;
   clientEmail: string;
 }) {
+  const { t } = useLocale();
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
@@ -31,7 +33,7 @@ export function SendEmailButton({
       setMsg(res.error);
       setIsError(true);
     } else {
-      setMsg(`Verstuurd naar ${clientEmail}`);
+      setMsg(t.invoices.sentTo.replace("{email}", clientEmail));
     }
     setSending(false);
   };
@@ -56,7 +58,7 @@ export function SendEmailButton({
           opacity: sending ? 0.5 : 1,
         }}
       >
-        {sending ? "Verzenden..." : "E-mail"}
+        {sending ? t.invoices.sendingEmail : t.invoices.emailButton}
       </button>
       <span aria-live="polite">
         {msg && (

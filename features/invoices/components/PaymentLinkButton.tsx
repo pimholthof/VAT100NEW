@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPaymentLink } from "@/features/invoices/actions";
+import { useLocale } from "@/lib/i18n/context";
 
 export function PaymentLinkButton({
   invoiceId,
@@ -10,6 +11,7 @@ export function PaymentLinkButton({
   invoiceId: string;
   existingLink: string | null;
 }) {
+  const { t } = useLocale();
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
@@ -34,7 +36,7 @@ export function PaymentLinkButton({
     } else if (res.data) {
       setLink(res.data.paymentLink);
       await navigator.clipboard.writeText(res.data.paymentLink).catch(() => {});
-      setMsg("Betaallink aangemaakt en gekopieerd");
+      setMsg(t.invoices.paymentLinkCreated);
     }
     setLoading(false);
   };
@@ -42,7 +44,7 @@ export function PaymentLinkButton({
   const handleCopy = async () => {
     if (!link) return;
     await navigator.clipboard.writeText(link).catch(() => {});
-    setMsg("Link gekopieerd");
+    setMsg(t.invoices.linkCopied);
     setIsError(false);
   };
 
@@ -64,7 +66,7 @@ export function PaymentLinkButton({
             cursor: "pointer",
           }}
         >
-          Kopieer betaallink
+          {t.invoices.copyPaymentLink}
         </button>
       ) : (
         <button
@@ -85,7 +87,7 @@ export function PaymentLinkButton({
             opacity: loading ? 0.5 : 1,
           }}
         >
-          {loading ? "Aanmaken..." : "Betaallink"}
+          {loading ? t.invoices.creatingLink : t.invoices.paymentLink}
         </button>
       )}
       <span aria-live="polite">

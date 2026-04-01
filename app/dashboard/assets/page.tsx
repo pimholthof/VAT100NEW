@@ -6,15 +6,7 @@ import { getAssets, createAsset, updateAsset, deleteAsset, getActivastaat } from
 import type { Asset, AssetInput } from "@/lib/types";
 import { SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
-
-const CATEGORIEEN = [
-  "Computer & software",
-  "Meubilair",
-  "Vervoermiddel",
-  "Machines",
-  "Gereedschap",
-  "Overig",
-];
+import { useLocale } from "@/lib/i18n/context";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -52,7 +44,18 @@ function EmptyForm(): AssetInput {
 }
 
 export default function AssetsPage() {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
+
+  const CATEGORIEEN = [
+    t.assets.computerSoftware,
+    t.assets.furniture,
+    t.assets.vehicle,
+    t.assets.machines,
+    t.assets.tools,
+    t.assets.other,
+  ];
+
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AssetInput>(EmptyForm());
@@ -143,9 +146,9 @@ export default function AssetsPage() {
       {/* Header */}
       <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
         <div>
-          <h1 className="display-title">Activastaat</h1>
+          <h1 className="display-title">{t.assets.title}</h1>
           <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
-            Vaste activa en afschrijvingen
+            {t.assets.subtitle}
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -154,14 +157,14 @@ export default function AssetsPage() {
             download
             className="btn-secondary"
           >
-            Exporteer CSV
+            {t.common.export}
           </a>
           <button
             onClick={() => { setShowForm(true); setEditingId(null); setForm(EmptyForm()); setError(null); }}
             className="btn-primary"
             style={{ cursor: "pointer" }}
           >
-            + Nieuw activum
+            {t.assets.newAsset}
           </button>
         </div>
       </div>
@@ -170,10 +173,10 @@ export default function AssetsPage() {
       {activastaat && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24, marginBottom: 48 }}>
           {[
-            { label: "Totaal aanschafprijs", value: activastaat.totaalAanschafprijs },
-            { label: "Afschrijving dit jaar", value: activastaat.totaalAfschrijvingDitJaar },
-            { label: "Cumulatief afgeschreven", value: activastaat.totaalCumulatief },
-            { label: "Totaal boekwaarde", value: activastaat.totaalBoekwaarde },
+            { label: t.assets.totalPurchasePrice, value: activastaat.totaalAanschafprijs },
+            { label: t.assets.depreciationThisYear, value: activastaat.totaalAfschrijvingDitJaar },
+            { label: t.assets.cumulativeDepreciation, value: activastaat.totaalCumulatief },
+            { label: t.assets.totalBookValue, value: activastaat.totaalBoekwaarde },
           ].map((stat) => (
             <div key={stat.label} className="glass" style={{ padding: 24, borderRadius: "var(--radius-md)" }}>
               <p className="label" style={{ marginBottom: 8 }}>{stat.label}</p>
@@ -189,41 +192,41 @@ export default function AssetsPage() {
       {showForm && (
         <div className="glass" style={{ padding: 32, borderRadius: "var(--radius-md)", marginBottom: 48 }}>
           <h2 style={{ fontSize: "var(--text-body-lg)", fontWeight: 600, marginBottom: 24 }}>
-            {editingId ? "Activum bewerken" : "Nieuw activum"}
+            {editingId ? t.assets.editAsset : t.assets.newAssetTitle}
           </h2>
 
           {error && <p style={{ color: "#A51C30", marginBottom: 16 }}>{error}</p>}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div style={{ gridColumn: "1 / -1" }}>
-              <label style={labelStyle}>Omschrijving *</label>
-              <input style={inputStyle} value={form.omschrijving} onChange={(e) => setForm({ ...form, omschrijving: e.target.value })} placeholder="bijv. MacBook Pro" />
+              <label style={labelStyle}>{t.assets.descriptionLabel}</label>
+              <input style={inputStyle} value={form.omschrijving} onChange={(e) => setForm({ ...form, omschrijving: e.target.value })} placeholder={t.assets.descriptionPlaceholder} />
             </div>
             <div>
-              <label style={labelStyle}>Aanschafdatum *</label>
+              <label style={labelStyle}>{t.assets.purchaseDate}</label>
               <input style={inputStyle} type="date" value={form.aanschaf_datum} onChange={(e) => setForm({ ...form, aanschaf_datum: e.target.value })} />
             </div>
             <div>
-              <label style={labelStyle}>Aanschafprijs (excl. BTW) *</label>
+              <label style={labelStyle}>{t.assets.purchasePrice}</label>
               <input style={inputStyle} type="number" step="0.01" min="0" value={form.aanschaf_prijs || ""} onChange={(e) => setForm({ ...form, aanschaf_prijs: parseFloat(e.target.value) || 0 })} />
             </div>
             <div>
-              <label style={labelStyle}>Restwaarde</label>
+              <label style={labelStyle}>{t.assets.residualValue}</label>
               <input style={inputStyle} type="number" step="0.01" min="0" value={form.restwaarde || ""} onChange={(e) => setForm({ ...form, restwaarde: parseFloat(e.target.value) || 0 })} />
             </div>
             <div>
-              <label style={labelStyle}>Levensduur (jaren)</label>
+              <label style={labelStyle}>{t.assets.lifespan}</label>
               <input style={inputStyle} type="number" min="1" max="30" value={form.levensduur} onChange={(e) => setForm({ ...form, levensduur: parseInt(e.target.value) || 5 })} />
             </div>
             <div>
-              <label style={labelStyle}>Categorie</label>
+              <label style={labelStyle}>{t.assets.categoryLabel}</label>
               <select style={inputStyle} value={form.categorie ?? ""} onChange={(e) => setForm({ ...form, categorie: e.target.value || null })}>
-                <option value="">Selecteer...</option>
+                <option value="">{t.common.select}</option>
                 {CATEGORIEEN.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Notitie</label>
+              <label style={labelStyle}>{t.assets.noteLabel}</label>
               <input style={inputStyle} value={form.notitie ?? ""} onChange={(e) => setForm({ ...form, notitie: e.target.value || null })} />
             </div>
           </div>
@@ -243,7 +246,7 @@ export default function AssetsPage() {
                 opacity: (createMut.isPending || updateMut.isPending) ? 0.5 : 1,
               }}
             >
-              {editingId ? "OPSLAAN" : "TOEVOEGEN"}
+              {editingId ? t.assets.saveBtn : t.assets.addBtn}
             </button>
             <button
               onClick={() => { setShowForm(false); setEditingId(null); setError(null); }}
@@ -256,7 +259,7 @@ export default function AssetsPage() {
                 cursor: "pointer",
               }}
             >
-              ANNULEREN
+              {t.assets.cancelBtn}
             </button>
           </div>
         </div>
@@ -267,20 +270,20 @@ export default function AssetsPage() {
         <SkeletonTable rows={5} />
       ) : assets.length === 0 ? (
         <div style={{ textAlign: "center", padding: "80px 0", opacity: 0.4 }}>
-          <p style={{ fontSize: "var(--text-body-lg)" }}>Nog geen activa geregistreerd</p>
+          <p style={{ fontSize: "var(--text-body-lg)" }}>{t.assets.noAssetsYet}</p>
         </div>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                <Th>Omschrijving</Th>
-                <Th>Categorie</Th>
-                <Th style={{ textAlign: "right" }}>Aanschafdatum</Th>
-                <Th style={{ textAlign: "right" }}>Aanschafprijs</Th>
-                <Th style={{ textAlign: "right" }}>Afschr. / jaar</Th>
-                <Th style={{ textAlign: "right" }}>Boekwaarde</Th>
-                <Th style={{ textAlign: "right" }}>Rest. jaren</Th>
+                <Th>{t.common.description}</Th>
+                <Th>{t.common.category}</Th>
+                <Th style={{ textAlign: "right" }}>{t.assets.purchaseDateCol}</Th>
+                <Th style={{ textAlign: "right" }}>{t.assets.purchasePriceCol}</Th>
+                <Th style={{ textAlign: "right" }}>{t.assets.depPerYear}</Th>
+                <Th style={{ textAlign: "right" }}>{t.assets.bookValue}</Th>
+                <Th style={{ textAlign: "right" }}>{t.assets.remainingYears}</Th>
                 <Th style={{ textAlign: "right" }}></Th>
               </tr>
             </thead>
@@ -292,7 +295,7 @@ export default function AssetsPage() {
                     <Td>
                       <span style={{ fontWeight: 500 }}>{asset.omschrijving}</span>
                       {asset.is_verkocht && (
-                        <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.5, fontStyle: "italic" }}>verkocht</span>
+                        <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.5, fontStyle: "italic" }}>{t.assets.sold}</span>
                       )}
                     </Td>
                     <Td>{asset.categorie ?? "—"}</Td>
@@ -307,13 +310,13 @@ export default function AssetsPage() {
                           onClick={() => handleEdit(asset)}
                           style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5, fontSize: 13 }}
                         >
-                          Bewerk
+                          {t.common.edit}
                         </button>
                         <button
                           onClick={() => setDeleteId(asset.id)}
                           style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5, fontSize: 13, color: "#A51C30" }}
                         >
-                          Verwijder
+                          {t.common.delete}
                         </button>
                       </div>
                     </Td>
@@ -328,9 +331,9 @@ export default function AssetsPage() {
       {/* Delete bevestiging */}
       <ConfirmDialog
         open={!!deleteId}
-        title="Activum verwijderen"
-        message="Weet je zeker dat je dit activum wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
-        confirmLabel="Verwijderen"
+        title={t.assets.deleteTitle}
+        message={t.assets.deleteMessage}
+        confirmLabel={t.common.delete}
         onConfirm={() => { if (deleteId) deleteMut.mutate(deleteId); setDeleteId(null); }}
         onCancel={() => setDeleteId(null)}
       />

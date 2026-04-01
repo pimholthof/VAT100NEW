@@ -4,6 +4,7 @@ import { register } from "../actions";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
+import { useLocale } from "@/lib/i18n/context";
 
 const inputStyle: React.CSSProperties = {
   fontSize: "14px",
@@ -23,6 +24,7 @@ function RegisterForm() {
   const plan = searchParams.get("plan");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const { t } = useLocale();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,7 +35,7 @@ function RegisterForm() {
     const confirm = (form.elements.namedItem("confirm_password") as HTMLInputElement).value;
 
     if (password !== confirm) {
-      setError("Wachtwoorden komen niet overeen.");
+      setError(t.auth.passwordsMismatch);
       return;
     }
 
@@ -78,7 +80,7 @@ function RegisterForm() {
               color: "var(--foreground)",
             }}
           >
-            Account aanmaken
+            {t.auth.createAccount}
           </h1>
         </div>
 
@@ -86,27 +88,27 @@ function RegisterForm() {
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             {plan && <input type="hidden" name="plan" value={plan} />}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label htmlFor="full_name" className="label">Volledige naam</label>
+              <label htmlFor="full_name" className="label">{t.auth.fullName}</label>
               <input id="full_name" name="full_name" type="text" required autoComplete="name" style={inputStyle} />
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label htmlFor="studio_name" className="label">Bedrijfsnaam</label>
-              <input id="studio_name" name="studio_name" type="text" required placeholder="bijv. Maya Kowalski Studio" autoComplete="organization" style={inputStyle} />
+              <label htmlFor="studio_name" className="label">{t.auth.companyName}</label>
+              <input id="studio_name" name="studio_name" type="text" required placeholder={t.auth.companyNamePlaceholder} autoComplete="organization" style={inputStyle} />
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label htmlFor="email" className="label">E-mail</label>
+              <label htmlFor="email" className="label">{t.auth.email}</label>
               <input id="email" name="email" type="email" required autoComplete="email" style={inputStyle} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label htmlFor="password" className="label">Wachtwoord</label>
+                <label htmlFor="password" className="label">{t.auth.password}</label>
                 <input id="password" name="password" type="password" required minLength={6} autoComplete="new-password" style={inputStyle} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label htmlFor="confirm_password" className="label">Bevestigen</label>
+                <label htmlFor="confirm_password" className="label">{t.auth.confirm}</label>
                 <input id="confirm_password" name="confirm_password" type="password" required minLength={6} autoComplete="new-password" style={inputStyle} />
               </div>
             </div>
@@ -126,7 +128,7 @@ function RegisterForm() {
               className="btn-primary"
               style={{ marginTop: 8, width: "100%" }}
             >
-              {pending ? "Even wachten..." : "Account aanmaken"}
+              {pending ? t.common.waiting : t.auth.createAccount}
             </button>
           </form>
 
@@ -134,7 +136,7 @@ function RegisterForm() {
           className="label"
           style={{ marginTop: 32, opacity: 0.35 }}
         >
-          Al een account?{" "}
+          {t.auth.hasAccount}{" "}
           <Link
             href="/login"
             style={{
@@ -146,7 +148,7 @@ function RegisterForm() {
               paddingBottom: 1,
             }}
           >
-            Inloggen
+            {t.auth.login}
           </Link>
         </p>
       </div>

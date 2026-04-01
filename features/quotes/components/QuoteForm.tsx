@@ -19,12 +19,14 @@ import { inputStyle, ErrorMessage } from "@/components/ui";
 import { m as motion } from "framer-motion";
 import { playSound } from "@/lib/utils/sound";
 import { useInvoiceStore } from "@/lib/store/invoice";
+import { useLocale } from "@/lib/i18n/context";
 
 interface QuoteFormProps {
   quoteId?: string;
 }
 
 export function QuoteForm({ quoteId }: QuoteFormProps) {
+  const { t } = useLocale();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +111,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
   });
   const clients = clientsResult?.data ?? [];
   const hasClientError = clientsError || !!clientsResult?.error;
-  const clientErrorMessage = clientsResult?.error || "Fout bij ophalen";
+  const clientErrorMessage = clientsResult?.error || t.common.fetchError;
 
   useEffect(() => {
     if (!quoteId && !quoteNumber) {
@@ -125,11 +127,11 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
   const handleSave = async (status: QuoteStatus) => {
     if (!clientId) {
-      setError("Selecteer een klant.");
+      setError(t.quotes.selectClient);
       return;
     }
     if (!quoteNumber) {
-      setError("Offertenummer is verplicht.");
+      setError(t.quotes.quoteNumberRequired);
       return;
     }
 
@@ -174,7 +176,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Recipient */}
       <div style={{ marginBottom: 48 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>ONTVANGER</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>{t.quotes.recipient}</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
           <select
             value={clientId}
@@ -196,7 +198,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
           >
             <option value="">
-              {clientsLoading ? "Laden..." : hasClientError ? clientErrorMessage : "Selecteer klant"}
+              {clientsLoading ? t.common.loading : hasClientError ? clientErrorMessage : t.quotes.selectClientPlaceholder}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -210,7 +212,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
             style={{ background: "none", border: "none", cursor: "pointer", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.2em", opacity: 0.3 }}
           >
-            {showNewClient ? "[-] SLUITEN" : "[+] NIEUW"}
+            {showNewClient ? `[-] ${t.common.close.toUpperCase()}` : `[+] ${t.common.new.toUpperCase()}`}
           </button>
         </div>
         {showNewClient && (
@@ -226,7 +228,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Valid until */}
       <div style={{ marginBottom: 40 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>GELDIG TOT</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>{t.quotes.validUntilLabel}</p>
         <input
           type="date"
           value={validUntil}
@@ -240,7 +242,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Lines */}
       <div style={{ marginBottom: 80 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>REGELS</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>{t.quotes.lines}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {lines.map((line, index) => (
             <InvoiceLineRow
@@ -260,7 +262,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             }}
             style={{ background: "none", border: "none", cursor: "pointer", fontSize: 10, textAlign: "left", padding: "12px 0", opacity: 0.2, letterSpacing: "0.1em", textTransform: "uppercase" }}
           >
-            + REGEL TOEVOEGEN
+            {t.quotes.addLine}
           </button>
         </div>
       </div>
@@ -270,14 +272,14 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {/* Notities */}
       <div style={{ marginBottom: 40 }}>
-        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>NOTITIES</p>
+        <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>{t.quotes.notesLabel}</p>
         <textarea
           value={notes}
           onChange={(e) => {
             setNotes(e.target.value);
             invoiceSetNotes(e.target.value);
           }}
-          placeholder="Optionele notities (zichtbaar op offerte)"
+          placeholder={t.quotes.notesPlaceholder}
           rows={3}
           style={{
             ...inputStyle,
@@ -311,7 +313,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             cursor: "pointer"
           }}
         >
-          {saving ? "..." : "Bewaar concept"}
+          {saving ? "..." : t.quotes.saveDraft}
         </button>
         <button
           onClick={() => {
@@ -333,7 +335,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
           }}
         >
-          {saving ? "..." : "Verstuur offerte"}
+          {saving ? "..." : t.quotes.sendQuote}
         </button>
       </div>
 

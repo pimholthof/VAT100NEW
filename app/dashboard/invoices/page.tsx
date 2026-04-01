@@ -9,28 +9,7 @@ import { getQuotes, deleteQuote, updateQuoteStatus, type QuoteWithClient } from 
 import type { InvoiceStatus, QuoteStatus } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
-
-const INVOICE_STATUS_OPTIONS = [
-  { value: "draft", label: "Concept" },
-  { value: "sent", label: "Verzonden" },
-  { value: "paid", label: "Betaald" },
-  { value: "overdue", label: "Te laat" },
-];
-
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Concept",
-  sent: "Verzonden",
-  paid: "Betaald",
-  overdue: "Te laat",
-};
-
-const QUOTE_STATUS_OPTIONS = [
-  { value: "draft", label: "Concept" },
-  { value: "sent", label: "Verstuurd" },
-  { value: "accepted", label: "Geaccepteerd" },
-  { value: "invoiced", label: "Gefactureerd" },
-  { value: "rejected", label: "Afgewezen" },
-];
+import { useLocale } from "@/lib/i18n/context";
 
 const tabStyle = (active: boolean): React.CSSProperties => ({
   background: "none",
@@ -47,6 +26,7 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
 });
 
 export default function InvoicesPage() {
+  const { t } = useLocale();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") === "offertes" ? "offertes" : "facturen";
   const [activeTab, setActiveTab] = useState<"facturen" | "offertes">(initialTab);
@@ -56,10 +36,10 @@ export default function InvoicesPage() {
       {/* Tabs */}
       <div style={{ display: "flex", gap: 28, marginBottom: 40, borderBottom: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
         <button onClick={() => setActiveTab("facturen")} style={tabStyle(activeTab === "facturen")}>
-          Facturen
+          {t.invoices.title}
         </button>
         <button onClick={() => setActiveTab("offertes")} style={tabStyle(activeTab === "offertes")}>
-          Offertes
+          {t.quotes.title}
         </button>
       </div>
 
@@ -69,6 +49,7 @@ export default function InvoicesPage() {
 }
 
 function InvoicesTab() {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -78,6 +59,20 @@ function InvoicesTab() {
   const handleFilter = useCallback((f: Record<string, string>) => {
     setStatusFilter(f.status ?? "");
   }, []);
+
+  const invoiceStatusOptions = [
+    { value: "draft", label: t.invoices.draft },
+    { value: "sent", label: t.invoices.sent },
+    { value: "paid", label: t.invoices.paid },
+    { value: "overdue", label: t.invoices.overdue },
+  ];
+
+  const statusLabels: Record<string, string> = {
+    draft: t.invoices.draft,
+    sent: t.invoices.sent,
+    paid: t.invoices.paid,
+    overdue: t.invoices.overdue,
+  };
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoices", search, statusFilter],
@@ -111,9 +106,9 @@ function InvoicesTab() {
       <div className="page-header">
         <div>
           <h1 className="display-title" style={{ marginBottom: 8 }}>
-            Facturen
+            {t.invoices.title}
           </h1>
-          <p className="label" style={{ opacity: 0.25 }}>{invoices.length} {invoices.length === 1 ? "FACTUUR" : "FACTUREN"}</p>
+          <p className="label" style={{ opacity: 0.25 }}>{invoices.length} {invoices.length === 1 ? t.invoices.invoice.toUpperCase() : t.invoices.invoices.toUpperCase()}</p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <a
@@ -121,22 +116,22 @@ function InvoicesTab() {
             download
             className="btn-secondary"
           >
-            Download lijst
+            {t.common.downloadList}
           </a>
           <Link
             href="/dashboard/invoices/new"
             className="btn-primary"
           >
-            + Nieuwe factuur
+            {t.invoices.newInvoiceBtn}
           </Link>
         </div>
       </div>
 
       {/* Search & Filter */}
       <SearchFilter
-        placeholder="Zoek op nummer, klant of bedrag..."
+        placeholder={t.invoices.searchPlaceholder}
         filters={[
-          { key: "status", label: "Alle statussen", options: INVOICE_STATUS_OPTIONS },
+          { key: "status", label: t.invoices.allStatuses, options: invoiceStatusOptions },
         ]}
         onSearch={handleSearch}
         onFilterChange={handleFilter}
@@ -155,7 +150,7 @@ function InvoicesTab() {
       ) : invoices.length === 0 ? (
         <div style={{ paddingTop: "var(--space-xl)" }}>
           <p className="empty-state">
-            {search || statusFilter ? "Geen facturen gevonden" : "Nog geen facturen"}
+            {search || statusFilter ? t.invoices.noInvoicesFound : t.invoices.noInvoicesYet}
           </p>
           {!search && !statusFilter && (
             <Link
@@ -163,7 +158,7 @@ function InvoicesTab() {
               className="table-action"
               style={{ opacity: 0.4 }}
             >
-              Maak je eerste factuur
+              {t.invoices.createFirst}
             </Link>
           )}
         </div>
@@ -172,12 +167,12 @@ function InvoicesTab() {
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
             <thead>
               <tr style={{ borderBottom: "0.5px solid rgba(0,0,0,0.08)" }}>
-                <Th>Ref</Th>
-                <Th>Klant</Th>
-                <Th>Datum</Th>
-                <Th>Status</Th>
-                <Th style={{ textAlign: "right" }}>Bedrag</Th>
-                <Th style={{ textAlign: "right" }}>Acties</Th>
+                <Th>{t.common.ref}</Th>
+                <Th>{t.invoices.client}</Th>
+                <Th>{t.common.date}</Th>
+                <Th>{t.common.status}</Th>
+                <Th style={{ textAlign: "right" }}>{t.common.amount}</Th>
+                <Th style={{ textAlign: "right" }}>{t.common.actions}</Th>
               </tr>
             </thead>
             <tbody>
@@ -203,7 +198,7 @@ function InvoicesTab() {
                           letterSpacing: "0.05em",
                           color: "var(--color-accent)",
                         }}>
-                          Credit
+                          {t.invoices.credit}
                         </span>
                       )}
                     </Link>
@@ -217,7 +212,7 @@ function InvoicesTab() {
                   <Td>
                     <select
                       value={invoice.status}
-                      aria-label={`Status ${invoice.invoice_number}`}
+                      aria-label={`${t.common.status} ${invoice.invoice_number}`}
                       aria-busy={statusMutation.isPending && statusMutation.variables?.id === invoice.id}
                       onChange={(e) =>
                         statusMutation.mutate({
@@ -244,10 +239,10 @@ function InvoicesTab() {
                         cursor: "pointer",
                       }}
                     >
-                      <option value="draft">{STATUS_LABELS.draft}</option>
-                      <option value="sent">{STATUS_LABELS.sent}</option>
-                      <option value="paid">{STATUS_LABELS.paid}</option>
-                      <option value="overdue">{STATUS_LABELS.overdue}</option>
+                      <option value="draft">{statusLabels.draft}</option>
+                      <option value="sent">{statusLabels.sent}</option>
+                      <option value="paid">{statusLabels.paid}</option>
+                      <option value="overdue">{statusLabels.overdue}</option>
                     </select>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
@@ -269,7 +264,7 @@ function InvoicesTab() {
                         href={`/dashboard/invoices/${invoice.id}/preview`}
                         className="table-action"
                       >
-                        Bekijk
+                        {t.common.view}
                       </Link>
                       {invoice.status === "draft" && (
                         <button
@@ -282,7 +277,7 @@ function InvoicesTab() {
                             opacity: 0.25,
                           }}
                         >
-                          Verwijder
+                          {t.common.delete}
                         </button>
                       )}
                     </div>
@@ -296,9 +291,9 @@ function InvoicesTab() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Factuur verwijderen"
-        message="Weet je zeker dat je deze factuur wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
-        confirmLabel="Verwijderen"
+        title={t.invoices.deleteTitle}
+        message={t.invoices.deleteMessage}
+        confirmLabel={t.common.delete}
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget);
           setDeleteTarget(null);
@@ -310,6 +305,7 @@ function InvoicesTab() {
 }
 
 function QuotesTab() {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -319,6 +315,14 @@ function QuotesTab() {
   const handleFilter = useCallback((f: Record<string, string>) => {
     setStatusFilter(f.status ?? "");
   }, []);
+
+  const quoteStatusOptions = [
+    { value: "draft", label: t.quotes.draft },
+    { value: "sent", label: t.quotes.sent },
+    { value: "accepted", label: t.quotes.accepted },
+    { value: "invoiced", label: t.quotes.invoiced },
+    { value: "rejected", label: t.quotes.rejected },
+  ];
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["quotes", search, statusFilter],
@@ -351,22 +355,22 @@ function QuotesTab() {
       <div className="page-header">
         <div>
           <h1 className="display-title" style={{ marginBottom: 8 }}>
-            Offertes
+            {t.quotes.title}
           </h1>
-          <p className="label" style={{ opacity: 0.3 }}>{quotes.length} {quotes.length === 1 ? "OFFERTE" : "OFFERTES"}</p>
+          <p className="label" style={{ opacity: 0.3 }}>{quotes.length} {quotes.length === 1 ? t.quotes.quote.toUpperCase() : t.quotes.title.toUpperCase()}</p>
         </div>
         <Link
           href="/dashboard/quotes/new"
           className="btn-primary"
         >
-          + Nieuwe offerte
+          {t.quotes.newQuoteBtn}
         </Link>
       </div>
 
       <SearchFilter
-        placeholder="Zoek op nummer, klant of bedrag..."
+        placeholder={t.invoices.searchPlaceholder}
         filters={[
-          { key: "status", label: "Alle statussen", options: QUOTE_STATUS_OPTIONS },
+          { key: "status", label: t.invoices.allStatuses, options: quoteStatusOptions },
         ]}
         onSearch={handleSearch}
         onFilterChange={handleFilter}
@@ -381,11 +385,11 @@ function QuotesTab() {
       ) : quotes.length === 0 ? (
         <div style={{ paddingTop: "var(--space-block)" }}>
           <p className="empty-state">
-            {search || statusFilter ? "Geen offertes gevonden" : "Nog geen offertes"}
+            {search || statusFilter ? t.quotes.noQuotesFound : t.quotes.noQuotesYet}
           </p>
           {!search && !statusFilter && (
             <Link href="/dashboard/quotes/new" className="table-action" style={{ opacity: 0.4 }}>
-              Maak je eerste offerte
+              {t.quotes.createFirst}
             </Link>
           )}
         </div>
@@ -393,12 +397,12 @@ function QuotesTab() {
         <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "var(--border-rule)", textAlign: "left" }}>
-              <Th>Ref</Th>
-              <Th>Klant</Th>
-              <Th>Datum</Th>
-              <Th>Status</Th>
-              <Th style={{ textAlign: "right" }}>Bedrag</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
+              <Th>{t.common.ref}</Th>
+              <Th>{t.invoices.client}</Th>
+              <Th>{t.common.date}</Th>
+              <Th>{t.common.status}</Th>
+              <Th style={{ textAlign: "right" }}>{t.common.amount}</Th>
+              <Th style={{ textAlign: "right" }}>{t.common.actions}</Th>
             </tr>
           </thead>
           <tbody>
@@ -421,7 +425,7 @@ function QuotesTab() {
                 <Td>
                   <select
                     value={quote.status}
-                    aria-label={`Status ${quote.quote_number}`}
+                    aria-label={`${t.common.status} ${quote.quote_number}`}
                     aria-busy={statusMutation.isPending && statusMutation.variables?.id === quote.id}
                     onChange={(e) =>
                       statusMutation.mutate({ id: quote.id, status: e.target.value as QuoteStatus })
@@ -434,7 +438,7 @@ function QuotesTab() {
                       cursor: "pointer"
                     }}
                   >
-                    {QUOTE_STATUS_OPTIONS.map((opt) => (
+                    {quoteStatusOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
@@ -451,7 +455,7 @@ function QuotesTab() {
                 <Td style={{ textAlign: "right" }}>
                   <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                     <Link href={`/dashboard/quotes/${quote.id}`} className="table-action">
-                      Bekijk
+                      {t.common.view}
                     </Link>
                     {quote.status === "draft" && (
                       <button
@@ -459,7 +463,7 @@ function QuotesTab() {
                         className="table-action"
                         style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}
                       >
-                        Verwijder
+                        {t.common.delete}
                       </button>
                     )}
                   </div>
@@ -472,9 +476,9 @@ function QuotesTab() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Offerte verwijderen"
-        message="Weet je zeker dat je deze offerte wilt verwijderen?"
-        confirmLabel="Verwijderen"
+        title={t.quotes.deleteTitle}
+        message={t.quotes.deleteMessage}
+        confirmLabel={t.common.delete}
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget);
           setDeleteTarget(null);

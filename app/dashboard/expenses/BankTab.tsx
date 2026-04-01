@@ -20,6 +20,7 @@ import { KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { BankConnection, BankTransaction } from "@/lib/types";
 import { Th, Td, SkeletonTable } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/context";
 
 const TRANSACTION_CATEGORIES = [
   "Omzet",
@@ -60,6 +61,7 @@ const selectStyle: React.CSSProperties = {
 };
 
 export default function BankTab() {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const monthOptions = useMemo(() => getMonthOptions(), []);
@@ -214,13 +216,13 @@ export default function BankTab() {
     <div>
       {/* Header */}
       <div className="page-header" style={{ marginBottom: 48 }}>
-        <h1 className="display-title">Bank</h1>
+        <h1 className="display-title">{t.bank.title}</h1>
         <a
           href="/api/export/transactions"
           download
           className="btn-secondary"
         >
-          Download lijst
+          {t.common.downloadList}
         </a>
       </div>
 
@@ -240,27 +242,27 @@ export default function BankTab() {
             }}
           >
             {completionStatus.loading && (
-              <p style={{ margin: 0, opacity: 0.6 }}>Bankrekening configureren...</p>
+              <p style={{ margin: 0, opacity: 0.6 }}>{t.bank.configuring}</p>
             )}
             {completionStatus.error && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ margin: 0, color: "#e63946" }}>Fout bij koppelen: {completionStatus.error}</p>
+                <p style={{ margin: 0, color: "#e63946" }}>{t.bank.connectError.replace("{error}", completionStatus.error)}</p>
                 <button
                   onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
                   style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
                 >
-                  Sluiten
+                  {t.common.close}
                 </button>
               </div>
             )}
             {completionStatus.success && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ margin: 0 }}>Bankrekening succesvol gekoppeld!</p>
+                <p style={{ margin: 0 }}>{t.bank.connectSuccess}</p>
                 <button
                   onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
                   style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
                 >
-                  Sluiten
+                  {t.common.close}
                 </button>
               </div>
             )}
@@ -277,21 +279,21 @@ export default function BankTab() {
 
       {/* Section 1: Connected accounts */}
       <div style={{ marginBottom: 48 }}>
-        <h2 className="section-header" style={{ margin: "0 0 24px" }}>Rekeningen</h2>
+        <h2 className="section-header" style={{ margin: "0 0 24px" }}>{t.bank.accounts}</h2>
 
         {connectionsLoading ? (
           <SkeletonBlock />
         ) : connections.length === 0 ? (
           <div style={{ borderTop: "var(--border-rule)", borderBottom: "var(--border-rule)", padding: 48, textAlign: "center", background: "rgba(13, 13, 11, 0.02)" }}>
             <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "0 0 24px", opacity: 0.6 }}>
-              Koppel je bankrekening om betalingen automatisch te zien.
+              {t.bank.connectPrompt}
             </p>
             <button
               onClick={() => setIsSelectorOpen(true)}
               className="btn-primary"
               style={{ border: "none", cursor: "pointer" }}
             >
-              Bank koppelen
+              {t.bank.connectBank}
             </button>
           </div>
         ) : (
@@ -313,7 +315,7 @@ export default function BankTab() {
                   <span style={{ fontSize: "var(--text-body-lg)", fontWeight: 500 }}>{conn.institution_name}</span>
                   {conn.iban && <span style={{ fontSize: "var(--text-body-md)", fontWeight: 300, opacity: 0.5 }}>{conn.iban}</span>}
                   <span className="label" style={{ opacity: 0.4 }}>{conn.status}</span>
-                  {conn.last_synced_at && <span style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4 }}>Laatste update: {formatDate(conn.last_synced_at)}</span>}
+                  {conn.last_synced_at && <span style={{ fontSize: "var(--text-body-xs)", fontWeight: 300, opacity: 0.4 }}>{t.bank.lastUpdate.replace("{date}", formatDate(conn.last_synced_at))}</span>}
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <button
@@ -322,18 +324,18 @@ export default function BankTab() {
                     className="btn-secondary"
                     style={{ cursor: "pointer" }}
                   >
-                    {syncMutation.isPending ? "Bezig..." : "Bijwerken"}
+                    {syncMutation.isPending ? t.common.busy : t.bank.sync}
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm("Weet je zeker dat je deze koppeling wilt verwijderen?")) {
+                      if (confirm(t.bank.disconnectConfirm)) {
                         deleteMutation.mutate(conn.id);
                       }
                     }}
                     className="label"
                     style={{ background: "none", border: "none", color: "var(--foreground)", opacity: 0.6, cursor: "pointer", padding: 0 }}
                   >
-                    Loskoppelen
+                    {t.bank.disconnect}
                   </button>
                 </div>
               </div>
@@ -344,7 +346,7 @@ export default function BankTab() {
                 className="btn-secondary"
                 style={{ cursor: "pointer" }}
               >
-                + Extra rekening koppelen
+                {t.bank.connectExtra}
               </button>
             </div>
           </div>
@@ -354,7 +356,7 @@ export default function BankTab() {
       {/* Section 2: Transactions */}
       <div style={{ marginBottom: 48 }}>
         <div className="page-header" style={{ marginBottom: 24 }}>
-          <h2 className="section-header" style={{ margin: 0 }}>Betalingen</h2>
+          <h2 className="section-header" style={{ margin: 0 }}>{t.bank.payments}</h2>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
@@ -370,7 +372,7 @@ export default function BankTab() {
         {!transactionsLoading && uncategorizedCount > 0 && (
           <div style={{ borderLeft: "2px solid var(--foreground)", padding: "12px 16px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <span style={{ fontSize: "var(--text-body-lg)", fontWeight: 300 }}>
-              {uncategorizedCount} betaling{uncategorizedCount !== 1 ? "en" : ""} nog in te delen
+              {t.bank.toCategorize.replace("{count}", String(uncategorizedCount)).replace("{plural}", uncategorizedCount !== 1 ? "en" : "")}
             </span>
             <button
               onClick={() => autoCategorizeMutation.mutate(uncategorizedTransactions.map((tx) => tx.id))}
@@ -378,7 +380,7 @@ export default function BankTab() {
               className="btn-primary"
               style={{ border: "none", cursor: "pointer" }}
             >
-              {autoCategorizeMutation.isPending ? "Bezig..." : "Automatisch indelen"}
+              {autoCategorizeMutation.isPending ? t.common.busy : t.bank.autoCategorize}
             </button>
           </div>
         )}
@@ -386,10 +388,10 @@ export default function BankTab() {
         {/* Sub-tabs */}
         <div style={{ display: "flex", gap: "24px", marginBottom: "24px", borderBottom: "0.5px solid rgba(13,13,11,0.12)" }}>
           <button onClick={() => setActiveTab("todo")} style={subTabStyle(activeTab === "todo")}>
-            Nog doen ({uncategorizedCount})
+            {`${t.bank.todo} (${uncategorizedCount})`}
           </button>
           <button onClick={() => setActiveTab("auto")} style={subTabStyle(activeTab === "auto")}>
-            Verwerkt ({categorizedCount})
+            {`${t.bank.processed} (${categorizedCount})`}
           </button>
         </div>
 
@@ -398,18 +400,18 @@ export default function BankTab() {
         ) : displayTransactions.length === 0 ? (
           <div style={{ borderTop: "var(--border-rule)", borderBottom: "var(--border-rule)", padding: 48, textAlign: "center" }}>
             <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: 0 }}>
-              Alles verwerkt. Geen betalingen meer in deze lijst.
+              {t.bank.allProcessed}
             </p>
           </div>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--text-body-md)" }}>
             <thead>
               <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-                <Th>Datum</Th>
-                <Th>Omschrijving</Th>
-                <Th>Van/aan</Th>
-                <Th>Categorie</Th>
-                <Th style={{ textAlign: "right" }}>Bedrag</Th>
+                <Th>{t.common.date}</Th>
+                <Th>{t.common.description}</Th>
+                <Th>{t.bank.fromTo}</Th>
+                <Th>{t.common.category}</Th>
+                <Th style={{ textAlign: "right" }}>{t.common.amount}</Th>
               </tr>
             </thead>
             <tbody>
@@ -453,11 +455,11 @@ export default function BankTab() {
       {/* Section 3: Summary */}
       {!isLoading && transactions.length > 0 && (
         <div style={{ borderTop: "0.5px solid rgba(13,13,11,0.15)", paddingTop: 24 }}>
-          <h2 className="section-header" style={{ margin: "0 0 24px" }}>Overzicht</h2>
+          <h2 className="section-header" style={{ margin: "0 0 24px" }}>{t.bank.summary}</h2>
           <div className="responsive-grid-3">
-            <SummaryItem label="Inkomsten" amount={totals.income} />
-            <SummaryItem label="Uitgaven" amount={totals.expenses} />
-            <SummaryItem label="Resultaat" amount={totals.net} />
+            <SummaryItem label={t.bank.income} amount={totals.income} />
+            <SummaryItem label={t.bank.expenses} amount={totals.expenses} />
+            <SummaryItem label={t.bank.result} amount={totals.net} />
           </div>
         </div>
       )}

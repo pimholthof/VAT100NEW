@@ -3,6 +3,7 @@
 import { m as motion  } from "framer-motion";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { formatCurrency } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/context";
 
 interface FiscalPulseProps {
   safeToSpend: number;
@@ -11,6 +12,7 @@ interface FiscalPulseProps {
 }
 
 export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPulseProps) {
+  const { t } = useLocale();
   if (isLoading) {
     return (
       <div style={{ padding: "80px 100px", height: 320, opacity: 0.1, border: "var(--border-light)", borderRadius: "var(--radius)" }} />
@@ -33,7 +35,7 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
         background: "var(--dashboard-surface, var(--background))",
       }}
     >
-      <p className="label" style={{ margin: 0, fontSize: 10, letterSpacing: "0.12em" }}>Wat je vrij kunt besteden</p>
+      <p className="label" style={{ margin: 0, fontSize: 10, letterSpacing: "0.12em" }}>{t.fiscalPulse.whatYouCanSpend}</p>
       <AnimatedNumber
         value={safeToSpend}
         style={{
@@ -51,7 +53,7 @@ export function FiscalPulse({ safeToSpend, currentBalance, isLoading }: FiscalPu
         letterSpacing: "0.12em",
         opacity: 0.4,
       }}>
-        Saldo {formatCurrency(currentBalance)}
+        {t.fiscalPulse.balanceLabel} {formatCurrency(currentBalance)}
       </p>
     </motion.div>
   );

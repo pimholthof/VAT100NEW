@@ -4,12 +4,14 @@ import { useRef, useState, useCallback } from "react";
 import { m as motion  } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/features/receipts/actions";
+import { useLocale } from "@/lib/i18n/context";
 
 /**
  * QuickReceiptUpload — A drag-and-drop "snap & go" receipt uploader
  * for the dashboard. Drop a photo → AI extracts data → receipt is created.
  */
 export function QuickReceiptUpload() {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -19,7 +21,7 @@ export function QuickReceiptUpload() {
   const processMutation = useMutation({
     mutationFn: async (file: File) => {
       setStatus("uploading");
-      setMessage("Bezig met uploaden...");
+      setMessage(t.receipts.uploadingProgress);
 
       // 1. Create a placeholder receipt
       const receiptResult = await createReceipt({
@@ -32,7 +34,7 @@ export function QuickReceiptUpload() {
       });
 
       if (receiptResult.error || !receiptResult.data) {
-        throw new Error(receiptResult.error ?? "Kon bon niet aanmaken.");
+        throw new Error(receiptResult.error ?? t.receipts.couldNotCreate);
       }
 
       const receiptId = receiptResult.data.id;
@@ -47,13 +49,13 @@ export function QuickReceiptUpload() {
 
       // 3. Scan with AI
       setStatus("scanning");
-      setMessage("Bezig met scannen...");
+      setMessage(t.receipts.scanning);
       const scanResult = await scanReceiptWithAI(receiptId);
 
       if (scanResult.error) {
         // Receipt is still saved, just not AI-enriched
         setStatus("done");
-        setMessage("Bon opgeslagen (AI kon niet alles lezen).");
+        setMessage(t.receipts.receiptSaved);
         return;
       }
 
@@ -77,12 +79,12 @@ export function QuickReceiptUpload() {
       setMessage(
         scanResult.data?.vendor_name
           ? `${scanResult.data.vendor_name} — €${scanResult.data.amount_ex_vat?.toFixed(2) ?? "?"}`
-          : "Bon verwerkt."
+          : t.receipts.receiptProcessed
       );
     },
     onError: (err) => {
       setStatus("error");
-      setMessage(err instanceof Error ? err.message : "Onbekende fout.");
+      setMessage(err instanceof Error ? err.message : t.receipts.unknownError);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -99,7 +101,7 @@ export function QuickReceiptUpload() {
     (file: File) => {
       if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
         setStatus("error");
-        setMessage("Alleen afbeeldingen of PDF's. Probeer opnieuw.");
+        setMessage(t.receipts.onlyImagesRetry);
         return;
       }
       processMutation.mutate(file);
@@ -163,10 +165,10 @@ export function QuickReceiptUpload() {
               margin: "0 0 4px",
             }}
           >
-            Sleep je bon hierheen
+            {t.receipts.dropReceiptHere}
           </p>
           <p className="label" style={{ opacity: 0.5, margin: 0 }}>
-            Foto of PDF wordt automatisch uitgelezen
+            {t.receipts.autoProcess}
           </p>
         </>
       )}

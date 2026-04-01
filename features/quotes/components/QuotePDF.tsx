@@ -7,6 +7,8 @@ import {
 } from "@react-pdf/renderer";
 import type { QuoteData } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/types";
+import { getDictionary } from "@/lib/i18n";
 
 const COLOR = "#000000";
 const ACCENT = "#A51C30";
@@ -48,10 +50,10 @@ const RULE_THIN = {
   borderBottomStyle: "solid" as const,
 };
 
-function unitLabel(unit: string): string {
-  if (unit === "dagen") return "Dagen";
-  if (unit === "uren") return "Uren";
-  return "Stuks";
+function unitLabel(unit: string, t: ReturnType<typeof getDictionary>): string {
+  if (unit === "dagen") return t.quotes.unitDays;
+  if (unit === "uren") return t.quotes.unitHours;
+  return t.quotes.unitPieces;
 }
 
 const s = StyleSheet.create({
@@ -255,7 +257,8 @@ const s = StyleSheet.create({
   },
 });
 
-export function QuotePDF({ data }: { data: QuoteData }) {
+export function QuotePDF({ data, locale = "nl" }: { data: QuoteData; locale?: Locale }) {
+  const t = getDictionary(locale);
   const { quote, lines, client, profile } = data;
 
   return (
@@ -263,13 +266,13 @@ export function QuotePDF({ data }: { data: QuoteData }) {
       <Page size="A4" style={s.page}>
         <View style={s.header}>
           <Text style={s.vat100Mark}>VAT100</Text>
-          <Text style={s.docType}>OFFERTE</Text>
+          <Text style={s.docType}>{t.quotes.quoteDoc}</Text>
         </View>
 
         <View style={s.metaGrid}>
           <View style={s.metaLeft}>
             <View style={s.metaBlock}>
-              <Text style={s.metaLabel}>Van</Text>
+              <Text style={s.metaLabel}>{t.quotes.from}</Text>
               <Text style={s.metaValueLarge}>{profile.studio_name || profile.full_name}</Text>
               {profile.kvk_number && <Text style={s.metaValue}>KVK {profile.kvk_number}</Text>}
               {profile.btw_number && <Text style={s.metaValue}>BTW {profile.btw_number}</Text>}
@@ -281,16 +284,16 @@ export function QuotePDF({ data }: { data: QuoteData }) {
           </View>
           <View style={s.metaRight}>
             <View style={s.metaBlock}>
-              <Text style={s.metaLabel}>Offertenr</Text>
+              <Text style={s.metaLabel}>{t.quotes.quoteNumberShort}</Text>
               <Text style={s.metaValueLarge}>{quote.quote_number}</Text>
             </View>
             <View style={s.metaBlock}>
-              <Text style={s.metaLabel}>Datum</Text>
+              <Text style={s.metaLabel}>{t.common.date}</Text>
               <Text style={s.metaValue}>{formatDate(quote.issue_date)}</Text>
             </View>
             {quote.valid_until && (
               <View style={s.metaBlock}>
-                <Text style={s.metaLabel}>Geldig tot</Text>
+                <Text style={s.metaLabel}>{t.quotes.validUntil}</Text>
                 <Text style={s.metaValue}>{formatDate(quote.valid_until)}</Text>
               </View>
             )}
@@ -299,7 +302,7 @@ export function QuotePDF({ data }: { data: QuoteData }) {
 
         <View style={s.partiesSection}>
           <View style={s.partyBlock}>
-            <Text style={s.partyLabel}>Aan</Text>
+            <Text style={s.partyLabel}>{t.quotes.to}</Text>
             <Text style={s.partyName}>{client.name}</Text>
             {client.contact_name && <Text style={s.partyDetail}>{client.contact_name}</Text>}
             {client.address && <Text style={s.partyDetail}>{client.address}</Text>}
@@ -310,7 +313,7 @@ export function QuotePDF({ data }: { data: QuoteData }) {
           </View>
           {quote.notes && (
             <View style={s.partyBlock}>
-              <Text style={s.partyLabel}>Omschrijving</Text>
+              <Text style={s.partyLabel}>{t.common.description}</Text>
               <Text style={s.partyDetail}>{quote.notes}</Text>
             </View>
           )}
@@ -318,17 +321,17 @@ export function QuotePDF({ data }: { data: QuoteData }) {
 
         <View style={s.tableSection}>
           <View style={s.tableHeader}>
-            <Text style={[s.tableHeaderCell, s.colDesc]}>Omschrijving</Text>
-            <Text style={[s.tableHeaderCell, s.colQty]}>Aantal</Text>
-            <Text style={[s.tableHeaderCell, s.colRate]}>Tarief</Text>
-            <Text style={[s.tableHeaderCell, s.colAmount]}>Bedrag</Text>
+            <Text style={[s.tableHeaderCell, s.colDesc]}>{t.quotes.descriptionHeader}</Text>
+            <Text style={[s.tableHeaderCell, s.colQty]}>{t.quotes.quantityHeader}</Text>
+            <Text style={[s.tableHeaderCell, s.colRate]}>{t.quotes.rateHeader}</Text>
+            <Text style={[s.tableHeaderCell, s.colAmount]}>{t.quotes.amountHeader}</Text>
             <Text style={s.colPad} />
           </View>
 
           {lines.map((line, i) => (
             <View style={i === lines.length - 1 ? s.tableRowLast : s.tableRow} key={line.id}>
               <Text style={[s.tableCell, s.colDesc]}>{line.description}</Text>
-              <Text style={[s.tableCell, s.colQty]}>{line.quantity} {unitLabel(line.unit).toLowerCase()}</Text>
+              <Text style={[s.tableCell, s.colQty]}>{line.quantity} {unitLabel(line.unit, t).toLowerCase()}</Text>
               <Text style={[s.tableCell, s.colRate]}>{formatCurrency(line.rate)}</Text>
               <Text style={[s.tableCell, s.colAmount]}>{formatCurrency(line.amount)}</Text>
               <Text style={s.colPad} />
@@ -339,7 +342,7 @@ export function QuotePDF({ data }: { data: QuoteData }) {
         <View style={s.totalsSection}>
           <View style={s.totalsGrid}>
             <View style={s.totalsRow}>
-              <Text style={s.totalsLabel}>Subtotaal excl. BTW</Text>
+              <Text style={s.totalsLabel}>{t.quotes.subtotalExVat}</Text>
               <Text style={s.totalsValue}>{formatCurrency(quote.subtotal_ex_vat)}</Text>
             </View>
             <View style={s.totalsRow}>
@@ -347,7 +350,7 @@ export function QuotePDF({ data }: { data: QuoteData }) {
               <Text style={s.totalsValue}>{formatCurrency(quote.vat_amount)}</Text>
             </View>
             <View style={s.totalRow}>
-              <Text style={s.totalLabel}>Totaal</Text>
+              <Text style={s.totalLabel}>{t.quotes.total}</Text>
               <Text style={s.totalValue}>{formatCurrency(quote.total_inc_vat)}</Text>
             </View>
           </View>
@@ -355,9 +358,9 @@ export function QuotePDF({ data }: { data: QuoteData }) {
 
         <View style={s.footer}>
           <View style={s.footerCol}>
-            <Text style={s.footerLabel}>Geldigheid</Text>
+            <Text style={s.footerLabel}>{t.quotes.validity}</Text>
             <Text style={s.footerValue}>
-              {quote.valid_until ? `Tot ${formatDate(quote.valid_until)}` : "30 dagen"}
+              {quote.valid_until ? t.quotes.untilDate.replace("{date}", formatDate(quote.valid_until)) : t.quotes.thirtyDays}
             </Text>
           </View>
         </View>

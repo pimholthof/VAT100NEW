@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useLocale } from "@/lib/i18n/context";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import {
   createInvoice,
@@ -23,6 +24,7 @@ interface InvoiceFormProps {
 }
 
 export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
+  const { t } = useLocale();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   });
   const clients = clientsResult?.data ?? [];
   const hasClientError = clientsError || !!clientsResult?.error;
-  const clientErrorMessage = clientsResult?.error || "Fout bij ophalen";
+  const clientErrorMessage = clientsResult?.error || t.errors.generic;
 
   // Generate invoice number for new invoices
   useEffect(() => {
@@ -84,11 +86,11 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
   const handleSave = async (andPreview: boolean) => {
     if (!clientId) {
-      setError("Selecteer een klant.");
+      setError(t.invoices.selectClient);
       return;
     }
     if (!invoiceNumber) {
-      setError("Factuurnummer is verplicht.");
+      setError(t.invoices.invoiceNumberRequired);
       return;
     }
 
@@ -171,7 +173,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {lastSavedAt && (
         <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, marginTop: 40, textAlign: "center" }}>
-          Laatst opgeslagen / {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
+          {t.invoices.lastSavedAt} {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
         </p>
       )}
     </motion.div>

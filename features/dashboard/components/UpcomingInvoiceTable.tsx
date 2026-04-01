@@ -7,8 +7,10 @@ import { sendReminder } from "@/features/invoices/actions";
 import { formatCurrency } from "@/lib/format";
 import { playSound } from "@/lib/utils/sound";
 import { ErrorMessage } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/context";
 
 export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
+  const { t } = useLocale();
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
@@ -19,7 +21,7 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
     if (res.error) {
       setStatusMsg(res.error);
     } else {
-      setStatusMsg("Herinnering verzonden.");
+      setStatusMsg(t.dashboard.reminderSent);
       playSound("glass-ping");
     }
     setSendingId(null);
@@ -112,11 +114,11 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
                       fontSize: 10,
                     }}
                   >
-                    {sendingId === inv.id ? "..." : "HERINNEREN"}
+                    {sendingId === inv.id ? "..." : t.dashboard.remind}
                   </button>
                 ) : (
                   <span className="label" style={{ opacity: 0.12, fontSize: 10 }}>
-                    GEEN E-MAIL
+                    {t.dashboard.noEmail}
                   </span>
                 )}
               </div>

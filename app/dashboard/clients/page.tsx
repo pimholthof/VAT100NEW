@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useLocale } from "@/lib/i18n/context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { getClients, deleteClient } from "@/features/clients/actions";
@@ -9,6 +10,7 @@ import type { Client } from "@/lib/types";
 import { Th, Td, ErrorMessage, TableWrapper, ConfirmDialog } from "@/components/ui";
 
 export default function ClientsPage() {
+  const { t } = useLocale();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -37,13 +39,13 @@ export default function ClientsPage() {
     <div>
       <div className="page-header">
         <h1 className="display-title">
-          Klanten
+          {t.clients.title}
         </h1>
         <Link
           href="/dashboard/clients/new"
           className="btn-secondary"
         >
-          + Nieuwe klant
+          {t.clients.newClientBtn}
         </Link>
       </div>
 
@@ -53,7 +55,7 @@ export default function ClientsPage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Zoek op naam, contactpersoon of e-mail..."
+          placeholder={t.clients.searchPlaceholder}
           className="input-field"
           style={{ maxWidth: 400 }}
         />
@@ -76,7 +78,7 @@ export default function ClientsPage() {
       ) : filtered.length === 0 ? (
         <div style={{ paddingTop: "var(--space-xl)" }}>
           <p className="empty-state">
-            {search.trim() ? "Geen klanten gevonden" : "Nog geen klanten"}
+            {search.trim() ? t.clients.noClientsFound : t.clients.noClientsYet}
           </p>
           {!search.trim() && (
             <Link
@@ -84,7 +86,7 @@ export default function ClientsPage() {
               className="table-action"
               style={{ opacity: 0.4 }}
             >
-              Voeg je eerste klant toe
+              {t.clients.addFirst}
             </Link>
           )}
         </div>
@@ -93,11 +95,11 @@ export default function ClientsPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 500 }}>
             <thead>
               <tr style={{ borderBottom: "0.5px solid rgba(0,0,0,0.08)" }}>
-                <Th>Bedrijfsnaam</Th>
-                <Th>Contactpersoon</Th>
-                <Th>E-mail</Th>
-                <Th>Stad</Th>
-                <Th style={{ textAlign: "right" }}>Acties</Th>
+                <Th>{t.clients.companyName}</Th>
+                <Th>{t.clients.contactPerson}</Th>
+                <Th>{t.clients.email}</Th>
+                <Th>{t.clients.city}</Th>
+                <Th style={{ textAlign: "right" }}>{t.common.actions}</Th>
               </tr>
             </thead>
             <motion.tbody layout>
@@ -133,7 +135,7 @@ export default function ClientsPage() {
                           href={`/dashboard/clients/${client.id}`}
                           className="table-action"
                         >
-                          Bekijk
+                          {t.common.view}
                         </Link>
                         <button
                           onClick={() => setDeleteTarget(client.id)}
@@ -146,7 +148,7 @@ export default function ClientsPage() {
                             padding: 0,
                           }}
                         >
-                          Verwijder
+                          {t.common.delete}
                         </button>
                       </div>
                     </Td>
@@ -166,9 +168,9 @@ export default function ClientsPage() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Klant verwijderen"
-        message="Weet je zeker dat je deze klant wilt verwijderen? Dit is alleen mogelijk als er geen facturen aan gekoppeld zijn."
-        confirmLabel="Verwijderen"
+        title={t.clients.deleteTitle}
+        message={t.clients.deleteMessage}
+        confirmLabel={t.common.delete}
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget);
           setDeleteTarget(null);

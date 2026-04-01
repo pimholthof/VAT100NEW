@@ -5,8 +5,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTrips, createTrip, deleteTrip, getYearTripSummary } from "@/features/trips/actions";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function TripsPage() {
+  const { t } = useLocale();
   const now = new Date();
   const year = now.getFullYear();
   const [showForm, setShowForm] = useState(false);
@@ -67,9 +69,9 @@ export default function TripsPage() {
     <div>
       <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
         <div>
-          <h1 className="display-title">Kilometerregistratie</h1>
+          <h1 className="display-title">{t.trips.title}</h1>
           <p style={{ fontSize: "var(--text-body-md)", fontWeight: 400, margin: "12px 0 0", opacity: 0.4 }}>
-            Fiscale aftrek: {formatCurrency(summary?.kmRate ?? 0.23)}/km
+            {t.trips.subtitle.replace("{rate}", formatCurrency(summary?.kmRate ?? 0.23))}
           </p>
         </div>
         <button
@@ -77,7 +79,7 @@ export default function TripsPage() {
           className={showForm ? "btn-secondary" : "btn-primary"}
           style={{ cursor: "pointer" }}
         >
-          {showForm ? "Annuleer" : "+ Rit registreren"}
+          {showForm ? t.common.cancel : t.trips.registerTrip}
         </button>
       </div>
 
@@ -91,9 +93,9 @@ export default function TripsPage() {
           gap: 16,
           marginBottom: "var(--space-section)",
         }}>
-          <StatCard label="Totaal kilometers" value={`${summary.totalKm} km`} />
-          <StatCard label="Fiscale aftrek" value={formatCurrency(summary.deduction)} />
-          <StatCard label="Aantal ritten" value={`${entries.length}`} />
+          <StatCard label={t.trips.totalKm} value={`${summary.totalKm} km`} />
+          <StatCard label={t.trips.deduction} value={formatCurrency(summary.deduction)} />
+          <StatCard label={t.trips.tripCount} value={`${entries.length}`} />
         </div>
       ) : null}
 
@@ -108,17 +110,17 @@ export default function TripsPage() {
         }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr auto", gap: 12, alignItems: "end" }}>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Datum</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.common.date}</label>
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)}
                 className="input-field" />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Doel van de rit</label>
-              <input type="text" value={formPurpose} onChange={(e) => setFormPurpose(e.target.value)} placeholder="Klantbezoek Amsterdam"
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.trips.purpose}</label>
+              <input type="text" value={formPurpose} onChange={(e) => setFormPurpose(e.target.value)} placeholder={t.trips.purposePlaceholder}
                 className="input-field" />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>Km (enkele reis)</label>
+              <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.trips.kmSingleTrip}</label>
               <input type="number" step="0.1" min="0.1" value={formKm} onChange={(e) => setFormKm(e.target.value)} placeholder="45"
                 className="input-field" />
             </div>
@@ -128,13 +130,13 @@ export default function TripsPage() {
               className="btn-primary"
               style={{ cursor: "pointer" }}
             >
-              {createMutation.isPending ? "Opslaan..." : "Opslaan"}
+              {createMutation.isPending ? t.common.saving : t.common.save}
             </button>
           </div>
           <div style={{ marginTop: 14 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, opacity: 0.5, cursor: "pointer" }}>
               <input type="checkbox" checked={formReturn} onChange={(e) => setFormReturn(e.target.checked)} />
-              Heen-en-terug (verdubbelt kilometers)
+              {t.trips.returnTrip}
             </label>
           </div>
         </div>
@@ -147,11 +149,11 @@ export default function TripsPage() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-              <Th>Datum</Th>
-              <Th>Doel</Th>
-              <Th style={{ textAlign: "right" }}>Km</Th>
-              <Th style={{ textAlign: "right" }}>Aftrek</Th>
-              <Th style={{ textAlign: "right" }}>Acties</Th>
+              <Th>{t.common.date}</Th>
+              <Th>{t.trips.goalLabel}</Th>
+              <Th style={{ textAlign: "right" }}>{t.trips.km}</Th>
+              <Th style={{ textAlign: "right" }}>{t.trips.deductionLabel}</Th>
+              <Th style={{ textAlign: "right" }}>{t.common.actions}</Th>
             </tr>
           </thead>
           <tbody>
@@ -163,13 +165,13 @@ export default function TripsPage() {
                   <Td><span className="mono-amount">{formatDate(trip.date)}</span></Td>
                   <Td>
                     {trip.purpose ?? "—"}
-                    {trip.is_return_trip && <span style={{ opacity: 0.4, fontSize: "var(--text-body-xs)" }}> (retour)</span>}
+                    {trip.is_return_trip && <span style={{ opacity: 0.4, fontSize: "var(--text-body-xs)" }}> {t.trips.returnLabel}</span>}
                   </Td>
                   <Td style={{ textAlign: "right" }}><span className="mono-amount">{km}</span></Td>
                   <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(km * rate)}</span></Td>
                   <Td style={{ textAlign: "right" }}>
                     <button onClick={() => setDeleteTarget(trip.id)} className="table-action" style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}>
-                      Verwijder
+                      {t.common.delete}
                     </button>
                   </Td>
                 </tr>
@@ -178,14 +180,14 @@ export default function TripsPage() {
           </tbody>
         </table>
       ) : (
-        <p className="empty-state">Nog geen ritten geregistreerd</p>
+        <p className="empty-state">{t.trips.noTripsYet}</p>
       )}
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Rit verwijderen"
-        message="Weet je zeker dat je deze rit wilt verwijderen?"
-        confirmLabel="Verwijderen"
+        title={t.trips.deleteTitle}
+        message={t.trips.deleteMessage}
+        confirmLabel={t.common.delete}
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget);
           setDeleteTarget(null);

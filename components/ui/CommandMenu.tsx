@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/lib/i18n/context";
 
 interface ChatMessage {
   role: "user" | "ai";
@@ -24,6 +25,7 @@ export function CommandMenu() {
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const router = useRouter();
+  const { t } = useLocale();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -68,9 +70,9 @@ export function CommandMenu() {
         }),
       });
       const data: ChatApiResponse = await res.json();
-      setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error || "Geen antwoord ontvangen." }]);
+      setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error || t.commandMenu.chatNoResponse }]);
     } catch {
-      setChatMessages(prev => [...prev, { role: 'ai', content: "Er ging iets mis. Probeer het opnieuw." }]);
+      setChatMessages(prev => [...prev, { role: 'ai', content: t.commandMenu.chatError }]);
     } finally {
       setIsChatLoading(false);
     }
@@ -82,7 +84,7 @@ export function CommandMenu() {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Commandomenu"
+      aria-label="Command menu"
       style={{
         position: "fixed",
         top: 0,
@@ -114,7 +116,7 @@ export function CommandMenu() {
       >
         <Command
           style={{ width: "100%" }}
-          label="Globale commando's"
+          label="Global commands"
           shouldFilter={!chatMode} 
         >
           <div style={{ display: 'flex', alignItems: 'center', borderBottom: "var(--border-rule)" }}>
@@ -130,7 +132,7 @@ export function CommandMenu() {
               </button>
             )}
             <Command.Input
-              placeholder={chatMode ? "Stel een vraag..." : "Wat wil je doen?"}
+              placeholder={chatMode ? t.commandMenu.chatPlaceholder : t.commandMenu.placeholder}
               autoFocus
               value={query}
               onValueChange={setQuery}
@@ -163,73 +165,73 @@ export function CommandMenu() {
             <Command.Empty
               style={{ padding: "24px", textAlign: "center", opacity: 0.5 }}
             >
-              Geen resultaten voor &quot;{query}&quot;.
+              {t.commandMenu.noResults} &quot;{query}&quot;.
               {query && (
                 <div 
                   onClick={() => askAI(query)}
                   style={{ marginTop: 12, padding: "8px 16px", background: "var(--foreground)", color: "var(--background)", borderRadius: 0, cursor: "pointer", display: "inline-block" }}
                 >
-                  Vraag dit aan de assistent
+                  {t.commandMenu.askAssistant}
                 </div>
               )}
             </Command.Empty>
 
-            <Command.Group heading="AI Assistent" className="cmdk-group">
+            <Command.Group heading={t.commandMenu.aiAssistant} className="cmdk-group">
               <Command.Item
                 onSelect={() => {
                   if (query) { askAI(query); } else { setChatMode(true); }
                 }}
                 className="cmdk-item"
               >
-                <span style={{color: 'var(--color-accent)'}}>Stel een vraag</span> {query ? `"${query}"` : "..."}
+                <span style={{color: 'var(--color-accent)'}}>{t.commandMenu.askQuestion}</span> {query ? `"${query}"` : "..."}
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="Acties" className="cmdk-group">
+            <Command.Group heading={t.commandMenu.actionsGroup} className="cmdk-group">
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/invoices/new"))}
                 className="cmdk-item"
               >
-                Nieuwe factuur maken
+                {t.commandMenu.newInvoice}
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/clients/new"))}
                 className="cmdk-item"
               >
-                Nieuwe klant toevoegen
+                {t.commandMenu.newClient}
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="Navigatie" className="cmdk-group">
+            <Command.Group heading={t.commandMenu.navGroup} className="cmdk-group">
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard"))}
                 className="cmdk-item"
               >
-                Dashboard
+                {t.commandMenu.dashboard}
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/invoices"))}
                 className="cmdk-item"
               >
-                Facturen overzicht
+                {t.commandMenu.invoicesOverview}
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/receipts"))}
                 className="cmdk-item"
               >
-                Bonnen & Uitgaven
+                {t.commandMenu.receiptsExpenses}
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/clients"))}
                 className="cmdk-item"
               >
-                Klanten overzicht
+                {t.commandMenu.clientsOverview}
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/settings"))}
                 className="cmdk-item"
               >
-                Instellingen
+                {t.commandMenu.settings}
               </Command.Item>
             </Command.Group>
 
@@ -238,7 +240,7 @@ export function CommandMenu() {
             <div style={{ maxHeight: 400, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
               {chatMessages.length === 0 && (
                 <div style={{ textAlign: "center", opacity: 0.5, padding: "24px 0" }}>
-                  Hoe kan ik je helpen met je administratie?
+                  {t.commandMenu.chatEmpty}
                 </div>
               )}
               {chatMessages.map((msg, i) => (
@@ -254,13 +256,13 @@ export function CommandMenu() {
                   fontSize: "var(--text-body-md)",
                   border: msg.role === 'ai' ? 'var(--border-light)' : 'none'
                 }}>
-                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 ASSISTENT</strong>}
+                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 ASSISTANT</strong>}
                   {msg.content}
                 </div>
               ))}
               {isChatLoading && (
                 <div style={{ alignSelf: 'flex-start', opacity: 0.5, fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span className="spinner"></span> Even geduld...
+                  <span className="spinner"></span> {t.commandMenu.chatLoading}
                 </div>
               )}
             </div>

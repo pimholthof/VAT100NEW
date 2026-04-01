@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useLocale } from "@/lib/i18n/context";
 
 interface ReceiptProcessingProps {
   imageUrl: string | null;
@@ -25,6 +26,7 @@ export function ReceiptProcessing({
   filePreview,
   isPdf,
 }: ReceiptProcessingProps) {
+  const { t } = useLocale();
   return (
     <div
       style={{
@@ -51,13 +53,13 @@ export function ReceiptProcessing({
               opacity: 0.3,
             }}
           >
-            PDF wordt verwerkt...
+            {t.receipts.pdfProcessing}
           </div>
         ) : (imageUrl || filePreview) ? (
           <div style={{ position: "relative", width: "100%", height: 400 }}>
             <Image
               src={imageUrl || filePreview || ""}
-              alt="Bon preview"
+              alt={t.receipts.receiptPreview}
               fill
               style={{
                 objectFit: "contain",
@@ -77,7 +79,7 @@ export function ReceiptProcessing({
             margin: "0 0 24px",
           }}
         >
-          Bon wordt herkend...
+          {t.receipts.receiptRecognizing}
         </p>
         <SkeletonField />
         <SkeletonField />

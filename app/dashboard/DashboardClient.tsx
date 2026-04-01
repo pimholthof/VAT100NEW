@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { FiscalPulse } from "@/features/dashboard/components/FiscalPulse";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
+import { useLocale } from "@/lib/i18n/context";
 
 
 
@@ -23,6 +24,7 @@ export default function DashboardClient({
 }: {
   initialResult?: ActionResult<DashboardData>;
 }) {
+  const { locale, t } = useLocale();
   const { data: dashboardResult, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
@@ -41,7 +43,7 @@ export default function DashboardClient({
   const vatDeadline = data?.vatDeadline;
 
   const urgentInvoiceCount = upcomingInvoices?.filter((invoice) => invoice.days_overdue > 0).length ?? 0;
-  const openInvoiceAmount = openInvoices?.reduce((sum, invoice) => sum + invoice.total_inc_vat, 0) ?? 0;
+  const upcomingInvoiceAmount = upcomingInvoices?.reduce((sum, invoice) => sum + invoice.total_inc_vat, 0) ?? 0;
   const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.due_date && invoice.days_overdue <= 0);
 
   const itemVariants: Variants = {
@@ -49,15 +51,20 @@ export default function DashboardClient({
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
+  const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
   const nextInvoiceDueLabel = nextInvoiceDue?.due_date
-    ? new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))
+    ? new Intl.DateTimeFormat(dateLocale, { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))
     : null;
 
   const heroMessage = urgentInvoiceCount > 0
-    ? `${urgentInvoiceCount} fact${urgentInvoiceCount === 1 ? "uur is" : "uren zijn"} te laat en vragen vandaag aandacht.`
+    ? t.dashboard.invoicesOverdue
+        .replace("{count}", String(urgentInvoiceCount))
+        .replace("{plural}", urgentInvoiceCount === 1 ? t.dashboard.invoiceOverdueSingular : t.dashboard.invoiceOverduePlural)
     : nextInvoiceDue && nextInvoiceDueLabel
-      ? `De volgende betaaldeadline is voor ${nextInvoiceDue.client_name} op ${nextInvoiceDueLabel}.`
-      : "Je hebt op dit moment geen facturen die op korte termijn aandacht nodig hebben.";
+      ? t.dashboard.nextDeadline
+          .replace("{client}", nextInvoiceDue.client_name)
+          .replace("{date}", nextInvoiceDueLabel)
+      : t.dashboard.noUrgentInvoices;
 
   if (dashboardResult?.error) {
     return (
@@ -120,8 +127,8 @@ export default function DashboardClient({
               />
             </div>
             <div style={{ position: "relative", zIndex: 1 }}>
-              <p className="label" style={{ margin: 0 }}>Vandaag</p>
-              <h1 className="dashboard-home-title">Alles wat je vandaag moet weten.</h1>
+              <p className="label" style={{ margin: 0 }}>{t.dashboard.today}</p>
+              <h1 className="dashboard-home-title">{t.dashboard.heroTitle}</h1>
               <p className="dashboard-home-intro">{heroMessage}</p>
             </div>
           </motion.div>
@@ -151,33 +158,34 @@ export default function DashboardClient({
             </div>
             <div className="dashboard-home-hero-stats" style={{ position: "relative", zIndex: 1 }}>
               <div className="dashboard-home-meta-item">
-                <span className="label">Vrij besteedbaar</span>
+                <span className="label">{t.dashboard.freeToSpend}</span>
                 <span className="dashboard-home-meta-value">
                   {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
                 </span>
                 <p className="dashboard-home-meta-sub">
-                  Saldo {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "nog niet beschikbaar"}
-                </p>
-              </div>
- 
-              <div className="dashboard-home-meta-item">
-                <span className="label">BTW deadline</span>
-                <span className="dashboard-home-meta-value">
-                  {vatDeadline ? `${vatDeadline.daysRemaining} dagen` : "—"}
-                </span>
-                <p className="dashboard-home-meta-sub">
-                  {vatDeadline ? `${vatDeadline.quarter} · ${vatDeadline.deadline}` : "Geen deadline gevonden"}
+                  {t.dashboard.balance} {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : t.dashboard.balanceNotAvailable}
                 </p>
               </div>
 
-            <div className="dashboard-home-meta-item">
-              <span className="label">Openstaand bedrag</span>
-              <span className="dashboard-home-meta-value">{formatCurrency(openInvoiceAmount)}</span>
-              <p className="dashboard-home-meta-sub">
-                {urgentInvoiceCount > 0
-                  ? `${urgentInvoiceCount} achterstallig`
-                  : `${stats?.openInvoiceCount ?? 0} openstaande facturen`}
-              </p>
+              <div className="dashboard-home-meta-item">
+                <span className="label">{t.dashboard.vatDeadline}</span>
+                <span className="dashboard-home-meta-value">
+                  {vatDeadline ? `${vatDeadline.daysRemaining} ${t.dashboard.days}` : "—"}
+                </span>
+                <p className="dashboard-home-meta-sub">
+                  {vatDeadline ? `${vatDeadline.quarter} · ${new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" })}` : t.dashboard.noDeadline}
+                </p>
+              </div>
+
+              <div className="dashboard-home-meta-item">
+                <span className="label">{t.dashboard.outstandingAmount}</span>
+                <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
+                <p className="dashboard-home-meta-sub">
+                  {urgentInvoiceCount > 0
+                    ? `${urgentInvoiceCount} ${t.dashboard.overdue}`
+                    : `${upcomingInvoices?.length ?? 0} ${t.dashboard.invoicesShortTerm}`}
+                </p>
+              </div>
             </div>
             </div>
           </motion.div>
@@ -188,15 +196,15 @@ export default function DashboardClient({
         <div className="dashboard-home-kpi-grid">
           <motion.div variants={itemVariants}>
             <StatCard
-              label="Omzet deze maand"
+              label={t.dashboard.revenueThisMonth}
               value={formatCurrency(stats.revenueThisMonth)}
               numericValue={stats.revenueThisMonth}
-              sub="Betaald deze maand"
+              sub={t.dashboard.paidThisMonth}
             />
           </motion.div>
           <motion.div variants={itemVariants}>
             <StatCard
-              label="Openstaande facturen"
+              label={t.dashboard.openInvoices}
               value={String(stats.openInvoiceCount)}
               numericValue={stats.openInvoiceCount}
               isCurrency={false}
@@ -205,19 +213,19 @@ export default function DashboardClient({
           </motion.div>
           <motion.div variants={itemVariants}>
             <StatCard
-              label="Bonnetjes verwerkt"
+              label={t.dashboard.receiptsProcessed}
               value={String(stats.receiptsThisMonth)}
               numericValue={stats.receiptsThisMonth}
               isCurrency={false}
-              sub="Deze maand"
+              sub={t.dashboard.thisMonth}
             />
           </motion.div>
           <motion.div variants={itemVariants}>
             <StatCard
-              label="BTW apart zetten"
+              label={t.dashboard.vatReserve}
               value={formatCurrency(stats.vatToPay)}
               numericValue={stats.vatToPay}
-              sub={vatDeadline ? vatDeadline.deadline : "Dit kwartaal"}
+              sub={vatDeadline ? new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" }) : t.dashboard.thisQuarter}
             />
           </motion.div>
         </div>
@@ -237,7 +245,7 @@ export default function DashboardClient({
       {/* ── OPEN INVOICES ── */}
       <motion.div variants={itemVariants}>
         <h2 className="brutalist-section-title">
-          <span>Openstaande facturen</span>
+          <span>{t.dashboard.openInvoicesTitle}</span>
           <span className="brutalist-rule" />
         </h2>
         {isLoading ? (
@@ -245,7 +253,7 @@ export default function DashboardClient({
         ) : openInvoices && openInvoices.length > 0 ? (
           <UpcomingInvoiceTable invoices={openInvoices} />
         ) : (
-          <p className="empty-state">Geen openstaande facturen</p>
+          <p className="empty-state">{t.dashboard.noOpenInvoices}</p>
         )}
       </motion.div>
 

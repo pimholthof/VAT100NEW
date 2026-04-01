@@ -2,6 +2,7 @@
 
 import { completeOnboarding } from "../actions";
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n/context";
 
 const textInputStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
@@ -24,6 +25,7 @@ const monoInputStyle: React.CSSProperties = {
 export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const { t } = useLocale();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,7 +53,7 @@ export default function OnboardingPage() {
             margin: 0,
           }}
         >
-          Welkom
+          {t.auth.welcome}
         </h1>
         <p
           className="label"
@@ -62,22 +64,22 @@ export default function OnboardingPage() {
             opacity: 0.4,
           }}
         >
-          Vul je bedrijfsgegevens in
+          {t.auth.fillCompanyDetails}
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
           {/* Bedrijfsregistratie */}
           <div>
             <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 8, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
-              Registratie
+              {t.auth.registration}
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label htmlFor="kvk_number" className="label">KVK-nummer</label>
-                <input id="kvk_number" name="kvk_number" type="text" required pattern="[0-9]{8}" title="8 cijfers" autoComplete="off" style={monoInputStyle} />
+                <label htmlFor="kvk_number" className="label">{t.auth.kvkNumber}</label>
+                <input id="kvk_number" name="kvk_number" type="text" required pattern="[0-9]{8}" title={t.auth.eightDigits} autoComplete="off" style={monoInputStyle} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label htmlFor="btw_number" className="label">BTW-nummer</label>
+                <label htmlFor="btw_number" className="label">{t.auth.vatNumber}</label>
                 <input id="btw_number" name="btw_number" type="text" required placeholder="NL000000000B01" autoComplete="off" style={monoInputStyle} />
               </div>
             </div>
@@ -86,20 +88,20 @@ export default function OnboardingPage() {
           {/* Adres */}
           <div>
             <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 8, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
-              Adres
+              {t.auth.address}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label htmlFor="address" className="label">Straat + nummer</label>
+                <label htmlFor="address" className="label">{t.auth.streetNumber}</label>
                 <input id="address" name="address" type="text" required autoComplete="street-address" style={textInputStyle} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <label htmlFor="postal_code" className="label">Postcode</label>
-                  <input id="postal_code" name="postal_code" type="text" required pattern="[0-9]{4}\s?[A-Za-z]{2}" title="bijv. 1234 AB" autoComplete="postal-code" style={textInputStyle} />
+                  <label htmlFor="postal_code" className="label">{t.auth.postalCode}</label>
+                  <input id="postal_code" name="postal_code" type="text" required pattern="[0-9]{4}\s?[A-Za-z]{2}" title={t.auth.postalCodeTitle} autoComplete="postal-code" style={textInputStyle} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <label htmlFor="city" className="label">Plaats</label>
+                  <label htmlFor="city" className="label">{t.auth.city}</label>
                   <input id="city" name="city" type="text" required autoComplete="address-level2" style={textInputStyle} />
                 </div>
               </div>
@@ -109,15 +111,15 @@ export default function OnboardingPage() {
           {/* Bankgegevens */}
           <div>
             <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 8, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
-              Bankgegevens
+              {t.auth.bankDetails}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label htmlFor="iban" className="label">IBAN</label>
-                <input id="iban" name="iban" type="text" required placeholder="NL00BANK0000000000" pattern="[A-Z]{2}[0-9]{2}[A-Z]{4}[0-9]{10}" title="bijv. NL00BANK0000000000" autoComplete="off" style={monoInputStyle} />
+                <label htmlFor="iban" className="label">{t.auth.iban}</label>
+                <input id="iban" name="iban" type="text" required placeholder="NL00BANK0000000000" pattern="[A-Z]{2}[0-9]{2}[A-Z]{4}[0-9]{10}" title="e.g. NL00BANK0000000000" autoComplete="off" style={monoInputStyle} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label htmlFor="bic" className="label">BIC</label>
+                <label htmlFor="bic" className="label">{t.auth.bic}</label>
                 <input id="bic" name="bic" type="text" autoComplete="off" style={monoInputStyle} />
               </div>
             </div>
@@ -154,7 +156,7 @@ export default function OnboardingPage() {
               transition: "opacity 0.15s ease",
             }}
           >
-            {pending ? "Bezig..." : "Opslaan en doorgaan"}
+            {pending ? t.common.busy : t.auth.saveAndContinue}
           </button>
         </form>
       </div>

@@ -6,6 +6,8 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { InvoiceData, InvoiceTemplate } from "@/lib/types";
+import type { Locale } from "@/lib/i18n/types";
+import { getDictionary } from "@/lib/i18n";
 import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 import { formatCurrency, formatDate } from "@/lib/format";
 
@@ -20,11 +22,11 @@ function fmtDateLong(d: string | null): string {
 
 // ─── Dispatcher ───
 
-export function InvoicePDF({ data, template = "minimaal" }: { data: InvoiceData; template?: InvoiceTemplate }) {
+export function InvoicePDF({ data, template = "minimaal", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
   switch (template) {
-    case "klassiek": return <KlassiekPDF data={data} />;
-    case "strak": return <StrakPDF data={data} />;
-    default: return <MinimaalPDF data={data} />;
+    case "klassiek": return <KlassiekPDF data={data} locale={locale} />;
+    case "strak": return <StrakPDF data={data} locale={locale} />;
+    default: return <MinimaalPDF data={data} locale={locale} />;
   }
 }
 
@@ -85,7 +87,8 @@ const s1 = StyleSheet.create({
   footVal: { fontSize: 8, color: INK1 },
 });
 
-function MinimaalPDF({ data }: { data: InvoiceData }) {
+function MinimaalPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+  const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const cr = invoice.is_credit_note;
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
@@ -104,28 +107,28 @@ function MinimaalPDF({ data }: { data: InvoiceData }) {
             {(profile.postal_code || profile.city) && <Text style={s1.line}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</Text>}
           </View>
           <View style={s1.cR}>
-            <Text style={s1.type}>{cr ? "Creditnota" : "Factuur"}</Text>
+            <Text style={s1.type}>{cr ? t.invoiceDoc.creditNote : t.invoiceDoc.invoice}</Text>
             <Text style={s1.num}>{invoice.invoice_number}</Text>
-            <View style={s1.pair}><Text style={s1.lbl}>Datum</Text><Text style={s1.val}>{formatDate(invoice.issue_date)}</Text></View>
-            {invoice.due_date && <View style={s1.pair}><Text style={s1.lbl}>Vervaldatum</Text><Text style={s1.val}>{formatDate(invoice.due_date)}</Text></View>}
+            <View style={s1.pair}><Text style={s1.lbl}>{t.invoiceDoc.date}</Text><Text style={s1.val}>{formatDate(invoice.issue_date)}</Text></View>
+            {invoice.due_date && <View style={s1.pair}><Text style={s1.lbl}>{t.invoiceDoc.dueDate}</Text><Text style={s1.val}>{formatDate(invoice.due_date)}</Text></View>}
           </View>
         </View>
         <View style={s1.div} />
         <View style={s1.cli}>
-          <Text style={s1.cliLbl}>Aan</Text>
+          <Text style={s1.cliLbl}>{t.invoiceDoc.to}</Text>
           <Text style={s1.cliName}>{client.name}</Text>
           {showContact && <Text style={s1.cliLine}>{client.contact_name}</Text>}
           {client.address && <Text style={s1.cliLine}>{client.address}</Text>}
           {(client.postal_code || client.city) && <Text style={s1.cliLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</Text>}
           {client.kvk_number && <Text style={s1.cliLine}>KVK {client.kvk_number}</Text>}
         </View>
-        {invoice.notes && <View style={s1.notes}><Text style={s1.notesLbl}>Omschrijving</Text><Text style={s1.notesBody}>{invoice.notes}</Text></View>}
+        {invoice.notes && <View style={s1.notes}><Text style={s1.notesLbl}>{t.invoiceDoc.description}</Text><Text style={s1.notesBody}>{invoice.notes}</Text></View>}
         <View style={s1.tbl}>
           <View style={s1.thead}>
-            <Text style={[s1.th, s1.cDesc]}>Omschrijving</Text>
-            <Text style={[s1.th, s1.cQty]}>Aantal</Text>
-            <Text style={[s1.th, s1.cRate]}>Tarief</Text>
-            <Text style={[s1.th, s1.cAmt]}>Bedrag</Text>
+            <Text style={[s1.th, s1.cDesc]}>{t.invoiceDoc.description}</Text>
+            <Text style={[s1.th, s1.cQty]}>{t.invoiceDoc.quantity}</Text>
+            <Text style={[s1.th, s1.cRate]}>{t.invoiceDoc.rate}</Text>
+            <Text style={[s1.th, s1.cAmt]}>{t.invoiceDoc.amount}</Text>
           </View>
           {lines.map((l, i) => (
             <View style={i === lines.length - 1 ? s1.trLast : s1.tr} key={l.id}>
@@ -138,15 +141,15 @@ function MinimaalPDF({ data }: { data: InvoiceData }) {
         </View>
         <View style={s1.totWrap}>
           <View style={s1.totBlock}>
-            <View style={s1.totRow}><Text style={s1.totLbl}>Subtotaal</Text><Text style={s1.totVal}>{formatCurrency(invoice.subtotal_ex_vat)}</Text></View>
-            <View style={s1.totRow}><Text style={s1.totLbl}>BTW {invoice.vat_rate ?? 21}%</Text><Text style={s1.totVal}>{formatCurrency(invoice.vat_amount)}</Text></View>
-            <View style={s1.totFinal}><Text style={s1.totFLbl}>Totaal</Text><Text style={s1.totFVal}>{formatCurrency(invoice.total_inc_vat)}</Text></View>
+            <View style={s1.totRow}><Text style={s1.totLbl}>{t.invoiceDoc.subtotalExVat}</Text><Text style={s1.totVal}>{formatCurrency(invoice.subtotal_ex_vat)}</Text></View>
+            <View style={s1.totRow}><Text style={s1.totLbl}>{t.invoiceDoc.vat} {invoice.vat_rate ?? 21}%</Text><Text style={s1.totVal}>{formatCurrency(invoice.vat_amount)}</Text></View>
+            <View style={s1.totFinal}><Text style={s1.totFLbl}>{t.invoiceDoc.total}</Text><Text style={s1.totFVal}>{formatCurrency(invoice.total_inc_vat)}</Text></View>
           </View>
         </View>
         <View style={s1.foot}>
           {profile.iban && <View><Text style={s1.footLbl}>IBAN</Text><Text style={s1.footVal}>{profile.iban}</Text></View>}
           {profile.bic && <View><Text style={s1.footLbl}>BIC</Text><Text style={s1.footVal}>{profile.bic}</Text></View>}
-          <View><Text style={s1.footLbl}>Betaaltermijn</Text><Text style={s1.footVal}>{days} dagen</Text></View>
+          <View><Text style={s1.footLbl}>{t.invoiceDoc.paymentTerms}</Text><Text style={s1.footVal}>{days} {t.invoiceDoc.daysNet}</Text></View>
         </View>
       </Page>
     </Document>
@@ -206,7 +209,8 @@ const s2 = StyleSheet.create({
   footRight: { fontSize: 7, color: GREY2, alignSelf: "flex-end" },
 });
 
-function KlassiekPDF({ data }: { data: InvoiceData }) {
+function KlassiekPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+  const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const cr = invoice.is_credit_note;
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
@@ -218,7 +222,7 @@ function KlassiekPDF({ data }: { data: InvoiceData }) {
         <View style={s2.header}>
           <View>
             <Text style={s2.title}>VAT100</Text>
-            <Text style={{ fontSize: 8, letterSpacing: 1, color: GREY2, textTransform: "uppercase", marginTop: 8 }}>{cr ? "Creditnota" : "Factuur"}</Text>
+            <Text style={{ fontSize: 8, letterSpacing: 1, color: GREY2, textTransform: "uppercase", marginTop: 8 }}>{cr ? t.invoiceDoc.creditNote : t.invoiceDoc.invoice}</Text>
           </View>
           <View style={s2.headerRight}>
             <Text style={s2.headerDate}>{fmtDateLong(invoice.issue_date)}</Text>
@@ -228,7 +232,7 @@ function KlassiekPDF({ data }: { data: InvoiceData }) {
 
         <View style={s2.cols}>
           <View style={s2.col}>
-            <Text style={s2.lbl}>Van</Text>
+            <Text style={s2.lbl}>{t.invoiceDoc.from}</Text>
             <Text style={s2.name}>{profile.studio_name || profile.full_name}</Text>
             {profile.address && <Text style={s2.line}>{profile.address}</Text>}
             {(profile.postal_code || profile.city) && <Text style={s2.line}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</Text>}
@@ -236,7 +240,7 @@ function KlassiekPDF({ data }: { data: InvoiceData }) {
             {profile.btw_number && <Text style={s2.line}>BTW {profile.btw_number}</Text>}
           </View>
           <View style={s2.col}>
-            <Text style={s2.lbl}>Aan</Text>
+            <Text style={s2.lbl}>{t.invoiceDoc.to}</Text>
             <Text style={s2.name}>{client.name}</Text>
             {showContact && <Text style={s2.line}>{client.contact_name}</Text>}
             {client.address && <Text style={s2.line}>{client.address}</Text>}
@@ -250,10 +254,10 @@ function KlassiekPDF({ data }: { data: InvoiceData }) {
 
         <View style={s2.tbl}>
           <View style={s2.thead}>
-            <Text style={[s2.th, s2.cDesc]}>Omschrijving</Text>
-            <Text style={[s2.th, s2.cQty]}>Aantal</Text>
-            <Text style={[s2.th, s2.cRate]}>Tarief</Text>
-            <Text style={[s2.th, s2.cAmt]}>Bedrag</Text>
+            <Text style={[s2.th, s2.cDesc]}>{t.invoiceDoc.description}</Text>
+            <Text style={[s2.th, s2.cQty]}>{t.invoiceDoc.quantity}</Text>
+            <Text style={[s2.th, s2.cRate]}>{t.invoiceDoc.rate}</Text>
+            <Text style={[s2.th, s2.cAmt]}>{t.invoiceDoc.amount}</Text>
           </View>
           {lines.map((l, i) => (
             <View style={i === lines.length - 1 ? s2.trLast : s2.tr} key={l.id}>
@@ -267,19 +271,19 @@ function KlassiekPDF({ data }: { data: InvoiceData }) {
 
         <View style={s2.totWrap}>
           <View style={s2.totBlock}>
-            <View style={s2.totRow}><Text style={s2.totLbl}>Subtotaal</Text><Text style={s2.totVal}>{formatCurrency(invoice.subtotal_ex_vat)}</Text></View>
-            <View style={s2.totRow}><Text style={s2.totLbl}>BTW {invoice.vat_rate ?? 21}%</Text><Text style={s2.totVal}>{formatCurrency(invoice.vat_amount)}</Text></View>
-            <View style={s2.totFinal}><Text style={s2.totFLbl}>Totaal</Text><Text style={s2.totFVal}>{formatCurrency(invoice.total_inc_vat)}</Text></View>
+            <View style={s2.totRow}><Text style={s2.totLbl}>{t.invoiceDoc.subtotalExVat}</Text><Text style={s2.totVal}>{formatCurrency(invoice.subtotal_ex_vat)}</Text></View>
+            <View style={s2.totRow}><Text style={s2.totLbl}>{t.invoiceDoc.vat} {invoice.vat_rate ?? 21}%</Text><Text style={s2.totVal}>{formatCurrency(invoice.vat_amount)}</Text></View>
+            <View style={s2.totFinal}><Text style={s2.totFLbl}>{t.invoiceDoc.total}</Text><Text style={s2.totFVal}>{formatCurrency(invoice.total_inc_vat)}</Text></View>
           </View>
         </View>
 
-        {invoice.due_date && <View style={s2.due}><Text style={s2.dueText}>Gelieve te betalen vóór {fmtDateLong(invoice.due_date)}</Text></View>}
+        {invoice.due_date && <View style={s2.due}><Text style={s2.dueText}>{t.invoiceDoc.paymentTerms}: {fmtDateLong(invoice.due_date)}</Text></View>}
 
         <View style={s2.foot}>
           <View style={s2.footLeft}>
             {profile.iban && <View><Text style={s2.footLbl}>IBAN</Text><Text style={s2.footVal}>{profile.iban}</Text></View>}
             {profile.bic && <View><Text style={s2.footLbl}>BIC</Text><Text style={s2.footVal}>{profile.bic}</Text></View>}
-            <View><Text style={s2.footLbl}>Betaaltermijn</Text><Text style={s2.footVal}>{days} dagen</Text></View>
+            <View><Text style={s2.footLbl}>{t.invoiceDoc.paymentTerms}</Text><Text style={s2.footVal}>{days} {t.invoiceDoc.daysNet}</Text></View>
           </View>
           <Text style={s2.footRight}>{profile.studio_name || profile.full_name}</Text>
         </View>
@@ -338,7 +342,8 @@ const s3 = StyleSheet.create({
   footVal: { fontSize: 7.5, color: INK3 },
 });
 
-function StrakPDF({ data }: { data: InvoiceData }) {
+function StrakPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+  const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const cr = invoice.is_credit_note;
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
@@ -353,23 +358,23 @@ function StrakPDF({ data }: { data: InvoiceData }) {
 
         <View style={s3.metaRow}>
           <View>
-            <Text style={s3.lbl}>{cr ? "Creditnota" : "Factuur"}</Text>
+            <Text style={s3.lbl}>{cr ? t.invoiceDoc.creditNote : t.invoiceDoc.invoice}</Text>
             <Text style={s3.metaNum}>{invoice.invoice_number}</Text>
           </View>
           <View style={s3.metaCol}>
-            <Text style={s3.lbl}>Datum</Text>
+            <Text style={s3.lbl}>{t.invoiceDoc.date}</Text>
             <Text style={s3.metaVal}>{formatDate(invoice.issue_date)}</Text>
           </View>
           {invoice.due_date && (
             <View style={s3.metaCol}>
-              <Text style={s3.lbl}>Vervaldatum</Text>
+              <Text style={s3.lbl}>{t.invoiceDoc.dueDate}</Text>
               <Text style={s3.metaVal}>{formatDate(invoice.due_date)}</Text>
             </View>
           )}
         </View>
 
         <View style={s3.cli}>
-          <Text style={s3.lbl}>Aan</Text>
+          <Text style={s3.lbl}>{t.invoiceDoc.to}</Text>
           <Text style={s3.cliName}>{client.name}</Text>
           {showContact && <Text style={s3.cliLine}>{client.contact_name}</Text>}
           {client.address && <Text style={s3.cliLine}>{client.address}</Text>}
@@ -380,10 +385,10 @@ function StrakPDF({ data }: { data: InvoiceData }) {
 
         <View style={s3.tbl}>
           <View style={s3.thead}>
-            <Text style={[s3.th, s3.cDesc]}>Omschrijving</Text>
-            <Text style={[s3.th, s3.cQty]}>Aantal</Text>
-            <Text style={[s3.th, s3.cRate]}>Tarief</Text>
-            <Text style={[s3.th, s3.cAmt]}>Bedrag</Text>
+            <Text style={[s3.th, s3.cDesc]}>{t.invoiceDoc.description}</Text>
+            <Text style={[s3.th, s3.cQty]}>{t.invoiceDoc.quantity}</Text>
+            <Text style={[s3.th, s3.cRate]}>{t.invoiceDoc.rate}</Text>
+            <Text style={[s3.th, s3.cAmt]}>{t.invoiceDoc.amount}</Text>
           </View>
           {lines.map((l) => (
             <View style={s3.tr} key={l.id}>
@@ -397,9 +402,9 @@ function StrakPDF({ data }: { data: InvoiceData }) {
 
         <View style={s3.totWrap}>
           <View style={s3.totBlock}>
-            <View style={s3.totRow}><Text style={s3.totLbl}>Subtotaal</Text><Text style={s3.totVal}>{formatCurrency(invoice.subtotal_ex_vat)}</Text></View>
-            <View style={s3.totRow}><Text style={s3.totLbl}>BTW {invoice.vat_rate ?? 21}%</Text><Text style={s3.totVal}>{formatCurrency(invoice.vat_amount)}</Text></View>
-            <View style={s3.totFinal}><Text style={s3.totFLbl}>Totaal</Text><Text style={s3.totFVal}>{formatCurrency(invoice.total_inc_vat)}</Text></View>
+            <View style={s3.totRow}><Text style={s3.totLbl}>{t.invoiceDoc.subtotalExVat}</Text><Text style={s3.totVal}>{formatCurrency(invoice.subtotal_ex_vat)}</Text></View>
+            <View style={s3.totRow}><Text style={s3.totLbl}>{t.invoiceDoc.vat} {invoice.vat_rate ?? 21}%</Text><Text style={s3.totVal}>{formatCurrency(invoice.vat_amount)}</Text></View>
+            <View style={s3.totFinal}><Text style={s3.totFLbl}>{t.invoiceDoc.total}</Text><Text style={s3.totFVal}>{formatCurrency(invoice.total_inc_vat)}</Text></View>
           </View>
         </View>
 
@@ -411,7 +416,7 @@ function StrakPDF({ data }: { data: InvoiceData }) {
           <View style={s3.footRight}>
             {profile.iban && <View><Text style={s3.footLbl}>IBAN</Text><Text style={s3.footVal}>{profile.iban}</Text></View>}
             {profile.bic && <View><Text style={s3.footLbl}>BIC</Text><Text style={s3.footVal}>{profile.bic}</Text></View>}
-            <View><Text style={s3.footLbl}>Betaaltermijn</Text><Text style={s3.footVal}>{days} dagen</Text></View>
+            <View><Text style={s3.footLbl}>{t.invoiceDoc.paymentTerms}</Text><Text style={s3.footVal}>{days} {t.invoiceDoc.daysNet}</Text></View>
           </View>
         </View>
       </Page>

@@ -1,16 +1,18 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/context";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { formatCurrency } from "@/lib/format";
 
 export function InvoiceTotals() {
+  const { t } = useLocale();
   const totals = useInvoiceStore((s) => s.totals);
 
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 100 }}>
       <div>
-        <p className="label" style={{ opacity: 0.1, marginBottom: 8 }}>TOTAAL</p>
+        <p className="label" style={{ opacity: 0.1, marginBottom: 8 }}>{t.invoices.totalLabel}</p>
         <AnimatedNumber 
           value={totals.total} 
           isCurrency={true}
@@ -24,8 +26,8 @@ export function InvoiceTotals() {
         />
       </div>
       <div style={{ textAlign: "right", opacity: 0.4 }}>
-        <p className="mono-amount" style={{ fontSize: 11, marginBottom: 4 }}>Excl. BTW: {formatCurrency(totals.subtotal)}</p>
-        <p className="mono-amount" style={{ fontSize: 11 }}>BTW: {formatCurrency(totals.vatAmount)}</p>
+        <p className="mono-amount" style={{ fontSize: 11, marginBottom: 4 }}>{t.invoices.exVatLabel} {formatCurrency(totals.subtotal)}</p>
+        <p className="mono-amount" style={{ fontSize: 11 }}>{t.invoices.vatAmountLabel} {formatCurrency(totals.vatAmount)}</p>
       </div>
     </div>
   );

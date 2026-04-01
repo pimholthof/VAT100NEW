@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import type { InvoiceData, InvoiceTemplate } from "@/lib/types";
 import { InvoiceHTML } from "./InvoiceHTML";
 import { TemplatePicker } from "./TemplatePicker";
+import { useLocale } from "@/lib/i18n/context";
 
 const STORAGE_KEY = "vat100-invoice-template";
 
 export function InvoicePreviewClient({ data }: { data: InvoiceData }) {
+  const { locale } = useLocale();
   const [template, setTemplate] = useState<InvoiceTemplate>("minimaal");
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function InvoicePreviewClient({ data }: { data: InvoiceData }) {
           overflowX: "auto",
         }}
       >
-        <InvoiceHTML data={data} template={template} />
+        <InvoiceHTML data={data} template={template} locale={locale} />
       </div>
       {/* Hidden link with template param for PDF download */}
       <input type="hidden" id="invoice-template" value={template} />
