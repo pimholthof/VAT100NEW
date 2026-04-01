@@ -22,9 +22,9 @@ export function LocaleProvider({
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   const setLocale = useCallback((newLocale: Locale) => {
-    setLocaleState(newLocale);
     document.cookie = `locale=${newLocale};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`;
-    document.documentElement.lang = newLocale;
+    // Full reload so server components also pick up the new locale
+    window.location.reload();
   }, []);
 
   const t = useMemo(() => getDictionary(locale), [locale]);

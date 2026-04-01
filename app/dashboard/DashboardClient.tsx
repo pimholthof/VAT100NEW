@@ -187,7 +187,6 @@ export default function DashboardClient({
                 </p>
               </div>
             </div>
-            </div>
           </motion.div>
         </div>
       )}
