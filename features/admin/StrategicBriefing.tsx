@@ -2,15 +2,19 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { formatCurrency, formatDateLong } from "@/lib/format";
 
 export async function getLatestBriefing() {
-  const supabase = createServiceClient();
-  const { data: briefing } = await supabase
-    .from("strategic_briefings")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+  try {
+    const supabase = createServiceClient();
+    const { data: briefing } = await supabase
+      .from("strategic_briefings")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  return briefing;
+    return briefing;
+  } catch {
+    return null;
+  }
 }
 
 export default async function StrategicBriefing() {
