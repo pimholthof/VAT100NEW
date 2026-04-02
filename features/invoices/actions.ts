@@ -412,7 +412,7 @@ export async function createPaymentLink(
 
   // Niet-fatale fout als kolommen nog niet bestaan
   if (updateError) {
-    console.warn("Kon betaalgegevens niet opslaan (migratie nodig?):", updateError.message);
+    // Non-fatal: columns may not exist if migration hasn't run yet
   }
 
   if (!paymentLink) {

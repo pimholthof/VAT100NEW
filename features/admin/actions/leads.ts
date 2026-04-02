@@ -3,6 +3,7 @@
 import { requireAdmin } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/email/send-onboarding";
 import { createServiceClient } from "@/lib/supabase/service";
+import * as Sentry from "@sentry/nextjs";
 import type {
   ActionResult,
   Lead,
@@ -314,7 +315,7 @@ export async function autoProvisionAccount(leadId: string): Promise<ActionResult
       fullName: targetFullName,
       tempPassword: targetPassword,
       studioName: targetCompanyName
-    }).catch(err => console.error("[Provision] Email error:", err));
+    }).catch(err => Sentry.captureException(err, { tags: { area: "lead-provision-email" } }));
 
     return { error: null };
   } catch (e) {

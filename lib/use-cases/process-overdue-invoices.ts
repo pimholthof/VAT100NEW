@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendReminderEmail } from "@/lib/email/send-reminder";
 import { formatCurrency } from "@/lib/format";
+import * as Sentry from "@sentry/nextjs";
 import type { InvoiceData } from "@/lib/types";
 
 export async function processOverdueInvoices(userId?: string): Promise<{
@@ -31,19 +32,12 @@ export async function processOverdueInvoices(userId?: string): Promise<{
 
   if (error) throw new Error(error.message);
 
-  const results: Array<{
-    invoiceNumber: string;
-    emailSent: boolean;
-    actionCreated: boolean;
-    error?: string;
-  }> = [];
+  // Process each overdue invoice concurrently with Promise.allSettled
+  const settled = await Promise.allSettled(
+    (overdueInvoices ?? []).map(async (inv) => {
+      let emailSent = false;
+      let actionCreated = false;
 
-  for (const inv of overdueInvoices ?? []) {
-    let emailSent = false;
-    let actionCreated = false;
-    let errorMsg: string | undefined;
-
-    try {
       const { data: existingAction, error: existingActionError } = await supabase
         .from("action_feed")
         .select("id")
@@ -58,12 +52,7 @@ export async function processOverdueInvoices(userId?: string): Promise<{
       }
 
       if (existingAction) {
-        results.push({
-          invoiceNumber: inv.invoice_number,
-          emailSent: false,
-          actionCreated: false,
-        });
-        continue;
+        return { invoiceNumber: inv.invoice_number, emailSent: false, actionCreated: false };
       }
 
       const [clientResult, profileResult, itemsResult] = await Promise.all([
@@ -85,7 +74,6 @@ export async function processOverdueInvoices(userId?: string): Promise<{
 
         const emailResult = await sendReminderEmail(invoiceData);
         emailSent = !emailResult.error;
-        if (emailResult.error) errorMsg = emailResult.error;
       }
 
       const { error: actionError } = await supabase.from("action_feed").insert({
@@ -98,22 +86,30 @@ export async function processOverdueInvoices(userId?: string): Promise<{
         ai_confidence: 1.0,
       });
 
-      if (actionError) {
-        throw new Error(actionError.message);
-      }
-
+      if (actionError) throw new Error(actionError.message);
       actionCreated = true;
-    } catch (e: unknown) {
-      errorMsg = e instanceof Error ? e.message : String(e);
-    }
 
-    results.push({
-      invoiceNumber: inv.invoice_number,
-      emailSent,
-      actionCreated,
-      error: errorMsg,
+      return { invoiceNumber: inv.invoice_number, emailSent, actionCreated };
+    })
+  );
+
+  const results = settled.map((result, index) => {
+    if (result.status === "fulfilled") {
+      return result.value;
+    }
+    const inv = overdueInvoices?.[index];
+    const errorMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+    Sentry.captureException(result.reason, {
+      tags: { area: "overdue-processing" },
+      extra: { invoiceId: inv?.id },
     });
-  }
+    return {
+      invoiceNumber: inv?.invoice_number ?? "onbekend",
+      emailSent: false,
+      actionCreated: false,
+      error: errorMsg,
+    };
+  });
 
   return {
     updated: overdueInvoices?.length ?? 0,

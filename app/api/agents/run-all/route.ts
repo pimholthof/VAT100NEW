@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { processSystemEvents } from "@/lib/automation/event-processor";
 
 /**
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
       ...result,
     });
   } catch (err) {
-    console.error(`[AgentRoute] Master trigger failed:`, err);
+    Sentry.captureException(err, { tags: { area: "agent-orchestrator" } });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Unknown error" },
       { status: 500 }
