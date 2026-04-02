@@ -106,7 +106,7 @@ export class TinkClient {
     const appToken = await this.getAppToken("authorization:grant");
 
     // Create a delegated authorization code for the user
-    const codeResponse = await fetch(`${BASE_URL}/api/v1/oauth/authorization-grant/delegate`, {
+    const codeResponse = await fetch(`${BASE_URL}/api/v1/oauth/authorization-grant`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${appToken}`,
@@ -172,7 +172,7 @@ export class TinkClient {
    */
   async getInstitutions(country: string = "NL"): Promise<Institution[]> {
     const token = await this.getAppToken("providers:read");
-    const data = await this.request(`/api/v1/providers/${country}`, token);
+    const data = await this.request(`/api/v1/providers?market=${country}`, token);
 
     const providers: TinkProvider[] = Array.isArray(data) ? data : data.providers || [];
     return providers.map((p) => ({
@@ -224,7 +224,7 @@ export class TinkClient {
     }
 
     // 2. Generate authorization code for Tink Link
-    const codeResponse = await fetch(`${BASE_URL}/api/v1/oauth/authorization-grant/delegate`, {
+    const codeResponse = await fetch(`${BASE_URL}/api/v1/oauth/authorization-grant`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${appToken}`,
@@ -340,6 +340,7 @@ export class TinkClient {
 
   /**
    * Get account balances.
+   * Tink returns balances inline with the account object via GET /data/v2/accounts/{id}.
    */
   async getAccountBalances(accountId: string) {
     const parts = accountId.split("::");
@@ -350,17 +351,24 @@ export class TinkClient {
     const userToken = await this.getUserToken(parts[0]);
     const realAccountId = parts[1];
 
-    const data = await this.request(`/data/v2/accounts/${realAccountId}/balances`, userToken);
-    const balances = data.balances || [];
+    const data = await this.request(`/data/v2/accounts/${realAccountId}`, userToken);
+    const booked = data.balances?.booked;
+
+    if (!booked) {
+      return { balances: [] };
+    }
+
+    const unscaled = Number(booked.amount?.value?.unscaledValue || 0);
+    const scale = Number(booked.amount?.value?.scale || 0);
 
     return {
-      balances: balances.map((b: { amount: { value: { unscaledValue: string; scale: number }; currencyCode: string }; type: string }) => ({
+      balances: [{
         balanceAmount: {
-          amount: (Number(b.amount?.value?.unscaledValue || 0) / Math.pow(10, b.amount?.value?.scale || 0)).toFixed(2),
-          currency: b.amount?.currencyCode || "EUR",
+          amount: (unscaled / Math.pow(10, scale)).toFixed(2),
+          currency: booked.amount?.currencyCode || "EUR",
         },
-        balanceType: b.type || "expected",
-      })),
+        balanceType: "booked",
+      }],
     };
   }
 
