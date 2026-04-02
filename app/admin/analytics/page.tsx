@@ -3,10 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { getSubscriptionAnalytics } from "@/features/admin/actions/analytics";
 import { PageHeader, StatCard, SkeletonCard } from "@/components/ui";
+import { formatCurrency } from "@/lib/format";
 
-function formatEur(value: number): string {
-  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(value);
-}
+const formatEur = formatCurrency;
 
 function MiniBar({ value, max, label }: { value: number; max: number; label: string }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;

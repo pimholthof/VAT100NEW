@@ -2,6 +2,7 @@ import type { InvoiceData, InvoiceTemplate } from "@/lib/types";
 import type { Locale } from "@/lib/i18n/types";
 import { getDictionary } from "@/lib/i18n";
 import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
+import { formatCurrency } from "@/lib/format";
 
 // ─── Shared helpers ───
 
@@ -17,9 +18,7 @@ function fmtDateLong(d: string | null, locale: Locale = "nl"): string {
   return new Date(d).toLocaleDateString(l, { day: "numeric", month: "long", year: "numeric" });
 }
 
-function fmtEur(n: number): string {
-  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
-}
+const fmtEur = formatCurrency;
 
 function unitLabel(u: string, t: ReturnType<typeof getDictionary>): string {
   if (u === "dagen") return t.invoices.unitDays;

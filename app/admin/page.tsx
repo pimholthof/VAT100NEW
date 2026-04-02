@@ -2,13 +2,7 @@ import { getAdminOverview } from "@/features/admin/actions";
 import { StatCard } from "@/components/ui/StatCard";
 import Link from "next/link";
 import { AdminStatePanel } from "./AdminStatePanel";
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
+import { formatCurrency } from "@/lib/format";
 
 function formatDate(dateStr: string): string {
   return new Intl.DateTimeFormat("nl-NL", {

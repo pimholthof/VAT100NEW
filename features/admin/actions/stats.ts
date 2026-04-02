@@ -7,6 +7,7 @@ import type {
   PlatformStats,
 } from "@/lib/types";
 import { sanitizeError } from "@/lib/errors";
+import { formatCurrency } from "@/lib/format";
 
 
 // ─── Platform Stats ───
@@ -329,7 +330,7 @@ export async function getAdminDashboardData(): Promise<ActionResult<AdminDashboa
       alerts.push({
         type: "overdue",
         count: cnt,
-        message: `${cnt} factuu${cnt !== 1 ? "r" : "ren"} openstaand — ${new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(openAmount)}`,
+        message: `${cnt} factuu${cnt !== 1 ? "r" : "ren"} openstaand — ${formatCurrency(openAmount)}`,
         href: "/admin/customers",
       });
     }

@@ -7,13 +7,7 @@ import { getUsers } from "@/features/admin/actions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import type { AdminUser } from "@/lib/types";
 import { AdminStatePanel } from "../AdminStatePanel";
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
+import { formatCurrency } from "@/lib/format";
 
 function formatDate(dateStr: string): string {
   return new Intl.DateTimeFormat("nl-NL", {

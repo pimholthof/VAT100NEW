@@ -203,22 +203,18 @@ export async function getInvoices(
     query = query.lte("issue_date", filters.dateTo);
   }
 
+  // Search DB-side via ilike (replaces client-side filtering)
+  if (filters?.search) {
+    const q = `%${filters.search}%`;
+    query = query.or(`invoice_number.ilike.${q},total_inc_vat::text.ilike.${q}`);
+  }
+
+  query = query.limit(200);
+
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  let results = (data ?? []) as unknown as InvoiceWithClientName[];
-
-  if (filters?.search) {
-    const q = filters.search.toLowerCase();
-    results = results.filter(
-      (inv) =>
-        inv.invoice_number.toLowerCase().includes(q) ||
-        inv.client?.name?.toLowerCase().includes(q) ||
-        String(inv.total_inc_vat).includes(q)
-    );
-  }
-
-  return results;
+  return (data ?? []) as unknown as InvoiceWithClientName[];
 }
 
 export async function getInvoice(
