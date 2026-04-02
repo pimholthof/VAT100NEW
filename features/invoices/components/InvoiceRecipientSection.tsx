@@ -3,7 +3,6 @@
 import { m as motion } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
 import { ClientQuickCreate } from "./ClientQuickCreate";
-import { inputStyle } from "@/components/ui";
 import { playSound } from "@/lib/utils/sound";
 
 export function InvoiceRecipientSection({
@@ -38,8 +37,8 @@ export function InvoiceRecipientSection({
             setClientId(e.target.value);
             playSound("tink");
           }}
+          className="form-input"
           style={{
-            ...inputStyle,
             fontSize: 16,
             fontWeight: 400,
             letterSpacing: "-0.01em",

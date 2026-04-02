@@ -53,6 +53,7 @@ export function SearchFilter({
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder={placeholder}
+        aria-label={placeholder}
         className="input-field"
         style={{
           flex: 1,

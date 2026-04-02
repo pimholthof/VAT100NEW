@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getProfile, updateProfile } from "@/features/profile/actions";
 import type { Profile } from "@/lib/types";
-import { FieldGroup, inputStyle, ButtonPrimary, ErrorMessage } from "@/components/ui";
+import { FieldGroup, ButtonPrimary, ErrorMessage } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
 
 export default function SettingsPage() {
@@ -116,7 +116,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder={t.settings.fullNamePlaceholder}
-              style={inputStyle}
+              className="form-input"
             />
           </FieldGroup>
 
@@ -126,7 +126,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={studioName}
               onChange={(e) => setStudioName(e.target.value)}
               placeholder={t.settings.studioNamePlaceholder}
-              style={inputStyle}
+              className="form-input"
             />
           </FieldGroup>
         </div>
@@ -144,7 +144,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={kvkNumber}
                 onChange={(e) => setKvkNumber(e.target.value)}
                 placeholder="12345678"
-                style={{ ...inputStyle }}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label={t.settings.vatNumber}>
@@ -153,7 +153,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={btwNumber}
                 onChange={(e) => setBtwNumber(e.target.value)}
                 placeholder="NL123456789B01"
-                style={{ ...inputStyle }}
+                className="form-input"
               />
             </FieldGroup>
           </div>
@@ -164,7 +164,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder={t.settings.streetPlaceholder}
-              style={inputStyle}
+              className="form-input"
             />
           </FieldGroup>
 
@@ -175,7 +175,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
                 placeholder="1234 AB"
-                style={inputStyle}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label={t.settings.city}>
@@ -184,7 +184,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Amsterdam"
-                style={inputStyle}
+                className="form-input"
               />
             </FieldGroup>
           </div>
@@ -203,7 +203,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={iban}
                 onChange={(e) => setIban(e.target.value)}
                 placeholder="NL00BANK0123456789"
-                style={{ ...inputStyle }}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label={t.settings.bic}>
@@ -212,7 +212,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 value={bic}
                 onChange={(e) => setBic(e.target.value)}
                 placeholder="BANKNL2A"
-                style={{ ...inputStyle }}
+                className="form-input"
               />
             </FieldGroup>
           </div>
