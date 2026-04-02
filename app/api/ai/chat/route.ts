@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import * as Sentry from "@sentry/nextjs";
 import { requirePlan } from "@/lib/supabase/server";
 import { isRateLimited } from "@/lib/rate-limit";
 import { CFO_TOOLS } from "@/lib/ai/tools";
@@ -16,12 +17,29 @@ const historyMessageSchema = z.object({
 });
 
 const chatRequestSchema = z.object({
-  query: z.string().trim().min(1, "Geen vraag gesteld"),
+  query: z.string().trim().min(1, "Geen vraag gesteld").max(2000, "Vraag is te lang (max 2000 tekens)."),
   history: z.array(historyMessageSchema).max(50, "Te veel eerdere berichten.").optional().default([]),
 });
 
 // Maximum tool-use iterations to prevent infinite loops
 const MAX_TOOL_ITERATIONS = 5;
+
+// Retry transient API failures (network, overloaded, etc.)
+async function callWithRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const isTransient =
+        error instanceof Anthropic.APIConnectionError ||
+        error instanceof Anthropic.RateLimitError ||
+        (error instanceof Anthropic.InternalServerError);
+      if (!isTransient || attempt === retries) throw error;
+      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
+  }
+  throw new Error("Retry exhausted");
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -105,13 +123,15 @@ Instructies:
 
     // Tool-use loop: Claude may request multiple tools before giving a final answer
     let iterations = 0;
-    let response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2048,
-      system: systemPrompt,
-      tools: CFO_TOOLS,
-      messages,
-    });
+    let response = await callWithRetry(() =>
+      anthropic.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2048,
+        system: systemPrompt,
+        tools: CFO_TOOLS,
+        messages,
+      })
+    );
 
     while (response.stop_reason === "tool_use" && iterations < MAX_TOOL_ITERATIONS) {
       iterations++;
@@ -141,13 +161,15 @@ Instructies:
       messages.push({ role: "user", content: toolResults });
 
       // Get next response from Claude
-      response = await anthropic.messages.create({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2048,
-        system: systemPrompt,
-        tools: CFO_TOOLS,
-        messages,
-      });
+      response = await callWithRetry(() =>
+        anthropic.messages.create({
+          model: "claude-sonnet-4-6",
+          max_tokens: 2048,
+          system: systemPrompt,
+          tools: CFO_TOOLS,
+          messages,
+        })
+      );
     }
 
     // Extract final text response
@@ -158,7 +180,7 @@ Instructies:
     });
 
   } catch (error) {
-    console.error("Error in AI Chat:", error);
+    Sentry.captureException(error, { tags: { area: "ai-chat" } });
     return NextResponse.json(
       { error: "Er is een fout opgetreden bij de verwerking van je vraag." },
       { status: 500 }

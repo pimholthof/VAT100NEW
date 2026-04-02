@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
+import * as Sentry from "@sentry/nextjs";
 import { requireAuth, requirePlan } from "@/lib/supabase/server";
 import { gocardless, checkGoCardlessRateLimit } from "@/lib/banking/gocardless";
 import { sanitizeSupabaseError } from "@/lib/errors";
@@ -349,18 +350,21 @@ export async function syncTransactions(
       }];
     });
 
-    // 4. Upsert (ignore duplicates based on external_id)
-    if (newTransactions.length > 0) {
+    // 4. Upsert in chunks (prevents single large request from failing)
+    const CHUNK_SIZE = 100;
+    for (let i = 0; i < newTransactions.length; i += CHUNK_SIZE) {
+      const chunk = newTransactions.slice(i, i + CHUNK_SIZE);
       const { error: upsertError } = await supabase
         .from("bank_transactions")
-        .upsert(newTransactions, { onConflict: "external_id" });
-      
+        .upsert(chunk, { onConflict: "external_id" });
+
       if (upsertError) {
         return {
           error: sanitizeSupabaseError(upsertError, {
             area: "syncTransactions.upsertTransactions",
             connectionId: connection.id,
             userId: user.id,
+            chunkIndex: i / CHUNK_SIZE,
           }),
         };
       }
@@ -571,8 +575,11 @@ Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income}]`,
       for (const item of validItems) {
         results[item.id] = item.category;
       }
-    } catch {
-      // Continue with next batch on error
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { area: "auto-categorize-ai" },
+        extra: { batchSize: batch.length, userId: user.id },
+      });
       continue;
     }
   }

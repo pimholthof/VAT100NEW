@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { getMolliePayment } from "@/lib/payments/mollie";
 import { createServiceClient } from "@/lib/supabase/service";
 import { activateSubscriptionAfterPayment } from "@/features/subscriptions/actions";
@@ -7,16 +8,27 @@ import { autoProvisionAccount } from "@/features/admin/actions";
 /**
  * Mollie webhook: wordt aangeroepen wanneer een betaalstatus wijzigt.
  * Verwerkt zowel factuurbetalingen als abonnementsbetalingen.
+ *
+ * Security: Payment is verified by fetching it from the Mollie API using the
+ * server-side API key. This ensures only real Mollie payments are processed,
+ * regardless of who sent the webhook request.
  */
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const paymentId = formData.get("id") as string | null;
 
-    if (!paymentId) {
+    if (!paymentId || typeof paymentId !== "string") {
       return NextResponse.json({ error: "Geen payment ID" }, { status: 400 });
     }
 
+    // Validate payment ID format (Mollie IDs start with "tr_")
+    if (!paymentId.startsWith("tr_") || paymentId.length > 50) {
+      return NextResponse.json({ error: "Ongeldig payment ID formaat" }, { status: 400 });
+    }
+
+    // Fetch the payment from Mollie API — this acts as verification
+    // that the payment is real (spoofed webhook requests will fail here)
     const { data: payment, error } = await getMolliePayment(paymentId);
     if (error || !payment) {
       return NextResponse.json({ error: error ?? "Betaling niet gevonden" }, { status: 500 });
@@ -46,18 +58,16 @@ export async function POST(request: NextRequest) {
 
 async function handleLeadPayment(
   payment: Awaited<ReturnType<typeof getMolliePayment>>["data"] & {},
-  paymentId: string
+  _paymentId: string
 ) {
   if (payment.status === "paid") {
     const leadId = payment.metadata?.lead_id;
     if (leadId) {
-      console.log(`[Webhook] Lead payment success. Activating lead: ${leadId}`);
-      
       // TRIGGER AUTO-PROVISIONING
       const result = await autoProvisionAccount(leadId);
-      
+
       if (result.error) {
-        console.error(`[Webhook] Error provisioning lead ${leadId}:`, result.error);
+        Sentry.captureMessage(`Webhook: Error provisioning lead ${leadId}: ${result.error}`, "error");
         return NextResponse.json({ error: result.error }, { status: 500 });
       }
 

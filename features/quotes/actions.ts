@@ -61,74 +61,51 @@ export async function createQuote(
   const v = validate(quoteSchema, input);
   if (v.error) return { error: v.error };
 
-  const vat = calculateLineTotals(input.lines, input.vat_rate);
-  const totals = {
-    subtotal_ex_vat: vat.subtotalExVat,
-    vat_amount: vat.vatAmount,
-    total_inc_vat: vat.totalIncVat,
-  };
+  const totals = calculateLineTotals(input.lines, input.vat_rate);
+
+  const linesJson = input.lines.map((line) => ({
+    description: line.description,
+    quantity: line.quantity,
+    unit: line.unit,
+    rate: line.rate,
+    amount: Math.round(line.quantity * line.rate * 100) / 100,
+  }));
 
   const MAX_RETRIES = 3;
-  let quote: { id: string } | null = null;
   let quoteNumber = input.quote_number;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const { data, error: insertError } = await supabase
-      .from("quotes")
-      .insert({
-        user_id: user.id,
-        client_id: input.client_id,
-        quote_number: quoteNumber,
-        status: input.status,
-        issue_date: input.issue_date,
-        valid_until: input.valid_until,
-        vat_rate: input.vat_rate,
-        notes: input.notes,
-        ...totals,
-      })
-      .select("id")
-      .single();
+    const { data, error: rpcError } = await supabase.rpc("create_quote_with_lines", {
+      p_user_id: user.id,
+      p_client_id: input.client_id,
+      p_quote_number: quoteNumber,
+      p_status: input.status,
+      p_issue_date: input.issue_date,
+      p_valid_until: input.valid_until,
+      p_vat_rate: input.vat_rate,
+      p_notes: input.notes ?? null,
+      p_subtotal_ex_vat: totals.subtotalExVat,
+      p_vat_amount: totals.vatAmount,
+      p_total_inc_vat: totals.totalIncVat,
+      p_lines: JSON.stringify(linesJson),
+    });
 
-    if (!insertError) {
-      quote = data;
-      break;
+    if (!rpcError) {
+      return { error: null, data: data as string };
     }
 
     const isUniqueViolation =
-      insertError.code === "23505" ||
-      insertError.message?.includes("idx_quotes_user_number");
+      rpcError.code === "23505" ||
+      rpcError.message?.includes("idx_quotes_user_number");
 
     if (!isUniqueViolation || attempt === MAX_RETRIES - 1) {
-      return { error: insertError.message };
+      return { error: rpcError.message };
     }
 
     quoteNumber = await queryNextQuoteNumber(supabase, user.id);
   }
 
-  if (!quote) return { error: "Offertenummer kon niet worden gegenereerd." };
-
-  if (input.lines.length > 0) {
-    const lineRows = input.lines.map((line, index) => ({
-      quote_id: quote.id,
-      description: line.description,
-      quantity: line.quantity,
-      unit: line.unit,
-      rate: line.rate,
-      amount: Math.round(line.quantity * line.rate * 100) / 100,
-      sort_order: index,
-    }));
-
-    const { error: linesError } = await supabase
-      .from("quote_lines")
-      .insert(lineRows);
-
-    if (linesError) {
-      await supabase.from("quotes").delete().eq("id", quote.id);
-      return { error: linesError.message };
-    }
-  }
-
-  return { error: null, data: quote.id };
+  return { error: "Offertenummer kon niet worden gegenereerd." };
 }
 
 export async function updateQuote(
@@ -142,55 +119,33 @@ export async function updateQuote(
   const v = validate(quoteSchema, input);
   if (v.error) return { error: v.error };
 
-  const vat = calculateLineTotals(input.lines, input.vat_rate);
-  const totals = {
-    subtotal_ex_vat: vat.subtotalExVat,
-    vat_amount: vat.vatAmount,
-    total_inc_vat: vat.totalIncVat,
-  };
+  const totals = calculateLineTotals(input.lines, input.vat_rate);
 
-  const { error: quoteError } = await supabase
-    .from("quotes")
-    .update({
-      client_id: input.client_id,
-      quote_number: input.quote_number,
-      status: input.status,
-      issue_date: input.issue_date,
-      valid_until: input.valid_until,
-      vat_rate: input.vat_rate,
-      notes: input.notes,
-      ...totals,
-    })
-    .eq("id", id)
-    .eq("user_id", user.id);
+  const linesJson = input.lines.map((line) => ({
+    description: line.description,
+    quantity: line.quantity,
+    unit: line.unit,
+    rate: line.rate,
+    amount: Math.round(line.quantity * line.rate * 100) / 100,
+  }));
 
-  if (quoteError) return { error: quoteError.message };
+  const { error: rpcError } = await supabase.rpc("update_quote_with_lines", {
+    p_user_id: user.id,
+    p_quote_id: id,
+    p_client_id: input.client_id,
+    p_quote_number: input.quote_number,
+    p_status: input.status,
+    p_issue_date: input.issue_date,
+    p_valid_until: input.valid_until,
+    p_vat_rate: input.vat_rate,
+    p_notes: input.notes ?? null,
+    p_subtotal_ex_vat: totals.subtotalExVat,
+    p_vat_amount: totals.vatAmount,
+    p_total_inc_vat: totals.totalIncVat,
+    p_lines: JSON.stringify(linesJson),
+  });
 
-  const { error: deleteError } = await supabase
-    .from("quote_lines")
-    .delete()
-    .eq("quote_id", id);
-
-  if (deleteError) return { error: deleteError.message };
-
-  if (input.lines.length > 0) {
-    const lineRows = input.lines.map((line, index) => ({
-      quote_id: id,
-      description: line.description,
-      quantity: line.quantity,
-      unit: line.unit,
-      rate: line.rate,
-      amount: Math.round(line.quantity * line.rate * 100) / 100,
-      sort_order: index,
-    }));
-
-    const { error: linesError } = await supabase
-      .from("quote_lines")
-      .insert(lineRows);
-
-    if (linesError) return { error: linesError.message };
-  }
-
+  if (rpcError) return { error: rpcError.message };
   return { error: null };
 }
 
@@ -427,26 +382,6 @@ export async function duplicateQuote(
   const validUntil = new Date();
   validUntil.setDate(validUntil.getDate() + 30);
 
-  const { data: newQuote, error: insertError } = await supabase
-    .from("quotes")
-    .insert({
-      user_id: user.id,
-      client_id: source.client_id,
-      quote_number: newNumber as string,
-      status: "draft",
-      issue_date: today,
-      valid_until: validUntil.toISOString().split("T")[0],
-      vat_rate: source.vat_rate,
-      notes: source.notes,
-      subtotal_ex_vat: source.subtotal_ex_vat,
-      vat_amount: source.vat_amount,
-      total_inc_vat: source.total_inc_vat,
-    })
-    .select("id")
-    .single();
-
-  if (insertError || !newQuote) return { error: insertError?.message ?? "Kon offerte niet dupliceren." };
-
   const lines = (source.lines ?? []) as Array<{
     description: string;
     quantity: number;
@@ -456,26 +391,29 @@ export async function duplicateQuote(
     sort_order: number;
   }>;
 
-  if (lines.length > 0) {
-    const lineRows = lines.map((line) => ({
-      quote_id: newQuote.id,
-      description: line.description,
-      quantity: line.quantity,
-      unit: line.unit,
-      rate: line.rate,
-      amount: line.amount,
-      sort_order: line.sort_order,
-    }));
+  const linesJson = lines.map((line) => ({
+    description: line.description,
+    quantity: line.quantity,
+    unit: line.unit,
+    rate: line.rate,
+    amount: line.amount,
+  }));
 
-    const { error: linesError } = await supabase
-      .from("quote_lines")
-      .insert(lineRows);
+  const { data, error: rpcError } = await supabase.rpc("create_quote_with_lines", {
+    p_user_id: user.id,
+    p_client_id: source.client_id,
+    p_quote_number: newNumber as string,
+    p_status: "draft",
+    p_issue_date: today,
+    p_valid_until: validUntil.toISOString().split("T")[0],
+    p_vat_rate: source.vat_rate,
+    p_notes: source.notes ?? null,
+    p_subtotal_ex_vat: source.subtotal_ex_vat,
+    p_vat_amount: source.vat_amount,
+    p_total_inc_vat: source.total_inc_vat,
+    p_lines: JSON.stringify(linesJson),
+  });
 
-    if (linesError) {
-      await supabase.from("quotes").delete().eq("id", newQuote.id);
-      return { error: linesError.message };
-    }
-  }
-
-  return { error: null, data: newQuote.id };
+  if (rpcError) return { error: rpcError.message };
+  return { error: null, data: data as string };
 }

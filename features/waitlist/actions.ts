@@ -4,6 +4,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult } from "@/lib/types";
 import { Resend } from "resend";
 import { z } from "zod";
+import * as Sentry from "@sentry/nextjs";
 
 const NOTIFY_EMAIL = "pimholthof@gmail.com";
 
@@ -76,7 +77,7 @@ export async function joinWaitlist(formData: FormData): Promise<ActionResult<{ p
           <p>Positie: #${position}</p>
           ${referral ? `<p>Referral: ${referral}</p>` : ""}
         `,
-      }).catch((err) => console.error("[joinWaitlist] Admin notification failed:", err));
+      }).catch((err) => Sentry.captureException(err, { tags: { area: "waitlist-admin-notify" } }));
 
       // Confirmation to user
       resend.emails.send({
@@ -92,12 +93,12 @@ export async function joinWaitlist(formData: FormData): Promise<ActionResult<{ p
             <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0;">Zodra de website klaar is, sturen we je een mail.</p>
           </div>
         `,
-      }).catch((err) => console.error("[joinWaitlist] Confirmation email failed:", err));
+      }).catch((err) => Sentry.captureException(err, { tags: { area: "waitlist-confirm-email" } }));
     }
 
     return { error: null, data: { position } };
   } catch (err) {
-    console.error("[joinWaitlist] Unexpected error:", err);
+    Sentry.captureException(err, { tags: { area: "waitlist" } });
     return { error: "Er is een fout opgetreden. Probeer het opnieuw." };
   }
 }
