@@ -51,33 +51,49 @@ export function InstitutionSelector({
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(13, 13, 11, 0.4)",
-              backdropFilter: "blur(8px)",
+              background: "rgba(13, 13, 11, 0.25)",
               zIndex: 100,
             }}
           />
 
+          {/* Modal wrapper — centering via flexbox, not transform */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "center",
+              zIndex: 101,
+              padding: "10vh 16px 40px",
+              pointerEvents: "none",
+            }}
+          >
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.98 }}
             style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
               width: "100%",
               maxWidth: "480px",
+              maxHeight: "100%",
               background: "var(--background)",
               border: "0.5px solid rgba(13, 13, 11, 0.15)",
               borderRadius: "var(--radius)",
-              boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
-              zIndex: 101,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
               padding: "32px",
               display: "flex",
               flexDirection: "column",
               gap: "24px",
+              overflow: "hidden",
+              pointerEvents: "auto",
             }}
           >
             <div>
@@ -175,6 +191,7 @@ export function InstitutionSelector({
                 {t.common.cancel}
               </button>
             </div>
+          </motion.div>
           </motion.div>
         </>
       )}
