@@ -138,26 +138,14 @@ export function DashboardNav({
           >
             <div className="dashboard-drawer-inner">
 
-              {/* Navigation - column 1 */}
+              {/* Main navigation */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
                 <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")}>{t.nav.overview}</Link>
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/invoices")}>{t.nav.invoices}</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")}>{t.nav.clients}</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")}>{t.nav.expenses}</Link>
-                <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/assets")}>{t.nav.assets}</Link>
-                <Link href="/dashboard/resources" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/resources")}>Kennisbank</Link>
-                <Link href="/dashboard/assistant" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/assistant")}>AI Assistent</Link>
-              </div>
-
-              {/* Navigation - column 2 */}
-              <div className="dashboard-drawer-col">
-                <span className="label mb-4">&nbsp;</span>
-                <Link href="/dashboard/hours" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/hours")}>{t.nav.hours}</Link>
-                <Link href="/dashboard/trips" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/trips")}>{t.nav.trips}</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")}>{t.nav.tax}</Link>
-                <Link href="/dashboard/documents" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/documents")}>{t.nav.documents}</Link>
-                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/import")}>{t.nav.import}</Link>
               </div>
 
               {/* Account */}
@@ -167,7 +155,6 @@ export function DashboardNav({
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
                 <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings")}>{t.nav.settings}</Link>
-                <Link href="/dashboard/settings/subscription" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings/subscription")}>Abonnement</Link>
                 <button
                   type="button"
                   onClick={handleLogout}

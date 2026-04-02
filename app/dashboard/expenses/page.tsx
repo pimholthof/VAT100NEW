@@ -1,46 +1,48 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import { useLocale } from "@/lib/i18n/context";
+import { Tabs, useTabState } from "@/components/ui/Tabs";
+import { SkeletonTable } from "@/components/ui";
 
 const ReceiptsTab = dynamic(() => import("./ReceiptsTab"));
 const BankTab = dynamic(() => import("./BankTab"));
+const AssetsTab = dynamic(() => import("./AssetsTab"));
+const HoursTab = dynamic(() => import("./HoursTab"));
+const TripsTab = dynamic(() => import("./TripsTab"));
 
-const tabStyle = (active: boolean): React.CSSProperties => ({
-  background: "none",
-  border: "none",
-  borderBottom: active ? "1.5px solid var(--foreground)" : "1.5px solid transparent",
-  padding: "0 0 12px 0",
-  fontSize: 14,
-  fontWeight: active ? 600 : 400,
-  color: "var(--foreground)",
-  opacity: active ? 1 : 0.4,
-  cursor: "pointer",
-  letterSpacing: "-0.01em",
-  transition: "opacity 0.2s ease",
-});
+const TAB_KEYS = ["bonnen", "bank", "activa", "uren", "ritten"] as const;
+type TabKey = (typeof TAB_KEYS)[number];
+
+function isValidTab(value: string): value is TabKey {
+  return (TAB_KEYS as readonly string[]).includes(value);
+}
 
 export default function ExpensesPage() {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
-  const initialTab = searchParams.get("tab") === "bank" ? "bank" : "bonnen";
-  const [activeTab, setActiveTab] = useState<"bonnen" | "bank">(initialTab);
+  const [rawTab, setActiveTab] = useTabState("bonnen");
+  const activeTab: TabKey = isValidTab(rawTab) ? rawTab : "bonnen";
+
+  const tabs = [
+    { key: "bonnen", label: t.expenses.receipts },
+    { key: "bank", label: t.expenses.bank },
+    { key: "activa", label: t.nav.assets },
+    { key: "uren", label: t.nav.hours },
+    { key: "ritten", label: t.nav.trips },
+  ];
 
   return (
     <div>
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 28, marginBottom: 40, borderBottom: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
-        <button onClick={() => setActiveTab("bonnen")} style={tabStyle(activeTab === "bonnen")}>
-          {t.expenses.receipts}
-        </button>
-        <button onClick={() => setActiveTab("bank")} style={tabStyle(activeTab === "bank")}>
-          {t.expenses.bank}
-        </button>
-      </div>
+      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {activeTab === "bonnen" ? <ReceiptsTab /> : <BankTab />}
+      <Suspense fallback={<SkeletonTable />}>
+        {activeTab === "bonnen" && <ReceiptsTab />}
+        {activeTab === "bank" && <BankTab />}
+        {activeTab === "activa" && <AssetsTab />}
+        {activeTab === "uren" && <HoursTab />}
+        {activeTab === "ritten" && <TripsTab />}
+      </Suspense>
     </div>
   );
 }

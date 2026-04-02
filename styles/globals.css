@@ -2082,6 +2082,34 @@ a {
   font-size: 14px;
 }
 
+/* ─── Tabs ─── */
+.tabs-bar {
+  display: flex;
+  gap: 28px;
+  border-bottom: var(--border-rule, 0.5px solid rgba(0, 0, 0, 0.08));
+  margin-bottom: 40px;
+}
+
+.tabs-item {
+  background: none;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  padding: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--foreground);
+  opacity: 0.4;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: opacity 0.2s ease;
+}
+
+.tabs-item--active {
+  border-bottom-color: var(--foreground);
+  font-weight: 600;
+  opacity: 1;
+}
+
 /* ─── Print Styles ─── */
 @media print {
 

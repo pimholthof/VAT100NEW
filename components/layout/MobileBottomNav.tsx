@@ -9,6 +9,7 @@ const navItems = [
   { href: "/dashboard/invoices", labelKey: "invoices" as const, icon: "□" },
   { href: "/dashboard/expenses", labelKey: "expenses" as const, icon: "◇" },
   { href: "/dashboard/clients", labelKey: "clients" as const, icon: "○" },
+  { href: "/dashboard/tax", labelKey: "tax" as const, icon: "△" },
 ];
 
 export function MobileBottomNav() {

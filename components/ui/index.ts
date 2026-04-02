@@ -22,3 +22,4 @@ export { ToastProvider, useToast } from "./Toast";
 export { StepIndicator } from "./StepIndicator";
 export { EmptyState } from "./EmptyState";
 export { StatusBadge } from "./StatusBadge";
+export { Tabs, useTabState } from "./Tabs";
