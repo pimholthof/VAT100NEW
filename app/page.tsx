@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { joinWaitlist } from "@/features/waitlist/actions";
 import { useLocale } from "@/lib/i18n/context";
+import DashboardMockup from "@/components/landing/DashboardMockup";
+import InvoiceMockup from "@/components/landing/InvoiceMockup";
+import VatMockup from "@/components/landing/VatMockup";
 
 /* ─── Inline style helpers ─── */
 const inputStyle: React.CSSProperties = {
@@ -19,7 +22,23 @@ const inputStyle: React.CSSProperties = {
   transition: "border-color 0.2s ease",
 };
 
-/* ─── Data (translated via hook below) ─── */
+const sectionPadding: React.CSSProperties = {
+  padding: "clamp(60px, 8vw, 120px) clamp(24px, 4vw, 64px)",
+  maxWidth: 960,
+  margin: "0 auto",
+};
+
+const divider = (
+  <div
+    style={{
+      maxWidth: 960,
+      margin: "0 auto",
+      padding: "0 clamp(24px, 4vw, 64px)",
+    }}
+  >
+    <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.06)" }} />
+  </div>
+);
 
 export default function LandingPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -76,6 +95,12 @@ export default function LandingPage() {
       cta: t.landing.compleetCta,
       highlighted: true,
     },
+  ];
+
+  const personas = [
+    { type: t.landing.persona1Type, quote: t.landing.persona1Quote },
+    { type: t.landing.persona2Type, quote: t.landing.persona2Quote },
+    { type: t.landing.persona3Type, quote: t.landing.persona3Quote },
   ];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -212,70 +237,217 @@ export default function LandingPage() {
       {/* ─── Hero ─── */}
       <section
         style={{
-          padding: "clamp(80px, 12vw, 160px) clamp(24px, 4vw, 64px) clamp(60px, 8vw, 120px)",
+          padding: "clamp(60px, 10vw, 140px) clamp(24px, 4vw, 64px) clamp(40px, 6vw, 80px)",
           maxWidth: 960,
           margin: "0 auto",
         }}
       >
-        <h1
+        <div
           style={{
-            fontSize: "clamp(3.5rem, 10vw, 8rem)",
-            fontWeight: 800,
-            letterSpacing: "-0.05em",
-            lineHeight: 0.88,
-            margin: 0,
-            color: "var(--color-black)",
+            display: "grid",
+            gridTemplateColumns: "1.1fr 1fr",
+            gap: "clamp(32px, 5vw, 64px)",
+            alignItems: "center",
           }}
         >
-          VAT100
-        </h1>
-        <p
-          style={{
-            fontSize: "clamp(1.1rem, 2.5vw, 1.5rem)",
-            fontWeight: 300,
-            lineHeight: 1.5,
-            marginTop: 32,
-            maxWidth: 520,
-            color: "var(--color-black)",
-            opacity: 0.6,
-          }}
-        >
-          {t.landing.heroSubtitle}
-        </p>
-        <div style={{ marginTop: 48, display: "flex", gap: 16, flexWrap: "wrap" }}>
-          <a
-            href="#wachtlijst"
-            className="btn-primary"
-            style={{
-              padding: "18px 36px",
-              textDecoration: "none",
-              display: "inline-block",
-            }}
-          >
-            {t.landing.earlyAccess}
-          </a>
-          <a
-            href="#functies"
-            className="btn-secondary"
-            style={{
-              padding: "18px 36px",
-              textDecoration: "none",
-              display: "inline-block",
-            }}
-          >
-            {t.landing.discoverMore}
-          </a>
+          {/* Copy */}
+          <div>
+            <p
+              className="label-strong"
+              style={{ marginBottom: 16, fontSize: 11 }}
+            >
+              {t.landing.heroLabel}
+            </p>
+            <h1
+              style={{
+                fontSize: "clamp(2.2rem, 5vw, 3.5rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.08,
+                margin: 0,
+                color: "var(--color-black)",
+                whiteSpace: "pre-line",
+              }}
+            >
+              {t.landing.heroHeadline}
+            </h1>
+            <p
+              style={{
+                fontSize: "clamp(1rem, 2vw, 1.2rem)",
+                fontWeight: 300,
+                lineHeight: 1.6,
+                marginTop: 24,
+                maxWidth: 440,
+                color: "var(--color-black)",
+                opacity: 0.55,
+              }}
+            >
+              {t.landing.heroSubtitleNew}
+            </p>
+            <div style={{ marginTop: 40, display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <a
+                href="#wachtlijst"
+                className="btn-primary"
+                style={{
+                  padding: "18px 36px",
+                  textDecoration: "none",
+                  display: "inline-block",
+                }}
+              >
+                {t.landing.heroCta}
+              </a>
+              <a
+                href="#product"
+                className="btn-secondary"
+                style={{
+                  padding: "18px 36px",
+                  textDecoration: "none",
+                  display: "inline-block",
+                }}
+              >
+                {t.landing.heroCtaSecondary}
+              </a>
+            </div>
+          </div>
+
+          {/* Product mockup */}
+          <div>
+            <DashboardMockup />
+          </div>
         </div>
       </section>
 
-      {/* ─── Concept ─── */}
+      {/* ─── Trust Bar ─── */}
       <section
         style={{
-          padding: "clamp(60px, 8vw, 120px) clamp(24px, 4vw, 64px)",
+          padding: "24px clamp(24px, 4vw, 64px)",
           maxWidth: 960,
           margin: "0 auto",
         }}
       >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 24,
+            flexWrap: "wrap",
+          }}
+        >
+          {[
+            t.landing.trustBuiltFor,
+            t.landing.trustTaxReady,
+            t.landing.trustSecure,
+            t.landing.trustNoKnowledge,
+          ].map((signal, i) => (
+            <span
+              key={i}
+              className="label"
+              style={{
+                opacity: 0.35,
+                display: "flex",
+                alignItems: "center",
+                gap: 24,
+              }}
+            >
+              {i > 0 && (
+                <span style={{ opacity: 0.4, marginRight: 0 }}>·</span>
+              )}
+              {signal}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {divider}
+
+      {/* ─── Product Showcase ─── */}
+      <section
+        id="product"
+        style={sectionPadding}
+      >
+        <p className="label" style={{ marginBottom: 16 }}>
+          {t.landing.showcaseLabel}
+        </p>
+
+        {/* Feature 1: Invoices — copy left, mockup right */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1.2fr",
+            gap: "clamp(32px, 4vw, 64px)",
+            alignItems: "center",
+            marginBottom: "clamp(60px, 8vw, 100px)",
+          }}
+        >
+          <div>
+            <h3
+              style={{
+                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.15,
+                margin: 0,
+                marginBottom: 16,
+              }}
+            >
+              {t.landing.showcaseInvoicesTitle}
+            </h3>
+            <p
+              style={{
+                fontSize: 15,
+                lineHeight: 1.8,
+                margin: 0,
+                opacity: 0.55,
+              }}
+            >
+              {t.landing.showcaseInvoicesDesc}
+            </p>
+          </div>
+          <InvoiceMockup />
+        </div>
+
+        {/* Feature 2: VAT — mockup left, copy right */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.2fr 1fr",
+            gap: "clamp(32px, 4vw, 64px)",
+            alignItems: "center",
+          }}
+        >
+          <VatMockup />
+          <div>
+            <h3
+              style={{
+                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.15,
+                margin: 0,
+                marginBottom: 16,
+              }}
+            >
+              {t.landing.showcaseVatTitle}
+            </h3>
+            <p
+              style={{
+                fontSize: 15,
+                lineHeight: 1.8,
+                margin: 0,
+                opacity: 0.55,
+              }}
+            >
+              {t.landing.showcaseVatDesc}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {divider}
+
+      {/* ─── Concept ─── */}
+      <section style={sectionPadding}>
         <div
           style={{
             display: "grid",
@@ -348,25 +520,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Divider ─── */}
-      <div
-        style={{
-          maxWidth: 960,
-          margin: "0 auto",
-          padding: "0 clamp(24px, 4vw, 64px)",
-        }}
-      >
-        <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.06)" }} />
-      </div>
+      {divider}
 
       {/* ─── Features ─── */}
       <section
         id="functies"
-        style={{
-          padding: "clamp(60px, 8vw, 120px) clamp(24px, 4vw, 64px)",
-          maxWidth: 960,
-          margin: "0 auto",
-        }}
+        style={sectionPadding}
       >
         <p className="label" style={{ marginBottom: 16 }}>
           {t.landing.features}
@@ -423,25 +582,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Divider ─── */}
-      <div
-        style={{
-          maxWidth: 960,
-          margin: "0 auto",
-          padding: "0 clamp(24px, 4vw, 64px)",
-        }}
-      >
-        <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.06)" }} />
-      </div>
+      {divider}
 
       {/* ─── Pricing ─── */}
       <section
         id="prijzen"
-        style={{
-          padding: "clamp(60px, 8vw, 120px) clamp(24px, 4vw, 64px)",
-          maxWidth: 960,
-          margin: "0 auto",
-        }}
+        style={sectionPadding}
       >
         <p className="label" style={{ marginBottom: 16 }}>
           {t.landing.pricing}
@@ -576,25 +722,59 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Divider ─── */}
-      <div
-        style={{
-          maxWidth: 960,
-          margin: "0 auto",
-          padding: "0 clamp(24px, 4vw, 64px)",
-        }}
-      >
-        <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.06)" }} />
-      </div>
+      {divider}
+
+      {/* ─── Persona Quotes ─── */}
+      <section style={sectionPadding}>
+        <p className="label" style={{ marginBottom: 16 }}>
+          {t.landing.personaTitle}
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: 1,
+          }}
+        >
+          {personas.map((p) => (
+            <div
+              key={p.type}
+              style={{
+                padding: "32px 28px",
+                border: "0.5px solid rgba(0,0,0,0.06)",
+                borderRadius: "var(--radius)",
+              }}
+            >
+              <p
+                className="label"
+                style={{ marginBottom: 16, opacity: 0.35 }}
+              >
+                {p.type}
+              </p>
+              <p
+                style={{
+                  fontSize: "clamp(1.1rem, 2vw, 1.35rem)",
+                  fontWeight: 300,
+                  lineHeight: 1.5,
+                  margin: 0,
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  opacity: 0.7,
+                }}
+              >
+                &ldquo;{p.quote}&rdquo;
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {divider}
 
       {/* ─── Waitlist ─── */}
       <section
         id="wachtlijst"
-        style={{
-          padding: "clamp(60px, 8vw, 120px) clamp(24px, 4vw, 64px)",
-          maxWidth: 960,
-          margin: "0 auto",
-        }}
+        style={sectionPadding}
       >
         <div style={{ maxWidth: 560 }}>
           {submitted ? (
@@ -635,11 +815,22 @@ export default function LandingPage() {
                   letterSpacing: "-0.03em",
                   lineHeight: 1.1,
                   margin: 0,
-                  marginBottom: 32,
+                  marginBottom: 12,
                 }}
               >
                 {t.landing.waitlistTitle}
               </h2>
+              <p
+                style={{
+                  fontSize: 14,
+                  opacity: 0.4,
+                  margin: 0,
+                  marginBottom: 32,
+                  lineHeight: 1.5,
+                }}
+              >
+                {t.landing.ctaReassurance}
+              </p>
 
               <form
                 onSubmit={handleSubmit}

@@ -130,6 +130,33 @@ const nl = {
     annualReport: "Jaarrekening PDF export",
     cashflowAnalysis: "Cashflow-analyse",
     prioritySupport: "Prioriteit support",
+    // Hero (new)
+    heroLabel: "VAT100",
+    heroHeadline: "Boekhouding voor freelancers.\nKlaar in 30 seconden per dag.",
+    heroSubtitleNew: "Factureren, BTW-aangifte en cashflow — ontworpen voor creatieve ZZP'ers die liever maken dan administreren.",
+    heroCta: "Probeer gratis",
+    heroCtaSecondary: "Bekijk hoe het werkt",
+    // Trust bar
+    trustBuiltFor: "Gebouwd voor Nederlandse ZZP'ers",
+    trustTaxReady: "Belastingdienst-ready",
+    trustSecure: "End-to-end beveiligd",
+    trustNoKnowledge: "Geen boekhoudkennis nodig",
+    // Product showcase
+    showcaseLabel: "Het product",
+    showcaseInvoicesTitle: "Professionele facturen in seconden",
+    showcaseInvoicesDesc: "Bedrag invullen, klant kiezen, versturen. VAT100 berekent de BTW, nummert de factuur en stuurt 'm direct per e-mail.",
+    showcaseVatTitle: "Je BTW is altijd up-to-date",
+    showcaseVatDesc: "Realtime overzicht per kwartaal. Je ziet precies wat je moet reserveren en wanneer de deadline is — zonder zelf te rekenen.",
+    // Persona quotes
+    personaTitle: "Ontworpen voor makers",
+    persona1Type: "Grafisch ontwerper",
+    persona1Quote: "Ik wil facturen sturen en mijn BTW op orde hebben. Meer niet.",
+    persona2Type: "Freelance fotograaf",
+    persona2Quote: "Tussen shoots door wil ik niet met boekhoudsoftware worstelen.",
+    persona3Type: "Zelfstandig illustrator",
+    persona3Quote: "Ik zoek iets dat er mooi uitziet en gewoon werkt.",
+    // CTA reassurance
+    ctaReassurance: "Start in minder dan 2 minuten. Geen creditcard nodig.",
   },
 
   // ─── Auth ───

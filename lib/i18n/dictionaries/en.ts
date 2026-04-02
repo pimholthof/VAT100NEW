@@ -130,6 +130,33 @@ const en = {
     annualReport: "Annual report PDF export",
     cashflowAnalysis: "Cashflow analysis",
     prioritySupport: "Priority support",
+    // Hero (new)
+    heroLabel: "VAT100",
+    heroHeadline: "Bookkeeping for freelancers.\nDone in 30 seconds a day.",
+    heroSubtitleNew: "Invoicing, VAT returns and cashflow — designed for creative freelancers who'd rather create than administrate.",
+    heroCta: "Try for free",
+    heroCtaSecondary: "See how it works",
+    // Trust bar
+    trustBuiltFor: "Built for Dutch freelancers",
+    trustTaxReady: "Tax authority-ready",
+    trustSecure: "End-to-end secured",
+    trustNoKnowledge: "No bookkeeping knowledge required",
+    // Product showcase
+    showcaseLabel: "The product",
+    showcaseInvoicesTitle: "Professional invoices in seconds",
+    showcaseInvoicesDesc: "Enter amount, select client, send. VAT100 calculates VAT, numbers the invoice and sends it directly by email.",
+    showcaseVatTitle: "Your VAT is always up to date",
+    showcaseVatDesc: "Real-time overview per quarter. See exactly what to reserve and when the deadline is — without calculating yourself.",
+    // Persona quotes
+    personaTitle: "Designed for makers",
+    persona1Type: "Graphic designer",
+    persona1Quote: "I want to send invoices and keep my VAT in order. Nothing more.",
+    persona2Type: "Freelance photographer",
+    persona2Quote: "Between shoots I don't want to wrestle with accounting software.",
+    persona3Type: "Independent illustrator",
+    persona3Quote: "I'm looking for something that looks good and just works.",
+    // CTA reassurance
+    ctaReassurance: "Start in less than 2 minutes. No credit card required.",
   },
 
   // ─── Auth ───
