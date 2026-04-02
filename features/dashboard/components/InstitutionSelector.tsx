@@ -51,8 +51,7 @@ export function InstitutionSelector({
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(13, 13, 11, 0.4)",
-              backdropFilter: "blur(8px)",
+              background: "rgba(13, 13, 11, 0.25)",
               zIndex: 100,
             }}
           />
@@ -69,15 +68,17 @@ export function InstitutionSelector({
               transform: "translate(-50%, -50%)",
               width: "100%",
               maxWidth: "480px",
+              maxHeight: "calc(100vh - 80px)",
               background: "var(--background)",
               border: "0.5px solid rgba(13, 13, 11, 0.15)",
               borderRadius: "var(--radius)",
-              boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
               zIndex: 101,
               padding: "32px",
               display: "flex",
               flexDirection: "column",
               gap: "24px",
+              overflow: "hidden",
             }}
           >
             <div>
