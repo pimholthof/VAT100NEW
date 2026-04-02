@@ -772,6 +772,83 @@ a {
   }
 }
 
+/* ── Mobile Bottom Nav ── */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    background: var(--background);
+    border-top: 0.5px solid rgba(0,0,0,0.08);
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .dashboard-content {
+    padding-bottom: 72px;
+  }
+}
+
+.mobile-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 12px;
+  text-decoration: none;
+  color: var(--foreground);
+  opacity: 0.3;
+  transition: opacity 0.15s ease;
+}
+
+.mobile-bottom-nav-item--active {
+  opacity: 1;
+}
+
+.mobile-bottom-nav-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.mobile-bottom-nav-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Interactive Table Rows ── */
+.table-row-interactive {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.table-row-interactive:hover {
+  background: rgba(0,0,0,0.015);
+}
+
+.table-row-interactive:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: -2px;
+}
+
+.table-row-actions {
+  opacity: 0.25;
+  transition: opacity 0.15s ease;
+}
+
+.table-row-interactive:hover .table-row-actions {
+  opacity: 0.6;
+}
+
 .admin-nav-badge {
   display: inline-flex;
   align-items: center;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale } from "@/lib/i18n/context";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import { inputStyle } from "@/components/ui";
@@ -13,7 +14,8 @@ const VAT_OPTIONS: Array<{ value: string; labelKey: string; rate: number; scheme
   { value: "0_export_outside_eu", labelKey: "vatExportOutside", rate: 0, scheme: "export_outside_eu" },
 ];
 
-export function InvoiceMetadata() {
+export function InvoiceMetadata({ defaultCollapsed = false }: { defaultCollapsed?: boolean }) {
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const { t } = useLocale();
 
   function vatLabel(rate: number, scheme: VatScheme): string {
@@ -46,46 +48,84 @@ export function InvoiceMetadata() {
 
   return (
     <div
-      className="responsive-grid-3"
       style={{
-        gap: 60,
-        padding: "40px 0",
         borderTop: "var(--border-rule)",
         borderBottom: "var(--border-rule)",
-        marginBottom: 80
-      }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p className="label">{t.invoices.referenceLabel}</p>
-        <input
-          type="text"
-          value={invoiceNumber}
-          onChange={(e) => setInvoiceNumber(e.target.value)}
-          style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
-        />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p className="label">{t.invoices.dateLabel}</p>
-        <input
-          type="date"
-          value={issueDate}
-          onChange={(e) => setIssueDate(e.target.value)}
-          style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
-        />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <p className="label">{vatLabel(vatRate, vatScheme)}</p>
-        <select
-          value={currentValue}
-          onChange={(e) => handleVatChange(e.target.value)}
-          style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
+        marginBottom: 80,
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setCollapsed(!collapsed)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+          padding: "16px 0",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontSize: "var(--text-label)",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          fontWeight: 600,
+          opacity: 0.4,
+          color: "var(--foreground)",
+        }}
+      >
+        <span>
+          {collapsed
+            ? `${invoiceNumber} · ${issueDate} · ${vatLabel(vatRate, vatScheme)}`
+            : t.invoices.referenceLabel + " & BTW"}
+        </span>
+        <span style={{ fontSize: 12, transition: "transform 0.2s ease", transform: collapsed ? "rotate(0deg)" : "rotate(180deg)" }}>
+          ▾
+        </span>
+      </button>
+
+      {!collapsed && (
+        <div
+          className="responsive-grid-3"
+          style={{
+            gap: 60,
+            padding: "0 0 40px",
+          }}
         >
-          {VAT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {t.invoices[opt.labelKey as keyof typeof t.invoices]}
-            </option>
-          ))}
-        </select>
-      </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p className="label">{t.invoices.referenceLabel}</p>
+            <input
+              type="text"
+              value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+              style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
+            />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p className="label">{t.invoices.dateLabel}</p>
+            <input
+              type="date"
+              value={issueDate}
+              onChange={(e) => setIssueDate(e.target.value)}
+              style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
+            />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p className="label">{vatLabel(vatRate, vatScheme)}</p>
+            <select
+              value={currentValue}
+              onChange={(e) => handleVatChange(e.target.value)}
+              style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
+            >
+              {VAT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {t.invoices[opt.labelKey as keyof typeof t.invoices]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

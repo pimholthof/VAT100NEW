@@ -159,7 +159,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       />
 
       {/* ── Metadata: Precision lines ── */}
-      <InvoiceMetadata />
+      <InvoiceMetadata defaultCollapsed={!!invoiceId} />
 
       {/* ── The Monolith: Total ── */}
       <InvoiceTotals />

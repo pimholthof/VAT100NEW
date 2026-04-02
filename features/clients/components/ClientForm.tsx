@@ -13,6 +13,7 @@ import {
 } from "@/components/ui";
 import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
 import { useLocale } from "@/lib/i18n/context";
+import { useToast } from "@/components/ui/Toast";
 
 interface ClientFormProps {
   client?: Client;
@@ -21,6 +22,7 @@ interface ClientFormProps {
 export function ClientForm({ client }: ClientFormProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +34,16 @@ export function ClientForm({ client }: ClientFormProps) {
   const [city, setCity] = useState(client?.city ?? "");
   const [kvkNumber, setKvkNumber] = useState(client?.kvk_number ?? "");
   const [btwNumber, setBtwNumber] = useState(client?.btw_number ?? "");
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
+
+  function validateField(field: string, value: string) {
+    let err: string | null = null;
+    if (field === "email" && value) err = validateEmail(value);
+    if (field === "kvk" && value) err = validateKvk(value);
+    if (field === "btw" && value) err = validateBtw(value);
+    setFieldErrors((prev) => ({ ...prev, [field]: err }));
+  }
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -73,6 +85,7 @@ export function ClientForm({ client }: ClientFormProps) {
     }
 
     if (result.data) {
+      toast(client ? "Klant bijgewerkt" : "Klant aangemaakt");
       router.push(`/dashboard/clients/${result.data.id}`);
     }
   };
@@ -108,9 +121,13 @@ export function ClientForm({ client }: ClientFormProps) {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onBlur={() => validateField("email", email)}
           placeholder="email@voorbeeld.nl"
           style={inputStyle}
         />
+        {fieldErrors.email && (
+          <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.email}</span>
+        )}
       </FieldGroup>
 
       <FieldGroup label={t.clients.address}>
@@ -162,18 +179,26 @@ export function ClientForm({ client }: ClientFormProps) {
             type="text"
             value={kvkNumber}
             onChange={(e) => setKvkNumber(e.target.value)}
+            onBlur={() => validateField("kvk", kvkNumber)}
             placeholder="12345678"
             style={{ ...inputStyle }}
           />
+          {fieldErrors.kvk && (
+            <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.kvk}</span>
+          )}
         </FieldGroup>
         <FieldGroup label={t.clients.vatNumber}>
           <input
             type="text"
             value={btwNumber}
             onChange={(e) => setBtwNumber(e.target.value)}
+            onBlur={() => validateField("btw", btwNumber)}
             placeholder="NL123456789B01"
             style={{ ...inputStyle }}
           />
+          {fieldErrors.btw && (
+            <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.btw}</span>
+          )}
         </FieldGroup>
       </div>
 

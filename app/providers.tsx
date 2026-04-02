@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { useState } from "react";
 import { LocaleProvider } from "@/lib/i18n/context";
+import { ToastProvider } from "@/components/ui/Toast";
 import type { Locale } from "@/lib/i18n";
 
 export function Providers({
@@ -31,7 +32,9 @@ export function Providers({
     <QueryClientProvider client={queryClient}>
       <LazyMotion features={domAnimation} strict>
         <LocaleProvider initialLocale={locale ?? "nl"}>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </LocaleProvider>
       </LazyMotion>
     </QueryClientProvider>

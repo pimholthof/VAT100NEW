@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
+import { QuickActionMenu } from "@/components/ui/QuickActionMenu";
 
 function useIsMobile(breakpoint = 768) {
   const subscribe = useCallback((callback: () => void) => {
@@ -29,9 +30,19 @@ export function DashboardNav({
   studioName?: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
   const { locale, t, setLocale } = useLocale();
+
+  function isActive(href: string) {
+    if (href === "/dashboard") return pathname === "/dashboard";
+    return pathname.startsWith(href);
+  }
+
+  function linkClass(href: string) {
+    return isActive(href) ? "drawer-link drawer-link-active" : "drawer-link";
+  }
 
   async function handleLogout() {
     const supabase = createClient();
@@ -52,6 +63,28 @@ export function DashboardNav({
           <div className="dashboard-nav-actions">
             {!isMobile && (
               <span className="nav-studio-name">{studioName}</span>
+            )}
+            <QuickActionMenu />
+            {!isMobile && (
+              <kbd
+                style={{
+                  fontSize: 10,
+                  fontWeight: 500,
+                  letterSpacing: "0.05em",
+                  opacity: 0.2,
+                  padding: "3px 6px",
+                  border: "0.5px solid rgba(0,0,0,0.12)",
+                  borderRadius: "var(--radius-sm)",
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+                }}
+                title="Cmd+K"
+              >
+                ⌘K
+              </kbd>
             )}
             <button
               onClick={() => setLocale(locale === "nl" ? "en" : "nl")}
@@ -108,23 +141,23 @@ export function DashboardNav({
               {/* Navigation - column 1 */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link drawer-link-active">{t.nav.overview}</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.invoices}</Link>
-                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.clients}</Link>
-                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.expenses}</Link>
-                <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.assets}</Link>
-                <Link href="/dashboard/resources" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Kennisbank</Link>
-                <Link href="/dashboard/assistant" onClick={() => setIsDrawerOpen(false)} className="drawer-link">AI Assistent</Link>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")}>{t.nav.overview}</Link>
+                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/invoices")}>{t.nav.invoices}</Link>
+                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")}>{t.nav.clients}</Link>
+                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")}>{t.nav.expenses}</Link>
+                <Link href="/dashboard/assets" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/assets")}>{t.nav.assets}</Link>
+                <Link href="/dashboard/resources" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/resources")}>Kennisbank</Link>
+                <Link href="/dashboard/assistant" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/assistant")}>AI Assistent</Link>
               </div>
 
               {/* Navigation - column 2 */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">&nbsp;</span>
-                <Link href="/dashboard/hours" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.hours}</Link>
-                <Link href="/dashboard/trips" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.trips}</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.tax}</Link>
-                <Link href="/dashboard/documents" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.documents}</Link>
-                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.import}</Link>
+                <Link href="/dashboard/hours" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/hours")}>{t.nav.hours}</Link>
+                <Link href="/dashboard/trips" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/trips")}>{t.nav.trips}</Link>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")}>{t.nav.tax}</Link>
+                <Link href="/dashboard/documents" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/documents")}>{t.nav.documents}</Link>
+                <Link href="/dashboard/import" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/import")}>{t.nav.import}</Link>
               </div>
 
               {/* Account */}
@@ -133,8 +166,8 @@ export function DashboardNav({
                 {isMobile && studioName && (
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className="drawer-link">{t.nav.settings}</Link>
-                <Link href="/dashboard/settings/subscription" onClick={() => setIsDrawerOpen(false)} className="drawer-link">Abonnement</Link>
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings")}>{t.nav.settings}</Link>
+                <Link href="/dashboard/settings/subscription" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings/subscription")}>Abonnement</Link>
                 <button
                   type="button"
                   onClick={handleLogout}

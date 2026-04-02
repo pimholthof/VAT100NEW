@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { DashboardNav } from "@/components/layout/DashboardNav";
 import { DashboardTransition } from "@/components/layout/DashboardTransition";
 import { ChatWidget } from "@/features/chat/ChatWidget";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 export default async function DashboardLayout({
   children,
@@ -30,9 +32,13 @@ export default async function DashboardLayout({
         studioName={profile?.studio_name ?? undefined}
       />
       <DashboardTransition>
-        <main id="main" className="dashboard-content">{children}</main>
+        <main id="main" className="dashboard-content">
+          <Breadcrumb />
+          {children}
+        </main>
       </DashboardTransition>
       <ChatWidget />
+      <MobileBottomNav />
     </div>
   );
 }

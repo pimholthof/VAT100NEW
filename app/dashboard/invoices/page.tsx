@@ -8,7 +8,7 @@ import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient
 import { getQuotes, deleteQuote, updateQuoteStatus, type QuoteWithClient } from "@/features/quotes/actions";
 import type { InvoiceStatus, QuoteStatus } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
+import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog, useToast, EmptyState, StatusBadge } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
 
 const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -50,6 +50,7 @@ export default function InvoicesPage() {
 
 function InvoicesTab() {
   const { t } = useLocale();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -67,12 +68,6 @@ function InvoicesTab() {
     { value: "overdue", label: t.invoices.overdue },
   ];
 
-  const statusLabels: Record<string, string> = {
-    draft: t.invoices.draft,
-    sent: t.invoices.sent,
-    paid: t.invoices.paid,
-    overdue: t.invoices.overdue,
-  };
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["invoices", search, statusFilter],
@@ -87,6 +82,7 @@ function InvoicesTab() {
     mutationFn: (id: string) => deleteInvoice(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast("Factuur verwijderd");
     },
   });
 
@@ -95,6 +91,7 @@ function InvoicesTab() {
       updateInvoiceStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast("Status bijgewerkt");
     },
   });
 
@@ -148,20 +145,13 @@ function InvoicesTab() {
           ))}
         </div>
       ) : invoices.length === 0 ? (
-        <div style={{ paddingTop: "var(--space-xl)" }}>
-          <p className="empty-state">
-            {search || statusFilter ? t.invoices.noInvoicesFound : t.invoices.noInvoicesYet}
-          </p>
-          {!search && !statusFilter && (
-            <Link
-              href="/dashboard/invoices/new"
-              className="table-action"
-              style={{ opacity: 0.4 }}
-            >
-              {t.invoices.createFirst}
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon="□"
+          title={search || statusFilter ? t.invoices.noInvoicesFound : t.invoices.noInvoicesYet}
+          description={!search && !statusFilter ? "Maak je eerste factuur aan om te beginnen." : undefined}
+          actionLabel={!search && !statusFilter ? t.invoices.newInvoiceBtn : undefined}
+          actionHref={!search && !statusFilter ? "/dashboard/invoices/new" : undefined}
+        />
       ) : (
         <TableWrapper>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
@@ -177,7 +167,7 @@ function InvoicesTab() {
             </thead>
             <tbody>
               {invoices.map((invoice: InvoiceWithClient) => (
-                <tr key={invoice.id} style={{ borderBottom: "0.5px solid rgba(0,0,0,0.03)" }}>
+                <tr key={invoice.id} className="table-row-interactive" style={{ borderBottom: "0.5px solid rgba(0,0,0,0.03)" }}>
                   <Td>
                     <Link
                       href={`/dashboard/invoices/${invoice.id}`}
@@ -210,40 +200,18 @@ function InvoicesTab() {
                     </span>
                   </Td>
                   <Td>
-                    <select
+                    <StatusBadge
                       value={invoice.status}
-                      aria-label={`${t.common.status} ${invoice.invoice_number}`}
-                      aria-busy={statusMutation.isPending && statusMutation.variables?.id === invoice.id}
-                      onChange={(e) =>
+                      options={invoiceStatusOptions}
+                      onChange={(status) =>
                         statusMutation.mutate({
                           id: invoice.id,
-                          status: e.target.value as InvoiceStatus,
+                          status: status as InvoiceStatus,
                         })
                       }
-                      style={{
-                        width: "100%",
-                        padding: "6px 0",
-                        border: "none",
-                        background: "transparent",
-                        color: invoice.status === "overdue" ? "var(--color-accent)" : "var(--foreground)",
-                        fontSize: 10,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.1em",
-                        fontWeight: 600,
-                        outline: "none",
-                        opacity:
-                          statusMutation.isPending &&
-                          statusMutation.variables?.id === invoice.id
-                            ? 0.15
-                            : invoice.status === "paid" ? 0.3 : 0.5,
-                        cursor: "pointer",
-                      }}
-                    >
-                      <option value="draft">{statusLabels.draft}</option>
-                      <option value="sent">{statusLabels.sent}</option>
-                      <option value="paid">{statusLabels.paid}</option>
-                      <option value="overdue">{statusLabels.overdue}</option>
-                    </select>
+                      disabled={statusMutation.isPending && statusMutation.variables?.id === invoice.id}
+                      ariaLabel={`${t.common.status} ${invoice.invoice_number}`}
+                    />
                   </Td>
                   <Td style={{ textAlign: "right" }}>
                     <span
@@ -259,7 +227,7 @@ function InvoicesTab() {
                     </span>
                   </Td>
                   <Td style={{ textAlign: "right" }}>
-                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <div className="table-row-actions" style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                       <Link
                         href={`/dashboard/invoices/${invoice.id}/preview`}
                         className="table-action"
@@ -274,7 +242,6 @@ function InvoicesTab() {
                             background: "none",
                             border: "none",
                             cursor: "pointer",
-                            opacity: 0.25,
                           }}
                         >
                           {t.common.delete}
@@ -306,6 +273,7 @@ function InvoicesTab() {
 
 function QuotesTab() {
   const { t } = useLocale();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -337,6 +305,7 @@ function QuotesTab() {
     mutationFn: (id: string) => deleteQuote(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast("Offerte verwijderd");
     },
   });
 
@@ -345,6 +314,7 @@ function QuotesTab() {
       updateQuoteStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast("Status bijgewerkt");
     },
   });
 
@@ -383,16 +353,13 @@ function QuotesTab() {
           ))}
         </div>
       ) : quotes.length === 0 ? (
-        <div style={{ paddingTop: "var(--space-block)" }}>
-          <p className="empty-state">
-            {search || statusFilter ? t.quotes.noQuotesFound : t.quotes.noQuotesYet}
-          </p>
-          {!search && !statusFilter && (
-            <Link href="/dashboard/quotes/new" className="table-action" style={{ opacity: 0.4 }}>
-              {t.quotes.createFirst}
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon="◇"
+          title={search || statusFilter ? t.quotes.noQuotesFound : t.quotes.noQuotesYet}
+          description={!search && !statusFilter ? "Stuur een offerte naar je klant." : undefined}
+          actionLabel={!search && !statusFilter ? t.quotes.newQuoteBtn : undefined}
+          actionHref={!search && !statusFilter ? "/dashboard/quotes/new" : undefined}
+        />
       ) : (
         <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
@@ -407,7 +374,7 @@ function QuotesTab() {
           </thead>
           <tbody>
             {quotes.map((quote: QuoteWithClient) => (
-              <tr key={quote.id} style={{ borderBottom: "0.5px solid rgba(0,0,0,0.03)" }}>
+              <tr key={quote.id} className="table-row-interactive" style={{ borderBottom: "0.5px solid rgba(0,0,0,0.03)" }}>
                 <Td>
                   <Link
                     href={`/dashboard/quotes/${quote.id}`}
@@ -423,25 +390,15 @@ function QuotesTab() {
                   </span>
                 </Td>
                 <Td>
-                  <select
+                  <StatusBadge
                     value={quote.status}
-                    aria-label={`${t.common.status} ${quote.quote_number}`}
-                    aria-busy={statusMutation.isPending && statusMutation.variables?.id === quote.id}
-                    onChange={(e) =>
-                      statusMutation.mutate({ id: quote.id, status: e.target.value as QuoteStatus })
+                    options={quoteStatusOptions}
+                    onChange={(status) =>
+                      statusMutation.mutate({ id: quote.id, status: status as QuoteStatus })
                     }
-                    style={{
-                      width: "100%", padding: "8px 0", border: "none", background: "transparent",
-                      color: "var(--foreground)", fontSize: 11, textTransform: "uppercase",
-                      letterSpacing: "0.1em", outline: "none",
-                      opacity: statusMutation.isPending && statusMutation.variables?.id === quote.id ? 0.2 : 0.5,
-                      cursor: "pointer"
-                    }}
-                  >
-                    {quoteStatusOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+                    disabled={statusMutation.isPending && statusMutation.variables?.id === quote.id}
+                    ariaLabel={`${t.common.status} ${quote.quote_number}`}
+                  />
                 </Td>
                 <Td style={{ textAlign: "right" }}>
                   <span style={{
@@ -453,7 +410,7 @@ function QuotesTab() {
                   </span>
                 </Td>
                 <Td style={{ textAlign: "right" }}>
-                  <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                  <div className="table-row-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                     <Link href={`/dashboard/quotes/${quote.id}`} className="table-action">
                       {t.common.view}
                     </Link>
@@ -461,7 +418,7 @@ function QuotesTab() {
                       <button
                         onClick={() => setDeleteTarget(quote.id)}
                         className="table-action"
-                        style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3 }}
+                        style={{ background: "none", border: "none", cursor: "pointer" }}
                       >
                         {t.common.delete}
                       </button>
