@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient } from "@/features/invoices/actions";
 import { getQuotes, deleteQuote, updateQuoteStatus, type QuoteWithClient } from "@/features/quotes/actions";
 import type { InvoiceStatus, QuoteStatus } from "@/lib/types";
+import { RecurringInvoiceList } from "@/features/invoices/components/RecurringInvoiceList";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog, useToast, EmptyState, StatusBadge } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
@@ -28,8 +29,9 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
 export default function InvoicesPage() {
   const { t } = useLocale();
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get("tab") === "offertes" ? "offertes" : "facturen";
-  const [activeTab, setActiveTab] = useState<"facturen" | "offertes">(initialTab);
+  const tabParam = searchParams.get("tab");
+  const initialTab = tabParam === "offertes" ? "offertes" : tabParam === "terugkerend" ? "terugkerend" : "facturen";
+  const [activeTab, setActiveTab] = useState<"facturen" | "offertes" | "terugkerend">(initialTab);
 
   return (
     <div>
@@ -41,9 +43,12 @@ export default function InvoicesPage() {
         <button onClick={() => setActiveTab("offertes")} style={tabStyle(activeTab === "offertes")}>
           {t.quotes.title}
         </button>
+        <button onClick={() => setActiveTab("terugkerend")} style={tabStyle(activeTab === "terugkerend")}>
+          Terugkerend
+        </button>
       </div>
 
-      {activeTab === "facturen" ? <InvoicesTab /> : <QuotesTab />}
+      {activeTab === "facturen" ? <InvoicesTab /> : activeTab === "offertes" ? <QuotesTab /> : <RecurringInvoiceList />}
     </div>
   );
 }

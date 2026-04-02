@@ -72,8 +72,37 @@ export async function processOverdueInvoices(userId?: string): Promise<{
           profile: profileResult.data as InvoiceData["profile"],
         };
 
-        const emailResult = await sendReminderEmail(invoiceData);
-        emailSent = !emailResult.error;
+        // Determine escalation step based on previous reminders
+        const { data: prevReminders } = await supabase
+          .from("invoice_reminders")
+          .select("step, sent_at")
+          .eq("invoice_id", inv.id)
+          .order("step", { ascending: false })
+          .limit(1);
+
+        const lastStep = prevReminders?.[0]?.step ?? 0;
+        const lastSentAt = prevReminders?.[0]?.sent_at;
+
+        // Only escalate if enough time has passed (7 days between steps)
+        const daysSinceLastReminder = lastSentAt
+          ? Math.floor((Date.now() - new Date(lastSentAt).getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+
+        const nextStep = daysSinceLastReminder >= 7 ? Math.min(lastStep + 1, 3) : 0;
+
+        if (nextStep > 0) {
+          const emailResult = await sendReminderEmail(invoiceData, undefined, nextStep);
+          emailSent = !emailResult.error;
+
+          // Track reminder in history
+          if (emailSent) {
+            await supabase.from("invoice_reminders").insert({
+              invoice_id: inv.id,
+              step: nextStep,
+              sent_at: new Date().toISOString(),
+            }); // Non-fatal if fails
+          }
+        }
       }
 
       const { error: actionError } = await supabase.from("action_feed").insert({

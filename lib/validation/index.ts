@@ -144,6 +144,23 @@ export const profileSchema = z.object({
 
 export type ProfileSchema = z.infer<typeof profileSchema>;
 
+// ─── Recurring Invoice ───
+
+export const recurringInvoiceSchema = z.object({
+  client_id: z.string().min(1, "Klant is verplicht"),
+  frequency: z.enum(["weekly", "monthly", "quarterly", "yearly"]),
+  next_run_date: z.string().min(1, "Startdatum is verplicht"),
+  vat_rate: z.union([z.literal(0), z.literal(9), z.literal(21)]),
+  notes: optionalString,
+  is_active: z.boolean().default(true),
+  auto_send: z.boolean().default(false),
+  lines: z
+    .array(invoiceLineSchema)
+    .min(1, "Minimaal één factuurregel is verplicht"),
+});
+
+export type RecurringInvoiceSchema = z.infer<typeof recurringInvoiceSchema>;
+
 // ─── Helpers ───
 
 export function validate<T>(
