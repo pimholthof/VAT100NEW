@@ -223,6 +223,21 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
       return { error: "Klant heeft geen e-mailadres." };
     }
 
+    // Validate Dutch invoice requirements before sending
+    const invoiceData = await fetchInvoiceData(id);
+    if (invoiceData.data) {
+      const { validateDutchInvoiceRequirements } = await import(
+        "@/lib/validation/invoice-requirements"
+      );
+      const checks = validateDutchInvoiceRequirements(invoiceData.data);
+      const errors = checks.filter((c) => !c.passed && c.severity === "error");
+      if (errors.length > 0) {
+        return {
+          error: `Factuur voldoet niet aan wettelijke eisen: ${errors.map((e) => e.message).join("; ")}`,
+        };
+      }
+    }
+
     // Auto-create Mollie payment link if not yet present
     const { data: inv } = await supabase
       .from("invoices")
@@ -331,6 +346,69 @@ export async function createCreditNote(
   try {
     const creditNoteId = await createCreditNoteInService(supabase, user.id, invoiceId);
     return { error: null, data: creditNoteId };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+// ─── Reminder History ───
+
+export interface ReminderHistoryEntry {
+  id: string;
+  invoice_id: string;
+  step: number;
+  sent_at: string;
+}
+
+export async function getReminderHistory(
+  invoiceId: string
+): Promise<ActionResult<ReminderHistoryEntry[]>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Verify invoice belongs to user
+  const { error: invError } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("id", invoiceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (invError) return { error: "Factuur niet gevonden." };
+
+  const { data, error } = await supabase
+    .from("invoice_reminders")
+    .select("*")
+    .eq("invoice_id", invoiceId)
+    .order("sent_at", { ascending: false });
+
+  if (error) return { error: error.message };
+  return { error: null, data: (data ?? []) as ReminderHistoryEntry[] };
+}
+
+// ─── Invoice Requirements Validation ───
+
+export async function validateInvoiceRequirements(
+  invoiceId: string
+): Promise<ActionResult<import("@/lib/validation/invoice-requirements").RequirementResult[]>> {
+  const idCheck = uuidSchema.safeParse(invoiceId);
+  if (!idCheck.success) return { error: "Ongeldig factuur-ID." };
+
+  try {
+    const result = await fetchInvoiceData(invoiceId);
+    if (result.error || !result.data) {
+      return { error: result.error ?? "Kon factuurgegevens niet ophalen." };
+    }
+
+    const { validateDutchInvoiceRequirements } = await import(
+      "@/lib/validation/invoice-requirements"
+    );
+    const checks = validateDutchInvoiceRequirements(result.data);
+    return { error: null, data: checks };
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };
   }

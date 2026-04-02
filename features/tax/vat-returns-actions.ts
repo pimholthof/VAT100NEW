@@ -111,16 +111,23 @@ export async function generateVatReturn(
 
     // Route to correct rubriek based on vat_scheme
     if (scheme === "eu_reverse_charge") {
-      // Rubriek 3b: verlegging diensten binnen EU
+      // For ZZP'ers (dienstverleners): EU diensten → rubriek 3b
+      // ICP leveringen (goederen) → rubriek 2a
+      // Since most ZZP'ers provide services, default to 3b.
+      // Rubriek 2a is populated separately when client has EU VAT number
+      // and the invoice explicitly represents goods (leveringen).
       const amount = Number(inv.subtotal_ex_vat) || 0;
       rubrieken["3b"].omzet += sign * amount;
+      // Also count towards 2a for ICP listing (diensten are also ICP)
+      rubrieken["2a"].omzet += sign * amount;
       continue;
     }
 
     if (scheme === "export_outside_eu") {
-      // Rubriek 4a/4b: leveringen/diensten buiten EU
+      // Buiten-EU: 4a = leveringen (goederen), 4b = diensten
+      // For ZZP'ers (predominantly service providers), default to 4b
       const amount = Number(inv.subtotal_ex_vat) || 0;
-      rubrieken["4a"].omzet += sign * amount;
+      rubrieken["4b"].omzet += sign * amount;
       continue;
     }
 

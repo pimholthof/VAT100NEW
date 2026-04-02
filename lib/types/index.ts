@@ -621,6 +621,80 @@ export interface AdminOverview {
   }>;
 }
 
+// ─── Recurring Invoice types ───
+
+export type RecurringFrequency = "weekly" | "monthly" | "quarterly" | "yearly";
+
+export interface RecurringInvoice {
+  id: string;
+  user_id: string;
+  client_id: string;
+  frequency: RecurringFrequency;
+  next_run_date: string;
+  vat_rate: number;
+  notes: string | null;
+  is_active: boolean;
+  auto_send: boolean;
+  last_generated_at: string | null;
+  created_at: string;
+}
+
+export interface RecurringInvoiceLine {
+  id: string;
+  recurring_invoice_id: string;
+  description: string;
+  quantity: number;
+  unit: InvoiceUnit;
+  rate: number;
+  amount: number;
+  sort_order: number;
+}
+
+export interface RecurringInvoiceWithDetails extends RecurringInvoice {
+  lines: RecurringInvoiceLine[];
+  client: Client;
+}
+
+export interface RecurringInvoiceInput {
+  client_id: string;
+  frequency: RecurringFrequency;
+  next_run_date: string;
+  vat_rate: VatRate;
+  notes: string | null;
+  is_active: boolean;
+  auto_send: boolean;
+  lines: InvoiceLineInput[];
+}
+
+// ─── VAT Return Correction types ───
+
+export interface VatReturnCorrection {
+  id: string;
+  user_id: string;
+  original_return_id: string;
+  year: number;
+  quarter: number;
+  reden: string;
+  rubriek_1a_omzet: number;
+  rubriek_1a_btw: number;
+  rubriek_1b_omzet: number;
+  rubriek_1b_btw: number;
+  rubriek_1c_omzet: number;
+  rubriek_1c_btw: number;
+  rubriek_2a_omzet: number;
+  rubriek_2a_btw: number;
+  rubriek_3b_omzet: number;
+  rubriek_3b_btw: number;
+  rubriek_4a_omzet: number;
+  rubriek_4a_btw: number;
+  rubriek_4b_omzet: number;
+  rubriek_4b_btw: number;
+  rubriek_5b: number;
+  status: VatReturnStatus;
+  submitted_at: string | null;
+  created_at: string;
+}
+
 // ─── Lead & Sales Pipeline types ───
 
 export type LeadLifecycle = "Nieuw" | "Link Verstuurd" | "Plan Gekozen" | "Klant" | "On hold" | "Niet Relevant";

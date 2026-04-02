@@ -104,15 +104,17 @@ export async function generateBtwAangifte(
     // Route to correct rubriek based on vat_scheme
     if (scheme === "eu_reverse_charge") {
       // Rubriek 3b: verlegging diensten binnen EU
+      // Also count towards 2a for ICP listing
       const amount = Number(inv.subtotal_ex_vat) || 0;
       rubrieken["3b"].omzet += sign * amount;
+      rubrieken["2a"].omzet += sign * amount;
       continue;
     }
 
     if (scheme === "export_outside_eu") {
-      // Rubriek 4a: leveringen/diensten buiten EU
+      // Rubriek 4b: diensten buiten EU (default for ZZP dienstverleners)
       const amount = Number(inv.subtotal_ex_vat) || 0;
-      rubrieken["4a"].omzet += sign * amount;
+      rubrieken["4b"].omzet += sign * amount;
       continue;
     }
 
