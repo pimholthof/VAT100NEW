@@ -2,7 +2,7 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, Client, ClientInput } from "@/lib/types";
-import { clientSchema, validate } from "@/lib/validation";
+import { clientSchema, uuidSchema, validate } from "@/lib/validation";
 
 export async function getClients(search?: string): Promise<ActionResult<Client[]>> {
   const auth = await requireAuth();
@@ -29,6 +29,7 @@ export async function getClients(search?: string): Promise<ActionResult<Client[]
 export async function getClient(
   id: string
 ): Promise<ActionResult<Client>> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldig klant-ID." };
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -79,6 +80,7 @@ export async function updateClient(
   id: string,
   input: ClientInput
 ): Promise<ActionResult<Client>> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldig klant-ID." };
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -108,6 +110,7 @@ export async function updateClient(
 }
 
 export async function deleteClient(id: string): Promise<ActionResult> {
+  if (!uuidSchema.safeParse(id).success) return { error: "Ongeldig klant-ID." };
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -142,6 +145,7 @@ export async function getClientStats(
     totalOutstanding: number;
   }>
 > {
+  if (!uuidSchema.safeParse(clientId).success) return { error: "Ongeldig klant-ID." };
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -187,6 +191,7 @@ export async function getClientInvoices(
   issue_date: string;
   total_inc_vat: number;
 }>>> {
+  if (!uuidSchema.safeParse(clientId).success) return { error: "Ongeldig klant-ID." };
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;

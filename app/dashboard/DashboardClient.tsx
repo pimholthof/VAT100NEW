@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { m as motion, type Variants } from "framer-motion";
+import Image from "next/image";
 import {
   getDashboardData,
   type DashboardData,
@@ -29,9 +30,9 @@ export default function DashboardClient({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
     initialData: initialResult,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
+    staleTime: 30_000, // 30s — dashboard data is fresh enough for 30 seconds
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const data = dashboardResult?.data;
@@ -113,12 +114,12 @@ export default function DashboardClient({
               borderRadius: "var(--radius)",
               overflow: "hidden",
             }}>
-              <img
+              <Image
                 src="/images/office-walnut.png"
                 alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 style={{
-                  width: "100%",
-                  height: "100%",
                   objectFit: "cover",
                   objectPosition: "center 30%",
                   opacity: 0.14,
@@ -142,12 +143,12 @@ export default function DashboardClient({
               overflow: "hidden",
               zIndex: 0,
             }}>
-              <img
+              <Image
                 src="/images/office-hero.png"
                 alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 style={{
-                  width: "100%",
-                  height: "100%",
                   objectFit: "cover",
                   objectPosition: "center",
                   opacity: 0.08,

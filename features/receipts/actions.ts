@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import * as Sentry from "@sentry/nextjs";
 import { sanitizeSupabaseError } from "@/lib/errors";
 import { requireAuth } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -156,7 +157,7 @@ export async function createReceipt(
       businessPercentage,
       category,
       supabase,
-    }).catch(() => {}); // Non-fatal: ledger is best-effort
+    }).catch((err) => Sentry.captureException(err, { tags: { area: "receipt-ledger-booking" } }));
 
     return { error: null, data };
   } catch (e) {
@@ -242,7 +243,7 @@ export async function updateReceipt(
       businessPercentage,
       category,
       supabase,
-    }).catch(() => {});
+    }).catch((err) => Sentry.captureException(err, { tags: { area: "receipt-ledger-rebook" } }));
 
     return { error: null, data };
   } catch (e) {

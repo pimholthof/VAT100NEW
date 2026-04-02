@@ -112,6 +112,8 @@ export async function updateQuote(
   id: string,
   input: QuoteInput
 ): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig offerte-ID." };
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -235,6 +237,8 @@ export async function getQuotes(filters?: {
 export async function getQuote(
   id: string
 ): Promise<ActionResult<QuoteWithDetails>> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig offerte-ID." };
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
@@ -260,6 +264,8 @@ export async function getQuote(
 export async function generateQuoteShareToken(
   quoteId: string
 ): Promise<ActionResult<string>> {
+  const idCheck = uuidSchema.safeParse(quoteId);
+  if (!idCheck.success) return { error: "Ongeldig offerte-ID." };
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;

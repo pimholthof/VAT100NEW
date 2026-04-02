@@ -232,7 +232,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
       .single();
 
     if (!inv?.payment_link) {
-      await createPaymentLink(id).catch(() => {});
+      await createPaymentLink(id).catch(() => {}); // Non-fatal: invoice can be sent without payment link
     }
 
     // Auto-book to ledger (debiteur -> omzet + BTW)
@@ -246,7 +246,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
         subtotalExVat: Number(inv.subtotal_ex_vat) || 0,
         vatAmount: Number(inv.vat_amount) || 0,
         supabase,
-      }).catch(() => {}); // Non-fatal
+      }).catch(() => {}); // Non-fatal: ledger booking is best-effort
     }
 
     return sendInvoiceEmail(id);
