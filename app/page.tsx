@@ -389,6 +389,7 @@ export default function LandingPage() {
                 lineHeight: 1.15,
                 margin: 0,
                 marginBottom: 16,
+                whiteSpace: "pre-line",
               }}
             >
               {t.landing.showcaseInvoicesTitle}
@@ -426,6 +427,7 @@ export default function LandingPage() {
                 lineHeight: 1.15,
                 margin: 0,
                 marginBottom: 16,
+                whiteSpace: "pre-line",
               }}
             >
               {t.landing.showcaseVatTitle}

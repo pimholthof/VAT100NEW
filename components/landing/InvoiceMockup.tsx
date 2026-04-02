@@ -3,10 +3,10 @@
 import BrowserFrame from "./BrowserFrame";
 
 const invoices = [
-  { nr: "2024-042", client: "Studio Blauw", amount: "€ 2.400,00", status: "Betaald", color: "#1a7a3a" },
-  { nr: "2024-041", client: "De Werkplaats", amount: "€ 850,00", status: "Verzonden", color: "#2563eb" },
-  { nr: "2024-040", client: "Firma Janssen", amount: "€ 1.200,00", status: "Betaald", color: "#1a7a3a" },
-  { nr: "2024-039", client: "Atelier Noord", amount: "€ 3.150,00", status: "Concept", color: "rgba(0,0,0,0.35)" },
+  { nr: "2024-042", client: "Ace & Partners", amount: "€ 2.400,00", status: "Betaald", color: "#1a7a3a" },
+  { nr: "2024-041", client: "Studio Noord", amount: "€ 850,00", status: "Verzonden", color: "#2563eb" },
+  { nr: "2024-040", client: "Foam Amsterdam", amount: "€ 1.200,00", status: "Betaald", color: "#1a7a3a" },
+  { nr: "2024-039", client: "Bureau Borzo", amount: "€ 3.150,00", status: "Concept", color: "rgba(0,0,0,0.35)" },
 ];
 
 export default function InvoiceMockup() {

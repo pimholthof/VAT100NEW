@@ -111,8 +111,8 @@ export default function DashboardMockup() {
           AANKOMENDE FACTUREN
         </p>
         {[
-          { client: "Studio Blauw", amount: "€ 2.400", days: "3 dagen" },
-          { client: "De Werkplaats", amount: "€ 850", days: "7 dagen" },
+          { client: "Ace & Partners", amount: "€ 2.400", days: "3 dagen" },
+          { client: "Studio Noord", amount: "€ 850", days: "7 dagen" },
         ].map((inv) => (
           <div
             key={inv.client}
