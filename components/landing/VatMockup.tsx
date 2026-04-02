@@ -2,16 +2,32 @@
 
 import BrowserFrame from "./BrowserFrame";
 
-const quarters = [
-  { q: "Q1", revenue: "€ 12.400", vatOwed: "€ 2.604", vatDeductible: "€ 480", net: "€ 2.124" },
-  { q: "Q2", revenue: "€ 15.800", vatOwed: "€ 3.318", vatDeductible: "€ 620", net: "€ 2.698" },
-  { q: "Q3", revenue: "€ 9.200", vatOwed: "€ 1.932", vatDeductible: "€ 310", net: "€ 1.622" },
-  { q: "Q4", revenue: "—", vatOwed: "—", vatDeductible: "—", net: "—" },
-];
+const text = {
+  nl: {
+    title: "BTW OVERZICHT 2024",
+    headers: ["", "OMZET", "BTW AF TE DRAGEN", "BTW AFTREKBAAR", "NETTO BTW"],
+    quarters: [
+      { q: "Q1", revenue: "€ 12.400", vatOwed: "€ 2.604", vatDeductible: "€ 480", net: "€ 2.124" },
+      { q: "Q2", revenue: "€ 15.800", vatOwed: "€ 3.318", vatDeductible: "€ 620", net: "€ 2.698" },
+      { q: "Q3", revenue: "€ 9.200", vatOwed: "€ 1.932", vatDeductible: "€ 310", net: "€ 1.622" },
+      { q: "Q4", revenue: "—", vatOwed: "—", vatDeductible: "—", net: "—" },
+    ],
+  },
+  en: {
+    title: "VAT OVERVIEW 2024",
+    headers: ["", "REVENUE", "VAT OWED", "VAT DEDUCTIBLE", "NET VAT"],
+    quarters: [
+      { q: "Q1", revenue: "€ 12,400", vatOwed: "€ 2,604", vatDeductible: "€ 480", net: "€ 2,124" },
+      { q: "Q2", revenue: "€ 15,800", vatOwed: "€ 3,318", vatDeductible: "€ 620", net: "€ 2,698" },
+      { q: "Q3", revenue: "€ 9,200", vatOwed: "€ 1,932", vatDeductible: "€ 310", net: "€ 1,622" },
+      { q: "Q4", revenue: "—", vatOwed: "—", vatDeductible: "—", net: "—" },
+    ],
+  },
+};
 
-const headers = ["", "OMZET", "BTW AF TE DRAGEN", "BTW AFTREKBAAR", "NETTO BTW"];
+export default function VatMockup({ locale = "nl" }: { locale?: "nl" | "en" }) {
+  const t = text[locale];
 
-export default function VatMockup() {
   return (
     <BrowserFrame>
       {/* Title */}
@@ -26,7 +42,7 @@ export default function VatMockup() {
           marginBottom: 12,
         }}
       >
-        BTW-OVERZICHT 2024
+        {t.title}
       </p>
 
       {/* Header row */}
@@ -40,7 +56,7 @@ export default function VatMockup() {
           marginBottom: 4,
         }}
       >
-        {headers.map((h) => (
+        {t.headers.map((h) => (
           <p
             key={h}
             style={{
@@ -58,7 +74,7 @@ export default function VatMockup() {
       </div>
 
       {/* Quarter rows */}
-      {quarters.map((row) => (
+      {t.quarters.map((row) => (
         <div
           key={row.q}
           style={{

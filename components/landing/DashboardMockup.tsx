@@ -2,13 +2,38 @@
 
 import BrowserFrame from "./BrowserFrame";
 
-const stats = [
-  { label: "BTW-DEADLINE", value: "42 dagen" },
-  { label: "OPENSTAAND", value: "€ 1.850" },
-  { label: "OMZET DEZE MAAND", value: "€ 6.400" },
-];
+const text = {
+  nl: {
+    freeToSpend: "VRIJ TE BESTEDEN",
+    stats: [
+      { label: "BTW DEADLINE", value: "42 dagen" },
+      { label: "OPENSTAAND", value: "€ 1.850" },
+      { label: "OMZET DEZE MAAND", value: "€ 6.400" },
+    ],
+    upcoming: "AANKOMENDE FACTUREN",
+    invoices: [
+      { client: "Ace & Partners", amount: "€ 2.400", days: "3 dagen" },
+      { client: "De Correspondent", amount: "€ 850", days: "7 dagen" },
+    ],
+  },
+  en: {
+    freeToSpend: "FREE TO SPEND",
+    stats: [
+      { label: "VAT DEADLINE", value: "42 days" },
+      { label: "OUTSTANDING", value: "€ 1,850" },
+      { label: "REVENUE THIS MONTH", value: "€ 6,400" },
+    ],
+    upcoming: "UPCOMING INVOICES",
+    invoices: [
+      { client: "Ace & Partners", amount: "€ 2,400", days: "3 days" },
+      { client: "De Correspondent", amount: "€ 850", days: "7 days" },
+    ],
+  },
+};
 
-export default function DashboardMockup() {
+export default function DashboardMockup({ locale = "nl" }: { locale?: "nl" | "en" }) {
+  const t = text[locale];
+
   return (
     <BrowserFrame
       style={{
@@ -28,7 +53,7 @@ export default function DashboardMockup() {
           marginBottom: 4,
         }}
       >
-        VRIJ TE BESTEDEN
+        {t.freeToSpend}
       </p>
       <p
         style={{
@@ -59,7 +84,7 @@ export default function DashboardMockup() {
           gap: 16,
         }}
       >
-        {stats.map((s) => (
+        {t.stats.map((s) => (
           <div key={s.label}>
             <p
               style={{
@@ -108,12 +133,9 @@ export default function DashboardMockup() {
             marginBottom: 8,
           }}
         >
-          AANKOMENDE FACTUREN
+          {t.upcoming}
         </p>
-        {[
-          { client: "Ace & Partners", amount: "€ 2.400", days: "3 dagen" },
-          { client: "Studio Noord", amount: "€ 850", days: "7 dagen" },
-        ].map((inv) => (
+        {t.invoices.map((inv) => (
           <div
             key={inv.client}
             style={{

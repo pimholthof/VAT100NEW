@@ -312,7 +312,7 @@ export default function LandingPage() {
 
           {/* Product mockup */}
           <div>
-            <DashboardMockup />
+            <DashboardMockup locale={locale} />
           </div>
         </div>
       </section>
@@ -405,7 +405,7 @@ export default function LandingPage() {
               {t.landing.showcaseInvoicesDesc}
             </p>
           </div>
-          <InvoiceMockup />
+          <InvoiceMockup locale={locale} />
         </div>
 
         {/* Feature 2: VAT — mockup left, copy right */}
@@ -417,7 +417,7 @@ export default function LandingPage() {
             alignItems: "center",
           }}
         >
-          <VatMockup />
+          <VatMockup locale={locale} />
           <div>
             <h3
               style={{
@@ -817,22 +817,11 @@ export default function LandingPage() {
                   letterSpacing: "-0.03em",
                   lineHeight: 1.1,
                   margin: 0,
-                  marginBottom: 12,
+                  marginBottom: 32,
                 }}
               >
                 {t.landing.waitlistTitle}
               </h2>
-              <p
-                style={{
-                  fontSize: 14,
-                  opacity: 0.4,
-                  margin: 0,
-                  marginBottom: 32,
-                  lineHeight: 1.5,
-                }}
-              >
-                {t.landing.ctaReassurance}
-              </p>
 
               <form
                 onSubmit={handleSubmit}
