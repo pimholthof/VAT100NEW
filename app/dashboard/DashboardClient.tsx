@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { FiscalPulse } from "@/features/dashboard/components/FiscalPulse";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
+import { WelcomeBanner } from "@/features/dashboard/components/WelcomeBanner";
 import { useLocale } from "@/lib/i18n/context";
 
 
@@ -99,6 +100,15 @@ export default function DashboardClient({
       }}
       className="dashboard-content-inner dashboard-home"
     >
+      {/* ── WELCOME BANNER (new users) ── */}
+      {!isLoading && stats && (
+        <WelcomeBanner
+          hasClients={(openInvoices?.length ?? 0) > 0 || (stats.openInvoiceCount ?? 0) > 0}
+          hasInvoices={(data?.recentInvoices?.length ?? 0) > 0}
+          hasReceipts={(stats.receiptsThisMonth ?? 0) > 0}
+        />
+      )}
+
       {/* ── HERO ── */}
       {!isLoading && (
         <div className="dashboard-home-hero">

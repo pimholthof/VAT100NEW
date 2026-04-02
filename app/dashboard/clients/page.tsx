@@ -7,10 +7,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { getClients, deleteClient } from "@/features/clients/actions";
 import type { Client } from "@/lib/types";
-import { Th, Td, ErrorMessage, TableWrapper, ConfirmDialog } from "@/components/ui";
+import { Th, Td, ErrorMessage, TableWrapper, ConfirmDialog, useToast, EmptyState } from "@/components/ui";
 
 export default function ClientsPage() {
   const { t } = useLocale();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -28,8 +29,9 @@ export default function ClientsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteClient(id),
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
+      if (!result?.error) toast("Klant verwijderd");
     },
   });
 
@@ -76,20 +78,13 @@ export default function ClientsPage() {
           <ErrorMessage>{result.error}</ErrorMessage>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ paddingTop: "var(--space-xl)" }}>
-          <p className="empty-state">
-            {search.trim() ? t.clients.noClientsFound : t.clients.noClientsYet}
-          </p>
-          {!search.trim() && (
-            <Link
-              href="/dashboard/clients/new"
-              className="table-action"
-              style={{ opacity: 0.4 }}
-            >
-              {t.clients.addFirst}
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon="○"
+          title={search.trim() ? t.clients.noClientsFound : t.clients.noClientsYet}
+          description={!search.trim() ? "Voeg je eerste klant toe om facturen te kunnen sturen." : undefined}
+          actionLabel={!search.trim() ? t.clients.newClientBtn : undefined}
+          actionHref={!search.trim() ? "/dashboard/clients/new" : undefined}
+        />
       ) : (
         <TableWrapper>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 500 }}>
