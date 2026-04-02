@@ -5,16 +5,16 @@ import { useState } from "react";
 import { useLocale } from "@/lib/i18n/context";
 
 const DUTCH_BANKS = [
-  { id: "SANDBOXFINANCE_SDA1", name: "GoCardless Sandbox", country: "NL" },
-  { id: "ABN_AMRO_ABNA", name: "ABN AMRO", country: "NL" },
-  { id: "ING_INGB", name: "ING", country: "NL" },
-  { id: "RABOBANK_RABO", name: "Rabobank", country: "NL" },
-  { id: "SNS_BANK_SNSB", name: "SNS Bank", country: "NL" },
-  { id: "ASN_BANK_ASNB", name: "ASN Bank", country: "NL" },
-  { id: "REVOLUT_REVO", name: "Revolut", country: "NL" },
-  { id: "BUNQ_BUNQ", name: "bunq", country: "NL" },
-  { id: "KNAB_KNAB", name: "Knab", country: "NL" },
-  { id: "TRIADOS_TRIA", name: "Triodos Bank", country: "NL" },
+  { id: "nl-abnamro-business", name: "ABN AMRO", country: "NL" },
+  { id: "nl-ing-business", name: "ING", country: "NL" },
+  { id: "nl-rabobank-business", name: "Rabobank", country: "NL" },
+  { id: "nl-snsbank", name: "SNS Bank", country: "NL" },
+  { id: "nl-asnbank", name: "ASN Bank", country: "NL" },
+  { id: "nl-revolut", name: "Revolut", country: "NL" },
+  { id: "nl-bunq", name: "bunq", country: "NL" },
+  { id: "nl-knab", name: "Knab", country: "NL" },
+  { id: "nl-triodos", name: "Triodos Bank", country: "NL" },
+  { id: "nl-regiobank", name: "RegioBank", country: "NL" },
 ];
 
 export function InstitutionSelector({
