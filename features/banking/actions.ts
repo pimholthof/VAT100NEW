@@ -4,7 +4,7 @@ import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import * as Sentry from "@sentry/nextjs";
 import { requireAuth, requirePlan } from "@/lib/supabase/server";
-import { gocardless, checkGoCardlessRateLimit } from "@/lib/banking/gocardless";
+import { bankingClient, checkBankingRateLimit } from "@/lib/banking/tink";
 import { sanitizeSupabaseError } from "@/lib/errors";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
@@ -170,13 +170,13 @@ export async function initiateBankConnection(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  if (checkGoCardlessRateLimit(user.id)) {
+  if (checkBankingRateLimit(user.id)) {
     return { error: "Te veel bankverzoeken. Probeer het over een minuut opnieuw." };
   }
 
   try {
     const reference = crypto.randomUUID();
-    const requisition = await gocardless.createRequisition({
+    const requisition = await bankingClient.createRequisition({
       institutionId,
       redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/dashboard/bank?reference=${reference}`,
       reference,
@@ -222,13 +222,15 @@ export async function completeBankConnection(
   const { supabase, user } = auth;
 
   try {
-    const requisition = await gocardless.getRequisition(requisitionId);
-    
-    // In many cases, we take the first account returned by the requisition
-    const accountId = requisition.accounts[0];
-    if (!accountId) return { error: "Geen rekeningen gevonden bij deze bank." };
+    const requisition = await bankingClient.getRequisition(requisitionId);
 
-    const accountDetails = await gocardless.getAccountDetails(accountId);
+    // In many cases, we take the first account returned by the requisition
+    const rawAccountId = requisition.accounts[0];
+    if (!rawAccountId) return { error: "Geen rekeningen gevonden bij deze bank." };
+
+    // Tink needs userRef::accountId format for subsequent API calls
+    const accountId = `${requisitionId}::${rawAccountId}`;
+    const accountDetails = await bankingClient.getAccountDetails(accountId);
     const detail = accountDetails.account;
 
     const { error } = await supabase
@@ -237,7 +239,7 @@ export async function completeBankConnection(
         status: "active",
         account_id: accountId,
         iban: detail.iban || null,
-        institution_name: requisition.institution_id, // We'll improve this with actual name later
+        institution_name: requisition.institution_id,
       })
       .eq("requisition_id", requisitionId)
       .eq("user_id", user.id);
@@ -305,13 +307,13 @@ export async function syncTransactions(
 
   if (!connection.account_id) return { error: "Bankrekening ID ontbreekt." };
 
-  if (checkGoCardlessRateLimit(user.id)) {
+  if (checkBankingRateLimit(user.id)) {
     return { error: "Te veel bankverzoeken. Probeer het over een minuut opnieuw." };
   }
 
   try {
-    // 2. Fetch transactions from GoCardless
-    const response = await gocardless.getTransactions(connection.account_id);
+    // 2. Fetch transactions from Tink
+    const response = await bankingClient.getTransactions(connection.account_id);
     const booked = response.transactions.booked || [];
 
     // 3. Map to our schema
