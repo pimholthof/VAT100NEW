@@ -4,7 +4,6 @@ import { useState } from "react";
 import type { ReceiptInput } from "@/lib/types";
 import {
   FieldGroup,
-  inputStyle,
   ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
@@ -252,7 +251,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
               type="date"
               value={receiptDate}
               onChange={(e) => setReceiptDate(e.target.value)}
-              style={inputStyle}
+              className="form-input"
             />
           </FieldGroup>
 
@@ -262,7 +261,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
               value={vendorName}
               onChange={(e) => setVendorName(e.target.value)}
               placeholder={t.receipts.vendorPlaceholder}
-              style={inputStyle}
+              className="form-input"
             />
           </FieldGroup>
 
@@ -272,7 +271,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
               onChange={(e) =>
                 setCostCode(e.target.value ? Number(e.target.value) : null)
               }
-              style={inputStyle}
+              className="form-input"
             >
               <option value="">{t.receipts.selectCategory}</option>
               {groepen.map((groep) => (
@@ -303,7 +302,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
               value={amountExVat}
               onChange={(e) => setAmountExVat(e.target.value)}
               placeholder="0,00"
-              style={inputStyle}
+              className="form-input"
             />
           </FieldGroup>
 
@@ -311,7 +310,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
             <select
               value={vatRate}
               onChange={(e) => setVatRate(e.target.value)}
-              style={inputStyle}
+              className="form-input"
             >
               <option value="21">21%</option>
               <option value="9">9%</option>

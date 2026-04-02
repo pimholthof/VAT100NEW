@@ -22,7 +22,6 @@ import {
   ButtonSecondary,
   ErrorMessage,
   PageHeader,
-  inputStyle,
 } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
@@ -203,7 +202,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                style={inputStyle}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label="Contactpersoon">
@@ -211,7 +210,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
-                style={inputStyle}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label="E-mailadres">
@@ -219,7 +218,7 @@ export default function ClientDetailPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={inputStyle}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label="Adres">
@@ -227,7 +226,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                style={inputStyle}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label="Postcode">
@@ -235,7 +234,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
-                style={inputStyle}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label="Stad">
@@ -243,7 +242,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                style={inputStyle}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label="KVK-nummer">
@@ -251,7 +250,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={kvkNumber}
                 onChange={(e) => setKvkNumber(e.target.value)}
-                style={{ ...inputStyle }}
+                className="form-input"
               />
             </FieldGroup>
             <FieldGroup label="BTW-nummer">
@@ -259,7 +258,7 @@ export default function ClientDetailPage() {
                 type="text"
                 value={btwNumber}
                 onChange={(e) => setBtwNumber(e.target.value)}
-                style={{ ...inputStyle }}
+                className="form-input"
               />
             </FieldGroup>
           </div>

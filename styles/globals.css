@@ -1886,6 +1886,299 @@ a {
   color: rgba(0, 0, 0, 0.25);
 }
 
+/* ─── Form Inputs (structured forms) ─── */
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: var(--border-input);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.015);
+  color: var(--foreground);
+  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: var(--text-body-md);
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: var(--color-black);
+  background: transparent;
+}
+
+.form-input::placeholder {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+.form-textarea {
+  padding: 14px 16px;
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ─── Dialog / Modal ─── */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(250, 249, 246, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  animation: fadeIn 0.2s ease;
+}
+
+.dialog-panel {
+  background: var(--background);
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius);
+  padding: var(--space-lg);
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.06);
+}
+
+.dialog-panel__title {
+  font-size: var(--text-body-lg);
+  font-weight: 600;
+  margin: 0 0 var(--space-sm);
+  letter-spacing: var(--tracking-tight);
+}
+
+.dialog-panel__message {
+  font-size: var(--text-body-md);
+  font-weight: 400;
+  margin: 0 0 var(--space-lg);
+  opacity: 0.5;
+  line-height: 1.5;
+}
+
+.dialog-panel__actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+/* ─── Dropdown Menu ─── */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 120px;
+  background: var(--background);
+  border: var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: var(--space-xs) 0;
+  z-index: 50;
+}
+
+.dropdown-menu--right {
+  left: auto;
+  right: 0;
+  min-width: 180px;
+}
+
+.dropdown-menu__label {
+  padding: var(--space-sm) var(--space-md) 6px;
+  font-size: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.3;
+  font-weight: 600;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm) 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--foreground);
+  text-align: left;
+  text-decoration: none;
+  transition: background 0.1s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dropdown-item--active {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.dropdown-item--link {
+  display: block;
+  padding: 10px var(--space-md);
+  font-size: var(--text-body-md);
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.dropdown-item--link:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* ─── Interactive Status Badge ─── */
+.status-badge-interactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.status-badge-interactive:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.status-badge-interactive__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+/* Status color variants */
+.status-badge-interactive--draft {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--foreground);
+}
+
+.status-badge-interactive--draft .status-badge-interactive__dot {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.status-badge-interactive--sent {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--foreground);
+}
+
+.status-badge-interactive--sent .status-badge-interactive__dot {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.status-badge-interactive--paid,
+.status-badge-interactive--accepted {
+  background: rgba(26, 122, 58, 0.06);
+  color: var(--color-success);
+}
+
+.status-badge-interactive--paid .status-badge-interactive__dot,
+.status-badge-interactive--accepted .status-badge-interactive__dot {
+  background: var(--color-success);
+}
+
+.status-badge-interactive--overdue,
+.status-badge-interactive--rejected {
+  background: rgba(165, 28, 48, 0.06);
+  color: var(--color-accent);
+}
+
+.status-badge-interactive--overdue .status-badge-interactive__dot,
+.status-badge-interactive--rejected .status-badge-interactive__dot {
+  background: var(--color-accent);
+}
+
+.status-badge-interactive--invoiced {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--foreground);
+}
+
+.status-badge-interactive--invoiced .status-badge-interactive__dot {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* ─── Stat Card ─── */
+.stat-card {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: 160px;
+  border: var(--border-light);
+  border-radius: var(--radius);
+  background: var(--card-surface, var(--dashboard-surface, var(--background)));
+  transition: box-shadow 0.3s ease;
+}
+
+.stat-card--compact {
+  padding: 20px;
+  gap: 12px;
+  min-height: 132px;
+}
+
+.stat-card__value {
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display);
+  line-height: 1;
+  margin: 0;
+}
+
+.stat-card--compact .stat-card__value {
+  font-size: clamp(1.35rem, 2.1vw, 2rem);
+}
+
+.stat-card__rule {
+  width: 24px;
+  height: 0.5px;
+  background: rgba(0, 0, 0, 0.08);
+  margin-bottom: var(--space-sm);
+}
+
+/* ─── Table Primitives ─── */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: var(--border-rule);
+  border-radius: var(--radius);
+}
+
+.table-th {
+  padding: 12px 16px 12px 0;
+  text-align: left;
+  opacity: 0.3;
+  font-weight: 600;
+  white-space: nowrap;
+  font-size: var(--text-label);
+  letter-spacing: 0.1em;
+}
+
+.table-td {
+  padding: 14px 16px 14px 0;
+  font-weight: 400;
+  font-size: var(--text-mono-md);
+  line-height: 1.4;
+}
+
 /* ─── Divider ─── */
 .divider {
   width: 100%;

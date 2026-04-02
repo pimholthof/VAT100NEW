@@ -19,7 +19,6 @@ import {
 import type { Receipt, ReceiptInput } from "@/lib/types";
 import {
   FieldGroup,
-  inputStyle,
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
@@ -349,7 +348,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             value={receiptDate}
             onChange={(e) => setReceiptDate(e.target.value)}
             required
-            style={{ ...inputStyle }}
+            className="form-input"
           />
         </FieldGroup>
 
@@ -359,7 +358,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             value={vendorName}
             onChange={(e) => setVendorName(e.target.value)}
             placeholder={t.receipts.vendorPlaceholder}
-            style={inputStyle}
+            className="form-input"
           />
         </FieldGroup>
 
@@ -370,7 +369,8 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
               onChange={(e) =>
                 setCostCode(e.target.value ? Number(e.target.value) : null)
               }
-              style={{ ...inputStyle, flex: 1 }}
+              className="form-input"
+              style={{ flex: 1 }}
             >
               <option value="">{t.receipts.selectCategory}</option>
               {groepen.map((groep) => (
@@ -412,7 +412,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             value={amountExVat}
             onChange={(e) => setAmountExVat(e.target.value)}
             placeholder="0,00"
-            style={{ ...inputStyle }}
+            className="form-input"
           />
         </FieldGroup>
 
@@ -420,7 +420,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           <select
             value={vatRate}
             onChange={(e) => setVatRate(e.target.value)}
-            style={inputStyle}
+            className="form-input"
           >
             <option value="21">21%</option>
             <option value="9">9%</option>

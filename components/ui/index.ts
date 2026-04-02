@@ -7,9 +7,6 @@ export {
   Input,
   Select,
   Textarea,
-  inputStyle,
-  selectStyle,
-  textareaStyle,
 } from "./Input";
 export { SkeletonTable } from "./SkeletonTable";
 export { ErrorMessage } from "./ErrorMessage";

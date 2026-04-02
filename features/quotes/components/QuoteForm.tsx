@@ -15,7 +15,7 @@ import { ClientQuickCreate } from "@/features/invoices/components/ClientQuickCre
 import { InvoiceMetadata } from "@/features/invoices/components/InvoiceMetadata";
 import { InvoiceTotals } from "@/features/invoices/components/InvoiceTotals";
 import type { QuoteStatus } from "@/lib/types";
-import { inputStyle, ErrorMessage } from "@/components/ui";
+import { ErrorMessage } from "@/components/ui";
 import { m as motion } from "framer-motion";
 import { playSound } from "@/lib/utils/sound";
 import { useInvoiceStore } from "@/lib/store/invoice";
@@ -185,8 +185,8 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
               invoiceSetClientId(e.target.value);
               playSound("tink");
             }}
+            className="form-input"
             style={{
-              ...inputStyle,
               fontSize: 14,
               fontWeight: 400,
               letterSpacing: "-0.01em",
@@ -233,8 +233,8 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
           type="date"
           value={validUntil}
           onChange={(e) => setValidUntil(e.target.value)}
+          className="form-input"
           style={{
-            ...inputStyle,
             maxWidth: 200,
           }}
         />
@@ -281,8 +281,8 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
           }}
           placeholder={t.quotes.notesPlaceholder}
           rows={3}
+          className="form-input"
           style={{
-            ...inputStyle,
             resize: "vertical",
             minHeight: 60,
             fontSize: 13,

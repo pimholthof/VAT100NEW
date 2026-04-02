@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useRef } from "react";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { ButtonPrimary, ButtonSecondary } from "./Button";
 
 interface ConfirmDialogProps {
@@ -24,14 +25,8 @@ export function ConfirmDialog({
   onCancel,
   children,
 }: ConfirmDialogProps) {
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [open, onCancel]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useClickOutside(panelRef, open, onCancel);
 
   if (!open) return null;
 
@@ -40,60 +35,17 @@ export function ConfirmDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(250, 249, 246, 0.8)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-        animation: "fadeIn 0.2s ease",
-      }}
-      onClick={onCancel}
+      className="dialog-overlay"
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "var(--background)",
-          border: "0.5px solid rgba(0,0,0,0.12)",
-          borderRadius: "var(--radius)",
-          padding: "32px",
-          maxWidth: 400,
-          width: "100%",
-          boxShadow: "0 24px 48px rgba(0,0,0,0.06)",
-        }}
-      >
-        <p
-          id="confirm-title"
-          style={{
-            fontSize: "var(--text-body-lg)",
-            fontWeight: 600,
-            margin: "0 0 8px",
-            letterSpacing: "-0.01em",
-          }}
-        >
+      <div ref={panelRef} className="dialog-panel">
+        <p id="confirm-title" className="dialog-panel__title">
           {title}
         </p>
-        <p
-          style={{
-            fontSize: "var(--text-body-md)",
-            fontWeight: 400,
-            margin: "0 0 32px",
-            opacity: 0.5,
-            lineHeight: 1.5,
-          }}
-        >
+        <p className="dialog-panel__message">
           {message}
         </p>
         {children}
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: children ? 24 : 0 }}>
+        <div className="dialog-panel__actions" style={{ marginTop: children ? 24 : 0 }}>
           <ButtonSecondary onClick={onCancel} autoFocus>
             {cancelLabel}
           </ButtonSecondary>

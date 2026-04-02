@@ -6,7 +6,6 @@ import { createNewClient, updateClient } from "@/features/clients/actions";
 import type { Client, ClientInput } from "@/lib/types";
 import {
   FieldGroup,
-  inputStyle,
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
@@ -102,7 +101,7 @@ export function ClientForm({ client }: ClientFormProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t.clients.companyName}
-          style={inputStyle}
+          className="form-input"
         />
       </FieldGroup>
 
@@ -112,7 +111,7 @@ export function ClientForm({ client }: ClientFormProps) {
           value={contactName}
           onChange={(e) => setContactName(e.target.value)}
           placeholder={t.clients.contactPerson}
-          style={inputStyle}
+          className="form-input"
         />
       </FieldGroup>
 
@@ -123,7 +122,7 @@ export function ClientForm({ client }: ClientFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           onBlur={() => validateField("email", email)}
           placeholder="email@voorbeeld.nl"
-          style={inputStyle}
+          className="form-input"
         />
         {fieldErrors.email && (
           <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.email}</span>
@@ -136,7 +135,7 @@ export function ClientForm({ client }: ClientFormProps) {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder={t.clients.address}
-          style={inputStyle}
+          className="form-input"
         />
       </FieldGroup>
 
@@ -153,7 +152,7 @@ export function ClientForm({ client }: ClientFormProps) {
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
             placeholder="1234 AB"
-            style={inputStyle}
+            className="form-input"
           />
         </FieldGroup>
         <FieldGroup label={t.clients.city}>
@@ -162,7 +161,7 @@ export function ClientForm({ client }: ClientFormProps) {
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder={t.clients.city}
-            style={inputStyle}
+            className="form-input"
           />
         </FieldGroup>
       </div>
@@ -181,7 +180,7 @@ export function ClientForm({ client }: ClientFormProps) {
             onChange={(e) => setKvkNumber(e.target.value)}
             onBlur={() => validateField("kvk", kvkNumber)}
             placeholder="12345678"
-            style={{ ...inputStyle }}
+            className="form-input"
           />
           {fieldErrors.kvk && (
             <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.kvk}</span>
@@ -194,7 +193,7 @@ export function ClientForm({ client }: ClientFormProps) {
             onChange={(e) => setBtwNumber(e.target.value)}
             onBlur={() => validateField("btw", btwNumber)}
             placeholder="NL123456789B01"
-            style={{ ...inputStyle }}
+            className="form-input"
           />
           {fieldErrors.btw && (
             <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.btw}</span>

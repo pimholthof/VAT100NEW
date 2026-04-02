@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useLocale } from "@/lib/i18n/context";
 import { useInvoiceStore } from "@/lib/store/invoice";
-import { inputStyle } from "@/components/ui";
 import type { VatScheme } from "@/lib/types";
 
 const VAT_OPTIONS: Array<{ value: string; labelKey: string; rate: number; scheme: VatScheme }> = [
@@ -98,7 +97,8 @@ export function InvoiceMetadata({ defaultCollapsed = false }: { defaultCollapsed
               type="text"
               value={invoiceNumber}
               onChange={(e) => setInvoiceNumber(e.target.value)}
-              style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
+              className="form-input"
+              style={{ border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
             />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -107,7 +107,8 @@ export function InvoiceMetadata({ defaultCollapsed = false }: { defaultCollapsed
               type="date"
               value={issueDate}
               onChange={(e) => setIssueDate(e.target.value)}
-              style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
+              className="form-input"
+              style={{ border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
             />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -115,7 +116,8 @@ export function InvoiceMetadata({ defaultCollapsed = false }: { defaultCollapsed
             <select
               value={currentValue}
               onChange={(e) => handleVatChange(e.target.value)}
-              style={{ ...inputStyle, border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
+              className="form-input"
+              style={{ border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
             >
               {VAT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

@@ -5,7 +5,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createNewClient } from "@/features/clients/actions";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import {
-  inputStyle,
   ButtonPrimary,
   ButtonSecondary,
 } from "@/components/ui";
@@ -87,7 +86,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Bedrijfsnaam"
-            style={inputStyle}
+            className="form-input"
           />
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
@@ -97,7 +96,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="email@voorbeeld.nl"
-            style={inputStyle}
+            className="form-input"
           />
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
@@ -107,7 +106,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Straatnaam en huisnummer"
-            style={inputStyle}
+            className="form-input"
           />
         </div>
         <div>
@@ -117,7 +116,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
             placeholder="1234 AB"
-            style={inputStyle}
+            className="form-input"
           />
         </div>
         <div>
@@ -127,7 +126,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="Stad"
-            style={inputStyle}
+            className="form-input"
           />
         </div>
       </div>
