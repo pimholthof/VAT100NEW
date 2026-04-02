@@ -93,7 +93,7 @@ export default async function AdminDashboardPage() {
             <Link href="/admin/users" className="admin-button-link">
               Gebruikers openen
             </Link>
-            <Link href="/admin/waitlist" className="admin-button-link admin-button-link-secondary">
+            <Link href="/admin/pipeline?tab=wachtlijst" className="admin-button-link admin-button-link-secondary">
               Wachtlijst bekijken
             </Link>
           </div>
@@ -197,7 +197,7 @@ export default async function AdminDashboardPage() {
               <p className="admin-action-card-copy">Bekijk de nieuwste accounts, status en omzet per gebruiker.</p>
               <span className="admin-action-card-meta">Open gebruikers</span>
             </Link>
-            <Link href="/admin/waitlist" className="admin-action-card">
+            <Link href="/admin/pipeline?tab=wachtlijst" className="admin-action-card">
               <p className="admin-action-card-title">Wachtlijst opvolgen</p>
               <p className="admin-action-card-copy">Werk nieuwe leads of aanvragen af vanuit één compacte lijst.</p>
               <span className="admin-action-card-meta">{stats.waitlistCount} open</span>
@@ -255,7 +255,7 @@ export default async function AdminDashboardPage() {
               <p className="label">Instroom</p>
               <h2 className="admin-panel-title">Recente wachtlijst</h2>
             </div>
-            <Link href="/admin/waitlist" className="admin-button-link admin-button-link-secondary">
+            <Link href="/admin/pipeline?tab=wachtlijst" className="admin-button-link admin-button-link-secondary">
               Open wachtlijst
             </Link>
           </div>
@@ -265,7 +265,7 @@ export default async function AdminDashboardPage() {
           ) : (
             <div className="admin-list">
               {recentWaitlist.map((entry) => (
-                <Link key={entry.id} href="/admin/waitlist" className="admin-list-item">
+                <Link key={entry.id} href="/admin/pipeline?tab=wachtlijst" className="admin-list-item">
                   <div className="admin-list-content">
                     <p className="admin-list-title">{entry.name || entry.email}</p>
                     <p className="admin-list-sub">

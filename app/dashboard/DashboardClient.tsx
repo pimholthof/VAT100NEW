@@ -13,7 +13,6 @@ import {
   StatCard,
   SkeletonTable,
 } from "@/components/ui";
-import { FiscalPulse } from "@/features/dashboard/components/FiscalPulse";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
 import { WelcomeBanner } from "@/features/dashboard/components/WelcomeBanner";
 import { useLocale } from "@/lib/i18n/context";
@@ -112,61 +111,14 @@ export default function DashboardClient({
       {/* ── HERO ── */}
       {!isLoading && (
         <div className="dashboard-home-hero">
-          <motion.div variants={itemVariants} className="dashboard-home-hero-copy" style={{ position: "relative" }}>
-            {/* Editorial moodboard background */}
-            <div style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "60%",
-              borderRadius: "var(--radius)",
-              overflow: "hidden",
-            }}>
-              <img
-                src="/images/office-walnut.png"
-                alt=""
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center 30%",
-                  opacity: 0.14,
-                  filter: "grayscale(80%)",
-                }}
-              />
-            </div>
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <p className="label" style={{ margin: 0 }}>{t.dashboard.today}</p>
-              <h1 className="dashboard-home-title">{t.dashboard.heroTitle}</h1>
-              <p className="dashboard-home-intro">{heroMessage}</p>
-            </div>
+          <motion.div variants={itemVariants} className="dashboard-home-hero-copy">
+            <p className="label" style={{ margin: 0 }}>{t.dashboard.today}</p>
+            <h1 className="dashboard-home-title">{t.dashboard.heroTitle}</h1>
+            <p className="dashboard-home-intro">{heroMessage}</p>
           </motion.div>
 
-          <motion.div variants={itemVariants} style={{ position: "relative" }}>
-            {/* Subtle editorial image */}
-            <div style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: "var(--radius)",
-              overflow: "hidden",
-              zIndex: 0,
-            }}>
-              <img
-                src="/images/office-hero.png"
-                alt=""
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center",
-                  opacity: 0.08,
-                  filter: "grayscale(100%)",
-                  mixBlendMode: "multiply",
-                }}
-              />
-            </div>
-            <div className="dashboard-home-hero-stats" style={{ position: "relative", zIndex: 1 }}>
+          <motion.div variants={itemVariants}>
+            <div className="dashboard-home-hero-stats">
               <div className="dashboard-home-meta-item">
                 <span className="label">{t.dashboard.freeToSpend}</span>
                 <span className="dashboard-home-meta-value">
@@ -240,17 +192,6 @@ export default function DashboardClient({
         </div>
       )}
 
-
-      {/* ── FISCAL PULSE ── */}
-      {safeToSpend && !isLoading && (
-        <motion.div variants={itemVariants}>
-          <FiscalPulse
-            safeToSpend={safeToSpend.safeToSpend}
-            currentBalance={safeToSpend.currentBalance}
-            isLoading={isLoading}
-          />
-        </motion.div>
-      )}
 
       {/* ── OPEN INVOICES ── */}
       <motion.div variants={itemVariants}>

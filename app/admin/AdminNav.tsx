@@ -13,8 +13,9 @@ export function AdminNav() {
   const items = [
     { href: "/admin", label: "Overzicht", match: "/admin" },
     { href: "/admin/users", label: "Gebruikers", match: "/admin/users" },
-    { href: "/admin/waitlist", label: "Wachtlijst", match: "/admin/waitlist" },
+    { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline" },
     { href: "/admin/feedback", label: "Feedback", match: "/admin/feedback" },
+    { href: "/admin/settings", label: "Instellingen", match: "/admin/settings" },
   ];
 
   function isActive(match: string) {
@@ -91,15 +92,11 @@ export function AdminNav() {
                 ))}
               </div>
 
-              <div className="dashboard-drawer-col">
-                <span className="label mb-4">Navigatie</span>
+              <div className="dashboard-drawer-col dashboard-drawer-col-end">
+                <span className="label mb-4">Account</span>
                 <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className="drawer-link">
                   Terug naar Dashboard
                 </Link>
-              </div>
-
-              <div className="dashboard-drawer-col dashboard-drawer-col-end">
-                <span className="label mb-4">Account</span>
                 <button
                   type="button"
                   onClick={handleLogout}
