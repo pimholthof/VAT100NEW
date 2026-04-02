@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
-import { Agent, SystemEventRow } from "../types";
+import type { Agent } from "../types";
 import { sendStrategyBriefing } from "../../email/send-strategy";
 
 /**
@@ -13,9 +13,8 @@ export const strategicAgent: Agent = {
   description: "Aggregates MRR, churn, and pipeline data for strategic decision making.",
   targetEvents: ["system.weekly_briefing", "admin.manual_briefing"],
   
-  run: async (event: SystemEventRow) => {
+  run: async () => {
     const supabase = createServiceClient();
-    console.log(`[Strategic Agent] Starting strategic analysis...`);
 
     try {
       // 1. Calculate MRR (Monthly Recurring Revenue)
@@ -72,7 +71,7 @@ export const strategicAgent: Agent = {
       const briefingText = `Current MRR is €${(mrrCents/100).toFixed(2)}. Churn risk stands at €${(churnCents/100).toFixed(2)}. Pipeline holds €${(pipelineValueCents/100).toFixed(2)} in potential revenue.`;
 
       // 6. Record Snapshot
-      const { data: briefing, error: recordError } = await supabase
+      const { error: recordError } = await supabase
         .from("strategic_briefings")
         .insert({
           mrr_cents: mrrCents,
@@ -106,7 +105,6 @@ export const strategicAgent: Agent = {
         insight: briefingText
       });
 
-      console.log(`[Strategic Agent] Analysis complete for briefing: ${briefing.id}`);
       return true;
 
     } catch (err) {

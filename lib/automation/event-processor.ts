@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
-import { Agent, ProcessingResult, SystemEventRow } from "./types";
+import { ProcessingResult } from "./types";
 import { agents } from "./agents"; // We'll create this registry next
 
 /**
@@ -8,8 +8,6 @@ import { agents } from "./agents"; // We'll create this registry next
  */
 export async function processSystemEvents(batchSize = 25): Promise<ProcessingResult> {
   const supabase = createServiceClient();
-  const startTime = new Date();
-
   // 1. Fetch unprocessed events
   // We use processed_at IS NULL to find new events
   const { data: events, error } = await supabase
@@ -36,7 +34,7 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
     return result;
   }
 
-  console.log(`[EventProcessor] Processing ${events.length} events...`);
+  // Processing events silently — errors logged via console.error
 
   // 2. Process each event through matching agents
   for (const event of events) {
@@ -47,9 +45,8 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
       );
 
       if (matchingAgents.length === 0) {
-        console.log(`[EventProcessor] No agents for event type: ${event.event_type}`);
+        // No matching agents for this event type
       } else {
-        console.log(`[EventProcessor] Running ${matchingAgents.length} agents for: ${event.event_type}`);
         
         // Execute all matching agents in parallel
         const agentResults = await Promise.allSettled(
@@ -86,9 +83,6 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
     }
   }
 
-  const endTime = new Date();
-  const duration = (endTime.getTime() - startTime.getTime()) / 1000;
-  console.log(`[EventProcessor] Processed ${events.length} events in ${duration}s. Success: ${result.successes}, Fail: ${result.failures}`);
 
   return result;
 }

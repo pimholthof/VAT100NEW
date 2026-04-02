@@ -21,7 +21,6 @@ export const qualificationAgent: Agent = {
       return false;
     }
 
-    console.log(`[Agent 10] Qualifying new lead: ${email}...`);
 
     try {
       // 1. Initial heuristic scoring
@@ -56,7 +55,6 @@ export const qualificationAgent: Agent = {
         return false;
       }
 
-      console.log(`[Agent 10] Successfully qualified ${email} with score: ${scoreFit}`);
       return true;
 
     } catch (err) {

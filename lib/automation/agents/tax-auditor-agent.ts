@@ -18,7 +18,6 @@ export const taxAuditorAgent: Agent = {
     const userId = event.user_id;
     if (!userId) return false;
 
-    console.log(`[Tax Auditor] Starting audit for user ${userId}...`);
 
     try {
       const now = new Date();
@@ -124,7 +123,6 @@ export const taxAuditorAgent: Agent = {
         findings: findings.slice(0, 5) // Send top 5 findings
       });
 
-      console.log(`[Tax Auditor] Audit complete for user ${userId}. Score: ${score}%`);
       return true;
 
     } catch (err) {

@@ -1,4 +1,4 @@
-import { formatCurrency, formatDateLong, escapeHtml } from "@/lib/format";
+import { formatCurrency, escapeHtml } from "@/lib/format";
 import type { InvoiceData } from "@/lib/types";
 
 interface EmailTemplateOptions {

@@ -22,7 +22,6 @@ export const navigatorAgent: Agent = {
       return false;
     }
 
-    console.log(`[Agent 1] Navigating new lead: ${email}...`);
 
     try {
       // 1. Find the lead
@@ -78,7 +77,6 @@ export const navigatorAgent: Agent = {
       });
 
       // 5. In a real scenario, trigger Resend/SendGrid here
-      console.log(`[Agent 1] Outreach complete for ${email}. Link: /register?token=${token}`);
       
       return true;
 

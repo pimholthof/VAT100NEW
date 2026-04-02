@@ -1,6 +1,5 @@
 import { Resend } from "resend";
 import { buildBaseEmailHtml } from "./template";
-import { formatCurrency, formatDateLong } from "@/lib/format";
 
 let _resend: Resend;
 function getResend() {

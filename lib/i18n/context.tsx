@@ -19,7 +19,7 @@ export function LocaleProvider({
   initialLocale?: Locale;
   children: React.ReactNode;
 }) {
-  const [locale, setLocaleState] = useState<Locale>(initialLocale);
+  const [locale] = useState<Locale>(initialLocale);
 
   const setLocale = useCallback((newLocale: Locale) => {
     document.cookie = `locale=${newLocale};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`;

@@ -454,6 +454,7 @@ function BreakdownTotal({ label, value, highlight }: { label: string; value: num
 
 // ─── BTW Aangifte Section (Fiscus-proof) ───
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function BtwAangifteSection({ year }: { year: number }) {
   const queryClient = useQueryClient();
   const [preparingQ, setPreparingQ] = useState<number | null>(null);

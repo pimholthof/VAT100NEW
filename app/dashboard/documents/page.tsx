@@ -1,6 +1,5 @@
 "use client";
 
-import { formatCurrency } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/context";
 
 export default function DocumentsPage() {
