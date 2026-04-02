@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function CustomerDetailRedirect({ params }: { params: Promise<{ id: string }> }) {
+export default function CustomerDetailRedirect(_props: { params: Promise<{ id: string }> }) {
   // Redirect to the unified users page
   redirect("/admin/users");
 }

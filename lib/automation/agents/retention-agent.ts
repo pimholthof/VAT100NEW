@@ -20,9 +20,7 @@ export const retentionAgent: Agent = {
   
   run: async (event: SystemEventRow) => {
     const supabase = createServiceClient();
-    const type = event.type;
-
-    console.log(`[Retention Agent] Processing event: ${type}...`);
+    const type = event.event_type;
 
     try {
       if (type === "subscription.payment_failed") {
@@ -50,7 +48,6 @@ async function handleFailedPayment(supabase: SupabaseClient, payload: Record<str
   
   if (!subscription_id) return false;
 
-  console.log(`[Retention Agent] Recording churn risk for sub: ${subscription_id}`);
 
   // 1. Fetch user data
   const { data: sub } = await supabase
@@ -92,7 +89,6 @@ async function handleExpiredLead(supabase: SupabaseClient, payload: Record<strin
   const lead_id = payload.lead_id as string | undefined;
   if (!lead_id) return false;
 
-  console.log(`[Retention Agent] Nudging expired lead: ${lead_id}`);
 
   // 1. Fetch lead data
   const { data: lead } = await supabase
@@ -129,37 +125,30 @@ async function handleExpiredLead(supabase: SupabaseClient, payload: Record<strin
 }
 
 async function runDailyMaintenance(supabase: SupabaseClient) {
-  console.log(`[Retention Agent] Running daily maintenance check...`);
 
   // 1. Find leads stuck in "Plan Gekozen" for > 48 hours
   const twoDaysAgo = new Date();
   twoDaysAgo.setHours(twoDaysAgo.getHours() - 48);
 
-  const { data: stuckLeads } = await supabase
+  const { data: _stuckLeads } = await supabase
     .from("leads")
     .select("id, email")
     .eq("lifecycle_stage", "Plan Gekozen")
     .lt("updated_at", twoDaysAgo.toISOString());
 
-  for (const lead of stuckLeads || []) {
-    console.log(`[Retention Agent] Flagging stuck lead for nudge: ${lead.email}`);
-    // Emit event: lead.stuck_in_pipeline
-  }
+  // TODO: Emit lead.stuck_in_pipeline events for stuckLeads
 
   // 2. Find users with no activity in 30 days
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   // This is a simplified check - in reality, we'd check latest doc/invoice date
-  const { data: inactiveUsers } = await supabase
+  const { data: _inactiveUsers } = await supabase
     .from("profiles")
     .select("id, full_name")
     .lt("updated_at", thirtyDaysAgo.toISOString());
 
-  for (const user of inactiveUsers || []) {
-    console.log(`[Retention Agent] Flagging inactive user: ${user.full_name}`);
-    // Record risk in a new health table or log activity
-  }
+  // TODO: Record churn risk for inactiveUsers in health table
 
   return true;
 }
