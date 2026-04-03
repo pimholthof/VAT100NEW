@@ -22,12 +22,12 @@ function fmtDateLong(d: string | null): string {
 
 // ─── Dispatcher ───
 
-export function InvoicePDF({ data, template = "minimaal", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
+export function InvoicePDF({ data, template = "poster", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
   switch (template) {
+    case "minimaal": return <MinimaalPDF data={data} locale={locale} />;
     case "klassiek": return <KlassiekPDF data={data} locale={locale} />;
     case "strak": return <StrakPDF data={data} locale={locale} />;
-    case "poster": return <PosterPDF data={data} locale={locale} />;
-    default: return <MinimaalPDF data={data} locale={locale} />;
+    default: return <PosterPDF data={data} locale={locale} />;
   }
 }
 

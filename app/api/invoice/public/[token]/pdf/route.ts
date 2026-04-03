@@ -5,7 +5,7 @@ import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
 import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import type { InvoiceTemplate } from "@/lib/types";
 
-const VALID_TEMPLATES = ["minimaal", "klassiek", "strak", "poster"];
+const VALID_TEMPLATES = ["poster", "klassiek", "strak", "poster"];
 
 export async function GET(
   request: NextRequest,
@@ -23,8 +23,8 @@ export async function GET(
 
   try {
     const data = result.data;
-    const templateParam = request.nextUrl.searchParams.get("template") ?? "minimaal";
-    const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "minimaal") as InvoiceTemplate;
+    const templateParam = request.nextUrl.searchParams.get("template") ?? "poster";
+    const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "poster") as InvoiceTemplate;
 
     const element = createElement(InvoicePDF, { data, template });
     const buffer = await renderToBuffer(
