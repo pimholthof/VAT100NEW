@@ -1,10 +1,10 @@
 -- ============================================================================
--- VAT100 — Bank connections & transactions (Open Banking via GoCardless)
+-- VAT100 — Bank connections & transactions (Open Banking via Tink)
 -- ============================================================================
 
 -- ============================================================================
 -- BANK CONNECTIONS
--- Stores linked bank accounts via GoCardless Bank Account Data.
+-- Stores linked bank accounts via Tink Open Banking.
 -- ============================================================================
 
 create table public.bank_connections (
@@ -21,7 +21,7 @@ create table public.bank_connections (
   created_at        timestamptz not null default now()
 );
 
-comment on table public.bank_connections is 'Bank accounts linked via GoCardless Open Banking.';
+comment on table public.bank_connections is 'Bank accounts linked via Tink Open Banking.';
 
 alter table public.bank_connections enable row level security;
 

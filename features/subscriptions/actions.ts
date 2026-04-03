@@ -13,6 +13,7 @@ import type { Plan, SubscriptionWithPlan, ActionResult } from "@/lib/types";
 import { headers } from "next/headers";
 import { sanitizeSupabaseError } from "@/lib/errors";
 import { uuidSchema } from "@/lib/validation";
+import * as Sentry from "@sentry/nextjs";
 
 async function getBaseUrl(): Promise<string> {
   const headersList = await headers();
@@ -240,7 +241,10 @@ export async function activateSubscriptionAfterPayment(
     .eq("id", planId)
     .single();
 
-  if (!plan) return;
+  if (!plan) {
+    Sentry.captureMessage(`activateSubscriptionAfterPayment: plan ${planId} niet gevonden`, "error");
+    return;
+  }
 
   // Create Mollie recurring subscription
   const baseUrl = await getBaseUrl();
@@ -252,6 +256,13 @@ export async function activateSubscriptionAfterPayment(
     description: `VAT100 ${plan.name} — maandelijks`,
     webhookUrl: `${baseUrl}/api/webhooks/mollie`,
   });
+
+  if (mollieSubResult.error) {
+    Sentry.captureMessage(
+      `Mollie subscription creatie mislukt voor ${subscriptionId}: ${mollieSubResult.error}`,
+      "error",
+    );
+  }
 
   const now = new Date();
   const periodEnd = new Date(now);

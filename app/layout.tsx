@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { Providers } from "./providers";
 import "@/styles/globals.css";
 import { LazyCommandMenu } from "@/components/ui/LazyCommandMenu";
+import CookieNotice from "@/components/CookieNotice";
 import { getLocaleFromCookie, type Locale } from "@/lib/i18n";
 
 const geistSans = localFont({
@@ -60,6 +61,7 @@ export default async function RootLayout({
         <Providers locale={locale}>
           {children}
           <LazyCommandMenu />
+          <CookieNotice />
         </Providers>
       </body>
     </html>

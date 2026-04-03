@@ -1,6 +1,6 @@
 /**
  * Tink Bank Account Data API Client
- * Replaces GoCardless (Nordigen) with Tink's Open Banking API.
+ * Tink's Open Banking API integration.
  * Using native fetch for Edge compatibility and lightness.
  *
  * Tink API flow:
@@ -187,7 +187,7 @@ export class TinkClient {
 
   /**
    * Create a bank connection via Tink Link.
-   * This is the equivalent of GoCardless createRequisition.
+   * Creates a requisition via Tink Link.
    *
    * Flow:
    * 1. Ensure a Tink user exists for this reference (external_user_id)
@@ -268,7 +268,7 @@ export class TinkClient {
   }
 
   /**
-   * Get the status of a bank connection (equivalent of GoCardless getRequisition).
+   * Get the status of a bank connection.
    * In Tink, we check the user's credentials to find connected accounts.
    */
   async getRequisition(requisitionId: string) {

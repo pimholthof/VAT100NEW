@@ -101,11 +101,16 @@ async function handleSubscriptionPayment(
     const planId = payment.metadata?.plan_id;
 
     if (payment.metadata?.type === "subscription_first" && subscriptionId && planId) {
+      if (!payment.customerId) {
+        Sentry.captureMessage(`Webhook: ontbrekende customerId voor subscription ${subscriptionId}`, "error");
+        return NextResponse.json({ error: "Ontbrekende customerId" }, { status: 400 });
+      }
+
       // First payment — activate subscription and create recurring
       const amountCents = Math.round(parseFloat(payment.amount.value) * 100);
       await activateSubscriptionAfterPayment(
         subscriptionId,
-        payment.customerId ?? "",
+        payment.customerId,
         planId,
         paymentId,
         amountCents,
