@@ -436,28 +436,28 @@ const BG4 = "#FAF9F6";
 const M4 = 56;
 
 const s4 = StyleSheet.create({
-  page: { paddingTop: 56, paddingBottom: M4 + 32, paddingLeft: M4, paddingRight: M4, fontFamily: "Helvetica", color: INK4, backgroundColor: BG4 },
-  // Header
-  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 },
-  logo: { fontSize: 52, fontWeight: 700, letterSpacing: -2, lineHeight: 0.9 },
-  headerRight: { textAlign: "right", paddingTop: 12 },
-  headerDate: { fontSize: 10, color: INK4, marginBottom: 3 },
-  headerNum: { fontSize: 10, color: GREY4 },
-  typeLabel: { fontSize: 9, letterSpacing: 4, color: GREY4, textTransform: "uppercase", marginBottom: 40 },
-  // Divider
-  div: { borderBottomWidth: 0.5, borderBottomColor: RULE4, borderBottomStyle: "solid", marginBottom: 32 },
-  // Parties
-  parties: { flexDirection: "row", gap: 48, marginBottom: 32 },
+  page: { paddingTop: 64, paddingBottom: M4 + 36, paddingLeft: M4, paddingRight: M4, fontFamily: "Helvetica", color: INK4, backgroundColor: BG4 },
+  // Header — logo dominates
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 },
+  logo: { fontSize: 56, fontWeight: 700, letterSpacing: -2.2, lineHeight: 0.85 },
+  headerRight: { textAlign: "right", paddingTop: 14 },
+  headerDate: { fontSize: 9.5, color: INK4, marginBottom: 3 },
+  headerNum: { fontSize: 9.5, color: GREY4 },
+  typeLabel: { fontSize: 9, letterSpacing: 5, color: GREY4, textTransform: "uppercase", marginBottom: 48 },
+  // Divider — Judd-inspired architectural line
+  div: { borderBottomWidth: 0.5, borderBottomColor: RULE4, borderBottomStyle: "solid", marginBottom: 36 },
+  // Parties — generous breathing room
+  parties: { flexDirection: "row", gap: 56, marginBottom: 36 },
   partyCol: { flex: 1 },
-  partyLbl: { fontSize: 9, letterSpacing: 4, color: GREY4, textTransform: "uppercase", marginBottom: 8 },
+  partyLbl: { fontSize: 9, letterSpacing: 5, color: GREY4, textTransform: "uppercase", marginBottom: 10 },
   partyName: { fontSize: 13, fontWeight: 700, color: INK4, marginBottom: 3 },
   partyLine: { fontSize: 10, color: INK4, lineHeight: 1.7 },
-  partyDetail: { fontSize: 9, color: GREY4, lineHeight: 1.7, marginTop: 4 },
-  // Table
-  tbl: { marginBottom: 24 },
+  partyDetail: { fontSize: 9, color: GREY4, lineHeight: 1.7, marginTop: 5 },
+  // Table — clean, minimal borders
+  tbl: { marginBottom: 28 },
   thead: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: RULE4, paddingBottom: 8 },
-  tr: { flexDirection: "row", paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: RULE4 },
-  th: { fontSize: 9, letterSpacing: 3, color: GREY4, textTransform: "uppercase" },
+  tr: { flexDirection: "row", paddingVertical: 11, borderBottomWidth: 0.5, borderBottomColor: RULE4 },
+  th: { fontSize: 9, letterSpacing: 4, color: GREY4, textTransform: "uppercase" },
   td: { fontSize: 11, color: INK4 },
   tdGrey: { fontSize: 10, color: GREY4 },
   tdBold: { fontSize: 11, fontWeight: 700, color: INK4 },
@@ -465,23 +465,22 @@ const s4 = StyleSheet.create({
   cQty: { width: "14%", textAlign: "center" },
   cRate: { width: "20%", textAlign: "right" },
   cAmt: { width: "20%", textAlign: "right" },
-  // Totals
-  totWrap: { flexDirection: "row", justifyContent: "flex-end", marginTop: 16 },
+  // Totals — the total amount is the hero
+  totWrap: { flexDirection: "row", justifyContent: "flex-end", marginTop: 20 },
   totBlock: { width: 240 },
   totRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 },
-  totLbl: { fontSize: 9, letterSpacing: 3, color: GREY4, textTransform: "uppercase" },
+  totLbl: { fontSize: 9, letterSpacing: 4, color: GREY4, textTransform: "uppercase" },
   totVal: { fontSize: 10, color: GREY4 },
-  totDiv: { borderBottomWidth: 0.5, borderBottomColor: RULE4, marginTop: 4, marginBottom: 4 },
-  totFinal: { flexDirection: "row", justifyContent: "space-between", paddingTop: 10, marginTop: 6, borderTopWidth: 1, borderTopColor: INK4 },
-  totFLbl: { fontSize: 10, fontWeight: 700, letterSpacing: 3, color: INK4, textTransform: "uppercase" },
-  totFVal: { fontSize: 18, fontWeight: 700, color: INK4 },
+  totFinal: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", paddingTop: 12, marginTop: 8, borderTopWidth: 1, borderTopColor: INK4 },
+  totFLbl: { fontSize: 9, fontWeight: 700, letterSpacing: 4, color: INK4, textTransform: "uppercase" },
+  totFVal: { fontSize: 22, fontWeight: 700, color: INK4 },
   // Due date
-  due: { marginTop: 32 },
-  dueText: { fontSize: 9, color: GREY4 },
-  // Footer
+  due: { marginTop: 36 },
+  dueText: { fontSize: 9, color: GREY4, letterSpacing: 0.5 },
+  // Footer — quiet, informational
   foot: { position: "absolute", bottom: M4, left: M4, right: M4, borderTopWidth: 0.5, borderTopColor: RULE4, borderTopStyle: "solid", paddingTop: 14, flexDirection: "row", justifyContent: "space-between" },
   footLeft: { flexDirection: "row", gap: 28 },
-  footLbl: { fontSize: 7, letterSpacing: 2, color: GREY4, textTransform: "uppercase", marginBottom: 3 },
+  footLbl: { fontSize: 7, letterSpacing: 2.5, color: GREY4, textTransform: "uppercase", marginBottom: 3 },
   footVal: { fontSize: 8.5, color: INK4 },
   footSig: { fontSize: 9, color: GREY4, alignSelf: "flex-end" },
 });
