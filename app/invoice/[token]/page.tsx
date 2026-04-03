@@ -5,7 +5,7 @@ import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
 import { formatCurrency } from "@/lib/format";
 import type { InvoiceTemplate } from "@/lib/types";
 
-const VALID_TEMPLATES = ["minimaal", "klassiek", "strak", "poster"];
+const VALID_TEMPLATES = ["poster", "klassiek", "strak", "poster"];
 
 export async function generateMetadata({
   params,
@@ -46,8 +46,8 @@ export default async function PublicInvoicePage({
     notFound();
   }
 
-  const templateParam = typeof sp.template === "string" ? sp.template : "minimaal";
-  const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "minimaal") as InvoiceTemplate;
+  const templateParam = typeof sp.template === "string" ? sp.template : "poster";
+  const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "poster") as InvoiceTemplate;
 
   const pdfUrl = `/api/invoice/public/${token}/pdf?template=${template}`;
   const { invoice } = result.data;

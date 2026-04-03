@@ -4,8 +4,9 @@ import { createElement } from "react";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import type { InvoiceTemplate } from "@/lib/types";
+import { createClient } from "@/lib/supabase/server";
 
-const VALID_TEMPLATES = ["minimaal", "klassiek", "strak", "poster"];
+const VALID_TEMPLATES = ["poster", "minimaal", "klassiek", "strak"];
 
 export async function GET(
   request: NextRequest,
@@ -22,14 +23,21 @@ export async function GET(
   }
 
   const data = result.data;
-  const templateParam = request.nextUrl.searchParams.get("template") ?? "minimaal";
-  const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "minimaal") as InvoiceTemplate;
+  const templateParam = request.nextUrl.searchParams.get("template") ?? "poster";
+  const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "poster") as InvoiceTemplate;
 
   try {
     const element = createElement(InvoicePDF, { data, template });
     const buffer = await renderToBuffer(
       element as unknown as Parameters<typeof renderToBuffer>[0]
     );
+
+    // Track which template was used
+    const supabase = await createClient();
+    await supabase
+      .from("invoices")
+      .update({ pdf_template: template })
+      .eq("id", id);
 
     const filename = `factuur-${data.invoice.invoice_number}.pdf`;
 

@@ -29,12 +29,12 @@ function unitLabel(u: string, t: ReturnType<typeof getDictionary>): string {
 
 // ─── Dispatcher ───
 
-export function InvoiceHTML({ data, template = "minimaal", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
+export function InvoiceHTML({ data, template = "poster", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
   switch (template) {
+    case "minimaal": return <MinimaalHTML data={data} locale={locale} />;
     case "klassiek": return <KlassiekHTML data={data} locale={locale} />;
     case "strak": return <StrakHTML data={data} locale={locale} />;
-    case "poster": return <PosterHTML data={data} locale={locale} />;
-    default: return <MinimaalHTML data={data} locale={locale} />;
+    default: return <PosterHTML data={data} locale={locale} />;
   }
 }
 

@@ -13,10 +13,10 @@ export function TemplatePicker({
   const { t } = useLocale();
 
   const templates: { id: InvoiceTemplate; label: string; desc: string }[] = [
+    { id: "poster", label: t.invoices.templatePoster, desc: t.invoices.templatePosterDesc },
     { id: "minimaal", label: t.invoices.templateMinimal, desc: t.invoices.templateMinimalDesc },
     { id: "klassiek", label: t.invoices.templateClassic, desc: t.invoices.templateClassicDesc },
     { id: "strak", label: t.invoices.templateModern, desc: t.invoices.templateModernDesc },
-    { id: "poster", label: t.invoices.templatePoster, desc: t.invoices.templatePosterDesc },
   ];
 
   return (
