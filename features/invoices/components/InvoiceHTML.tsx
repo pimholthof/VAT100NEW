@@ -33,6 +33,7 @@ export function InvoiceHTML({ data, template = "minimaal", locale = "nl" }: { da
   switch (template) {
     case "klassiek": return <KlassiekHTML data={data} locale={locale} />;
     case "strak": return <StrakHTML data={data} locale={locale} />;
+    case "billboard": return <BillboardHTML data={data} locale={locale} />;
     default: return <MinimaalHTML data={data} locale={locale} />;
   }
 }
@@ -367,6 +368,126 @@ function StrakHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
             {profile.bic && <div><div style={{ ...lbl, fontSize: 6, marginBottom: 2 }}>BIC</div><div style={{ fontSize: 7.5 }}>{profile.bic}</div></div>}
             <div><div style={{ ...lbl, fontSize: 6, marginBottom: 2 }}>{t.invoiceDoc.paymentTerms}</div><div style={{ fontSize: 7.5 }}>{days} {t.invoiceDoc.daysNet}</div></div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TEMPLATE 4: BILLBOARD — The factuur as design object
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function BillboardHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
+  const t = getDictionary(locale);
+  const { invoice, lines, client, profile } = data;
+  const isCreditNote = invoice.is_credit_note;
+  const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
+  const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
+
+  const INK = "#000000";
+  const GREY = "#888888";
+  const RULE = "#E0E0E0";
+  const BG = "#FAF9F6";
+  const F = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+
+  const lbl: React.CSSProperties = { fontSize: 9, letterSpacing: "0.35em", color: GREY, textTransform: "uppercase", fontWeight: 400 };
+  const partyLine: React.CSSProperties = { fontSize: 10, color: INK, lineHeight: 1.7 };
+  const partyDetail: React.CSSProperties = { fontSize: 9, color: GREY, lineHeight: 1.7, marginTop: 5 };
+
+  return (
+    <div style={{ width: 595, minHeight: 842, padding: "64px 56px 56px", fontFamily: F, color: INK, background: BG, position: "relative", boxSizing: "border-box" }}>
+      {/* Header: VAT100 logo left, date/nr right */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+        <div style={{ fontSize: 56, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 0.85 }}>
+          VAT100
+        </div>
+        <div style={{ textAlign: "right", paddingTop: 14 }}>
+          <div style={{ fontSize: 9.5, color: INK, marginBottom: 3 }}>{fmtDateLong(invoice.issue_date, locale)}</div>
+          <div style={{ fontSize: 9.5, color: GREY }}>Nr. {invoice.invoice_number}</div>
+        </div>
+      </div>
+      <div style={{ ...lbl, letterSpacing: "0.4em", marginBottom: 48 }}>
+        {isCreditNote ? t.invoiceDoc.creditNote : t.invoiceDoc.invoice}
+      </div>
+
+      {/* Divider */}
+      <div style={{ borderBottom: `0.5px solid ${RULE}`, marginBottom: 36 }} />
+
+      {/* VAN / AAN */}
+      <div style={{ display: "flex", gap: 56, marginBottom: 36 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ ...lbl, marginBottom: 10 }}>{t.invoiceDoc.from}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 3 }}>{profile.studio_name || profile.full_name}</div>
+          {profile.address && <div style={partyLine}>{profile.address}</div>}
+          {(profile.postal_code || profile.city) && <div style={partyLine}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</div>}
+          {profile.kvk_number && <div style={partyDetail}>KVK {profile.kvk_number}</div>}
+          {profile.btw_number && <div style={partyDetail}>BTW {profile.btw_number}</div>}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ ...lbl, marginBottom: 10 }}>{t.invoiceDoc.to}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 3 }}>{client.name}</div>
+          {showContact && <div style={partyLine}>{client.contact_name}</div>}
+          {client.address && <div style={partyLine}>{client.address}</div>}
+          {(client.postal_code || client.city) && <div style={partyLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</div>}
+          {client.kvk_number && <div style={partyDetail}>KVK {client.kvk_number}</div>}
+          {client.btw_number && <div style={partyDetail}>BTW {client.btw_number}</div>}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ borderBottom: `0.5px solid ${RULE}`, marginBottom: 36 }} />
+
+      {/* Table */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", borderBottom: `0.5px solid ${RULE}`, paddingBottom: 8 }}>
+          <div style={{ ...lbl, width: "46%" }}>{t.invoiceDoc.description}</div>
+          <div style={{ ...lbl, width: "14%", textAlign: "center" }}>{t.invoiceDoc.quantity}</div>
+          <div style={{ ...lbl, width: "20%", textAlign: "right" }}>{t.invoiceDoc.rate}</div>
+          <div style={{ ...lbl, width: "20%", textAlign: "right" }}>{t.invoiceDoc.amount}</div>
+        </div>
+        {lines.map((l) => (
+          <div key={l.id} style={{ display: "flex", padding: "11px 0", borderBottom: `0.5px solid ${RULE}`, alignItems: "baseline" }}>
+            <div style={{ width: "46%", fontSize: 11 }}>{l.description}</div>
+            <div style={{ width: "14%", fontSize: 10, textAlign: "center", color: GREY }}>{l.quantity} {unitLabel(l.unit, t)}</div>
+            <div style={{ width: "20%", fontSize: 10, textAlign: "right", color: GREY }}>{fmtEur(l.rate)}</div>
+            <div style={{ width: "20%", fontSize: 11, textAlign: "right", fontWeight: 700 }}>{fmtEur(l.amount)}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Totals — total amount is the hero */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+        <div style={{ width: 240 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0" }}>
+            <span style={lbl}>{t.invoiceDoc.subtotalExVat}</span><span style={{ fontSize: 10, color: GREY }}>{fmtEur(invoice.subtotal_ex_vat)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0" }}>
+            <span style={lbl}>{t.invoiceDoc.vat} {invoice.vat_rate ?? 21}%</span><span style={{ fontSize: 10, color: GREY }}>{fmtEur(invoice.vat_amount)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "12px 0 0", marginTop: 8, borderTop: `1px solid ${INK}` }}>
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.35em", textTransform: "uppercase" }}>{t.invoiceDoc.total}</span>
+            <span style={{ fontSize: 22, fontWeight: 700 }}>{fmtEur(invoice.total_inc_vat)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Due date */}
+      {invoice.due_date && (
+        <div style={{ marginTop: 36 }}>
+          <div style={{ fontSize: 9, color: GREY, letterSpacing: "0.03em" }}>{t.invoiceDoc.paymentTerms}: {fmtDateLong(invoice.due_date, locale)}</div>
+        </div>
+      )}
+
+      {/* Footer: IBAN/BIC/terms left, client name right as "signature" */}
+      <div style={{ position: "absolute", bottom: 56, left: 56, right: 56, borderTop: `0.5px solid ${RULE}`, paddingTop: 14, display: "flex", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: 28 }}>
+          {profile.iban && <div><div style={{ ...lbl, fontSize: 7, letterSpacing: "0.2em", marginBottom: 3 }}>IBAN</div><div style={{ fontSize: 8.5 }}>{profile.iban}</div></div>}
+          {profile.bic && <div><div style={{ ...lbl, fontSize: 7, letterSpacing: "0.2em", marginBottom: 3 }}>BIC</div><div style={{ fontSize: 8.5 }}>{profile.bic}</div></div>}
+          <div><div style={{ ...lbl, fontSize: 7, letterSpacing: "0.2em", marginBottom: 3 }}>{t.invoiceDoc.paymentTerms}</div><div style={{ fontSize: 8.5 }}>{days} {t.invoiceDoc.daysNet}</div></div>
+        </div>
+        <div style={{ fontSize: 9, color: GREY, alignSelf: "flex-end" }}>
+          {profile.studio_name || profile.full_name}
         </div>
       </div>
     </div>

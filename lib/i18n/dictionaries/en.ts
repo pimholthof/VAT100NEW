@@ -304,6 +304,8 @@ const en = {
     templateMinimalDesc: "VAT100 house style",
     templateClassicDesc: "Professional & clean",
     templateModernDesc: "Ultra minimal",
+    templateBillboard: "Billboard",
+    templateBillboardDesc: "Maximum VAT100 branding",
     backToOverview: "Overview",
     editInvoice: "Edit",
     backToInvoices: "Back to invoices",

@@ -26,6 +26,7 @@ export function InvoicePDF({ data, template = "minimaal", locale = "nl" }: { dat
   switch (template) {
     case "klassiek": return <KlassiekPDF data={data} locale={locale} />;
     case "strak": return <StrakPDF data={data} locale={locale} />;
+    case "billboard": return <BillboardPDF data={data} locale={locale} />;
     default: return <MinimaalPDF data={data} locale={locale} />;
   }
 }
@@ -418,6 +419,161 @@ function StrakPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
             {profile.bic && <View><Text style={s3.footLbl}>BIC</Text><Text style={s3.footVal}>{profile.bic}</Text></View>}
             <View><Text style={s3.footLbl}>{t.invoiceDoc.paymentTerms}</Text><Text style={s3.footVal}>{days} {t.invoiceDoc.daysNet}</Text></View>
           </View>
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TEMPLATE 4: BILLBOARD — The factuur as design object
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const INK4 = "#000000";
+const GREY4 = "#888888";
+const RULE4 = "#E0E0E0";
+const BG4 = "#FAF9F6";
+const M4 = 56;
+
+const s4 = StyleSheet.create({
+  page: { paddingTop: 64, paddingBottom: M4 + 36, paddingLeft: M4, paddingRight: M4, fontFamily: "Helvetica", color: INK4, backgroundColor: BG4 },
+  // Header — logo dominates
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 },
+  logo: { fontSize: 56, fontWeight: 700, letterSpacing: -2.2, lineHeight: 0.85 },
+  headerRight: { textAlign: "right", paddingTop: 14 },
+  headerDate: { fontSize: 9.5, color: INK4, marginBottom: 3 },
+  headerNum: { fontSize: 9.5, color: GREY4 },
+  typeLabel: { fontSize: 9, letterSpacing: 5, color: GREY4, textTransform: "uppercase", marginBottom: 48 },
+  // Divider — Judd-inspired architectural line
+  div: { borderBottomWidth: 0.5, borderBottomColor: RULE4, borderBottomStyle: "solid", marginBottom: 36 },
+  // Parties — generous breathing room
+  parties: { flexDirection: "row", gap: 56, marginBottom: 36 },
+  partyCol: { flex: 1 },
+  partyLbl: { fontSize: 9, letterSpacing: 5, color: GREY4, textTransform: "uppercase", marginBottom: 10 },
+  partyName: { fontSize: 13, fontWeight: 700, color: INK4, marginBottom: 3 },
+  partyLine: { fontSize: 10, color: INK4, lineHeight: 1.7 },
+  partyDetail: { fontSize: 9, color: GREY4, lineHeight: 1.7, marginTop: 5 },
+  // Table — clean, minimal borders
+  tbl: { marginBottom: 28 },
+  thead: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: RULE4, paddingBottom: 8 },
+  tr: { flexDirection: "row", paddingVertical: 11, borderBottomWidth: 0.5, borderBottomColor: RULE4 },
+  th: { fontSize: 9, letterSpacing: 4, color: GREY4, textTransform: "uppercase" },
+  td: { fontSize: 11, color: INK4 },
+  tdGrey: { fontSize: 10, color: GREY4 },
+  tdBold: { fontSize: 11, fontWeight: 700, color: INK4 },
+  cDesc: { width: "46%" },
+  cQty: { width: "14%", textAlign: "center" },
+  cRate: { width: "20%", textAlign: "right" },
+  cAmt: { width: "20%", textAlign: "right" },
+  // Totals — the total amount is the hero
+  totWrap: { flexDirection: "row", justifyContent: "flex-end", marginTop: 20 },
+  totBlock: { width: 240 },
+  totRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 },
+  totLbl: { fontSize: 9, letterSpacing: 4, color: GREY4, textTransform: "uppercase" },
+  totVal: { fontSize: 10, color: GREY4 },
+  totFinal: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", paddingTop: 12, marginTop: 8, borderTopWidth: 1, borderTopColor: INK4 },
+  totFLbl: { fontSize: 9, fontWeight: 700, letterSpacing: 4, color: INK4, textTransform: "uppercase" },
+  totFVal: { fontSize: 22, fontWeight: 700, color: INK4 },
+  // Due date
+  due: { marginTop: 36 },
+  dueText: { fontSize: 9, color: GREY4, letterSpacing: 0.5 },
+  // Footer — quiet, informational
+  foot: { position: "absolute", bottom: M4, left: M4, right: M4, borderTopWidth: 0.5, borderTopColor: RULE4, borderTopStyle: "solid", paddingTop: 14, flexDirection: "row", justifyContent: "space-between" },
+  footLeft: { flexDirection: "row", gap: 28 },
+  footLbl: { fontSize: 7, letterSpacing: 2.5, color: GREY4, textTransform: "uppercase", marginBottom: 3 },
+  footVal: { fontSize: 8.5, color: INK4 },
+  footSig: { fontSize: 9, color: GREY4, alignSelf: "flex-end" },
+});
+
+function BillboardPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+  const t = getDictionary(locale);
+  const { invoice, lines, client, profile } = data;
+  const cr = invoice.is_credit_note;
+  const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
+  const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
+
+  return (
+    <Document>
+      <Page size="A4" style={s4.page}>
+        {/* Header: VAT100 logo left, date/nr right */}
+        <View style={s4.headerRow}>
+          <Text style={s4.logo}>VAT100</Text>
+          <View style={s4.headerRight}>
+            <Text style={s4.headerDate}>{fmtDateLong(invoice.issue_date)}</Text>
+            <Text style={s4.headerNum}>Nr. {invoice.invoice_number}</Text>
+          </View>
+        </View>
+        <Text style={s4.typeLabel}>{cr ? t.invoiceDoc.creditNote : t.invoiceDoc.invoice}</Text>
+
+        {/* Divider */}
+        <View style={s4.div} />
+
+        {/* VAN / AAN */}
+        <View style={s4.parties}>
+          <View style={s4.partyCol}>
+            <Text style={s4.partyLbl}>{t.invoiceDoc.from}</Text>
+            <Text style={s4.partyName}>{profile.studio_name || profile.full_name}</Text>
+            {profile.address && <Text style={s4.partyLine}>{profile.address}</Text>}
+            {(profile.postal_code || profile.city) && <Text style={s4.partyLine}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</Text>}
+            {profile.kvk_number && <Text style={s4.partyDetail}>KVK {profile.kvk_number}</Text>}
+            {profile.btw_number && <Text style={s4.partyDetail}>BTW {profile.btw_number}</Text>}
+          </View>
+          <View style={s4.partyCol}>
+            <Text style={s4.partyLbl}>{t.invoiceDoc.to}</Text>
+            <Text style={s4.partyName}>{client.name}</Text>
+            {showContact && <Text style={s4.partyLine}>{client.contact_name}</Text>}
+            {client.address && <Text style={s4.partyLine}>{client.address}</Text>}
+            {(client.postal_code || client.city) && <Text style={s4.partyLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</Text>}
+            {client.kvk_number && <Text style={s4.partyDetail}>KVK {client.kvk_number}</Text>}
+            {client.btw_number && <Text style={s4.partyDetail}>BTW {client.btw_number}</Text>}
+          </View>
+        </View>
+
+        {/* Divider */}
+        <View style={s4.div} />
+
+        {/* Table */}
+        <View style={s4.tbl}>
+          <View style={s4.thead}>
+            <Text style={[s4.th, s4.cDesc]}>{t.invoiceDoc.description}</Text>
+            <Text style={[s4.th, s4.cQty]}>{t.invoiceDoc.quantity}</Text>
+            <Text style={[s4.th, s4.cRate]}>{t.invoiceDoc.rate}</Text>
+            <Text style={[s4.th, s4.cAmt]}>{t.invoiceDoc.amount}</Text>
+          </View>
+          {lines.map((l) => (
+            <View style={s4.tr} key={l.id}>
+              <Text style={[s4.td, s4.cDesc]}>{l.description}</Text>
+              <Text style={[s4.tdGrey, s4.cQty]}>{l.quantity} {unitLabel(l.unit)}</Text>
+              <Text style={[s4.tdGrey, s4.cRate]}>{formatCurrency(l.rate)}</Text>
+              <Text style={[s4.tdBold, s4.cAmt]}>{formatCurrency(l.amount)}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Totals */}
+        <View style={s4.totWrap}>
+          <View style={s4.totBlock}>
+            <View style={s4.totRow}><Text style={s4.totLbl}>{t.invoiceDoc.subtotalExVat}</Text><Text style={s4.totVal}>{formatCurrency(invoice.subtotal_ex_vat)}</Text></View>
+            <View style={s4.totRow}><Text style={s4.totLbl}>{t.invoiceDoc.vat} {invoice.vat_rate ?? 21}%</Text><Text style={s4.totVal}>{formatCurrency(invoice.vat_amount)}</Text></View>
+            <View style={s4.totFinal}><Text style={s4.totFLbl}>{t.invoiceDoc.total}</Text><Text style={s4.totFVal}>{formatCurrency(invoice.total_inc_vat)}</Text></View>
+          </View>
+        </View>
+
+        {/* Due date */}
+        {invoice.due_date && (
+          <View style={s4.due}>
+            <Text style={s4.dueText}>{t.invoiceDoc.paymentTerms}: {fmtDateLong(invoice.due_date)}</Text>
+          </View>
+        )}
+
+        {/* Footer: IBAN/BIC/terms left, client name right as "signature" */}
+        <View style={s4.foot}>
+          <View style={s4.footLeft}>
+            {profile.iban && <View><Text style={s4.footLbl}>IBAN</Text><Text style={s4.footVal}>{profile.iban}</Text></View>}
+            {profile.bic && <View><Text style={s4.footLbl}>BIC</Text><Text style={s4.footVal}>{profile.bic}</Text></View>}
+            <View><Text style={s4.footLbl}>{t.invoiceDoc.paymentTerms}</Text><Text style={s4.footVal}>{days} {t.invoiceDoc.daysNet}</Text></View>
+          </View>
+          <Text style={s4.footSig}>{profile.studio_name || profile.full_name}</Text>
         </View>
       </Page>
     </Document>
