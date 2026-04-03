@@ -414,7 +414,7 @@ export async function adminGlobalSearch(
         id: p.id,
         label: p.full_name || p.studio_name || "Naamloos",
         sub: p.studio_name || "",
-        href: `/admin/users/${p.id}`,
+        href: `/admin/klanten/${p.id}`,
       });
     }
 
@@ -435,7 +435,7 @@ export async function adminGlobalSearch(
         id: inv.id,
         label: inv.invoice_number || `Factuur ${inv.id.substring(0, 8)}`,
         sub: `${inv.status} — €${Number(inv.total_inc_vat || 0).toFixed(2)}`,
-        href: `/admin/invoices`,
+        href: `/admin/klanten/facturen`,
       });
     }
 

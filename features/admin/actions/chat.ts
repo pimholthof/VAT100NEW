@@ -169,7 +169,7 @@ export async function sendAdminChatMessage(
       .update({ updated_at: new Date().toISOString() })
       .eq("id", conversationId);
 
-    revalidatePath("/admin/feedback");
+    revalidatePath("/admin/klanten/feedback");
     return { error: null };
   } catch (e) {
     return { error: sanitizeError(e, { action: "sendAdminChatMessage" }) };

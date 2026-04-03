@@ -34,7 +34,7 @@ export async function bulkSuspendUsers(userIds: string[]): Promise<ActionResult<
       userIds,
     });
 
-    revalidatePath("/admin/users");
+    revalidatePath("/admin/klanten");
     return { error: null, data: { processed: userIds.length } };
   } catch (e) {
     return { error: sanitizeError(e, { action: "bulkSuspendUsers" }) };
@@ -63,7 +63,7 @@ export async function bulkReactivateUsers(userIds: string[]): Promise<ActionResu
       userIds,
     });
 
-    revalidatePath("/admin/users");
+    revalidatePath("/admin/klanten");
     return { error: null, data: { processed: userIds.length } };
   } catch (e) {
     return { error: sanitizeError(e, { action: "bulkReactivateUsers" }) };

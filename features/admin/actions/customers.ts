@@ -289,8 +289,7 @@ export async function updateCustomerProfile(
     }
 
     await logAdminAction(auth.user.id, "customer.profile_update", "customer", userId, data);
-    revalidatePath(`/admin/customers/${userId}`);
-    revalidatePath(`/admin/users/${userId}`);
+    revalidatePath(`/admin/klanten/${userId}`);
     return { error: null };
   } catch (e) {
     return { error: sanitizeError(e, { action: "updateCustomerProfile", userId }) };
@@ -578,5 +577,174 @@ export async function exportAllCustomersCSV(): Promise<ActionResult<string>> {
     return { error: null, data: generateCSV(headers, rows) };
   } catch (e) {
     return { error: sanitizeError(e, { action: "exportAllCustomersCSV" }) };
+  }
+}
+
+// ─── Customer Benchmarks ───
+
+export interface CustomerBenchmarks {
+  avgInvoiceAmount: number;
+  avgPaymentDays: number;
+  clientCount: number;
+  expenseRatio: number;
+  hasBankConnection: boolean;
+  hasHoursLogged: boolean;
+  platform: {
+    avgInvoiceAmount: number;
+    avgPaymentDays: number;
+    avgClientCount: number;
+    avgExpenseRatio: number;
+  };
+}
+
+export async function getCustomerBenchmarks(userId: string): Promise<ActionResult<CustomerBenchmarks>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+
+    // Fetch user-specific data and platform averages in parallel
+    const [
+      userInvoicesResult,
+      userClientsResult,
+      userReceiptsResult,
+      userBankResult,
+      userHoursResult,
+      platformInvoicesResult,
+      platformClientsResult,
+      platformReceiptsResult,
+    ] = await Promise.all([
+      // User data
+      supabase
+        .from("invoices")
+        .select("total_inc_vat, status, issue_date, paid_at")
+        .eq("user_id", userId),
+      supabase
+        .from("clients")
+        .select("id", { count: "exact" })
+        .eq("user_id", userId),
+      supabase
+        .from("receipts")
+        .select("amount_inc_vat")
+        .eq("user_id", userId),
+      supabase
+        .from("bank_connections")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .limit(1),
+      supabase
+        .from("hours_logs")
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1),
+      // Platform averages
+      supabase
+        .from("invoices")
+        .select("total_inc_vat, status, issue_date, paid_at, user_id"),
+      supabase
+        .from("clients")
+        .select("user_id"),
+      supabase
+        .from("receipts")
+        .select("amount_inc_vat, user_id"),
+    ]);
+
+    // User metrics
+    const userInvoices = userInvoicesResult.data ?? [];
+    const paidUserInvoices = userInvoices.filter((i) => i.status === "paid");
+    const userRevenue = paidUserInvoices.reduce((sum, i) => sum + (Number(i.total_inc_vat) || 0), 0);
+    const avgInvoiceAmount = paidUserInvoices.length > 0
+      ? userRevenue / paidUserInvoices.length
+      : 0;
+
+    // Average payment days for user
+    const paymentDays = paidUserInvoices
+      .filter((i) => i.issue_date && i.paid_at)
+      .map((i) => {
+        const issued = new Date(i.issue_date).getTime();
+        const paid = new Date(i.paid_at).getTime();
+        return Math.max(0, Math.floor((paid - issued) / (1000 * 60 * 60 * 24)));
+      });
+    const avgPaymentDays = paymentDays.length > 0
+      ? paymentDays.reduce((s, d) => s + d, 0) / paymentDays.length
+      : 0;
+
+    const clientCount = userClientsResult.count ?? 0;
+
+    const userExpenses = (userReceiptsResult.data ?? []).reduce((sum, r) => sum + (Number(r.amount_inc_vat) || 0), 0);
+    const expenseRatio = userRevenue > 0 ? userExpenses / userRevenue : 0;
+
+    const hasBankConnection = (userBankResult.data ?? []).length > 0;
+    const hasHoursLogged = (userHoursResult.data ?? []).length > 0;
+
+    // Platform averages
+    const allInvoices = platformInvoicesResult.data ?? [];
+    const allPaid = allInvoices.filter((i) => i.status === "paid");
+    const platformRevenue = allPaid.reduce((sum, i) => sum + (Number(i.total_inc_vat) || 0), 0);
+    const platformAvgInvoice = allPaid.length > 0 ? platformRevenue / allPaid.length : 0;
+
+    const allPaymentDays = allPaid
+      .filter((i) => i.issue_date && i.paid_at)
+      .map((i) => {
+        const issued = new Date(i.issue_date).getTime();
+        const paid = new Date(i.paid_at).getTime();
+        return Math.max(0, Math.floor((paid - issued) / (1000 * 60 * 60 * 24)));
+      });
+    const platformAvgPaymentDays = allPaymentDays.length > 0
+      ? allPaymentDays.reduce((s, d) => s + d, 0) / allPaymentDays.length
+      : 0;
+
+    // Average clients per user
+    const allClients = platformClientsResult.data ?? [];
+    const clientsByUser = new Map<string, number>();
+    for (const c of allClients) {
+      clientsByUser.set(c.user_id, (clientsByUser.get(c.user_id) ?? 0) + 1);
+    }
+    const platformAvgClients = clientsByUser.size > 0
+      ? [...clientsByUser.values()].reduce((s, n) => s + n, 0) / clientsByUser.size
+      : 0;
+
+    // Average expense ratio per user
+    const allReceipts = platformReceiptsResult.data ?? [];
+    const expensesByUser = new Map<string, number>();
+    for (const r of allReceipts) {
+      expensesByUser.set(r.user_id, (expensesByUser.get(r.user_id) ?? 0) + (Number(r.amount_inc_vat) || 0));
+    }
+    const revenueByUser = new Map<string, number>();
+    for (const i of allPaid) {
+      revenueByUser.set(i.user_id, (revenueByUser.get(i.user_id) ?? 0) + (Number(i.total_inc_vat) || 0));
+    }
+    let totalRatios = 0;
+    let ratioCount = 0;
+    for (const [uid, rev] of revenueByUser) {
+      if (rev > 0) {
+        const exp = expensesByUser.get(uid) ?? 0;
+        totalRatios += exp / rev;
+        ratioCount++;
+      }
+    }
+    const platformAvgExpenseRatio = ratioCount > 0 ? totalRatios / ratioCount : 0;
+
+    return {
+      error: null,
+      data: {
+        avgInvoiceAmount: Math.round(avgInvoiceAmount * 100) / 100,
+        avgPaymentDays: Math.round(avgPaymentDays * 10) / 10,
+        clientCount,
+        expenseRatio: Math.round(expenseRatio * 1000) / 1000,
+        hasBankConnection,
+        hasHoursLogged,
+        platform: {
+          avgInvoiceAmount: Math.round(platformAvgInvoice * 100) / 100,
+          avgPaymentDays: Math.round(platformAvgPaymentDays * 10) / 10,
+          avgClientCount: Math.round(platformAvgClients * 10) / 10,
+          avgExpenseRatio: Math.round(platformAvgExpenseRatio * 1000) / 1000,
+        },
+      },
+    };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "getCustomerBenchmarks", userId }) };
   }
 }

@@ -111,7 +111,7 @@ export default function AdminFinancialsPage() {
               ) : (
                 <div className="admin-list">
                   {expenses.topUsers.map((user) => (
-                    <Link key={user.user_id} href={`/admin/users/${user.user_id}`} className="admin-list-item">
+                    <Link key={user.user_id} href={`/admin/klanten/${user.user_id}`} className="admin-list-item">
                       <div className="admin-list-content">
                         <p className="admin-list-title">{user.user_name}</p>
                         <p className="admin-list-sub">{user.receipt_count} bonnen</p>
