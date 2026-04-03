@@ -8,6 +8,16 @@ import DashboardMockup from "@/components/landing/DashboardMockup";
 import InvoiceMockup from "@/components/landing/InvoiceMockup";
 import VatMockup from "@/components/landing/VatMockup";
 import PosterMockup from "@/components/landing/PosterMockup";
+import BrowserFrame from "@/components/landing/BrowserFrame";
+
+/* ─── Dark palette constants ─── */
+const BG = "#0a0a0a";
+const BG_ELEVATED = "#111111";
+const TEXT = "rgba(255,255,255,0.9)";
+const TEXT_DIM = "rgba(255,255,255,0.5)";
+const TEXT_GHOST = "rgba(255,255,255,0.25)";
+const BORDER = "rgba(255,255,255,0.08)";
+const BORDER_STRONG = "rgba(255,255,255,0.2)";
 
 /* ─── Inline style helpers ─── */
 const inputStyle: React.CSSProperties = {
@@ -15,9 +25,9 @@ const inputStyle: React.CSSProperties = {
   fontWeight: 400,
   padding: "14px 0",
   border: "none",
-  borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+  borderBottom: `0.5px solid ${BORDER_STRONG}`,
   background: "transparent",
-  color: "var(--color-black)",
+  color: TEXT,
   outline: "none",
   width: "100%",
   transition: "border-color 0.2s ease",
@@ -25,19 +35,28 @@ const inputStyle: React.CSSProperties = {
 
 const sectionPadding: React.CSSProperties = {
   padding: "clamp(60px, 8vw, 120px) clamp(24px, 4vw, 64px)",
-  maxWidth: 960,
+  maxWidth: 1100,
   margin: "0 auto",
+};
+
+const monoLabel: React.CSSProperties = {
+  fontFamily: "var(--font-geist-mono), monospace",
+  fontSize: 10,
+  fontWeight: 500,
+  letterSpacing: "0.18em",
+  textTransform: "uppercase" as const,
+  color: TEXT_DIM,
 };
 
 const divider = (
   <div
     style={{
-      maxWidth: 960,
+      maxWidth: 1100,
       margin: "0 auto",
       padding: "0 clamp(24px, 4vw, 64px)",
     }}
   >
-    <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.06)" }} />
+    <div style={{ borderTop: `0.5px solid ${BORDER}` }} />
   </div>
 );
 
@@ -128,25 +147,27 @@ export default function LandingPage() {
         minHeight: "100dvh",
         position: "relative",
         overflow: "hidden",
-        background: "var(--background)",
+        background: BG,
+        color: TEXT,
       }}
     >
-      {/* Background watermark */}
+      {/* ─── Ghost Watermark ─── */}
       <div
         aria-hidden="true"
         style={{
           position: "fixed",
-          bottom: -80,
-          right: -60,
-          fontSize: "min(28rem, 45vw)",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          fontSize: "min(22rem, 28vw)",
           fontWeight: 800,
           letterSpacing: "-0.05em",
           lineHeight: 0.85,
-          color: "var(--color-black)",
-          opacity: 0.015,
+          color: "rgba(255,255,255,0.03)",
           pointerEvents: "none",
           userSelect: "none",
           whiteSpace: "nowrap",
+          fontFamily: "var(--font-geist-sans), sans-serif",
         }}
       >
         VAT100
@@ -155,79 +176,76 @@ export default function LandingPage() {
       {/* ─── Header ─── */}
       <header
         style={{
-          padding: "32px clamp(24px, 4vw, 64px)",
+          padding: "24px clamp(24px, 4vw, 64px)",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           position: "sticky",
           top: 0,
           zIndex: 10,
-          background: "rgba(250, 249, 246, 0.85)",
+          background: "rgba(10, 10, 10, 0.88)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
+          borderBottom: `0.5px solid ${BORDER}`,
         }}
       >
         <span
           style={{
-            fontSize: "clamp(1.5rem, 4vw, 2rem)",
-            fontWeight: 800,
-            letterSpacing: "-0.05em",
-            color: "var(--color-black)",
+            fontSize: "clamp(1.3rem, 3vw, 1.6rem)",
+            fontWeight: 700,
+            letterSpacing: "-0.04em",
+            color: "#fff",
+            fontFamily: "var(--font-geist-mono), monospace",
           }}
         >
           VAT100
         </span>
-        <nav style={{ display: "flex", gap: 24, alignItems: "center" }}>
+        <nav style={{ display: "flex", gap: 20, alignItems: "center" }}>
           <a
             href="#functies"
-            className="label"
             style={{
+              ...monoLabel,
               textDecoration: "none",
-              color: "var(--color-black)",
-              opacity: 0.5,
+              fontSize: 11,
             }}
           >
             {t.landing.features}
           </a>
           <a
             href="#prijzen"
-            className="label"
             style={{
+              ...monoLabel,
               textDecoration: "none",
-              color: "var(--color-black)",
-              opacity: 0.5,
+              fontSize: 11,
             }}
           >
             {t.landing.pricing}
           </a>
           <button
             onClick={() => setLocale(locale === "nl" ? "en" : "nl")}
-            className="label-strong"
             style={{
-              textDecoration: "none",
-              color: "var(--color-black)",
+              ...monoLabel,
               padding: "6px 10px",
-              border: "0.5px solid rgba(0,0,0,0.12)",
-              borderRadius: "var(--radius-sm)",
+              border: `0.5px solid ${BORDER_STRONG}`,
+              borderRadius: 4,
               background: "transparent",
               cursor: "pointer",
-              fontSize: "11px",
-              letterSpacing: "0.1em",
-              opacity: 0.5,
+              fontSize: 10,
             }}
           >
             {locale === "nl" ? "EN" : "NL"}
           </button>
           <Link
             href="/login"
-            className="label-strong"
             style={{
+              ...monoLabel,
               textDecoration: "none",
-              color: "var(--color-black)",
+              color: TEXT,
               padding: "10px 20px",
-              border: "0.5px solid rgba(0,0,0,0.15)",
-              borderRadius: "var(--radius-sm)",
+              border: `0.5px solid ${BORDER_STRONG}`,
+              borderRadius: 4,
               transition: "border-color 0.15s ease",
+              fontSize: 11,
             }}
           >
             {t.landing.login}
@@ -238,8 +256,8 @@ export default function LandingPage() {
       {/* ─── Hero ─── */}
       <section
         style={{
-          padding: "clamp(60px, 10vw, 140px) clamp(24px, 4vw, 64px) clamp(40px, 6vw, 80px)",
-          maxWidth: 960,
+          padding: "clamp(80px, 12vw, 180px) clamp(24px, 4vw, 64px) clamp(60px, 8vw, 120px)",
+          maxWidth: 1100,
           margin: "0 auto",
         }}
       >
@@ -247,26 +265,23 @@ export default function LandingPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "1.1fr 1fr",
-            gap: "clamp(32px, 5vw, 64px)",
+            gap: "clamp(40px, 5vw, 80px)",
             alignItems: "center",
           }}
         >
           {/* Copy */}
           <div>
-            <p
-              className="label-strong"
-              style={{ marginBottom: 16, fontSize: 11 }}
-            >
+            <p style={{ ...monoLabel, marginBottom: 20 }}>
               {t.landing.heroLabel}
             </p>
             <h1
               style={{
-                fontSize: "clamp(2.2rem, 5vw, 3.5rem)",
+                fontSize: "clamp(2.4rem, 5.5vw, 4rem)",
                 fontWeight: 700,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.08,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.05,
                 margin: 0,
-                color: "var(--color-black)",
+                color: "#fff",
                 whiteSpace: "pre-line",
               }}
             >
@@ -274,36 +289,52 @@ export default function LandingPage() {
             </h1>
             <p
               style={{
-                fontSize: "clamp(1rem, 2vw, 1.2rem)",
+                fontSize: "clamp(1rem, 2vw, 1.15rem)",
                 fontWeight: 300,
-                lineHeight: 1.6,
-                marginTop: 24,
+                lineHeight: 1.7,
+                marginTop: 28,
                 maxWidth: 440,
-                color: "var(--color-black)",
-                opacity: 0.55,
+                color: TEXT_DIM,
               }}
             >
               {t.landing.heroSubtitleNew}
             </p>
-            <div style={{ marginTop: 40, display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ marginTop: 44, display: "flex", gap: 16, flexWrap: "wrap" }}>
               <a
                 href="#wachtlijst"
-                className="btn-primary"
                 style={{
-                  padding: "18px 36px",
+                  padding: "16px 32px",
                   textDecoration: "none",
                   display: "inline-block",
+                  background: "#fff",
+                  color: "#000",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  borderRadius: 4,
+                  fontFamily: "var(--font-geist-mono), monospace",
+                  transition: "opacity 0.15s ease",
                 }}
               >
                 {t.landing.heroCta}
               </a>
               <a
                 href="#product"
-                className="btn-secondary"
                 style={{
-                  padding: "18px 36px",
+                  padding: "16px 32px",
                   textDecoration: "none",
                   display: "inline-block",
+                  background: "transparent",
+                  color: TEXT,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  border: `0.5px solid ${BORDER_STRONG}`,
+                  borderRadius: 4,
+                  fontFamily: "var(--font-geist-mono), monospace",
+                  transition: "border-color 0.15s ease",
                 }}
               >
                 {t.landing.heroCtaSecondary}
@@ -313,7 +344,9 @@ export default function LandingPage() {
 
           {/* Product mockup */}
           <div>
-            <DashboardMockup locale={locale} />
+            <BrowserFrame dark>
+              <DashboardMockup locale={locale} />
+            </BrowserFrame>
           </div>
         </div>
       </section>
@@ -322,7 +355,7 @@ export default function LandingPage() {
       <section
         style={{
           padding: "24px clamp(24px, 4vw, 64px)",
-          maxWidth: 960,
+          maxWidth: 1100,
           margin: "0 auto",
         }}
       >
@@ -343,9 +376,9 @@ export default function LandingPage() {
           ].map((signal, i) => (
             <span
               key={i}
-              className="label"
               style={{
-                opacity: 0.35,
+                ...monoLabel,
+                color: TEXT_GHOST,
                 display: "flex",
                 alignItems: "center",
                 gap: 24,
@@ -362,132 +395,157 @@ export default function LandingPage() {
 
       {divider}
 
-      {/* ─── Product Showcase ─── */}
+      {/* ─── Editorial Showcase Grid (Bento) ─── */}
       <section
         id="product"
         style={sectionPadding}
       >
-        <p className="label" style={{ marginBottom: 16 }}>
-          {t.landing.showcaseLabel}
+        <p style={{ ...monoLabel, marginBottom: 40 }}>
+          {t.landing.editorialLabel}
         </p>
 
-        {/* Feature 1: Invoices — copy left, mockup right */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1.2fr",
-            gap: "clamp(32px, 4vw, 64px)",
-            alignItems: "center",
-            marginBottom: "clamp(60px, 8vw, 100px)",
+            gridTemplateColumns: "1.4fr 1fr",
+            gridTemplateRows: "auto auto",
+            gap: 2,
           }}
         >
-          <div>
+          {/* Large cell — Invoices */}
+          <div
+            style={{
+              gridRow: "1 / 3",
+              border: `0.5px solid ${BORDER}`,
+              borderRadius: 8,
+              padding: "32px 28px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 20,
+            }}
+          >
+            <p style={monoLabel}>{t.landing.editorialInvoices}</p>
             <h3
               style={{
-                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                fontSize: "clamp(1.4rem, 2.5vw, 2rem)",
                 fontWeight: 700,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.15,
                 margin: 0,
-                marginBottom: 16,
+                color: "#fff",
                 whiteSpace: "pre-line",
               }}
             >
               {t.landing.showcaseInvoicesTitle}
             </h3>
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.8,
-                margin: 0,
-                opacity: 0.55,
-              }}
-            >
+            <p style={{ fontSize: 14, lineHeight: 1.8, margin: 0, color: TEXT_DIM }}>
               {t.landing.showcaseInvoicesDesc}
             </p>
+            <div style={{ marginTop: "auto" }}>
+              <InvoiceMockup locale={locale} />
+            </div>
           </div>
-          <InvoiceMockup locale={locale} />
-        </div>
 
-        {/* Feature 2: VAT — mockup left, copy right */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.2fr 1fr",
-            gap: "clamp(32px, 4vw, 64px)",
-            alignItems: "center",
-          }}
-        >
-          <VatMockup locale={locale} />
-          <div>
+          {/* Top right — VAT */}
+          <div
+            style={{
+              border: `0.5px solid ${BORDER}`,
+              borderRadius: 8,
+              padding: "28px 24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+            }}
+          >
+            <p style={monoLabel}>{t.landing.editorialVat}</p>
             <h3
               style={{
-                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                fontSize: "clamp(1.1rem, 2vw, 1.5rem)",
                 fontWeight: 700,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.15,
                 margin: 0,
-                marginBottom: 16,
+                color: "#fff",
                 whiteSpace: "pre-line",
               }}
             >
               {t.landing.showcaseVatTitle}
             </h3>
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.8,
-                margin: 0,
-                opacity: 0.55,
-              }}
-            >
+            <p style={{ fontSize: 13, lineHeight: 1.7, margin: 0, color: TEXT_DIM }}>
               {t.landing.showcaseVatDesc}
             </p>
+            <div style={{ marginTop: 8 }}>
+              <VatMockup locale={locale} />
+            </div>
           </div>
-        </div>
 
-        {/* Feature 3: Poster invoice — copy left, mockup right */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1.2fr",
-            gap: "clamp(32px, 4vw, 64px)",
-            alignItems: "center",
-            marginTop: "clamp(60px, 8vw, 100px)",
-          }}
-        >
-          <div>
+          {/* Bottom right — Poster */}
+          <div
+            style={{
+              border: `0.5px solid ${BORDER}`,
+              borderRadius: 8,
+              padding: "28px 24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+            }}
+          >
+            <p style={monoLabel}>{t.landing.editorialPoster}</p>
             <h3
               style={{
-                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                fontSize: "clamp(1.1rem, 2vw, 1.5rem)",
                 fontWeight: 700,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.15,
                 margin: 0,
-                marginBottom: 16,
+                color: "#fff",
                 whiteSpace: "pre-line",
               }}
             >
               {t.landing.showcasePosterTitle}
             </h3>
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.8,
-                margin: 0,
-                opacity: 0.55,
-              }}
-            >
+            <p style={{ fontSize: 13, lineHeight: 1.7, margin: 0, color: TEXT_DIM }}>
               {t.landing.showcasePosterDesc}
             </p>
+            <div style={{ marginTop: 8, maxWidth: 200 }}>
+              <PosterMockup locale={locale} />
+            </div>
           </div>
-          <PosterMockup locale={locale} />
         </div>
       </section>
 
       {divider}
 
-      {/* ─── Concept ─── */}
+      {/* ─── Manifesto ─── */}
+      <section
+        style={{
+          ...sectionPadding,
+          paddingTop: "clamp(80px, 10vw, 160px)",
+          paddingBottom: "clamp(80px, 10vw, 160px)",
+        }}
+      >
+        <p style={{ ...monoLabel, marginBottom: 32 }}>
+          {t.landing.manifestoLabel}
+        </p>
+        <blockquote
+          style={{
+            fontSize: "clamp(1.6rem, 3.5vw, 2.8rem)",
+            fontWeight: 300,
+            lineHeight: 1.35,
+            margin: 0,
+            maxWidth: 800,
+            fontFamily: "var(--font-serif, 'Cormorant Garamond', Georgia, serif)",
+            fontStyle: "italic",
+            color: "rgba(255,255,255,0.75)",
+          }}
+        >
+          &ldquo;{t.landing.manifestoQuote}&rdquo;
+        </blockquote>
+      </section>
+
+      {divider}
+
+      {/* ─── Concept + Stats ─── */}
       <section style={sectionPadding}>
         <div
           style={{
@@ -498,7 +556,7 @@ export default function LandingPage() {
           }}
         >
           <div>
-            <p className="label" style={{ marginBottom: 16 }}>
+            <p style={{ ...monoLabel, marginBottom: 16 }}>
               {t.landing.theIdea}
             </p>
             <h2
@@ -508,6 +566,7 @@ export default function LandingPage() {
                 letterSpacing: "-0.03em",
                 lineHeight: 1.1,
                 margin: 0,
+                color: "#fff",
               }}
             >
               {t.landing.lessSoftware}
@@ -521,7 +580,7 @@ export default function LandingPage() {
                 fontSize: 15,
                 lineHeight: 1.8,
                 margin: 0,
-                opacity: 0.6,
+                color: TEXT_DIM,
               }}
             >
               {t.landing.ideaDescription}
@@ -547,11 +606,13 @@ export default function LandingPage() {
                       fontWeight: 700,
                       letterSpacing: "-0.03em",
                       margin: 0,
+                      color: "#fff",
+                      fontFamily: "var(--font-geist-mono), monospace",
                     }}
                   >
                     {stat.value}
                   </p>
-                  <p className="label" style={{ marginTop: 4 }}>
+                  <p style={{ ...monoLabel, marginTop: 4 }}>
                     {stat.label}
                   </p>
                 </div>
@@ -568,7 +629,7 @@ export default function LandingPage() {
         id="functies"
         style={sectionPadding}
       >
-        <p className="label" style={{ marginBottom: 16 }}>
+        <p style={{ ...monoLabel, marginBottom: 16 }}>
           {t.landing.features}
         </p>
         <h2
@@ -579,6 +640,7 @@ export default function LandingPage() {
             lineHeight: 1.1,
             margin: 0,
             marginBottom: "clamp(40px, 6vw, 80px)",
+            color: "#fff",
           }}
         >
           {t.landing.featuresTitle}
@@ -589,7 +651,7 @@ export default function LandingPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             gap: 1,
           }}
         >
@@ -598,13 +660,18 @@ export default function LandingPage() {
               key={i}
               style={{
                 padding: "32px 28px",
-                border: "0.5px solid rgba(0,0,0,0.06)",
-                borderRadius: "var(--radius)",
+                border: `0.5px solid ${BORDER}`,
+                borderRadius: 8,
               }}
             >
               <p
-                className="label-strong"
-                style={{ marginBottom: 12, fontSize: 11 }}
+                style={{
+                  ...monoLabel,
+                  marginBottom: 12,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: TEXT,
+                }}
               >
                 {feature.title}
               </p>
@@ -613,7 +680,7 @@ export default function LandingPage() {
                   fontSize: 14,
                   lineHeight: 1.7,
                   margin: 0,
-                  opacity: 0.5,
+                  color: TEXT_DIM,
                 }}
               >
                 {feature.description}
@@ -630,7 +697,7 @@ export default function LandingPage() {
         id="prijzen"
         style={sectionPadding}
       >
-        <p className="label" style={{ marginBottom: 16 }}>
+        <p style={{ ...monoLabel, marginBottom: 16 }}>
           {t.landing.pricing}
         </p>
         <h2
@@ -641,6 +708,7 @@ export default function LandingPage() {
             lineHeight: 1.1,
             margin: 0,
             marginBottom: "clamp(40px, 6vw, 80px)",
+            color: "#fff",
           }}
         >
           {t.landing.pricingTitle}
@@ -649,7 +717,7 @@ export default function LandingPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
             gap: 1,
           }}
         >
@@ -659,28 +727,32 @@ export default function LandingPage() {
               style={{
                 padding: "36px 28px",
                 border: plan.highlighted
-                  ? "1px solid var(--color-black)"
-                  : "0.5px solid rgba(0,0,0,0.08)",
-                borderRadius: "var(--radius)",
+                  ? "1px solid rgba(255,255,255,0.9)"
+                  : `0.5px solid ${BORDER}`,
+                borderRadius: 8,
                 display: "flex",
                 flexDirection: "column",
                 position: "relative",
+                background: plan.highlighted ? BG_ELEVATED : "transparent",
               }}
             >
               {plan.highlighted && (
                 <div
-                  className="label-strong"
                   style={{
                     position: "absolute",
                     top: -1,
                     left: 28,
                     right: 28,
                     textAlign: "center",
-                    background: "var(--color-black)",
-                    color: "var(--background)",
+                    background: "#fff",
+                    color: "#000",
                     padding: "6px 12px",
-                    borderRadius: "0 0 var(--radius-sm) var(--radius-sm)",
+                    borderRadius: "0 0 4px 4px",
                     fontSize: 9,
+                    fontFamily: "var(--font-geist-mono), monospace",
+                    fontWeight: 600,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
                   }}
                 >
                   {plan.cta}
@@ -688,8 +760,13 @@ export default function LandingPage() {
               )}
 
               <p
-                className="label-strong"
-                style={{ marginBottom: 4, fontSize: 11 }}
+                style={{
+                  ...monoLabel,
+                  marginBottom: 4,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: TEXT,
+                }}
               >
                 {plan.name}
               </p>
@@ -700,17 +777,19 @@ export default function LandingPage() {
                     fontSize: "clamp(2rem, 4vw, 3rem)",
                     fontWeight: 700,
                     letterSpacing: "-0.03em",
+                    color: "#fff",
+                    fontFamily: "var(--font-geist-mono), monospace",
                   }}
                 >
                   &euro;{plan.price}
                 </span>
-                <span className="label">{plan.period}</span>
+                <span style={monoLabel}>{plan.period}</span>
               </div>
 
               <p
                 style={{
                   fontSize: 13,
-                  opacity: 0.5,
+                  color: TEXT_DIM,
                   margin: 0,
                   marginBottom: 24,
                   lineHeight: 1.5,
@@ -721,7 +800,7 @@ export default function LandingPage() {
 
               <div
                 style={{
-                  borderTop: "0.5px solid rgba(0,0,0,0.06)",
+                  borderTop: `0.5px solid ${BORDER}`,
                   paddingTop: 20,
                   flex: 1,
                 }}
@@ -733,13 +812,13 @@ export default function LandingPage() {
                       fontSize: 13,
                       margin: 0,
                       padding: "6px 0",
-                      opacity: 0.6,
+                      color: TEXT_DIM,
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
                     }}
                   >
-                    <span style={{ opacity: 0.3, fontSize: 10 }}>&#x2713;</span>
+                    <span style={{ opacity: 0.4, fontSize: 10 }}>&#x2713;</span>
                     {f}
                   </p>
                 ))}
@@ -747,13 +826,26 @@ export default function LandingPage() {
 
               <a
                 href={`/register?plan=${plan.id}`}
-                className={plan.highlighted ? "btn-primary" : "btn-secondary"}
                 style={{
                   marginTop: 28,
                   padding: "14px 24px",
                   textDecoration: "none",
                   textAlign: "center",
                   display: "block",
+                  borderRadius: 4,
+                  fontFamily: "var(--font-geist-mono), monospace",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  transition: "opacity 0.15s ease",
+                  ...(plan.highlighted
+                    ? { background: "#fff", color: "#000" }
+                    : {
+                        background: "transparent",
+                        color: TEXT,
+                        border: `0.5px solid ${BORDER_STRONG}`,
+                      }),
                 }}
               >
                 {plan.highlighted ? t.landing.getStarted : t.landing.choose + plan.name}
@@ -767,13 +859,13 @@ export default function LandingPage() {
 
       {/* ─── Persona Quotes ─── */}
       <section style={sectionPadding}>
-        <p className="label" style={{ marginBottom: 16 }}>
+        <p style={{ ...monoLabel, marginBottom: 16 }}>
           {t.landing.personaTitle}
         </p>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
             gap: 1,
           }}
         >
@@ -782,13 +874,16 @@ export default function LandingPage() {
               key={p.type}
               style={{
                 padding: "32px 28px",
-                border: "0.5px solid rgba(0,0,0,0.06)",
-                borderRadius: "var(--radius)",
+                border: `0.5px solid ${BORDER}`,
+                borderRadius: 8,
               }}
             >
               <p
-                className="label"
-                style={{ marginBottom: 16, opacity: 0.35 }}
+                style={{
+                  ...monoLabel,
+                  marginBottom: 16,
+                  color: TEXT_GHOST,
+                }}
               >
                 {p.type}
               </p>
@@ -798,9 +893,9 @@ export default function LandingPage() {
                   fontWeight: 300,
                   lineHeight: 1.5,
                   margin: 0,
-                  fontFamily: "var(--font-serif)",
+                  fontFamily: "var(--font-serif, 'Cormorant Garamond', Georgia, serif)",
                   fontStyle: "italic",
-                  opacity: 0.7,
+                  color: "rgba(255,255,255,0.65)",
                 }}
               >
                 &ldquo;{p.quote}&rdquo;
@@ -822,20 +917,25 @@ export default function LandingPage() {
             <div
               style={{
                 padding: "32px",
-                border: "0.5px solid rgba(0,0,0,0.08)",
-                borderRadius: "var(--radius)",
+                border: `0.5px solid ${BORDER}`,
+                borderRadius: 8,
               }}
             >
               <p
-                className="label-strong"
-                style={{ marginBottom: 8, fontSize: 13 }}
+                style={{
+                  ...monoLabel,
+                  marginBottom: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: TEXT,
+                }}
               >
                 {t.landing.onWaitlist}
               </p>
               <p
                 style={{
                   fontSize: 14,
-                  opacity: 0.5,
+                  color: TEXT_DIM,
                   margin: 0,
                   lineHeight: 1.6,
                 }}
@@ -846,7 +946,7 @@ export default function LandingPage() {
             </div>
           ) : (
             <div>
-              <p className="label" style={{ marginBottom: 16 }}>
+              <p style={{ ...monoLabel, marginBottom: 16 }}>
                 {t.landing.earlyAccess}
               </p>
               <h2
@@ -857,6 +957,7 @@ export default function LandingPage() {
                   lineHeight: 1.1,
                   margin: 0,
                   marginBottom: 32,
+                  color: "#fff",
                 }}
               >
                 {t.landing.waitlistTitle}
@@ -874,8 +975,7 @@ export default function LandingPage() {
                   <div style={{ flex: 1, minWidth: 180 }}>
                     <label
                       htmlFor="name"
-                      className="label"
-                      style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
+                      style={{ ...monoLabel, display: "block", marginBottom: 4, color: TEXT_GHOST }}
                     >
                       {t.landing.name}
                     </label>
@@ -891,8 +991,7 @@ export default function LandingPage() {
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <label
                       htmlFor="email"
-                      className="label"
-                      style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
+                      style={{ ...monoLabel, display: "block", marginBottom: 4, color: TEXT_GHOST }}
                     >
                       {t.landing.email}
                     </label>
@@ -912,9 +1011,10 @@ export default function LandingPage() {
                     role="alert"
                     style={{
                       padding: "12px 16px",
-                      background: "rgba(165, 28, 48, 0.04)",
+                      background: "rgba(165, 28, 48, 0.15)",
                       borderLeft: "2px solid var(--color-accent)",
                       fontSize: "12px",
+                      color: "rgba(255,200,200,0.9)",
                     }}
                   >
                     {error}
@@ -924,10 +1024,21 @@ export default function LandingPage() {
                 <button
                   type="submit"
                   disabled={pending}
-                  className="btn-primary"
                   style={{
-                    padding: "18px 32px",
+                    padding: "16px 32px",
                     alignSelf: "flex-start",
+                    background: "#fff",
+                    color: "#000",
+                    border: "none",
+                    borderRadius: 4,
+                    fontFamily: "var(--font-geist-mono), monospace",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    cursor: pending ? "default" : "pointer",
+                    opacity: pending ? 0.5 : 1,
+                    transition: "opacity 0.15s ease",
                   }}
                 >
                   {pending ? t.common.waiting : t.landing.waitlistButton}
@@ -938,43 +1049,135 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Footer ─── */}
+      {divider}
+
+      {/* ─── Footer (Extended) ─── */}
       <footer
         style={{
-          padding: "32px clamp(24px, 4vw, 64px)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          position: "relative",
-          zIndex: 1,
+          padding: "clamp(48px, 6vw, 80px) clamp(24px, 4vw, 64px) 32px",
+          maxWidth: 1100,
+          margin: "0 auto",
         }}
       >
-        <span className="label" style={{ opacity: 0.2 }}>
-          &copy; {new Date().getFullYear()} VAT100
-        </span>
-        <div style={{ display: "flex", gap: 24 }}>
-          <Link
-            href="/login"
-            className="label"
-            style={{
-              opacity: 0.2,
-              textDecoration: "none",
-              color: "var(--color-black)",
-            }}
-          >
-            {t.landing.login}
-          </Link>
-          <Link
-            href="/register"
-            className="label"
-            style={{
-              opacity: 0.2,
-              textDecoration: "none",
-              color: "var(--color-black)",
-            }}
-          >
-            {t.landing.register}
-          </Link>
+        {/* Footer grid */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr 1fr 1fr",
+            gap: "clamp(32px, 4vw, 64px)",
+            marginBottom: 48,
+          }}
+        >
+          {/* Newsletter */}
+          <div>
+            <span
+              style={{
+                fontSize: "clamp(1.2rem, 2.5vw, 1.5rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.04em",
+                color: "#fff",
+                fontFamily: "var(--font-geist-mono), monospace",
+              }}
+            >
+              VAT100
+            </span>
+            <p style={{ fontSize: 13, color: TEXT_DIM, marginTop: 16, lineHeight: 1.6 }}>
+              {t.landing.footerNewsletter}
+            </p>
+            <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
+              <input
+                type="email"
+                placeholder={t.landing.footerNewsletterPlaceholder}
+                style={{
+                  ...inputStyle,
+                  flex: 1,
+                  maxWidth: 240,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Product */}
+          <div>
+            <p style={{ ...monoLabel, marginBottom: 16, color: TEXT_GHOST }}>
+              {t.landing.footerProduct}
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href="#functies" style={{ fontSize: 13, color: TEXT_DIM, textDecoration: "none" }}>
+                {t.landing.features}
+              </a>
+              <a href="#prijzen" style={{ fontSize: 13, color: TEXT_DIM, textDecoration: "none" }}>
+                {t.landing.pricing}
+              </a>
+            </div>
+          </div>
+
+          {/* Company */}
+          <div>
+            <p style={{ ...monoLabel, marginBottom: 16, color: TEXT_GHOST }}>
+              {t.landing.footerCompany}
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href="#" style={{ fontSize: 13, color: TEXT_DIM, textDecoration: "none" }}>
+                {t.landing.footerAbout}
+              </a>
+              <a href="#" style={{ fontSize: 13, color: TEXT_DIM, textDecoration: "none" }}>
+                {t.landing.footerContact}
+              </a>
+            </div>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <p style={{ ...monoLabel, marginBottom: 16, color: TEXT_GHOST }}>
+              {t.landing.footerLegal}
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href="#" style={{ fontSize: 13, color: TEXT_DIM, textDecoration: "none" }}>
+                {t.landing.footerPrivacy}
+              </a>
+              <a href="#" style={{ fontSize: 13, color: TEXT_DIM, textDecoration: "none" }}>
+                {t.landing.footerTerms}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div
+          style={{
+            borderTop: `0.5px solid ${BORDER}`,
+            paddingTop: 24,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ ...monoLabel, color: TEXT_GHOST }}>
+            &copy; {new Date().getFullYear()} VAT100
+          </span>
+          <div style={{ display: "flex", gap: 24 }}>
+            <Link
+              href="/login"
+              style={{
+                ...monoLabel,
+                textDecoration: "none",
+                color: TEXT_GHOST,
+              }}
+            >
+              {t.landing.login}
+            </Link>
+            <Link
+              href="/register"
+              style={{
+                ...monoLabel,
+                textDecoration: "none",
+                color: TEXT_GHOST,
+              }}
+            >
+              {t.landing.register}
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

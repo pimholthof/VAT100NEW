@@ -159,6 +159,24 @@ const en = {
     persona3Quote: "Quarterly VAT used to be stressful. Not anymore.",
     // CTA reassurance
     ctaReassurance: "Two minutes. Get started right away.",
+    // Manifesto
+    manifestoLabel: "MANIFESTO",
+    manifestoQuote: "We believe bookkeeping should be invisible. No screaming dashboards, no distracting notifications. Only the essence — so you can create.",
+    // Editorial grid
+    editorialLabel: "THE PRODUCT",
+    editorialInvoices: "INVOICING",
+    editorialVat: "VAT OVERVIEW",
+    editorialPoster: "INVOICE DESIGN",
+    // Footer
+    footerProduct: "Product",
+    footerCompany: "Company",
+    footerLegal: "Legal",
+    footerAbout: "About us",
+    footerContact: "Contact",
+    footerPrivacy: "Privacy policy",
+    footerTerms: "Terms",
+    footerNewsletter: "Stay updated",
+    footerNewsletterPlaceholder: "you@email.com",
   },
 
   // ─── Auth ───
