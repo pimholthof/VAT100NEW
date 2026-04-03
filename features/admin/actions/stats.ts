@@ -9,6 +9,34 @@ import type {
 import { sanitizeError } from "@/lib/errors";
 
 
+// ─── Activity Feed ───
+
+export interface ActivityFeedItem {
+  id: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
+export async function getRecentActivityFeed(): Promise<ActionResult<ActivityFeedItem[]>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from("system_events")
+      .select("id, event_type, payload, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) return { error: sanitizeError(error, { action: "getRecentActivityFeed" }) };
+    return { error: null, data: data ?? [] };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "getRecentActivityFeed" }) };
+  }
+}
+
 // ─── Platform Stats ───
 
 export async function getPlatformStats(): Promise<ActionResult<PlatformStats>> {
