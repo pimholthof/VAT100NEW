@@ -8,12 +8,12 @@ const STORAGE_KEY = "vat100-invoice-template";
 
 export function PdfDownloadButton({ invoiceId }: { invoiceId: string }) {
   const { t } = useLocale();
-  const [template, setTemplate] = useState<InvoiceTemplate>("minimaal");
+  const [template, setTemplate] = useState<InvoiceTemplate>("poster");
 
   useEffect(() => {
     function syncTemplate() {
       const t = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
-      if (t && ["minimaal", "klassiek", "strak"].includes(t)) {
+      if (t && ["minimaal", "klassiek", "strak", "poster"].includes(t)) {
         setTemplate(t);
       }
     }

@@ -29,11 +29,12 @@ function unitLabel(u: string, t: ReturnType<typeof getDictionary>): string {
 
 // ─── Dispatcher ───
 
-export function InvoiceHTML({ data, template = "minimaal", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
+export function InvoiceHTML({ data, template = "poster", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
   switch (template) {
+    case "minimaal": return <MinimaalHTML data={data} locale={locale} />;
     case "klassiek": return <KlassiekHTML data={data} locale={locale} />;
     case "strak": return <StrakHTML data={data} locale={locale} />;
-    default: return <MinimaalHTML data={data} locale={locale} />;
+    default: return <PosterHTML data={data} locale={locale} />;
   }
 }
 
@@ -367,6 +368,124 @@ function StrakHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
             {profile.bic && <div><div style={{ ...lbl, fontSize: 6, marginBottom: 2 }}>BIC</div><div style={{ fontSize: 7.5 }}>{profile.bic}</div></div>}
             <div><div style={{ ...lbl, fontSize: 6, marginBottom: 2 }}>{t.invoiceDoc.paymentTerms}</div><div style={{ fontSize: 7.5 }}>{days} {t.invoiceDoc.daysNet}</div></div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TEMPLATE 4: POSTER — Massive VAT100 logo, clean layout
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function PosterHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
+  const t = getDictionary(locale);
+  const { invoice, lines, client, profile } = data;
+  const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
+  const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
+
+  const INK = "#000000";
+  const F = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+  const line: React.CSSProperties = { fontSize: 10, color: INK, lineHeight: 1.65 };
+
+  return (
+    <div style={{ width: 595, minHeight: 842, padding: "28px 44px 44px", fontFamily: F, color: INK, background: "#FFFFFF", position: "relative", boxSizing: "border-box" }}>
+      {/* VAT100 — massive poster logo */}
+      <div style={{ fontSize: 130, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 0.82, marginBottom: 28 }}>
+        VAT100
+      </div>
+
+      {/* Sender left + Meta right */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>{profile.studio_name || profile.full_name}</div>
+          {profile.kvk_number && <div style={line}>KVK {profile.kvk_number}</div>}
+          {profile.btw_number && <div style={line}>BTW {profile.btw_number}</div>}
+          {profile.address && <div style={line}>{profile.address}</div>}
+          {(profile.postal_code || profile.city) && <div style={line}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</div>}
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 20, marginBottom: 2 }}>
+            <span style={{ fontSize: 10 }}>{t.invoiceDoc.invoiceNumber}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, width: 80, textAlign: "right", display: "inline-block" }}>{invoice.invoice_number}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 20, marginBottom: 2 }}>
+            <span style={{ fontSize: 10 }}>{t.invoiceDoc.date}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, width: 80, textAlign: "right", display: "inline-block" }}>{fmtDate(invoice.issue_date, locale)}</span>
+          </div>
+          {invoice.due_date && (
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 20, marginBottom: 2 }}>
+              <span style={{ fontSize: 10 }}>{t.invoiceDoc.dueDate}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, width: 80, textAlign: "right", display: "inline-block" }}>{fmtDate(invoice.due_date, locale)}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Recipient */}
+      <div style={{ marginTop: 40, marginBottom: 8 }}>
+        <div style={{ fontSize: 10, marginBottom: 4 }}>{t.invoiceDoc.to} :</div>
+        <div style={{ ...line, fontWeight: 700 }}>{client.name}</div>
+        {showContact && <div style={line}>{client.contact_name}</div>}
+        {client.address && <div style={line}>{client.address}</div>}
+        {(client.postal_code || client.city) && <div style={line}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</div>}
+        {client.kvk_number && <div style={line}>KVK {client.kvk_number}</div>}
+      </div>
+
+      {/* Notes */}
+      {invoice.notes && (
+        <div style={{ marginTop: 24, marginBottom: 8 }}>
+          <div style={{ fontSize: 10, marginBottom: 4 }}>{t.invoiceDoc.description} :</div>
+          <div style={line}>{invoice.notes}</div>
+        </div>
+      )}
+
+      {/* Table — minimal, only header and total borders */}
+      <div style={{ marginTop: 28 }}>
+        <div style={{ display: "flex", borderBottom: `0.5px solid ${INK}`, paddingBottom: 6 }}>
+          <div style={{ width: "44%", fontSize: 10 }}></div>
+          <div style={{ width: "16%", fontSize: 10 }}></div>
+          <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}>{t.invoiceDoc.rate}</div>
+          <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}>{t.invoiceDoc.amount}</div>
+        </div>
+        {lines.map((l) => (
+          <div key={l.id} style={{ display: "flex", padding: "7px 0", alignItems: "baseline" }}>
+            <div style={{ width: "44%", fontSize: 10 }}>{l.description}</div>
+            <div style={{ width: "16%", fontSize: 10 }}>{l.quantity} {unitLabel(l.unit, t)}</div>
+            <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}>{fmtEur(l.rate)}</div>
+            <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}>{fmtEur(l.amount)}</div>
+          </div>
+        ))}
+        {/* Subtotal */}
+        <div style={{ display: "flex", padding: "7px 0", borderTop: `0.5px solid ${INK}` }}>
+          <div style={{ width: "44%", fontSize: 10 }}>{t.invoiceDoc.subtotalExVat}</div>
+          <div style={{ width: "16%", fontSize: 10 }}></div>
+          <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}></div>
+          <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}>{fmtEur(invoice.subtotal_ex_vat)}</div>
+        </div>
+        {/* BTW */}
+        <div style={{ display: "flex", padding: "7px 0" }}>
+          <div style={{ width: "44%", fontSize: 10 }}>{t.invoiceDoc.vat} {invoice.vat_rate ?? 21}%</div>
+          <div style={{ width: "16%", fontSize: 10 }}></div>
+          <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}></div>
+          <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}>{fmtEur(invoice.vat_amount)}</div>
+        </div>
+        {/* Total */}
+        <div style={{ display: "flex", padding: "7px 0", borderTop: `1px solid ${INK}` }}>
+          <div style={{ width: "44%", fontSize: 10, fontWeight: 700 }}>{t.invoiceDoc.total}</div>
+          <div style={{ width: "16%", fontSize: 10 }}></div>
+          <div style={{ width: "20%", fontSize: 10, textAlign: "right" }}></div>
+          <div style={{ width: "20%", fontSize: 10, textAlign: "right", fontWeight: 700 }}>{fmtEur(invoice.total_inc_vat)}</div>
+        </div>
+      </div>
+
+      {/* Footer — small text */}
+      <div style={{ position: "absolute", bottom: 36, left: 44, right: 44 }}>
+        {profile.iban && <div style={{ fontSize: 6.5, lineHeight: 1.6 }}>IBAN {profile.iban}{profile.bic ? `  BIC ${profile.bic}` : ""}</div>}
+        <div style={{ fontSize: 6.5, lineHeight: 1.6 }}>{t.invoiceDoc.paymentTerms}: {days} {t.invoiceDoc.daysNet}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+          <span style={{ fontSize: 6.5 }}></span>
+          <span style={{ fontSize: 6.5 }}>{profile.studio_name || profile.full_name}</span>
         </div>
       </div>
     </div>

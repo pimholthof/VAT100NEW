@@ -22,11 +22,12 @@ function fmtDateLong(d: string | null): string {
 
 // ─── Dispatcher ───
 
-export function InvoicePDF({ data, template = "minimaal", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
+export function InvoicePDF({ data, template = "poster", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
   switch (template) {
+    case "minimaal": return <MinimaalPDF data={data} locale={locale} />;
     case "klassiek": return <KlassiekPDF data={data} locale={locale} />;
     case "strak": return <StrakPDF data={data} locale={locale} />;
-    default: return <MinimaalPDF data={data} locale={locale} />;
+    default: return <PosterPDF data={data} locale={locale} />;
   }
 }
 
@@ -417,6 +418,165 @@ function StrakPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
             {profile.iban && <View><Text style={s3.footLbl}>IBAN</Text><Text style={s3.footVal}>{profile.iban}</Text></View>}
             {profile.bic && <View><Text style={s3.footLbl}>BIC</Text><Text style={s3.footVal}>{profile.bic}</Text></View>}
             <View><Text style={s3.footLbl}>{t.invoiceDoc.paymentTerms}</Text><Text style={s3.footVal}>{days} {t.invoiceDoc.daysNet}</Text></View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TEMPLATE 4: POSTER — Massive VAT100 logo, clean layout
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const INK4 = "#000000";
+const M4 = 44;
+
+const s4 = StyleSheet.create({
+  page: { paddingTop: 28, paddingBottom: M4 + 28, paddingLeft: M4, paddingRight: M4, fontFamily: "Helvetica", color: INK4, backgroundColor: "#FFFFFF" },
+  // Logo — massive, full-width dominant
+  logo: { fontSize: 130, fontWeight: 700, letterSpacing: -5.2, lineHeight: 0.82, marginBottom: 28 },
+  // Sender + meta row
+  infoRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  senderBlock: {},
+  senderName: { fontSize: 12, fontWeight: 700, marginBottom: 6 },
+  senderLine: { fontSize: 10, color: INK4, lineHeight: 1.65 },
+  metaBlock: { textAlign: "right" },
+  metaRow: { flexDirection: "row", justifyContent: "flex-end", gap: 20, marginBottom: 2 },
+  metaLabel: { fontSize: 10, color: INK4 },
+  metaValue: { fontSize: 10, color: INK4, fontWeight: 700, width: 80, textAlign: "right" },
+  // Recipient
+  recipientWrap: { marginTop: 40, marginBottom: 8 },
+  recipientLabel: { fontSize: 10, color: INK4, marginBottom: 4 },
+  recipientLine: { fontSize: 10, color: INK4, lineHeight: 1.65 },
+  // Notes / Object
+  notesWrap: { marginTop: 24, marginBottom: 8 },
+  notesLabel: { fontSize: 10, color: INK4, marginBottom: 4 },
+  notesBody: { fontSize: 10, color: INK4, lineHeight: 1.65 },
+  // Table
+  tbl: { marginTop: 28 },
+  thead: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: INK4, paddingBottom: 6 },
+  th: { fontSize: 10, color: INK4 },
+  tr: { flexDirection: "row", paddingVertical: 7 },
+  td: { fontSize: 10, color: INK4 },
+  cDesc: { width: "44%" },
+  cQty: { width: "16%" },
+  cRate: { width: "20%", textAlign: "right" },
+  cAmt: { width: "20%", textAlign: "right" },
+  // Totals row — separated by top border
+  totRow: { flexDirection: "row", paddingVertical: 7, borderTopWidth: 0.5, borderTopColor: INK4 },
+  totLabel: { fontSize: 10, color: INK4 },
+  totVal: { fontSize: 10, color: INK4 },
+  // Footer
+  foot: { position: "absolute", bottom: M4 - 8, left: M4, right: M4 },
+  footLine: { fontSize: 6.5, color: INK4, lineHeight: 1.6 },
+  footRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 2 },
+  footCompany: { fontSize: 6.5, color: INK4 },
+});
+
+function PosterPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+  const t = getDictionary(locale);
+  const { invoice, lines, client, profile } = data;
+  const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
+  const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
+
+  return (
+    <Document>
+      <Page size="A4" style={s4.page}>
+        {/* VAT100 — massive poster logo */}
+        <Text style={s4.logo}>VAT100</Text>
+
+        {/* Sender left + Meta right */}
+        <View style={s4.infoRow}>
+          <View style={s4.senderBlock}>
+            <Text style={s4.senderName}>{profile.studio_name || profile.full_name}</Text>
+            {profile.kvk_number && <Text style={s4.senderLine}>KVK {profile.kvk_number}</Text>}
+            {profile.btw_number && <Text style={s4.senderLine}>BTW {profile.btw_number}</Text>}
+            {profile.address && <Text style={s4.senderLine}>{profile.address}</Text>}
+            {(profile.postal_code || profile.city) && <Text style={s4.senderLine}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</Text>}
+          </View>
+          <View style={s4.metaBlock}>
+            <View style={s4.metaRow}>
+              <Text style={s4.metaLabel}>{t.invoiceDoc.invoiceNumber}</Text>
+              <Text style={s4.metaValue}>{invoice.invoice_number}</Text>
+            </View>
+            <View style={s4.metaRow}>
+              <Text style={s4.metaLabel}>{t.invoiceDoc.date}</Text>
+              <Text style={s4.metaValue}>{formatDate(invoice.issue_date)}</Text>
+            </View>
+            {invoice.due_date && (
+              <View style={s4.metaRow}>
+                <Text style={s4.metaLabel}>{t.invoiceDoc.dueDate}</Text>
+                <Text style={s4.metaValue}>{formatDate(invoice.due_date)}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Recipient */}
+        <View style={s4.recipientWrap}>
+          <Text style={s4.recipientLabel}>{t.invoiceDoc.to} :</Text>
+          <Text style={[s4.recipientLine, { fontWeight: 700 }]}>{client.name}</Text>
+          {showContact && <Text style={s4.recipientLine}>{client.contact_name}</Text>}
+          {client.address && <Text style={s4.recipientLine}>{client.address}</Text>}
+          {(client.postal_code || client.city) && <Text style={s4.recipientLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</Text>}
+          {client.kvk_number && <Text style={s4.recipientLine}>KVK {client.kvk_number}</Text>}
+        </View>
+
+        {/* Notes */}
+        {invoice.notes && (
+          <View style={s4.notesWrap}>
+            <Text style={s4.notesLabel}>{t.invoiceDoc.description} :</Text>
+            <Text style={s4.notesBody}>{invoice.notes}</Text>
+          </View>
+        )}
+
+        {/* Table — minimal, only header and total borders */}
+        <View style={s4.tbl}>
+          <View style={s4.thead}>
+            <Text style={[s4.th, s4.cDesc]}></Text>
+            <Text style={[s4.th, s4.cQty]}></Text>
+            <Text style={[s4.th, s4.cRate]}>{t.invoiceDoc.rate}</Text>
+            <Text style={[s4.th, s4.cAmt]}>{t.invoiceDoc.amount}</Text>
+          </View>
+          {lines.map((l) => (
+            <View style={s4.tr} key={l.id}>
+              <Text style={[s4.td, s4.cDesc]}>{l.description}</Text>
+              <Text style={[s4.td, s4.cQty]}>{l.quantity} {unitLabel(l.unit)}</Text>
+              <Text style={[s4.td, s4.cRate]}>{formatCurrency(l.rate)}</Text>
+              <Text style={[s4.td, s4.cAmt]}>{formatCurrency(l.amount)}</Text>
+            </View>
+          ))}
+          {/* Subtotal */}
+          <View style={s4.totRow}>
+            <Text style={[s4.totLabel, s4.cDesc]}>{t.invoiceDoc.subtotalExVat}</Text>
+            <Text style={[s4.totVal, s4.cQty]}></Text>
+            <Text style={[s4.totVal, s4.cRate]}></Text>
+            <Text style={[s4.totVal, s4.cAmt]}>{formatCurrency(invoice.subtotal_ex_vat)}</Text>
+          </View>
+          {/* BTW */}
+          <View style={s4.tr}>
+            <Text style={[s4.td, s4.cDesc]}>{t.invoiceDoc.vat} {invoice.vat_rate ?? 21}%</Text>
+            <Text style={[s4.td, s4.cQty]}></Text>
+            <Text style={[s4.td, s4.cRate]}></Text>
+            <Text style={[s4.td, s4.cAmt]}>{formatCurrency(invoice.vat_amount)}</Text>
+          </View>
+          {/* Total */}
+          <View style={[s4.totRow, { borderTopWidth: 1 }]}>
+            <Text style={[s4.totLabel, s4.cDesc, { fontWeight: 700 }]}>{t.invoiceDoc.total}</Text>
+            <Text style={[s4.totVal, s4.cQty]}></Text>
+            <Text style={[s4.totVal, s4.cRate]}></Text>
+            <Text style={[s4.totVal, s4.cAmt, { fontWeight: 700 }]}>{formatCurrency(invoice.total_inc_vat)}</Text>
+          </View>
+        </View>
+
+        {/* Footer — small legal text */}
+        <View style={s4.foot}>
+          {profile.iban && <Text style={s4.footLine}>IBAN {profile.iban}{profile.bic ? `  BIC ${profile.bic}` : ""}</Text>}
+          <Text style={s4.footLine}>{t.invoiceDoc.paymentTerms}: {days} {t.invoiceDoc.daysNet}</Text>
+          <View style={s4.footRow}>
+            <Text style={s4.footCompany}></Text>
+            <Text style={s4.footCompany}>{profile.studio_name || profile.full_name}</Text>
           </View>
         </View>
       </Page>

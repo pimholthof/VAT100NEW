@@ -331,6 +331,8 @@ const nl = {
     templateMinimalDesc: "VAT100 huisstijl",
     templateClassicDesc: "Professioneel & clean",
     templateModernDesc: "Ultra minimal",
+    templatePoster: "Poster",
+    templatePosterDesc: "Maximale VAT100-branding",
     backToOverview: "Overzicht",
     editInvoice: "Bewerken",
     backToInvoices: "Terug naar facturen",

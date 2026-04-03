@@ -190,7 +190,6 @@ export async function initiateBankConnection(
         institution_name: `Bank (${institutionId})`,
         status: "pending",
         requisition_id: requisition.id,
-        reference,
       });
 
     if (error) {
@@ -348,7 +347,6 @@ export async function syncTransactions(
         counterpart_name: t.debtorName || t.creditorName || "",
         counterpart_iban: t.debtorAccount?.iban || t.creditorAccount?.iban || "",
         booking_date: bookingDate,
-        status: "booked",
       }];
     });
 

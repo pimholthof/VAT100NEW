@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createReceipt,
   updateReceipt,
@@ -38,6 +39,7 @@ interface ReceiptFormProps {
 export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const initialStep: Step = receipt ? "form" : "upload";
   const [step, setStep] = useState<Step>(initialStep);
@@ -225,6 +227,9 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     if (finalId && imageUrl) {
       await markReceiptAiProcessed(finalId);
     }
+
+    // Invalidate dashboard cache so the receipt count updates
+    await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 
     if (onSaved) {
       onSaved();

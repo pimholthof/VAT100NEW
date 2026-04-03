@@ -10,11 +10,11 @@ const STORAGE_KEY = "vat100-invoice-template";
 
 export function InvoicePreviewClient({ data }: { data: InvoiceData }) {
   const { locale } = useLocale();
-  const [template, setTemplate] = useState<InvoiceTemplate>("minimaal");
+  const [template, setTemplate] = useState<InvoiceTemplate>("poster");
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
-    if (saved && ["minimaal", "klassiek", "strak"].includes(saved)) {
+    if (saved && ["minimaal", "klassiek", "strak", "poster"].includes(saved)) {
       setTemplate(saved);
     }
   }, []);

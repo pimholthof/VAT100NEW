@@ -74,12 +74,13 @@ export interface Invoice {
   mollie_payment_id: string | null;
   payment_method: string | null;
   vat_scheme: VatScheme;
+  pdf_template: string | null;
   created_at: string;
 }
 
 // ─── Invoice templates ───
 
-export type InvoiceTemplate = "minimaal" | "klassiek" | "strak";
+export type InvoiceTemplate = "minimaal" | "klassiek" | "strak" | "poster";
 
 // ─── Composed types for rendering ───
 
