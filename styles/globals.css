@@ -919,15 +919,15 @@ a {
 .admin-layout {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding-bottom: 96px;
+  gap: 12px;
+  padding-bottom: 48px;
 }
 
 .admin-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
-  gap: 20px;
-  padding: 28px 32px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
+  gap: 12px;
+  padding: 20px 24px;
   border: var(--border-light);
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 100%);
 }
@@ -935,12 +935,12 @@ a {
 .admin-hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .admin-hero-title {
   margin: 0;
-  font-size: clamp(2.4rem, 4vw, 4rem);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
   font-weight: 700;
   letter-spacing: -0.05em;
   line-height: 0.95;
@@ -949,29 +949,30 @@ a {
 .admin-hero-description {
   margin: 0;
   max-width: 42rem;
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.6;
   opacity: var(--opacity-secondary);
 }
 
 .admin-hero-meta {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   align-content: start;
 }
 
 .admin-meta-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 18px 20px;
+  gap: 4px;
+  padding: 12px 14px;
   border: var(--border-light);
   background: rgba(255, 255, 255, 0.75);
 }
 
 .admin-meta-value {
   margin: 0;
-  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  font-size: clamp(1rem, 1.5vw, 1.3rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.1;
@@ -979,15 +980,15 @@ a {
 
 .admin-meta-sub {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 10px;
+  line-height: 1.4;
   opacity: var(--opacity-secondary);
 }
 
 .admin-inline-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -996,13 +997,13 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
+  min-height: 34px;
+  padding: 0 12px;
   border: var(--border-light);
   background: transparent;
   color: var(--foreground);
   text-decoration: none;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1021,20 +1022,20 @@ a {
 .admin-section-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 10px;
 }
 
 .admin-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .admin-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 24px;
+  gap: 10px;
+  padding: 16px;
   border: var(--border-light);
   background: rgba(255, 255, 255, 0.72);
   min-width: 0;
@@ -1044,22 +1045,22 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 16px;
+  gap: 12px;
 }
 
 .admin-panel-title {
-  margin: 6px 0 0;
-  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  margin: 4px 0 0;
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.05;
 }
 
 .admin-panel-description {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   max-width: 38rem;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.5;
   opacity: var(--opacity-secondary);
 }
 
@@ -1074,8 +1075,8 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
-  padding: 16px 0;
+  gap: 10px;
+  padding: 10px 0;
   border-top: var(--border-light);
   color: var(--foreground);
   text-decoration: none;
@@ -1100,16 +1101,16 @@ a {
 .admin-list-title,
 .admin-signal-title {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
 }
 
 .admin-list-sub,
 .admin-signal-sub {
-  margin: 4px 0 0;
-  font-size: 12px;
-  line-height: 1.5;
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
   opacity: var(--opacity-secondary);
 }
 
@@ -1124,16 +1125,16 @@ a {
 
 .admin-action-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .admin-action-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-height: 132px;
-  padding: 18px;
+  gap: 6px;
+  min-height: 90px;
+  padding: 14px;
   border: var(--border-light);
   background: rgba(255, 255, 255, 0.92);
   color: var(--foreground);
@@ -1142,21 +1143,21 @@ a {
 
 .admin-action-card-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .admin-action-card-copy {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.5;
   opacity: var(--opacity-secondary);
 }
 
 .admin-action-card-meta {
   margin-top: auto;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1167,7 +1168,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 8px;
+  padding: 2px 6px;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -1198,7 +1199,7 @@ a {
 .admin-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
 }
 
@@ -1211,20 +1212,21 @@ a {
 
 .admin-field,
 .admin-select {
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: 36px;
+  padding: 0 10px;
   border: var(--border-input);
   background: transparent;
   color: var(--foreground);
+  font-size: 13px;
 }
 
 .admin-field {
   flex: 1;
-  min-width: 220px;
+  min-width: 180px;
 }
 
 .admin-select {
-  min-width: 180px;
+  min-width: 140px;
 }
 
 .admin-table-shell {
@@ -1243,9 +1245,9 @@ a {
 
 .admin-table th {
   text-align: left;
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-bottom: var(--border-light);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1253,9 +1255,10 @@ a {
 }
 
 .admin-table td {
-  padding: 14px 16px;
+  padding: 8px 12px;
   border-bottom: var(--border-light);
-  vertical-align: top;
+  vertical-align: middle;
+  font-size: 13px;
 }
 
 .admin-table tbody tr:last-child td {
@@ -1287,7 +1290,7 @@ a {
 }
 
 .admin-empty-state {
-  padding: 40px 24px;
+  padding: 24px 16px;
   text-align: center;
   font-size: 12px;
   line-height: 1.6;
@@ -1296,9 +1299,9 @@ a {
 
 .admin-kv-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 18px 24px;
-  padding: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px 16px;
+  padding: 16px;
   border: var(--border-light);
   background: rgba(255, 255, 255, 0.76);
 }
@@ -1329,9 +1332,9 @@ a {
 .admin-state-panel {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   max-width: 760px;
-  padding: 32px;
+  padding: 24px;
   border: var(--border-light);
   background: rgba(255, 255, 255, 0.84);
 }
@@ -1339,12 +1342,12 @@ a {
 .admin-state-copy {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .admin-state-title {
   margin: 0;
-  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 0.98;
@@ -1352,15 +1355,15 @@ a {
 
 .admin-state-description {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.6;
   opacity: var(--opacity-secondary);
 }
 
 .admin-state-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 
 .admin-error-text {
@@ -1371,7 +1374,10 @@ a {
 }
 
 @media (max-width: 1100px) {
-  .admin-stat-grid,
+  .admin-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .admin-section-grid,
   .admin-action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1386,12 +1392,15 @@ a {
 
   .admin-hero {
     grid-template-columns: 1fr;
-    padding: 24px;
+    padding: 16px;
   }
 }
 
 @media (max-width: 768px) {
-  .admin-stat-grid,
+  .admin-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-section-grid,
   .admin-action-grid {
     grid-template-columns: 1fr;
@@ -1400,11 +1409,11 @@ a {
   .admin-panel,
   .admin-kv-grid,
   .admin-state-panel {
-    padding: 20px;
+    padding: 14px;
   }
 
   .admin-hero {
-    padding: 20px;
+    padding: 14px;
   }
 
   .admin-summary-row {
@@ -1414,7 +1423,7 @@ a {
 
   .admin-table th,
   .admin-table td {
-    padding: 12px;
+    padding: 6px 8px;
   }
 }
 

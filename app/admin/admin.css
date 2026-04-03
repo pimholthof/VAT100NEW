@@ -91,15 +91,15 @@
 
 /* Admin Section Spacing */
 .admin-section {
-  margin-bottom: var(--space-section);
+  margin-bottom: 12px;
 }
 
 /* ─── MRR Trend Bar Chart ─── */
 .admin-mrr-trend {
   display: flex;
   gap: 0;
-  padding: 0 24px 24px;
-  min-height: 240px;
+  padding: 0 16px 16px;
+  min-height: 180px;
 }
 
 .admin-mrr-trend-col {
@@ -117,8 +117,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  min-height: 120px;
-  padding: 0 4px;
+  min-height: 80px;
+  padding: 0 2px;
 }
 
 .admin-mrr-trend-bar {
@@ -162,10 +162,10 @@
 
 /* ─── Conversion Funnel ─── */
 .admin-funnel {
-  padding: 0 24px 24px;
+  padding: 0 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .admin-funnel-step {
@@ -214,7 +214,7 @@
 
 /* ─── Cohort Table ─── */
 .admin-cohort-table {
-  padding: 0 24px 24px;
+  padding: 0 16px 16px;
 }
 
 .admin-cohort-header {
@@ -277,10 +277,10 @@
 
 /* ─── Growth Stats (Forecast) ─── */
 .admin-growth-stats {
-  padding: 0 24px 24px;
+  padding: 0 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .admin-growth-stat-row {
@@ -306,11 +306,11 @@
 .admin-scenario-card {
   border: 0.5px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 16px;
   background: var(--background);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .admin-scenario-card-highlight {

@@ -20,6 +20,8 @@ export type AuditAction =
 export type AuditTargetType =
   | "user"
   | "customer"
+  | "client"
+  | "receipt"
   | "invoice"
   | "lead"
   | "setting"

@@ -12,11 +12,12 @@ export function AdminNav() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const items = [
     { href: "/admin", label: "Command Center", match: "/admin" },
-    { href: "/admin/growth", label: "Groei", match: "/admin/growth" },
-    { href: "/admin/forecast", label: "Prognose", match: "/admin/forecast" },
+    { href: "/admin/invoices", label: "Facturen", match: "/admin/invoices" },
+    { href: "/admin/financials", label: "Financieel", match: "/admin/financials" },
+    { href: "/admin/bank", label: "Bank", match: "/admin/bank" },
     { href: "/admin/users", label: "Klanten", match: "/admin/users" },
+    { href: "/admin/growth", label: "Groei", match: "/admin/growth" },
     { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline" },
-    { href: "/admin/feedback", label: "Feedback", match: "/admin/feedback" },
     { href: "/admin/settings", label: "Instellingen", match: "/admin/settings" },
   ];
 

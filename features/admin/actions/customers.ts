@@ -367,6 +367,155 @@ export async function exportCustomerReceiptsCSV(userId: string): Promise<ActionR
   }
 }
 
+// ─── Admin Client Management ───
+
+export async function updateClientAsAdmin(
+  clientId: string,
+  data: {
+    name?: string;
+    email?: string | null;
+    city?: string | null;
+    contact_name?: string | null;
+    address?: string | null;
+    postal_code?: string | null;
+    kvk_number?: string | null;
+    btw_number?: string | null;
+  }
+): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from("clients")
+      .update(data)
+      .eq("id", clientId);
+
+    if (error) return { error: sanitizeError(error, { action: "updateClientAsAdmin" }) };
+    await logAdminAction(auth.user.id, "customer.profile_update", "client", clientId, data);
+    return { error: null };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "updateClientAsAdmin", clientId }) };
+  }
+}
+
+export async function deleteClientAsAdmin(clientId: string): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from("clients")
+      .delete()
+      .eq("id", clientId);
+
+    if (error) return { error: sanitizeError(error, { action: "deleteClientAsAdmin" }) };
+    await logAdminAction(auth.user.id, "customer.bulk_action", "client", clientId, { action: "delete" });
+    return { error: null };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "deleteClientAsAdmin", clientId }) };
+  }
+}
+
+// ─── Admin Invoice Management ───
+
+export async function updateInvoiceAsAdmin(
+  invoiceId: string,
+  data: {
+    status?: InvoiceStatus;
+    issue_date?: string;
+    due_date?: string;
+  }
+): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from("invoices")
+      .update({ ...data, updated_at: new Date().toISOString() })
+      .eq("id", invoiceId);
+
+    if (error) return { error: sanitizeError(error, { action: "updateInvoiceAsAdmin" }) };
+    await logAdminAction(auth.user.id, "invoice.status_change", "invoice", invoiceId, data);
+    return { error: null };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "updateInvoiceAsAdmin", invoiceId }) };
+  }
+}
+
+export async function deleteInvoiceAsAdmin(invoiceId: string): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    // Delete invoice lines first
+    await supabase.from("invoice_lines").delete().eq("invoice_id", invoiceId);
+    const { error } = await supabase
+      .from("invoices")
+      .delete()
+      .eq("id", invoiceId);
+
+    if (error) return { error: sanitizeError(error, { action: "deleteInvoiceAsAdmin" }) };
+    await logAdminAction(auth.user.id, "invoice.status_change", "invoice", invoiceId, { action: "delete" });
+    return { error: null };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "deleteInvoiceAsAdmin", invoiceId }) };
+  }
+}
+
+// ─── Admin Receipt Management ───
+
+export async function updateReceiptAsAdmin(
+  receiptId: string,
+  data: {
+    vendor_name?: string;
+    category?: string | null;
+    amount_inc_vat?: number;
+    receipt_date?: string;
+  }
+): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from("receipts")
+      .update(data)
+      .eq("id", receiptId);
+
+    if (error) return { error: sanitizeError(error, { action: "updateReceiptAsAdmin" }) };
+    await logAdminAction(auth.user.id, "customer.profile_update", "receipt", receiptId, data);
+    return { error: null };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "updateReceiptAsAdmin", receiptId }) };
+  }
+}
+
+export async function deleteReceiptAsAdmin(receiptId: string): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from("receipts")
+      .delete()
+      .eq("id", receiptId);
+
+    if (error) return { error: sanitizeError(error, { action: "deleteReceiptAsAdmin" }) };
+    await logAdminAction(auth.user.id, "customer.bulk_action", "receipt", receiptId, { action: "delete" });
+    return { error: null };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "deleteReceiptAsAdmin", receiptId }) };
+  }
+}
+
 export async function exportAllCustomersCSV(): Promise<ActionResult<string>> {
   const auth = await requireAdmin();
   if (auth.error !== null) return { error: auth.error };

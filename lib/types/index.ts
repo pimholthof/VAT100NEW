@@ -586,6 +586,19 @@ export interface AdminUserDetail {
     total_inc_vat: number;
     client_name: string;
   }>;
+  clients: Array<{
+    id: string;
+    name: string;
+    email: string | null;
+    city: string | null;
+  }>;
+  receipts: Array<{
+    id: string;
+    vendor_name: string;
+    amount_inc_vat: number;
+    receipt_date: string;
+    category: string | null;
+  }>;
 }
 
 export interface PlatformStats {
