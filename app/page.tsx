@@ -371,7 +371,7 @@ export default function LandingPage() {
           {t.landing.showcaseLabel}
         </p>
 
-        {/* Feature 1: Invoices — copy left, mockup right */}
+        {/* Feature 1: Poster invoice — copy left, mockup right */}
         <div
           style={{
             display: "grid",
@@ -379,81 +379,6 @@ export default function LandingPage() {
             gap: "clamp(32px, 4vw, 64px)",
             alignItems: "center",
             marginBottom: "clamp(60px, 8vw, 100px)",
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
-                fontWeight: 700,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.15,
-                margin: 0,
-                marginBottom: 16,
-                whiteSpace: "pre-line",
-              }}
-            >
-              {t.landing.showcaseInvoicesTitle}
-            </h3>
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.8,
-                margin: 0,
-                opacity: 0.55,
-              }}
-            >
-              {t.landing.showcaseInvoicesDesc}
-            </p>
-          </div>
-          <InvoiceMockup locale={locale} />
-        </div>
-
-        {/* Feature 2: VAT — mockup left, copy right */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.2fr 1fr",
-            gap: "clamp(32px, 4vw, 64px)",
-            alignItems: "center",
-          }}
-        >
-          <VatMockup locale={locale} />
-          <div>
-            <h3
-              style={{
-                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
-                fontWeight: 700,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.15,
-                margin: 0,
-                marginBottom: 16,
-                whiteSpace: "pre-line",
-              }}
-            >
-              {t.landing.showcaseVatTitle}
-            </h3>
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.8,
-                margin: 0,
-                opacity: 0.55,
-              }}
-            >
-              {t.landing.showcaseVatDesc}
-            </p>
-          </div>
-        </div>
-
-        {/* Feature 3: Poster invoice — copy left, mockup right */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1.2fr",
-            gap: "clamp(32px, 4vw, 64px)",
-            alignItems: "center",
-            marginTop: "clamp(60px, 8vw, 100px)",
           }}
         >
           <div>
@@ -482,6 +407,81 @@ export default function LandingPage() {
             </p>
           </div>
           <PosterMockup locale={locale} />
+        </div>
+
+        {/* Feature 2: Invoices — mockup left, copy right */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.2fr 1fr",
+            gap: "clamp(32px, 4vw, 64px)",
+            alignItems: "center",
+            marginBottom: "clamp(60px, 8vw, 100px)",
+          }}
+        >
+          <InvoiceMockup locale={locale} />
+          <div>
+            <h3
+              style={{
+                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.15,
+                margin: 0,
+                marginBottom: 16,
+                whiteSpace: "pre-line",
+              }}
+            >
+              {t.landing.showcaseInvoicesTitle}
+            </h3>
+            <p
+              style={{
+                fontSize: 15,
+                lineHeight: 1.8,
+                margin: 0,
+                opacity: 0.55,
+              }}
+            >
+              {t.landing.showcaseInvoicesDesc}
+            </p>
+          </div>
+        </div>
+
+        {/* Feature 3: VAT — copy left, mockup right */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1.2fr",
+            gap: "clamp(32px, 4vw, 64px)",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <h3
+              style={{
+                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.15,
+                margin: 0,
+                marginBottom: 16,
+                whiteSpace: "pre-line",
+              }}
+            >
+              {t.landing.showcaseVatTitle}
+            </h3>
+            <p
+              style={{
+                fontSize: 15,
+                lineHeight: 1.8,
+                margin: 0,
+                opacity: 0.55,
+              }}
+            >
+              {t.landing.showcaseVatDesc}
+            </p>
+          </div>
+          <VatMockup locale={locale} />
         </div>
       </section>
 
