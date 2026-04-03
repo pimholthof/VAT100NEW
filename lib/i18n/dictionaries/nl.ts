@@ -147,6 +147,8 @@ const nl = {
     showcaseInvoicesDesc: "Bedrag, klant, verstuur. BTW wordt berekend, nummering is automatisch, e-mail gaat direct. Jij gaat door met je werk.",
     showcaseVatTitle: "BTW?\nAltijd up-to-date.",
     showcaseVatDesc: "Realtime overzicht per kwartaal. Je ziet wat je moet reserveren en wanneer de deadline is. Zonder rekenen, zonder stress.",
+    showcasePosterTitle: "Geen PDF.\nEen statement.",
+    showcasePosterDesc: "Less but better — ook je factuur. Bedrag, ontvanger, klaar. Geen ruis, geen templates uit 2004. Puur ontwerp dat voor zich spreekt.",
     // Persona quotes
     personaTitle: "Voor mensen zoals jij",
     persona1Type: "Art director",

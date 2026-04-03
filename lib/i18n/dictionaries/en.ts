@@ -147,6 +147,8 @@ const en = {
     showcaseInvoicesDesc: "Amount, client, send. VAT is calculated, numbering is automatic, email goes out instantly. You get back to work.",
     showcaseVatTitle: "VAT?\nAlways up to date.",
     showcaseVatDesc: "Real-time overview per quarter. See what to reserve and when the deadline is. No calculations, no stress.",
+    showcasePosterTitle: "Not a PDF.\nA statement.",
+    showcasePosterDesc: "Less but better — your invoice too. Amount, recipient, done. No noise, no templates from 2004. Pure design that speaks for itself.",
     // Persona quotes
     personaTitle: "For people like you",
     persona1Type: "Art director",

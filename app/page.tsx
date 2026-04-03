@@ -7,6 +7,7 @@ import { useLocale } from "@/lib/i18n/context";
 import DashboardMockup from "@/components/landing/DashboardMockup";
 import InvoiceMockup from "@/components/landing/InvoiceMockup";
 import VatMockup from "@/components/landing/VatMockup";
+import PosterMockup from "@/components/landing/PosterMockup";
 
 /* ─── Inline style helpers ─── */
 const inputStyle: React.CSSProperties = {
@@ -443,6 +444,44 @@ export default function LandingPage() {
               {t.landing.showcaseVatDesc}
             </p>
           </div>
+        </div>
+
+        {/* Feature 3: Poster invoice — copy left, mockup right */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1.2fr",
+            gap: "clamp(32px, 4vw, 64px)",
+            alignItems: "center",
+            marginTop: "clamp(60px, 8vw, 100px)",
+          }}
+        >
+          <div>
+            <h3
+              style={{
+                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.15,
+                margin: 0,
+                marginBottom: 16,
+                whiteSpace: "pre-line",
+              }}
+            >
+              {t.landing.showcasePosterTitle}
+            </h3>
+            <p
+              style={{
+                fontSize: 15,
+                lineHeight: 1.8,
+                margin: 0,
+                opacity: 0.55,
+              }}
+            >
+              {t.landing.showcasePosterDesc}
+            </p>
+          </div>
+          <PosterMockup locale={locale} />
         </div>
       </section>
 
