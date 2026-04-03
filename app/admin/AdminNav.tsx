@@ -11,8 +11,10 @@ export function AdminNav() {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const items = [
-    { href: "/admin", label: "Overzicht", match: "/admin" },
-    { href: "/admin/users", label: "Gebruikers", match: "/admin/users" },
+    { href: "/admin", label: "Command Center", match: "/admin" },
+    { href: "/admin/growth", label: "Groei", match: "/admin/growth" },
+    { href: "/admin/forecast", label: "Prognose", match: "/admin/forecast" },
+    { href: "/admin/users", label: "Klanten", match: "/admin/users" },
     { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline" },
     { href: "/admin/feedback", label: "Feedback", match: "/admin/feedback" },
     { href: "/admin/settings", label: "Instellingen", match: "/admin/settings" },
