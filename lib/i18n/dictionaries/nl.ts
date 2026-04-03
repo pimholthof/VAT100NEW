@@ -304,6 +304,8 @@ const nl = {
     templateMinimalDesc: "VAT100 huisstijl",
     templateClassicDesc: "Professioneel & clean",
     templateModernDesc: "Ultra minimal",
+    templateBillboard: "Billboard",
+    templateBillboardDesc: "Maximale VAT100-branding",
     backToOverview: "Overzicht",
     editInvoice: "Bewerken",
     backToInvoices: "Terug naar facturen",

@@ -79,7 +79,7 @@ export interface Invoice {
 
 // ─── Invoice templates ───
 
-export type InvoiceTemplate = "minimaal" | "klassiek" | "strak";
+export type InvoiceTemplate = "minimaal" | "klassiek" | "strak" | "billboard";
 
 // ─── Composed types for rendering ───
 

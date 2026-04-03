@@ -14,7 +14,7 @@ export function InvoicePreviewClient({ data }: { data: InvoiceData }) {
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
-    if (saved && ["minimaal", "klassiek", "strak"].includes(saved)) {
+    if (saved && ["minimaal", "klassiek", "strak", "billboard"].includes(saved)) {
       setTemplate(saved);
     }
   }, []);
