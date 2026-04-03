@@ -119,6 +119,50 @@ export default async function GrowthPage() {
         </div>
       </section>
 
+      {/* ─── MRR Beweging Waterfall ─── */}
+      <section className="admin-panel admin-section">
+        <div className="admin-panel-header">
+          <div>
+            <p className="label">MRR Decompositie</p>
+            <h2 className="admin-panel-title">MRR Beweging</h2>
+            <p className="admin-panel-description">
+              Uitsplitsing: waar komt groei en verlies vandaan deze maand
+            </p>
+          </div>
+        </div>
+        {(() => {
+          const m = analytics.mrrMovements;
+          const allValues = [m.previousMrr, m.newMrr, m.expansionMrr, m.contractionMrr, m.churnedMrr, m.previousMrr + m.netNewMrr];
+          const maxVal = Math.max(...allValues, 1);
+          const bars = [
+            { label: "Vorige MRR", value: m.previousMrr, type: "neutral" as const },
+            { label: "+Nieuw", value: m.newMrr, type: "positive" as const },
+            { label: "+Expansie", value: m.expansionMrr, type: "positive" as const },
+            { label: "-Krimp", value: m.contractionMrr, type: "negative" as const },
+            { label: "-Churn", value: m.churnedMrr, type: "negative" as const },
+            { label: "Huidige MRR", value: m.previousMrr + m.netNewMrr, type: "neutral" as const },
+          ];
+          return (
+            <div className="admin-waterfall">
+              {bars.map((bar) => (
+                <div key={bar.label} className="admin-waterfall-col">
+                  <div className="admin-waterfall-bar-wrap">
+                    <div
+                      className={`admin-waterfall-bar admin-waterfall-bar-${bar.type}`}
+                      style={{ height: `${Math.max((bar.value / maxVal) * 100, 4)}%` }}
+                    />
+                  </div>
+                  <span className="admin-waterfall-amount">
+                    {bar.type === "negative" ? "-" : ""}{formatCurrency(bar.value)}
+                  </span>
+                  <span className="admin-waterfall-label">{bar.label}</span>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+      </section>
+
       <div className="admin-section-grid">
         {/* ─── Plan Distributie ─── */}
         <section className="admin-panel">

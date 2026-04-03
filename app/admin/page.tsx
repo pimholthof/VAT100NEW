@@ -8,6 +8,8 @@ import StrategicBriefing from "@/features/admin/StrategicBriefing";
 import RetentionDashboard from "@/features/admin/RetentionDashboard";
 import Link from "next/link";
 import { AdminStatePanel } from "./AdminStatePanel";
+import { AdminActivityFeed } from "@/features/admin/AdminActivityFeed";
+import { AdminExportCenter } from "@/features/admin/AdminExportCenter";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
@@ -46,7 +48,7 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const { stats, recentUsers, recentWaitlist } = overviewResult.data;
+  const { stats, recentWaitlist } = overviewResult.data;
   const analytics = analyticsResult.data;
   const dashboard = dashboardResult.data;
 
@@ -191,36 +193,8 @@ export default async function AdminDashboardPage() {
         <section>
           <RetentionDashboard />
         </section>
-        <section className="admin-panel">
-          <div className="admin-panel-header">
-            <div>
-              <p className="label">Recente accounts</p>
-              <h2 className="admin-panel-title">Laatste klanten</h2>
-            </div>
-            <Link href="/admin/users" className="admin-button-link admin-button-link-secondary">
-              Alles bekijken
-            </Link>
-          </div>
-
-          {recentUsers.length === 0 ? (
-            <div className="admin-empty-state">Nog geen gebruikers beschikbaar.</div>
-          ) : (
-            <div className="admin-list">
-              {recentUsers.map((user) => (
-                <Link key={user.id} href={`/admin/users/${user.id}`} className="admin-list-item">
-                  <div className="admin-list-content">
-                    <p className="admin-list-title">{user.full_name || "Naamloos account"}</p>
-                    <p className="admin-list-sub">
-                      {user.studio_name || "Geen studionaam"} · aangemaakt op {formatDate(user.created_at)}
-                    </p>
-                  </div>
-                  <span className={getBadgeClass(user.status === "suspended" ? "critical" : "success")}>
-                    {user.status === "suspended" ? "Geblokkeerd" : "Actief"}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          )}
+        <section>
+          <AdminActivityFeed />
         </section>
 
         <section className="admin-panel">
@@ -253,6 +227,9 @@ export default async function AdminDashboardPage() {
           )}
         </section>
       </div>
+
+      {/* ─── Export Center ─── */}
+      <AdminExportCenter />
     </div>
   );
 }

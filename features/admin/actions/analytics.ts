@@ -22,6 +22,14 @@ export interface SubscriptionAnalytics {
   };
   monthlyMrr: { month: string; mrr: number; subscriptions: number }[];
   cohortRetention: { cohort: string; total: number; active: number; retentionRate: number }[];
+  mrrMovements: {
+    previousMrr: number;
+    newMrr: number;
+    expansionMrr: number;
+    contractionMrr: number;
+    churnedMrr: number;
+    netNewMrr: number;
+  };
 }
 
 export async function getSubscriptionAnalytics(): Promise<ActionResult<SubscriptionAnalytics>> {
@@ -160,6 +168,47 @@ export async function getSubscriptionAnalytics(): Promise<ActionResult<Subscript
       });
     }
 
+    // 9. MRR Movements
+    // New MRR: subscriptions created this month
+    const { data: newSubsThisMonth } = await supabase
+      .from("subscriptions")
+      .select("plan:plans(price_cents)")
+      .eq("status", "active")
+      .gte("created_at", monthStart);
+
+    const newMrr = (newSubsThisMonth ?? []).reduce((sum, s) => {
+      const plan = s.plan as unknown as { price_cents: number } | null;
+      return sum + (plan?.price_cents ?? 0) / 100;
+    }, 0);
+
+    // Churned MRR: subscriptions cancelled/expired this month
+    const { data: churnedSubs } = await supabase
+      .from("subscriptions")
+      .select("plan:plans(price_cents)")
+      .in("status", ["cancelled", "expired"])
+      .gte("updated_at", monthStart);
+
+    const churnedMrr = (churnedSubs ?? []).reduce((sum, s) => {
+      const plan = s.plan as unknown as { price_cents: number } | null;
+      return sum + (plan?.price_cents ?? 0) / 100;
+    }, 0);
+
+    // Net new = current - previous (expansion and contraction are derived)
+    const netNewMrr = mrr - prevMrr;
+    const grossNew = newMrr - churnedMrr;
+    const expansionContraction = netNewMrr - grossNew;
+    const expansionMrr = expansionContraction > 0 ? expansionContraction : 0;
+    const contractionMrr = expansionContraction < 0 ? Math.abs(expansionContraction) : 0;
+
+    const mrrMovements = {
+      previousMrr: Math.round(prevMrr * 100) / 100,
+      newMrr: Math.round(newMrr * 100) / 100,
+      expansionMrr: Math.round(expansionMrr * 100) / 100,
+      contractionMrr: Math.round(contractionMrr * 100) / 100,
+      churnedMrr: Math.round(churnedMrr * 100) / 100,
+      netNewMrr: Math.round(netNewMrr * 100) / 100,
+    };
+
     return {
       error: null,
       data: {
@@ -173,6 +222,7 @@ export async function getSubscriptionAnalytics(): Promise<ActionResult<Subscript
         conversionFunnel,
         monthlyMrr,
         cohortRetention,
+        mrrMovements,
       },
     };
   } catch (e) {
