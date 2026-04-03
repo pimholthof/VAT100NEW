@@ -75,12 +75,12 @@ export async function createInvoice(
       p_issue_date: input.issue_date,
       p_due_date: input.due_date,
       p_vat_rate: input.vat_rate,
-      p_vat_scheme: input.vat_scheme ?? "standard",
+      p_vat_scheme: input.vat_scheme || "standard",
       p_notes: input.notes ?? null,
       p_subtotal_ex_vat: totals.subtotalExVat,
       p_vat_amount: totals.vatAmount,
       p_total_inc_vat: totals.totalIncVat,
-      p_lines: JSON.stringify(linesJson),
+      p_lines: linesJson,
     });
 
     if (!rpcError) {
@@ -127,7 +127,7 @@ export async function updateInvoice(
     p_subtotal_ex_vat: totals.subtotalExVat,
     p_vat_amount: totals.vatAmount,
     p_total_inc_vat: totals.totalIncVat,
-    p_lines: JSON.stringify(linesJson),
+    p_lines: linesJson,
   });
 
   if (rpcError) throw new Error(rpcError.message);
@@ -340,7 +340,7 @@ export async function createCreditNote(
     p_total_inc_vat: -Math.abs(original.total_inc_vat),
     p_is_credit_note: true,
     p_original_invoice_id: invoiceId,
-    p_lines: JSON.stringify(linesJson),
+    p_lines: linesJson,
   });
 
   if (rpcError) throw new Error(rpcError.message);

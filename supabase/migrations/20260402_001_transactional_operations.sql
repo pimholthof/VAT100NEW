@@ -35,7 +35,7 @@ BEGIN
     is_credit_note, original_invoice_id
   ) VALUES (
     p_user_id, p_client_id, p_invoice_number, p_status, p_issue_date, p_due_date,
-    p_vat_rate, NULLIF(p_vat_scheme, 'standard'), p_notes,
+    p_vat_rate, COALESCE(p_vat_scheme, 'standard'), p_notes,
     p_subtotal_ex_vat, p_vat_amount, p_total_inc_vat,
     p_is_credit_note, p_original_invoice_id
   )
@@ -94,7 +94,7 @@ BEGIN
     issue_date = p_issue_date,
     due_date = p_due_date,
     vat_rate = p_vat_rate,
-    vat_scheme = NULLIF(p_vat_scheme, 'standard'),
+    vat_scheme = COALESCE(p_vat_scheme, 'standard'),
     notes = p_notes,
     subtotal_ex_vat = p_subtotal_ex_vat,
     vat_amount = p_vat_amount,
