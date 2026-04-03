@@ -211,6 +211,8 @@ export interface SubscriptionPaymentRow {
   created_at: string;
   period_start: string | null;
   period_end: string | null;
+  invoice_number: string | null;
+  receipt_sent_at: string | null;
 }
 
 export interface SubscriptionPaymentStats {
@@ -239,7 +241,7 @@ export async function getSubscriptionPayments(filters?: {
     const { data: payments, count, error } = await supabase
       .from("subscription_payments")
       .select(
-        "id, subscription_id, amount_cents, status, paid_at, created_at, subscription:subscriptions(user_id, current_period_start, current_period_end, plan:plans(name))",
+        "id, subscription_id, amount_cents, status, paid_at, created_at, invoice_number, receipt_sent_at, subscription:subscriptions(user_id, current_period_start, current_period_end, plan:plans(name))",
         { count: "exact" }
       )
       .order("created_at", { ascending: false })
@@ -293,6 +295,8 @@ export async function getSubscriptionPayments(filters?: {
         created_at: p.created_at,
         period_start: sub?.current_period_start ?? null,
         period_end: sub?.current_period_end ?? null,
+        invoice_number: (p as Record<string, unknown>).invoice_number as string | null ?? null,
+        receipt_sent_at: (p as Record<string, unknown>).receipt_sent_at as string | null ?? null,
       };
     });
 

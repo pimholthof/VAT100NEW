@@ -260,7 +260,7 @@ export default function AdminFinancialsPage() {
                     <table className="admin-table">
                       <thead>
                         <tr>
-                          {["Klant", "Plan", "Bedrag", "Status", "Betaald op", "Aangemaakt"].map((h) => (
+                          {["Factuurnr.", "Klant", "Plan", "Bedrag", "Status", "Ontvangstbewijs", "Betaald op"].map((h) => (
                             <th key={h}>{h}</th>
                           ))}
                         </tr>
@@ -268,6 +268,9 @@ export default function AdminFinancialsPage() {
                       <tbody>
                         {subPayments.map((payment) => (
                           <tr key={payment.id}>
+                            <td className="mono-amount">
+                              {payment.invoice_number ?? "—"}
+                            </td>
                             <td>
                               <Link href={`/admin/users/${payment.user_id}`} className="admin-primary-link">
                                 {payment.user_name}
@@ -289,11 +292,17 @@ export default function AdminFinancialsPage() {
                                 {PAYMENT_STATUS_LABELS[payment.status] ?? payment.status}
                               </span>
                             </td>
-                            <td className="label">
-                              {payment.paid_at ? formatDate(payment.paid_at) : "—"}
+                            <td>
+                              {payment.receipt_sent_at ? (
+                                <span className="admin-badge admin-badge-success">Verstuurd</span>
+                              ) : payment.status === "paid" ? (
+                                <span className="admin-badge admin-badge-warning">Niet verstuurd</span>
+                              ) : (
+                                <span style={{ opacity: 0.3 }}>—</span>
+                              )}
                             </td>
                             <td className="label">
-                              {formatDate(payment.created_at)}
+                              {payment.paid_at ? formatDate(payment.paid_at) : "—"}
                             </td>
                           </tr>
                         ))}

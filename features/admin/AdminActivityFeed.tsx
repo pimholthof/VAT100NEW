@@ -22,6 +22,9 @@ const EVENT_LABELS: Record<string, string> = {
   "cron.recurring": "Terugkerende facturen verwerkt",
   "payment.received": "Betaling ontvangen",
   "receipt.uploaded": "Bon geüpload",
+  "subscription.payment_failed": "Abonnementsbetaling mislukt",
+  "subscription.reminder_sent": "Betaalherinnering verstuurd",
+  "subscription.renewed": "Abonnement verlengd",
 };
 
 function getEventType(eventType: string): string {
