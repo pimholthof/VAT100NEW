@@ -1,17 +1,33 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { getPlatformInvoices, getPlatformExpenses } from "@/features/admin/actions";
+import { getPlatformInvoices, getPlatformExpenses, getSubscriptionPayments } from "@/features/admin/actions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { AdminStatePanel } from "../AdminStatePanel";
+
+function formatDate(dateStr: string): string {
+  return new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", year: "numeric" }).format(new Date(dateStr));
+}
+
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  paid: "Betaald",
+  pending: "In afwachting",
+  failed: "Mislukt",
+  open: "Open",
+  expired: "Verlopen",
+  canceled: "Geannuleerd",
+};
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(amount);
 }
 
 export default function AdminFinancialsPage() {
+  const [subPage, setSubPage] = useState(1);
+
   const { data: invoiceResult, isLoading: loadingInvoices } = useQuery({
     queryKey: ["admin-financials-invoices"],
     queryFn: () => getPlatformInvoices({ pageSize: 1 }),
@@ -22,9 +38,18 @@ export default function AdminFinancialsPage() {
     queryFn: getPlatformExpenses,
   });
 
+  const { data: subPayResult, isLoading: loadingSubPay } = useQuery({
+    queryKey: ["admin-subscription-payments", subPage],
+    queryFn: () => getSubscriptionPayments({ page: subPage, pageSize: 15 }),
+  });
+
   const isLoading = loadingInvoices || loadingExpenses;
   const invoiceStats = invoiceResult?.data?.stats;
   const expenses = expenseResult?.data;
+  const subPayments = subPayResult?.data?.payments ?? [];
+  const subPayStats = subPayResult?.data?.stats;
+  const subPayTotal = subPayResult?.data?.total ?? 0;
+  const subPayTotalPages = Math.ceil(subPayTotal / 15);
 
   if (invoiceResult?.error || expenseResult?.error) {
     return (
@@ -178,6 +203,114 @@ export default function AdminFinancialsPage() {
                 <span className="mono-amount" style={{ fontSize: 11, fontWeight: 600 }}>{formatCurrency(margin)}</span>
               </div>
             </div>
+          </div>
+
+          {/* ─── Abonnementsfacturen ─── */}
+          <div className="admin-panel admin-section">
+            <div className="admin-panel-header">
+              <div>
+                <p className="label">Abonnementen</p>
+                <h2 className="admin-panel-title">Abonnementsfacturen</h2>
+                <p className="admin-panel-description">
+                  Alle betalingen van klanten voor hun VAT100-abonnement
+                </p>
+              </div>
+            </div>
+
+            {/* Sub KPI's */}
+            {subPayStats && (
+              <div className="admin-stat-grid" style={{ padding: "0 16px 16px" }}>
+                <StatCard
+                  label="Totaal ontvangen"
+                  value={formatCurrency(subPayStats.totalRevenueCents / 100)}
+                  numericValue={subPayStats.totalRevenueCents / 100}
+                  sub={`${subPayStats.totalPaid} betalingen`}
+                  compact
+                />
+                <StatCard
+                  label="Deze maand"
+                  value={formatCurrency(subPayStats.recentMonthRevenueCents / 100)}
+                  numericValue={subPayStats.recentMonthRevenueCents / 100}
+                  sub="Abonnementsinkomsten"
+                  compact
+                />
+                <StatCard
+                  label="Gem. betaling"
+                  value={formatCurrency(subPayStats.avgPaymentCents / 100)}
+                  numericValue={subPayStats.avgPaymentCents / 100}
+                  sub="Per transactie"
+                  compact
+                />
+              </div>
+            )}
+
+            {/* Tabel */}
+            {loadingSubPay ? (
+              <div className="admin-empty-state">Laden...</div>
+            ) : subPayments.length === 0 ? (
+              <div className="admin-empty-state">Nog geen abonnementsbetalingen ontvangen</div>
+            ) : (
+              <>
+                <div className="admin-summary-row" style={{ padding: "0 16px" }}>
+                  <p className="label">{subPayTotal} betaling{subPayTotal !== 1 ? "en" : ""}</p>
+                  <p className="label">Pagina {subPage}{subPayTotalPages > 0 ? ` van ${subPayTotalPages}` : ""}</p>
+                </div>
+                <div className="admin-table-shell" style={{ margin: "0 16px 16px" }}>
+                  <div className="admin-table-wrap">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          {["Klant", "Plan", "Bedrag", "Status", "Betaald op", "Aangemaakt"].map((h) => (
+                            <th key={h}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {subPayments.map((payment) => (
+                          <tr key={payment.id}>
+                            <td>
+                              <Link href={`/admin/users/${payment.user_id}`} className="admin-primary-link">
+                                {payment.user_name}
+                              </Link>
+                              {payment.user_email && (
+                                <span className="label" style={{ display: "block", opacity: 0.4, fontSize: 10 }}>
+                                  {payment.user_email}
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              <span className="admin-badge admin-badge-neutral">{payment.plan_name}</span>
+                            </td>
+                            <td className="mono-amount admin-right">
+                              {formatCurrency(payment.amount_cents / 100)}
+                            </td>
+                            <td>
+                              <span className={`admin-badge ${payment.status === "paid" ? "admin-badge-success" : payment.status === "failed" ? "admin-badge-critical" : "admin-badge-warning"}`}>
+                                {PAYMENT_STATUS_LABELS[payment.status] ?? payment.status}
+                              </span>
+                            </td>
+                            <td className="label">
+                              {payment.paid_at ? formatDate(payment.paid_at) : "—"}
+                            </td>
+                            <td className="label">
+                              {formatDate(payment.created_at)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {subPayTotalPages > 1 && (
+                  <div className="admin-pagination" style={{ padding: "0 16px 16px" }}>
+                    <button onClick={() => setSubPage((p) => Math.max(1, p - 1))} disabled={subPage === 1} className="admin-page-button">Vorige</button>
+                    <span className="admin-page-button label">{subPage} / {subPayTotalPages}</span>
+                    <button onClick={() => setSubPage((p) => Math.min(subPayTotalPages, p + 1))} disabled={subPage === subPayTotalPages} className="admin-page-button">Volgende</button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </>
       )}
