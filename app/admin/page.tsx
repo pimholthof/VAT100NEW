@@ -1,33 +1,18 @@
 import { getAdminOverview } from "@/features/admin/actions/users";
 import { getSubscriptionAnalytics } from "@/features/admin/actions/analytics";
 import { getAdminDashboardData } from "@/features/admin/actions/stats";
-import { StatCard } from "@/components/ui/StatCard";
 import { AdminAlertList } from "@/features/admin/AdminAlertList";
 import { AdminQuickActions } from "@/features/admin/AdminQuickActions";
 import StrategicBriefing from "@/features/admin/StrategicBriefing";
-import RetentionDashboard from "@/features/admin/RetentionDashboard";
 import Link from "next/link";
 import { AdminStatePanel } from "./AdminStatePanel";
 import { AdminActivityFeed } from "@/features/admin/AdminActivityFeed";
-import { AdminExportCenter } from "@/features/admin/AdminExportCenter";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
     style: "currency",
     currency: "EUR",
   }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat("nl-NL", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(dateStr));
-}
-
-function getBadgeClass(tone: "neutral" | "success" | "warning" | "critical") {
-  return `admin-badge admin-badge-${tone}`;
 }
 
 export default async function AdminDashboardPage() {
@@ -48,7 +33,7 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const { stats, recentWaitlist } = overviewResult.data;
+  const { stats } = overviewResult.data;
   const analytics = analyticsResult.data;
   const dashboard = dashboardResult.data;
 
@@ -57,18 +42,17 @@ export default async function AdminDashboardPage() {
       {/* ─── Hero ─── */}
       <section className="admin-hero">
         <div className="admin-hero-copy">
-          <p className="label">CEO Command Center</p>
+          <p className="label">Command Center</p>
           <h1 className="admin-hero-title">Goedemorgen</h1>
           <p className="admin-hero-description">
-            Strategisch overzicht van je platform. KPI&apos;s, alerts, retentie en prognoses in
-            een enkele laag.
+            Strategisch overzicht van je platform.
           </p>
           <div className="admin-inline-actions">
-            <Link href="/admin/growth" className="admin-button-link">
+            <Link href="/admin/groei" className="admin-button-link">
               Groei bekijken
             </Link>
-            <Link href="/admin/forecast" className="admin-button-link admin-button-link-secondary">
-              Prognoses openen
+            <Link href="/admin/klanten" className="admin-button-link admin-button-link-secondary">
+              Klanten openen
             </Link>
           </div>
         </div>
@@ -97,7 +81,7 @@ export default async function AdminDashboardPage() {
           <div className="admin-meta-card">
             <span className="label">Churn rate</span>
             <p className="admin-meta-value">
-              {analytics ? `${analytics.churnRate}%` : "—"}
+              {analytics ? `${analytics.churnRate}%` : "\u2014"}
             </p>
             <p className="admin-meta-sub">
               Klantverloop deze maand
@@ -106,53 +90,27 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
 
-      {/* ─── SaaS KPI Strip ─── */}
-      <div className="admin-stat-grid">
-        <StatCard
-          label="MRR"
-          value={analytics ? formatCurrency(analytics.mrr) : "—"}
-          numericValue={analytics?.mrr ?? 0}
-          sub={analytics && analytics.mrrGrowth !== 0
-            ? `${analytics.mrrGrowth > 0 ? "+" : ""}${analytics.mrrGrowth}% groei`
-            : "Maandelijks terugkerend"}
-          compact
-        />
-        <StatCard
-          label="ARR"
-          value={analytics ? formatCurrency(analytics.mrr * 12) : "—"}
-          numericValue={(analytics?.mrr ?? 0) * 12}
-          sub="Jaarlijks terugkerend"
-          compact
-        />
-        <StatCard
-          label="ARPU"
-          value={analytics ? formatCurrency(analytics.arpu) : "—"}
-          numericValue={analytics?.arpu ?? 0}
-          sub="Gem. omzet per gebruiker"
-          compact
-        />
-        <StatCard
-          label="LTV"
-          value={analytics ? formatCurrency(analytics.ltv) : "—"}
-          numericValue={analytics?.ltv ?? 0}
-          sub="Geschatte levensduurwaarde"
-          compact
-        />
-        <StatCard
-          label="Klanten"
-          value={String(stats.totalUsers)}
-          numericValue={stats.totalUsers}
-          isCurrency={false}
-          sub={`${stats.newUsersThisMonth} nieuw deze maand`}
-          compact
-        />
-        <StatCard
-          label="Platform omzet"
-          value={formatCurrency(stats.totalRevenue)}
-          numericValue={stats.totalRevenue}
-          sub={`${stats.overdueInvoices} facturen achterstallig`}
-          compact
-        />
+      {/* ─── Health Pulse ─── */}
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <Link href="/admin/systeem" className="admin-panel" style={{ flex: 1, minWidth: 180, padding: "16px 20px", textDecoration: "none", color: "inherit" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span className="admin-health-dot" data-status="healthy" />
+            <span className="label">Systeem operationeel</span>
+          </div>
+        </Link>
+        <Link href="/admin/klanten/feedback" className="admin-panel" style={{ flex: 1, minWidth: 180, padding: "16px 20px", textDecoration: "none", color: "inherit" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span className="label">Klant-feedback</span>
+          </div>
+        </Link>
+        <Link href="/admin/klanten/facturen" className="admin-panel" style={{ flex: 1, minWidth: 180, padding: "16px 20px", textDecoration: "none", color: "inherit" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span className="label">Achterstallige facturen</span>
+            <span className="mono-amount" style={{ fontWeight: 600, color: stats.overdueInvoices > 0 ? "var(--color-accent)" : undefined }}>
+              {stats.overdueInvoices}
+            </span>
+          </div>
+        </Link>
       </div>
 
       {/* ─── Alerts + Quick Actions + Briefing ─── */}
@@ -173,12 +131,11 @@ export default async function AdminDashboardPage() {
         <section>
           <AdminQuickActions
             items={[
-              { label: "Gebruikers beoordelen", href: "/admin/users", count: stats.usersThisWeek },
-              { label: "Wachtlijst opvolgen", href: "/admin/pipeline?tab=wachtlijst", count: stats.waitlistCount },
-              { label: "Groei-analyse", href: "/admin/growth" },
-              { label: "Prognoses bekijken", href: "/admin/forecast" },
-              { label: "Pipeline openen", href: "/admin/pipeline" },
-              { label: "Instellingen", href: "/admin/settings" },
+              { label: "Klanten beoordelen", href: "/admin/klanten", count: stats.usersThisWeek },
+              { label: "Pipeline opvolgen", href: "/admin/pipeline", count: stats.waitlistCount },
+              { label: "Groei-analyse", href: "/admin/groei" },
+              { label: "Financieel overzicht", href: "/admin/financieel" },
+              { label: "Systeem", href: "/admin/systeem" },
             ]}
           />
         </section>
@@ -188,48 +145,8 @@ export default async function AdminDashboardPage() {
         </section>
       </div>
 
-      {/* ─── Retentie + Recente activiteit ─── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-        <section>
-          <RetentionDashboard />
-        </section>
-        <section>
-          <AdminActivityFeed />
-        </section>
-
-        <section className="admin-panel">
-          <div className="admin-panel-header">
-            <div>
-              <p className="label">Instroom</p>
-              <h2 className="admin-panel-title">Recente wachtlijst</h2>
-            </div>
-            <Link href="/admin/pipeline?tab=wachtlijst" className="admin-button-link admin-button-link-secondary">
-              Open wachtlijst
-            </Link>
-          </div>
-
-          {recentWaitlist.length === 0 ? (
-            <div className="admin-empty-state">Nog geen wachtlijstinschrijvingen beschikbaar.</div>
-          ) : (
-            <div className="admin-list">
-              {recentWaitlist.map((entry) => (
-                <Link key={entry.id} href="/admin/pipeline?tab=wachtlijst" className="admin-list-item">
-                  <div className="admin-list-content">
-                    <p className="admin-list-title">{entry.name || entry.email}</p>
-                    <p className="admin-list-sub">
-                      {entry.email} · {entry.referral || "Geen bron opgegeven"}
-                    </p>
-                  </div>
-                  <span className={getBadgeClass("neutral")}>{formatDate(entry.created_at)}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-
-      {/* ─── Export Center ─── */}
-      <AdminExportCenter />
+      {/* ─── Recente activiteit ─── */}
+      <AdminActivityFeed />
     </div>
   );
 }
