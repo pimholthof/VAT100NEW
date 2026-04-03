@@ -1,5 +1,11 @@
-import { getAdminOverview } from "@/features/admin/actions";
+import { getAdminOverview } from "@/features/admin/actions/users";
+import { getSubscriptionAnalytics } from "@/features/admin/actions/analytics";
+import { getAdminDashboardData } from "@/features/admin/actions/stats";
 import { StatCard } from "@/components/ui/StatCard";
+import { AdminAlertList } from "@/features/admin/AdminAlertList";
+import { AdminQuickActions } from "@/features/admin/AdminQuickActions";
+import StrategicBriefing from "@/features/admin/StrategicBriefing";
+import RetentionDashboard from "@/features/admin/RetentionDashboard";
 import Link from "next/link";
 import { AdminStatePanel } from "./AdminStatePanel";
 
@@ -23,104 +29,115 @@ function getBadgeClass(tone: "neutral" | "success" | "warning" | "critical") {
 }
 
 export default async function AdminDashboardPage() {
-  const result = await getAdminOverview();
+  const [overviewResult, analyticsResult, dashboardResult] = await Promise.all([
+    getAdminOverview(),
+    getSubscriptionAnalytics(),
+    getAdminDashboardData(),
+  ]);
 
-  if (result.error || !result.data) {
+  if (overviewResult.error || !overviewResult.data) {
     return (
       <AdminStatePanel
-        eyebrow="Admin overzicht"
+        eyebrow="Command Center"
         title="Platformdata kon niet worden geladen"
-        description={result.error ?? "Onbekende fout"}
+        description={overviewResult.error ?? "Onbekende fout"}
         actions={[{ href: "/dashboard", label: "Terug naar dashboard", variant: "secondary" }]}
       />
     );
   }
 
-  const { stats, recentUsers, recentWaitlist } = result.data;
-  const attention = [
-    {
-      title: "Geblokkeerde accounts",
-      value: String(stats.suspendedUsers),
-      href: "/admin/users",
-      tone: stats.suspendedUsers > 0 ? "critical" : "success",
-      description:
-        stats.suspendedUsers > 0
-          ? "Controleer welke accounts handmatige opvolging nodig hebben."
-          : "Er staan momenteel geen accounts geblokkeerd.",
-    },
-    {
-      title: "Nieuwe gebruikers deze week",
-      value: String(stats.usersThisWeek),
-      href: "/admin/users",
-      tone: stats.usersThisWeek > 0 ? "warning" : "neutral",
-      description:
-        stats.usersThisWeek > 0
-          ? "Nieuwe aanwas die onboarding en activatie kan gebruiken."
-          : "Er zijn deze week nog geen nieuwe accounts aangemaakt.",
-    },
-    {
-      title: "Wachtlijst",
-      value: String(stats.waitlistCount),
-      href: "/admin/waitlist",
-      tone: stats.waitlistCount > 0 ? "warning" : "neutral",
-      description:
-        stats.waitlistCount > 0
-          ? "Nieuwe leads staan klaar voor opvolging of activatie."
-          : "Er staan momenteel geen wachtlijstinschrijvingen open.",
-    },
-    {
-      title: "Achterstallige facturen",
-      value: String(stats.overdueInvoices),
-      href: "/admin/users",
-      tone: stats.overdueInvoices > 0 ? "critical" : "success",
-      description:
-        stats.overdueInvoices > 0
-          ? `${formatCurrency(stats.overdueAmount)} aan achterstallige omzet vraagt aandacht.`
-          : "Er zijn geen achterstallige facturen op platformniveau.",
-    },
-  ] as const;
+  const { stats, recentUsers, recentWaitlist } = overviewResult.data;
+  const analytics = analyticsResult.data;
+  const dashboard = dashboardResult.data;
 
   return (
     <div className="admin-layout">
+      {/* ─── Hero ─── */}
       <section className="admin-hero">
         <div className="admin-hero-copy">
-          <p className="label">Platform command center</p>
-          <h1 className="admin-hero-title">Admin overzicht</h1>
+          <p className="label">CEO Command Center</p>
+          <h1 className="admin-hero-title">Goedemorgen</h1>
           <p className="admin-hero-description">
-            Houd gebruikers, omzet, wachtlijst en uitzonderingen in één compacte laag in beeld en schakel direct door naar de juiste actie.
+            Strategisch overzicht van je platform. KPI&apos;s, alerts, retentie en prognoses in
+            een enkele laag.
           </p>
           <div className="admin-inline-actions">
-            <Link href="/admin/users" className="admin-button-link">
-              Gebruikers openen
+            <Link href="/admin/growth" className="admin-button-link">
+              Groei bekijken
             </Link>
-            <Link href="/admin/pipeline?tab=wachtlijst" className="admin-button-link admin-button-link-secondary">
-              Wachtlijst bekijken
+            <Link href="/admin/forecast" className="admin-button-link admin-button-link-secondary">
+              Prognoses openen
             </Link>
           </div>
         </div>
 
         <div className="admin-hero-meta">
           <div className="admin-meta-card">
-            <span className="label">Nieuw deze week</span>
-            <p className="admin-meta-value">{stats.usersThisWeek}</p>
-            <p className="admin-meta-sub">Nieuwe accounts die onboarding of verificatie kunnen vragen.</p>
+            <span className="label">MRR</span>
+            <p className="admin-meta-value">
+              {analytics ? formatCurrency(analytics.mrr) : formatCurrency(0)}
+            </p>
+            <p className="admin-meta-sub">
+              {analytics && analytics.mrrGrowth !== 0
+                ? `${analytics.mrrGrowth > 0 ? "+" : ""}${analytics.mrrGrowth}% t.o.v. vorige maand`
+                : "Maandelijks terugkerende omzet"}
+            </p>
           </div>
           <div className="admin-meta-card">
-            <span className="label">Activiteit 30 dagen</span>
-            <p className="admin-meta-value">{stats.activeUsers} / {stats.totalUsers}</p>
-            <p className="admin-meta-sub">Aantal gebruikers met recente factuuractiviteit.</p>
+            <span className="label">Actieve abonnementen</span>
+            <p className="admin-meta-value">
+              {analytics?.totalActiveSubscriptions ?? stats.activeUsers}
+            </p>
+            <p className="admin-meta-sub">
+              {stats.totalUsers} totale gebruikers op het platform
+            </p>
           </div>
           <div className="admin-meta-card">
-            <span className="label">Platform omzet</span>
-            <p className="admin-meta-value">{formatCurrency(stats.totalRevenue)}</p>
-            <p className="admin-meta-sub">Totaal betaald door klanten van gebruikers.</p>
+            <span className="label">Churn rate</span>
+            <p className="admin-meta-value">
+              {analytics ? `${analytics.churnRate}%` : "—"}
+            </p>
+            <p className="admin-meta-sub">
+              Klantverloop deze maand
+            </p>
           </div>
         </div>
       </section>
 
+      {/* ─── SaaS KPI Strip ─── */}
       <div className="admin-stat-grid">
         <StatCard
-          label="Gebruikers"
+          label="MRR"
+          value={analytics ? formatCurrency(analytics.mrr) : "—"}
+          numericValue={analytics?.mrr ?? 0}
+          sub={analytics && analytics.mrrGrowth !== 0
+            ? `${analytics.mrrGrowth > 0 ? "+" : ""}${analytics.mrrGrowth}% groei`
+            : "Maandelijks terugkerend"}
+          compact
+        />
+        <StatCard
+          label="ARR"
+          value={analytics ? formatCurrency(analytics.mrr * 12) : "—"}
+          numericValue={(analytics?.mrr ?? 0) * 12}
+          sub="Jaarlijks terugkerend"
+          compact
+        />
+        <StatCard
+          label="ARPU"
+          value={analytics ? formatCurrency(analytics.arpu) : "—"}
+          numericValue={analytics?.arpu ?? 0}
+          sub="Gem. omzet per gebruiker"
+          compact
+        />
+        <StatCard
+          label="LTV"
+          value={analytics ? formatCurrency(analytics.ltv) : "—"}
+          numericValue={analytics?.ltv ?? 0}
+          sub="Geschatte levensduurwaarde"
+          compact
+        />
+        <StatCard
+          label="Klanten"
           value={String(stats.totalUsers)}
           numericValue={stats.totalUsers}
           isCurrency={false}
@@ -128,100 +145,60 @@ export default async function AdminDashboardPage() {
           compact
         />
         <StatCard
-          label="Actief (30d)"
-          value={String(stats.activeUsers)}
-          numericValue={stats.activeUsers}
-          isCurrency={false}
-          sub={`van ${stats.totalUsers} totaal`}
-          compact
-        />
-        <StatCard
-          label="Facturen"
-          value={String(stats.totalInvoices)}
-          numericValue={stats.totalInvoices}
-          isCurrency={false}
-          sub={`${stats.overdueInvoices} achterstallig`}
-          compact
-        />
-        <StatCard
-          label="Platform Omzet"
+          label="Platform omzet"
           value={formatCurrency(stats.totalRevenue)}
           numericValue={stats.totalRevenue}
-          sub="Totaal betaald door klanten van gebruikers"
+          sub={`${stats.overdueInvoices} facturen achterstallig`}
           compact
         />
       </div>
 
-      <div className="admin-section-grid">
-        <section className="admin-panel">
-          <div className="admin-panel-header">
-            <div>
-              <p className="label">Vereist aandacht</p>
-              <h2 className="admin-panel-title">Belangrijkste signalen</h2>
-              <p className="admin-panel-description">
-                Prioriteer uitzonderingen en instroom zonder eerst door lijsten te hoeven klikken.
-              </p>
-            </div>
-          </div>
+      {/* ─── Strategische Briefing ─── */}
+      <section className="admin-section">
+        <StrategicBriefing />
+      </section>
 
-          <div className="admin-signal-list">
-            {attention.map((item) => (
-              <Link key={item.title} href={item.href} className="admin-signal-item">
-                <div className="admin-signal-content">
-                  <div className="admin-inline-actions">
-                    <h3 className="admin-signal-title">{item.title}</h3>
-                    <span className={getBadgeClass(item.tone)}>{item.value}</span>
-                  </div>
-                  <p className="admin-signal-sub">{item.description}</p>
-                </div>
-                <p className="admin-signal-value">{item.value}</p>
-              </Link>
-            ))}
-          </div>
+      {/* ─── Alerts + Quick Actions ─── */}
+      <div className="admin-section-grid">
+        <section>
+          {dashboard && (
+            <AdminAlertList alerts={dashboard.alerts} />
+          )}
+          {!dashboard && (
+            <div className="admin-panel">
+              <div className="admin-panel-header">
+                <p className="label">Geen alertdata beschikbaar</p>
+              </div>
+            </div>
+          )}
         </section>
 
-        <section className="admin-panel">
-          <div className="admin-panel-header">
-            <div>
-              <p className="label">Snelle acties</p>
-              <h2 className="admin-panel-title">Direct uitvoeren</h2>
-              <p className="admin-panel-description">
-                Sla tussenlagen over en ga meteen naar de plek waar je moet zijn.
-              </p>
-            </div>
-          </div>
-
-          <div className="admin-action-grid">
-            <Link href="/admin/users" className="admin-action-card">
-              <p className="admin-action-card-title">Gebruikers beoordelen</p>
-              <p className="admin-action-card-copy">Bekijk de nieuwste accounts, status en omzet per gebruiker.</p>
-              <span className="admin-action-card-meta">Open gebruikers</span>
-            </Link>
-            <Link href="/admin/pipeline?tab=wachtlijst" className="admin-action-card">
-              <p className="admin-action-card-title">Wachtlijst opvolgen</p>
-              <p className="admin-action-card-copy">Werk nieuwe leads of aanvragen af vanuit één compacte lijst.</p>
-              <span className="admin-action-card-meta">{stats.waitlistCount} open</span>
-            </Link>
-            <Link href="/dashboard" className="admin-action-card">
-              <p className="admin-action-card-title">Terug naar product</p>
-              <p className="admin-action-card-copy">Schakel terug naar het hoofd-dashboard van het account.</p>
-              <span className="admin-action-card-meta">Dashboard</span>
-            </Link>
-            <Link href="/admin/users" className="admin-action-card">
-              <p className="admin-action-card-title">Accounts met risico</p>
-              <p className="admin-action-card-copy">Loop geblokkeerde of financieel gevoelige accounts systematisch na.</p>
-              <span className="admin-action-card-meta">{stats.suspendedUsers} geblokkeerd</span>
-            </Link>
-          </div>
+        <section>
+          <AdminQuickActions
+            items={[
+              { label: "Gebruikers beoordelen", href: "/admin/users", count: stats.usersThisWeek },
+              { label: "Wachtlijst opvolgen", href: "/admin/pipeline?tab=wachtlijst", count: stats.waitlistCount },
+              { label: "Groei-analyse", href: "/admin/growth" },
+              { label: "Prognoses bekijken", href: "/admin/forecast" },
+              { label: "Pipeline openen", href: "/admin/pipeline" },
+              { label: "Instellingen", href: "/admin/settings" },
+            ]}
+          />
         </section>
       </div>
 
+      {/* ─── Retentie Snapshot ─── */}
+      <section className="admin-section">
+        <RetentionDashboard />
+      </section>
+
+      {/* ─── Recente activiteit ─── */}
       <div className="admin-section-grid">
         <section className="admin-panel">
           <div className="admin-panel-header">
             <div>
               <p className="label">Recente accounts</p>
-              <h2 className="admin-panel-title">Laatste gebruikers</h2>
+              <h2 className="admin-panel-title">Laatste klanten</h2>
             </div>
             <Link href="/admin/users" className="admin-button-link admin-button-link-secondary">
               Alles bekijken

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { getUsers } from "@/features/admin/actions";
+import { getUsers, getUserKpis } from "@/features/admin/actions";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { AdminPageKpis } from "@/features/admin/AdminPageKpis";
 import type { AdminUser } from "@/lib/types";
 import { AdminStatePanel } from "../AdminStatePanel";
 
@@ -51,7 +52,7 @@ export default function AdminUsersPage() {
   if (result?.error) {
     return (
       <div className="admin-layout">
-        <PageHeader title="Gebruikers" backHref="/admin" backLabel="Platform" />
+        <PageHeader title="Klanten" backHref="/admin" backLabel="Command Center" />
         <AdminStatePanel
           eyebrow="Gebruikers"
           title="Gebruikers konden niet worden geladen"
@@ -64,7 +65,10 @@ export default function AdminUsersPage() {
 
   return (
     <div className="admin-layout">
-      <PageHeader title="Gebruikers" backHref="/admin" backLabel="Platform" />
+      <PageHeader title="Klanten" backHref="/admin" backLabel="Command Center" />
+
+      {/* KPI Strip */}
+      <AdminPageKpis queryKey="admin-user-kpis" queryFn={getUserKpis} />
 
       {/* Filters */}
       <div className="admin-toolbar">
