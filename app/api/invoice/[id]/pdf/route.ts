@@ -5,7 +5,7 @@ import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import type { InvoiceTemplate } from "@/lib/types";
 
-const VALID_TEMPLATES = ["minimaal", "klassiek", "strak", "billboard"];
+const VALID_TEMPLATES = ["minimaal", "klassiek", "strak", "poster"];
 
 export async function GET(
   request: NextRequest,
