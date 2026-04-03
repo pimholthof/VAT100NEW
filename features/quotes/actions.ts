@@ -87,7 +87,7 @@ export async function createQuote(
       p_subtotal_ex_vat: totals.subtotalExVat,
       p_vat_amount: totals.vatAmount,
       p_total_inc_vat: totals.totalIncVat,
-      p_lines: JSON.stringify(linesJson),
+      p_lines: linesJson,
     });
 
     if (!rpcError) {
@@ -142,7 +142,7 @@ export async function updateQuote(
     p_subtotal_ex_vat: totals.subtotalExVat,
     p_vat_amount: totals.vatAmount,
     p_total_inc_vat: totals.totalIncVat,
-    p_lines: JSON.stringify(linesJson),
+    p_lines: linesJson,
   });
 
   if (rpcError) return { error: rpcError.message };
@@ -411,7 +411,7 @@ export async function duplicateQuote(
     p_subtotal_ex_vat: source.subtotal_ex_vat,
     p_vat_amount: source.vat_amount,
     p_total_inc_vat: source.total_inc_vat,
-    p_lines: JSON.stringify(linesJson),
+    p_lines: linesJson,
   });
 
   if (rpcError) return { error: rpcError.message };
