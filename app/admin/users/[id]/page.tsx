@@ -210,6 +210,7 @@ export default function AdminUserDetailPage() {
       {/* Profile + Stats side by side */}
       <div className="admin-section-grid">
         <div className="admin-kv-grid" style={{ padding: 16, gap: "12px 16px" }}>
+          <EditableField label="Naam" value={profile.full_name} fieldKey="full_name" onSave={handleProfileSave} isSaving={profileMutation.isPending} />
           <EditableField label="E-mail" value={profile.email} fieldKey="email" onSave={handleProfileSave} isSaving={profileMutation.isPending} />
           <EditableField label="Studio" value={profile.studio_name} fieldKey="studio_name" onSave={handleProfileSave} isSaving={profileMutation.isPending} />
           <EditableField label="KVK" value={profile.kvk_number} fieldKey="kvk_number" onSave={handleProfileSave} isSaving={profileMutation.isPending} />

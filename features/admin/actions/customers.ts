@@ -255,6 +255,7 @@ export async function updateCustomerProfile(
     address?: string;
     city?: string;
     postal_code?: string;
+    email?: string;
   }
 ): Promise<ActionResult> {
   const auth = await requireAdmin();
@@ -262,15 +263,34 @@ export async function updateCustomerProfile(
 
   try {
     const supabase = createServiceClient();
-    const { error } = await supabase
-      .from("profiles")
-      .update({ ...data, updated_at: new Date().toISOString() })
-      .eq("id", userId);
 
-    if (error) return { error: sanitizeError(error, { action: "updateCustomerProfile" }) };
+    // Email lives in auth.users, not profiles
+    if (data.email) {
+      const { error: emailError } = await supabase.auth.admin.updateUserById(userId, {
+        email: data.email,
+      });
+      if (emailError) return { error: `E-mail update mislukt: ${emailError.message}` };
+    }
+
+    // Only send profile-valid fields to profiles table
+    const profileData: Record<string, string> = {};
+    const profileFields = ["full_name", "studio_name", "kvk_number", "btw_number", "iban", "address", "city", "postal_code"] as const;
+    for (const field of profileFields) {
+      if (data[field] !== undefined) profileData[field] = data[field] as string;
+    }
+
+    if (Object.keys(profileData).length > 0) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ ...profileData, updated_at: new Date().toISOString() })
+        .eq("id", userId);
+
+      if (error) return { error: sanitizeError(error, { action: "updateCustomerProfile" }) };
+    }
 
     await logAdminAction(auth.user.id, "customer.profile_update", "customer", userId, data);
     revalidatePath(`/admin/customers/${userId}`);
+    revalidatePath(`/admin/users/${userId}`);
     return { error: null };
   } catch (e) {
     return { error: sanitizeError(e, { action: "updateCustomerProfile", userId }) };

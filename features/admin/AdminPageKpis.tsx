@@ -22,10 +22,7 @@ export function AdminPageKpis({
 
   if (isLoading) {
     return (
-      <div
-        className="stat-cards-grid"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", marginBottom: 32 }}
-      >
+      <div className="admin-stat-grid">
         {[1, 2, 3, 4].map((i) => (
           <SkeletonCard key={i} />
         ))}
@@ -36,10 +33,7 @@ export function AdminPageKpis({
   if (items.length === 0) return null;
 
   return (
-    <div
-      className="stat-cards-grid"
-      style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", marginBottom: 32 }}
-    >
+    <div className="admin-stat-grid">
       {items.map((item) => (
         <StatCard
           key={item.label}
@@ -47,6 +41,7 @@ export function AdminPageKpis({
           value={item.isCurrency ? formatCurrency(item.value) : String(item.value)}
           numericValue={item.value}
           isCurrency={item.isCurrency ?? false}
+          compact
         />
       ))}
     </div>
