@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
+import { AdminGlobalSearch } from "@/features/admin/AdminGlobalSearch";
 
 export function AdminNav() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export function AdminNav() {
     { href: "/admin/users", label: "Klanten", match: "/admin/users" },
     { href: "/admin/growth", label: "Groei", match: "/admin/growth" },
     { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline" },
+    { href: "/admin/setup", label: "Systeem", match: "/admin/setup" },
     { href: "/admin/settings", label: "Instellingen", match: "/admin/settings" },
   ];
 
@@ -33,6 +35,7 @@ export function AdminNav() {
 
   return (
     <div className="dashboard-nav">
+      <AdminGlobalSearch />
       <header className="dashboard-nav-header">
         <div className="dashboard-nav-inner">
           <div className="flex items-center gap-4">

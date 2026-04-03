@@ -360,6 +360,101 @@ export async function getUserDetail(
   }
 }
 
+// ─── Global Admin Search ───
+
+export interface AdminSearchResult {
+  type: "user" | "lead" | "invoice" | "waitlist";
+  id: string;
+  label: string;
+  sub: string;
+  href: string;
+}
+
+export async function adminGlobalSearch(
+  query: string
+): Promise<ActionResult<AdminSearchResult[]>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  const q = query.trim();
+  if (q.length < 2) return { error: null, data: [] };
+
+  try {
+    const supabase = createServiceClient();
+    const term = `%${q}%`;
+
+    const [profilesResult, leadsResult, invoicesResult, waitlistResult] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, full_name, studio_name")
+        .or(`full_name.ilike.${term},studio_name.ilike.${term}`)
+        .limit(5),
+      supabase
+        .from("leads")
+        .select("id, email, first_name, last_name, company_name")
+        .or(`email.ilike.${term},first_name.ilike.${term},last_name.ilike.${term},company_name.ilike.${term}`)
+        .limit(5),
+      supabase
+        .from("invoices")
+        .select("id, invoice_number, user_id, status, total_inc_vat")
+        .ilike("invoice_number", term)
+        .limit(5),
+      supabase
+        .from("waitlist")
+        .select("id, email, name")
+        .or(`email.ilike.${term},name.ilike.${term}`)
+        .limit(5),
+    ]);
+
+    const results: AdminSearchResult[] = [];
+
+    for (const p of profilesResult.data ?? []) {
+      results.push({
+        type: "user",
+        id: p.id,
+        label: p.full_name || p.studio_name || "Naamloos",
+        sub: p.studio_name || "",
+        href: `/admin/users/${p.id}`,
+      });
+    }
+
+    for (const l of leadsResult.data ?? []) {
+      const name = [l.first_name, l.last_name].filter(Boolean).join(" ") || l.company_name || l.email;
+      results.push({
+        type: "lead",
+        id: l.id,
+        label: name,
+        sub: l.email,
+        href: `/admin/pipeline`,
+      });
+    }
+
+    for (const inv of invoicesResult.data ?? []) {
+      results.push({
+        type: "invoice",
+        id: inv.id,
+        label: inv.invoice_number || `Factuur ${inv.id.substring(0, 8)}`,
+        sub: `${inv.status} — €${Number(inv.total_inc_vat || 0).toFixed(2)}`,
+        href: `/admin/invoices`,
+      });
+    }
+
+    for (const w of waitlistResult.data ?? []) {
+      results.push({
+        type: "waitlist",
+        id: w.id,
+        label: w.name || w.email,
+        sub: w.email,
+        href: `/admin/pipeline?tab=wachtlijst`,
+      });
+    }
+
+    return { error: null, data: results };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "adminGlobalSearch" }) };
+  }
+}
+
 // ─── User Account Actions ───
 
 export async function suspendUser(userId: string): Promise<ActionResult> {
