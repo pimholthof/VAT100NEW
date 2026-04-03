@@ -16,6 +16,10 @@
   /* Subtle green for paid/success */
   --color-warning: #b45309;
   /* Warm amber for overdue */
+  --color-overdue: #C44D2A;
+  /* Burnt sienna — urgency without panic */
+  --color-info: #2D5A7B;
+  /* Deep ocean — informative states */
 
   /* Foreground / Background — FORCE LIGHT MODE */
   --foreground: var(--color-black);
@@ -29,9 +33,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #FFFFFF;
+    --background: var(--color-white);
     --foreground: var(--color-black);
-    --color-grey-light: #F4F4F5;
+    --color-grey-light: var(--color-grey-light);
   }
 }
 
@@ -89,6 +93,18 @@
   --page-gutter: clamp(24px, 5vw, 80px);
   --content-max-width: 1400px;
 
+  /* Opacity hierarchy — 4 levels only */
+  --opacity-primary: 1;
+  --opacity-secondary: 0.55;
+  --opacity-tertiary: 0.35;
+  --opacity-ghost: 0.15;
+
+  /* Duration hierarchy */
+  --duration-instant: 100ms;
+  --duration-quick: 200ms;
+  --duration-moderate: 350ms;
+  --duration-gentle: 500ms;
+
   /* Easing */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -104,9 +120,11 @@
   --color-black: var(--color-black);
   --color-white: var(--color-white);
   --color-accent: var(--color-accent);
+  --color-overdue: var(--color-overdue);
+  --color-info: var(--color-info);
 
-  --font-geist: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-geist: var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), "SF Mono", "Consolas", "Liberation Mono", monospace;
   --font-serif: "Cormorant Garamond", Georgia, serif;
 
   --radius-sm: 4px;
@@ -129,7 +147,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--text-body-md);
   letter-spacing: var(--tracking-tight);
   font-variant-numeric: tabular-nums;
@@ -180,7 +198,7 @@ textarea:focus-visible {
 input,
 select,
 textarea {
-  transition: border-color 0.2s ease;
+  transition: border-color var(--duration-quick) ease;
 }
 
 input:focus,
@@ -190,16 +208,7 @@ textarea:focus {
 }
 
 button {
-  transition: opacity 0.15s var(--ease-out-expo);
-}
-
-button:hover:not(:disabled) {
-  opacity: 0.7;
-}
-
-button:active:not(:disabled) {
-  opacity: 0.5;
-  transform: scale(0.98);
+  transition: opacity var(--duration-instant) var(--ease-out-expo);
 }
 
 button:disabled {
@@ -207,8 +216,25 @@ button:disabled {
   cursor: default;
 }
 
+.btn-primary:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled),
+.table-action:hover:not(:disabled),
+.admin-button-link:hover:not(:disabled),
+.admin-page-button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled),
+.table-action:active:not(:disabled),
+.admin-button-link:active:not(:disabled),
+.admin-page-button:active:not(:disabled) {
+  opacity: 0.75;
+  transform: scale(0.995);
+}
+
 tbody tr {
-  transition: background 0.15s var(--ease-out-expo);
+  transition: background var(--duration-instant) var(--ease-out-expo);
 }
 
 tbody tr:hover {
@@ -216,7 +242,7 @@ tbody tr:hover {
 }
 
 a {
-  transition: opacity 0.15s ease;
+  transition: opacity var(--duration-instant) ease;
 }
 
 /* ─── Dashboard Shell ─── */
@@ -233,7 +259,7 @@ a {
   text-transform: uppercase;
   font-size: 9px;
   letter-spacing: 0.14em;
-  opacity: 0.15;
+  opacity: var(--opacity-ghost);
   position: absolute;
   right: -18px;
   top: 50%;
@@ -244,16 +270,16 @@ a {
 
 /* ─── Typography Classes ─── */
 .label {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: inherit;
   font-size: var(--text-label);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(0, 0, 0, var(--opacity-tertiary));
 }
 
 .label-strong {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: inherit;
   font-size: var(--text-label);
   font-weight: 700;
   letter-spacing: var(--tracking-label);
@@ -322,7 +348,7 @@ a {
 }
 
 .status-badge--draft {
-  opacity: 0.35;
+  opacity: var(--opacity-tertiary);
 }
 
 .status-badge--draft::before {
@@ -330,7 +356,7 @@ a {
 }
 
 .status-badge--sent {
-  opacity: 0.6;
+  opacity: var(--opacity-secondary);
 }
 
 .status-badge--sent::before {
@@ -338,7 +364,7 @@ a {
 }
 
 .status-badge--paid {
-  opacity: 0.4;
+  opacity: var(--opacity-tertiary);
   color: var(--color-success);
 }
 
@@ -348,23 +374,23 @@ a {
 
 .status-badge--overdue {
   opacity: 1;
-  color: var(--color-accent);
+  color: var(--color-overdue);
 }
 
 .status-badge--overdue::before {
-  background: var(--color-accent);
+  background: var(--color-overdue);
 }
 
 /* ─── Table Action Links ─── */
 .table-action {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: inherit;
   font-size: var(--text-label);
   font-weight: 700;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--foreground);
   text-decoration: none;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--duration-instant) ease;
   min-height: 44px;
   min-width: 44px;
   display: inline-flex;
@@ -379,11 +405,11 @@ a {
 
 /* ─── Empty State ─── */
 .empty-state {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: inherit;
   font-size: var(--text-body-lg);
   font-weight: 500;
   line-height: 1.5;
-  opacity: 0.3;
+  opacity: var(--opacity-tertiary);
   padding: var(--space-2xl) 0;
   text-align: center;
 }
@@ -399,7 +425,7 @@ a {
 }
 
 .brutalist-mark {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: inherit;
   font-size: clamp(4rem, 10vw, 8rem);
   font-weight: 900;
   letter-spacing: -0.03em;
@@ -434,7 +460,7 @@ a {
 
 .brutalist-period {
   font-size: var(--text-body-md);
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, var(--opacity-secondary));
   margin: 0;
 }
 
@@ -463,7 +489,7 @@ a {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, var(--opacity-tertiary));
 }
 
 .brutalist-metric-value {
@@ -479,7 +505,7 @@ a {
 
 .brutalist-metric-sub {
   font-size: var(--text-body-sm);
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, var(--opacity-secondary));
   margin-top: 4px;
 }
 
@@ -503,7 +529,7 @@ a {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, var(--opacity-tertiary));
 }
 
 .brutalist-stat-value {
@@ -530,12 +556,12 @@ a {
   background: none;
   border: none;
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.15s ease;
+  opacity: var(--opacity-secondary);
+  transition: opacity var(--duration-instant) ease;
 }
 
 .brutalist-action-link:hover {
-  opacity: 1;
+  opacity: var(--opacity-primary);
 }
 
 /* Mobile */
@@ -588,7 +614,7 @@ a {
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, var(--opacity-tertiary));
   padding: 8px 0;
   text-align: left;
 }
@@ -627,7 +653,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(245, 244, 241, 0.92);
+  background: rgba(245, 244, 241, 0.80);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
@@ -666,7 +692,7 @@ a {
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0.01em;
-  opacity: 0.4;
+  opacity: var(--opacity-tertiary);
   text-transform: none;
 }
 
@@ -677,7 +703,7 @@ a {
   padding: 4px 0;
   color: var(--foreground);
   border-bottom: 1px solid transparent;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--duration-quick) ease;
 }
 
 .dashboard-nav-menu[data-open="true"] {
@@ -734,20 +760,20 @@ a {
   margin: 0;
   text-decoration: none;
   color: var(--foreground);
-  opacity: 0.35;
-  transition: opacity 0.2s ease;
+  opacity: var(--opacity-tertiary);
+  transition: opacity var(--duration-quick) ease;
 }
 
 .drawer-link:hover {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .drawer-link-active {
-  opacity: 1;
+  opacity: var(--opacity-primary);
 }
 
 .drawer-logout {
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: inherit;
   font-size: var(--text-label);
   font-weight: 700;
   letter-spacing: var(--tracking-label);
@@ -756,9 +782,9 @@ a {
   border: none;
   cursor: pointer;
   padding: 0;
-  opacity: 0.5;
+  opacity: var(--opacity-secondary);
   color: var(--foreground);
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity var(--duration-quick) var(--ease-out-expo);
 }
 
 .drawer-logout:hover {
@@ -802,15 +828,16 @@ a {
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  min-height: 44px;
   padding: 4px 12px;
   text-decoration: none;
   color: var(--foreground);
-  opacity: 0.3;
-  transition: opacity 0.15s ease;
+  opacity: var(--opacity-tertiary);
+  transition: opacity var(--duration-instant) ease;
 }
 
 .mobile-bottom-nav-item--active {
-  opacity: 1;
+  opacity: var(--opacity-primary);
 }
 
 .mobile-bottom-nav-icon {
@@ -828,7 +855,7 @@ a {
 /* ── Interactive Table Rows ── */
 .table-row-interactive {
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--duration-instant) ease;
 }
 
 .table-row-interactive:hover {
@@ -841,12 +868,12 @@ a {
 }
 
 .table-row-actions {
-  opacity: 0.25;
-  transition: opacity 0.15s ease;
+  opacity: var(--opacity-ghost);
+  transition: opacity var(--duration-instant) ease;
 }
 
 .table-row-interactive:hover .table-row-actions {
-  opacity: 0.6;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-nav-badge {
@@ -881,11 +908,11 @@ a {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.55;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-nav-link[data-active="true"] {
-  opacity: 1;
+  opacity: var(--opacity-primary);
   background: rgba(0, 0, 0, 0.03);
 }
 
@@ -924,7 +951,7 @@ a {
   max-width: 42rem;
   font-size: 15px;
   line-height: 1.7;
-  opacity: 0.62;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-hero-meta {
@@ -954,7 +981,7 @@ a {
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
-  opacity: 0.5;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-inline-actions {
@@ -983,7 +1010,7 @@ a {
 }
 
 .admin-button-link-secondary {
-  opacity: 0.65;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-page-button-danger {
@@ -1033,7 +1060,7 @@ a {
   max-width: 38rem;
   font-size: 13px;
   line-height: 1.6;
-  opacity: 0.55;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-signal-list,
@@ -1083,7 +1110,7 @@ a {
   margin: 4px 0 0;
   font-size: 12px;
   line-height: 1.5;
-  opacity: 0.5;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-signal-value {
@@ -1124,7 +1151,7 @@ a {
   margin: 0;
   font-size: 13px;
   line-height: 1.6;
-  opacity: 0.56;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-action-card-meta {
@@ -1133,7 +1160,7 @@ a {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.5;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-badge {
@@ -1222,7 +1249,7 @@ a {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.42);
+  color: rgba(0, 0, 0, var(--opacity-tertiary));
 }
 
 .admin-table td {
@@ -1246,7 +1273,7 @@ a {
   margin-top: 4px;
   font-size: 12px;
   line-height: 1.5;
-  opacity: 0.46;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-right {
@@ -1264,7 +1291,7 @@ a {
   text-align: center;
   font-size: 12px;
   line-height: 1.6;
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(0, 0, 0, var(--opacity-tertiary));
 }
 
 .admin-kv-grid {
@@ -1288,7 +1315,7 @@ a {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.38);
+  color: rgba(0, 0, 0, var(--opacity-tertiary));
 }
 
 .admin-kv-value {
@@ -1327,7 +1354,7 @@ a {
   margin: 0;
   font-size: 14px;
   line-height: 1.7;
-  opacity: 0.62;
+  opacity: var(--opacity-secondary);
 }
 
 .admin-state-actions {
@@ -1421,7 +1448,7 @@ a {
   max-width: var(--content-max-width);
   width: 100%;
   margin: 0 auto;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn var(--duration-moderate) ease;
 }
 
 .dashboard-content-inner {
@@ -1477,7 +1504,7 @@ a {
   max-width: 36rem;
   font-size: var(--text-body-md);
   line-height: 1.7;
-  opacity: 0.55;
+  opacity: var(--opacity-secondary);
 }
 
 .dashboard-home-hero-stats {
@@ -1517,7 +1544,7 @@ a {
   margin: 0;
   font-size: var(--text-body-sm);
   line-height: 1.5;
-  opacity: 0.45;
+  opacity: var(--opacity-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1559,7 +1586,7 @@ a {
   max-width: 34rem;
   font-size: var(--text-body-sm);
   line-height: 1.5;
-  opacity: 0.58;
+  opacity: var(--opacity-secondary);
 }
 
 .dashboard-home-feed-content {
@@ -1593,7 +1620,7 @@ a {
 }
 
 .dashboard-content>* {
-  animation: slideUp 0.4s var(--ease-out-expo) both;
+  animation: slideUp var(--duration-gentle) var(--ease-out-expo) both;
 }
 
 .dashboard-content>*:nth-child(1) {
@@ -1638,7 +1665,7 @@ a {
 
 /* ── Stat Card hover ── */
 .stat-cards-grid>div {
-  transition: opacity 0.15s ease;
+  transition: opacity var(--duration-instant) ease;
 }
 
 .stat-cards-grid>div:hover {
@@ -1760,14 +1787,14 @@ a {
   display: flex;
   align-items: center;
   gap: 20px;
-  opacity: 0.35;
+  opacity: var(--opacity-tertiary);
 }
 
 .brutalist-rule {
   flex: 1;
   height: 0.5px;
   background: var(--color-black);
-  opacity: 0.12;
+  opacity: var(--opacity-ghost);
 }
 
 /* Mobile */
@@ -1803,7 +1830,7 @@ a {
   width: 0;
   height: 1px;
   background: var(--foreground);
-  transition: width 0.25s var(--ease-out-expo);
+  transition: width var(--duration-moderate) var(--ease-out-expo);
 }
 
 .dashboard-nav-links a:hover::after {
@@ -1821,13 +1848,12 @@ a {
   text-transform: uppercase;
   padding: 12px 24px;
   border: none;
-  border-radius: 9999px;
-  /* Volledig afgeronde pill-shape */
+  border-radius: 24px;
   background: var(--foreground);
   color: var(--background);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s var(--ease-out-expo);
+  transition: all var(--duration-quick) var(--ease-out-expo);
   white-space: nowrap;
 }
 
@@ -1846,14 +1872,12 @@ a {
   text-transform: uppercase;
   padding: 12px 24px;
   border: 1px solid var(--color-black);
-  /* Hardere, dunnere grens, consistent met New Gymnasium */
-  border-radius: 9999px;
-  /* Volledig afgeronde pill-shape */
+  border-radius: 24px;
   background: transparent;
   color: var(--foreground);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s var(--ease-out-expo);
+  transition: all var(--duration-quick) var(--ease-out-expo);
   white-space: nowrap;
 }
 
@@ -1867,13 +1891,13 @@ a {
   width: 100%;
   padding: 12px 20px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 9999px;
+  border-radius: 24px;
   background: rgba(0, 0, 0, 0.02);
   color: var(--foreground);
   font-size: 14px;
   font-weight: 400;
   outline: none;
-  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--duration-quick) ease, background var(--duration-quick) ease, box-shadow var(--duration-quick) ease;
 }
 
 .input-field:focus {
@@ -1894,11 +1918,11 @@ a {
   border-radius: var(--radius-md);
   background: rgba(0, 0, 0, 0.015);
   color: var(--foreground);
-  font-family: "Helvetica Neue LT Std", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: inherit;
   font-size: var(--text-body-md);
   font-weight: 400;
   outline: none;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color var(--duration-quick) ease, background var(--duration-quick) ease;
 }
 
 .form-input:focus {
@@ -1927,15 +1951,15 @@ a {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(250, 249, 246, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(250, 249, 246, 0.68);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn var(--duration-quick) ease;
 }
 
 .dialog-panel {
@@ -1959,7 +1983,7 @@ a {
   font-size: var(--text-body-md);
   font-weight: 400;
   margin: 0 0 var(--space-lg);
-  opacity: 0.5;
+  opacity: var(--opacity-secondary);
   line-height: 1.5;
 }
 
@@ -1994,7 +2018,7 @@ a {
   font-size: var(--text-label);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  opacity: 0.3;
+  opacity: var(--opacity-tertiary);
   font-weight: 600;
 }
 
@@ -2003,6 +2027,7 @@ a {
   align-items: center;
   gap: var(--space-sm);
   width: 100%;
+  min-height: 44px;
   padding: var(--space-sm) 12px;
   background: transparent;
   border: none;
@@ -2012,7 +2037,7 @@ a {
   color: var(--foreground);
   text-align: left;
   text-decoration: none;
-  transition: background 0.1s ease;
+  transition: background var(--duration-instant) ease;
 }
 
 .dropdown-item:hover {
@@ -2029,7 +2054,7 @@ a {
   font-size: var(--text-body-md);
   color: var(--foreground);
   text-decoration: none;
-  transition: background 0.15s ease;
+  transition: background var(--duration-instant) ease;
 }
 
 .dropdown-item--link:hover {
@@ -2043,20 +2068,20 @@ a {
   gap: 6px;
   padding: 4px 10px;
   border: none;
-  border-radius: 999px;
+  border-radius: 24px;
   cursor: pointer;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   opacity: 0.8;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--duration-instant) ease;
   white-space: nowrap;
 }
 
 .status-badge-interactive:disabled {
   cursor: default;
-  opacity: 0.4;
+  opacity: var(--opacity-tertiary);
 }
 
 .status-badge-interactive__dot {
@@ -2095,13 +2120,20 @@ a {
   background: var(--color-success);
 }
 
-.status-badge-interactive--overdue,
+.status-badge-interactive--overdue {
+  background: rgba(196, 77, 42, 0.06);
+  color: var(--color-overdue);
+}
+
+.status-badge-interactive--overdue .status-badge-interactive__dot {
+  background: var(--color-overdue);
+}
+
 .status-badge-interactive--rejected {
   background: rgba(165, 28, 48, 0.06);
   color: var(--color-accent);
 }
 
-.status-badge-interactive--overdue .status-badge-interactive__dot,
 .status-badge-interactive--rejected .status-badge-interactive__dot {
   background: var(--color-accent);
 }
@@ -2126,7 +2158,7 @@ a {
   border: var(--border-light);
   border-radius: var(--radius);
   background: var(--card-surface, var(--dashboard-surface, var(--background)));
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow var(--duration-moderate) ease;
 }
 
 .stat-card--compact {
@@ -2165,7 +2197,7 @@ a {
 .table-th {
   padding: 12px 16px 12px 0;
   text-align: left;
-  opacity: 0.3;
+  opacity: var(--opacity-tertiary);
   font-weight: 600;
   white-space: nowrap;
   font-size: var(--text-label);
@@ -2388,13 +2420,14 @@ a {
   border: none;
   border-bottom: 1.5px solid transparent;
   padding: 0 0 12px 0;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 400;
   color: var(--foreground);
-  opacity: 0.4;
+  opacity: var(--opacity-tertiary);
   cursor: pointer;
   letter-spacing: -0.01em;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration-quick) ease;
 }
 
 .tabs-item--active {
