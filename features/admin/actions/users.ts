@@ -273,12 +273,15 @@ export async function getUserDetail(
           .order("created_at", { ascending: false }),
         supabase
           .from("clients")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId),
+          .select("id, name, email, city")
+          .eq("user_id", userId)
+          .order("name", { ascending: true }),
         supabase
           .from("receipts")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId),
+          .select("id, vendor_name, amount_inc_vat, receipt_date, category")
+          .eq("user_id", userId)
+          .order("receipt_date", { ascending: false })
+          .limit(50),
       ]);
 
     if (profileResult.error || !profileResult.data) {
@@ -305,6 +308,21 @@ export async function getUserDetail(
 
     const profile = profileResult.data;
 
+    const clients = (clientsResult.data ?? []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      city: c.city,
+    }));
+
+    const receipts = (receiptsResult.data ?? []).map((r) => ({
+      id: r.id,
+      vendor_name: r.vendor_name,
+      amount_inc_vat: Number(r.amount_inc_vat) || 0,
+      receipt_date: r.receipt_date,
+      category: r.category,
+    }));
+
     const recentInvoices = invoices.slice(0, 10).map((inv) => ({
       id: inv.id,
       invoice_number: inv.invoice_number,
@@ -329,10 +347,12 @@ export async function getUserDetail(
           totalRevenue: Math.round(totalRevenue * 100) / 100,
           openInvoices: openInvoices.length,
           openAmount: Math.round(openAmount * 100) / 100,
-          totalClients: clientsResult.count ?? 0,
-          totalReceipts: receiptsResult.count ?? 0,
+          totalClients: clients.length,
+          totalReceipts: receipts.length,
         },
         recentInvoices,
+        clients,
+        receipts,
       },
     };
   } catch (e) {

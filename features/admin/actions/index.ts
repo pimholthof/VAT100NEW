@@ -7,7 +7,7 @@ export { getPlatformStats, getRevenueMetrics, getAdminDashboardData, getCustomer
 
 export { getAdminOverview, getUsers, getUserDetail, suspendUser, reactivateUser } from "./users";
 
-export { getCustomerOverview, getCustomerDetail, updateCustomerProfile, updateInvoiceStatusAsAdmin, exportCustomerInvoicesCSV, exportCustomerReceiptsCSV, exportAllCustomersCSV } from "./customers";
+export { getCustomerOverview, getCustomerDetail, updateCustomerProfile, updateInvoiceStatusAsAdmin, updateInvoiceAsAdmin, deleteInvoiceAsAdmin, updateClientAsAdmin, deleteClientAsAdmin, updateReceiptAsAdmin, deleteReceiptAsAdmin, exportCustomerInvoicesCSV, exportCustomerReceiptsCSV, exportAllCustomersCSV } from "./customers";
 
 export { getLeads, updateLeadStage, getLeadDetail, getLeadActivities, getLeadTasks, toggleLeadTask, initializeLeadTasks, updateLeadPlan, autoProvisionAccount, getLeadByToken, initiateLeadPayment, checkLeadActivation } from "./leads";
 

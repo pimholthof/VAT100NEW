@@ -153,13 +153,8 @@ export default async function AdminDashboardPage() {
         />
       </div>
 
-      {/* ─── Strategische Briefing ─── */}
-      <section className="admin-section">
-        <StrategicBriefing />
-      </section>
-
-      {/* ─── Alerts + Quick Actions ─── */}
-      <div className="admin-section-grid">
+      {/* ─── Alerts + Quick Actions + Briefing ─── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
         <section>
           {dashboard && (
             <AdminAlertList alerts={dashboard.alerts} />
@@ -185,15 +180,17 @@ export default async function AdminDashboardPage() {
             ]}
           />
         </section>
+
+        <section>
+          <StrategicBriefing />
+        </section>
       </div>
 
-      {/* ─── Retentie Snapshot ─── */}
-      <section className="admin-section">
-        <RetentionDashboard />
-      </section>
-
-      {/* ─── Recente activiteit ─── */}
-      <div className="admin-section-grid">
+      {/* ─── Retentie + Recente activiteit ─── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+        <section>
+          <RetentionDashboard />
+        </section>
         <section className="admin-panel">
           <div className="admin-panel-header">
             <div>
