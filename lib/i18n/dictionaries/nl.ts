@@ -159,6 +159,24 @@ const nl = {
     persona3Quote: "Twee keer per kwartaal BTW doen was altijd stress. Nu niet meer.",
     // CTA reassurance
     ctaReassurance: "Twee minuten. Direct aan de slag.",
+    // Manifesto
+    manifestoLabel: "MANIFEST",
+    manifestoQuote: "Wij geloven dat boekhouding onzichtbaar hoort te zijn. Geen dashboards die schreeuwen, geen meldingen die afleiden. Alleen de essentie — zodat jij kunt maken.",
+    // Editorial grid
+    editorialLabel: "HET PRODUCT",
+    editorialInvoices: "FACTURATIE",
+    editorialVat: "BTW OVERZICHT",
+    editorialPoster: "FACTUUR ONTWERP",
+    // Footer
+    footerProduct: "Product",
+    footerCompany: "Bedrijf",
+    footerLegal: "Juridisch",
+    footerAbout: "Over ons",
+    footerContact: "Contact",
+    footerPrivacy: "Privacybeleid",
+    footerTerms: "Voorwaarden",
+    footerNewsletter: "Blijf op de hoogte",
+    footerNewsletterPlaceholder: "je@email.nl",
   },
 
   // ─── Auth ───
