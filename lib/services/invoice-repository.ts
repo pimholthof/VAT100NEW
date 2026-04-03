@@ -75,7 +75,7 @@ export async function createInvoice(
       p_issue_date: input.issue_date,
       p_due_date: input.due_date,
       p_vat_rate: input.vat_rate,
-      p_vat_scheme: input.vat_scheme ?? "standard",
+      p_vat_scheme: input.vat_scheme || "standard",
       p_notes: input.notes ?? null,
       p_subtotal_ex_vat: totals.subtotalExVat,
       p_vat_amount: totals.vatAmount,

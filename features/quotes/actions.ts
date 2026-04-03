@@ -329,7 +329,7 @@ export async function convertQuoteToInvoice(
       return d.toISOString().split("T")[0];
     })(),
     vat_rate: quote.vat_rate as 0 | 9 | 21,
-    vat_scheme: (quote as unknown as Record<string, unknown>).vat_scheme as import("@/lib/types").VatScheme ?? "standard",
+    vat_scheme: ((quote as unknown as Record<string, unknown>).vat_scheme as import("@/lib/types").VatScheme) || "standard",
     notes: quote.notes,
     lines: quote.lines.map((l) => ({
       id: crypto.randomUUID(),
