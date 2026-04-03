@@ -63,7 +63,7 @@ const en = {
 
   // ─── Landing page ───
   landing: {
-    heroSubtitle: "The fiscal engine for Dutch creative freelancers. Invoicing, VAT returns and bookkeeping. Stripped of all noise.",
+    heroSubtitle: "Invoicing, VAT returns and bookkeeping for Dutch freelancers. Stripped of all noise.",
     earlyAccess: "Early access",
     discoverMore: "Discover more",
     features: "Features",
@@ -106,7 +106,7 @@ const en = {
     // Pricing
     perMonth: "per month",
     basis: "Basic",
-    basisDesc: "For the solo creative",
+    basisDesc: "For the independent",
     basisCta: "Get started",
     compleet: "Complete",
     compleetDesc: "For those who want it all covered",
@@ -133,7 +133,7 @@ const en = {
     // Hero (new)
     heroLabel: "VAT100",
     heroHeadline: "You create.\nWe handle the rest.",
-    heroSubtitleNew: "Invoicing, VAT and cashflow for creative freelancers. Designed to be invisible.",
+    heroSubtitleNew: "Invoicing, VAT and cash flow for independents. Designed to be invisible.",
     heroCta: "Get access",
     heroCtaSecondary: "See how it works",
     // Trust bar
@@ -143,19 +143,19 @@ const en = {
     trustNoKnowledge: "Works as you'd expect",
     // Product showcase
     showcaseLabel: "Under the hood",
-    showcaseInvoicesTitle: "Send an invoice.\n30 seconds. Done.",
-    showcaseInvoicesDesc: "Amount, client, send. VAT is calculated, numbering is automatic, email goes out instantly. You get back to work.",
-    showcaseVatTitle: "VAT?\nAlways up to date.",
-    showcaseVatDesc: "Real-time overview per quarter. See what to reserve and when the deadline is. No calculations, no stress.",
-    showcasePosterTitle: "Not a PDF.\nA statement.",
-    showcasePosterDesc: "Less but better — your invoice too. Amount, recipient, done. No noise, no templates from 2004. Pure design that speaks for itself.",
+    showcaseInvoicesTitle: "Sending takes\nhalf a minute.",
+    showcaseInvoicesDesc: "Amount, client, send. The rest — VAT calculation, numbering, email — takes care of itself in the background.",
+    showcaseVatTitle: "VAT that simply\nadds up.",
+    showcaseVatDesc: "A quarterly overview that moves with your invoices. You see what to set aside and when, at a glance.",
+    showcasePosterTitle: "An invoice that looks\nthe way you work.",
+    showcasePosterDesc: "Bold typography, calm design, nothing unnecessary. This is what your client receives.",
     // Persona quotes
     personaTitle: "For people like you",
-    persona1Type: "Art director",
+    persona1Type: "Consultant",
     persona1Quote: "I only open it to send an invoice. Everything else just happens.",
-    persona2Type: "Brand designer",
+    persona2Type: "Designer",
     persona2Quote: "Finally bookkeeping that looks like someone actually thought about it.",
-    persona3Type: "Creative strategist",
+    persona3Type: "Developer",
     persona3Quote: "Quarterly VAT used to be stressful. Not anymore.",
     // CTA reassurance
     ctaReassurance: "Two minutes. Get started right away.",

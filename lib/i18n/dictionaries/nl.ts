@@ -63,7 +63,7 @@ const nl = {
 
   // ─── Landing page ───
   landing: {
-    heroSubtitle: "De fiscale engine voor Nederlandse creatieve freelancers. Factureren, BTW-aangifte en boekhouding. Ontdaan van alle ruis.",
+    heroSubtitle: "Factureren, BTW-aangifte en boekhouding voor Nederlandse freelancers. Ontdaan van alle ruis.",
     earlyAccess: "Vroege toegang",
     discoverMore: "Ontdek meer",
     features: "Functies",
@@ -106,7 +106,7 @@ const nl = {
     // Pricing
     perMonth: "per maand",
     basis: "Basis",
-    basisDesc: "Voor de solo creative",
+    basisDesc: "Voor de zelfstandige",
     basisCta: "Aan de slag",
     compleet: "Compleet",
     compleetDesc: "Voor wie alles op z'n plek wil",
@@ -133,7 +133,7 @@ const nl = {
     // Hero (new)
     heroLabel: "VAT100",
     heroHeadline: "Jij maakt.\nWij regelen de rest.",
-    heroSubtitleNew: "Factureren, BTW en cashflow voor creatieve ZZP'ers. Ontworpen om onzichtbaar te zijn.",
+    heroSubtitleNew: "Factureren, BTW en cashflow voor zelfstandigen. Ontworpen om onzichtbaar te zijn.",
     heroCta: "Krijg toegang",
     heroCtaSecondary: "Bekijk hoe het werkt",
     // Trust bar
@@ -143,19 +143,19 @@ const nl = {
     trustNoKnowledge: "Werkt zoals je verwacht",
     // Product showcase
     showcaseLabel: "Onder de motorkap",
-    showcaseInvoicesTitle: "Factuur versturen.\n30 seconden. Klaar.",
-    showcaseInvoicesDesc: "Bedrag, klant, verstuur. BTW wordt berekend, nummering is automatisch, e-mail gaat direct. Jij gaat door met je werk.",
-    showcaseVatTitle: "BTW?\nAltijd up-to-date.",
-    showcaseVatDesc: "Realtime overzicht per kwartaal. Je ziet wat je moet reserveren en wanneer de deadline is. Zonder rekenen, zonder stress.",
-    showcasePosterTitle: "Geen PDF.\nEen statement.",
-    showcasePosterDesc: "Less but better — ook je factuur. Bedrag, ontvanger, klaar. Geen ruis, geen templates uit 2004. Puur ontwerp dat voor zich spreekt.",
+    showcaseInvoicesTitle: "Versturen kost je\neen halve minuut.",
+    showcaseInvoicesDesc: "Bedrag, klant, verstuur. De rest — BTW-berekening, nummering, e-mail — regelt zich vanzelf op de achtergrond.",
+    showcaseVatTitle: "BTW die gewoon\nklopt.",
+    showcaseVatDesc: "Een overzicht per kwartaal dat meebeweegt met je facturen. Je ziet direct wat je moet reserveren en wanneer.",
+    showcasePosterTitle: "Een factuur die er\nuitziet zoals jij werkt.",
+    showcasePosterDesc: "Grote typografie, rustig design, niks overbodig. Dit is wat je klant ontvangt.",
     // Persona quotes
     personaTitle: "Voor mensen zoals jij",
-    persona1Type: "Art director",
+    persona1Type: "Adviseur",
     persona1Quote: "Ik open het alleen als ik een factuur moet sturen. De rest gaat vanzelf.",
-    persona2Type: "Brand designer",
+    persona2Type: "Ontwerper",
     persona2Quote: "Eindelijk boekhouding die eruitziet alsof iemand erover heeft nagedacht.",
-    persona3Type: "Creative strategist",
+    persona3Type: "Developer",
     persona3Quote: "Twee keer per kwartaal BTW doen was altijd stress. Nu niet meer.",
     // CTA reassurance
     ctaReassurance: "Twee minuten. Direct aan de slag.",
