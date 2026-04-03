@@ -1,9 +1,24 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
+import localFont from "next/font/local";
 import { Providers } from "./providers";
 import "@/styles/globals.css";
 import { LazyCommandMenu } from "@/components/ui/LazyCommandMenu";
 import { getLocaleFromCookie, type Locale } from "@/lib/i18n";
+
+const geistSans = localFont({
+  src: "../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2",
+  variable: "--font-geist-sans",
+  display: "swap",
+  weight: "100 900",
+});
+
+const geistMono = localFont({
+  src: "../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2",
+  variable: "--font-geist-mono",
+  display: "swap",
+  weight: "100 900",
+});
 
 export const viewport: Viewport = {
   themeColor: "#f4f4f4",
@@ -34,7 +49,7 @@ export default async function RootLayout({
   const locale: Locale = getLocaleFromCookie(cookieStore.get("locale")?.value ? `locale=${cookieStore.get("locale")?.value}` : null);
 
   return (
-    <html lang={locale} className="light" style={{ colorScheme: "light" }}>
+    <html lang={locale} className={`light ${geistSans.variable} ${geistMono.variable}`} style={{ colorScheme: "light" }}>
       <body>
         <a
           href="#main"
