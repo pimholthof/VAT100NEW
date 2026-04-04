@@ -86,7 +86,17 @@ async function checkResend(): Promise<HealthCheck> {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Require CRON_SECRET or admin auth for detailed health info
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get("authorization");
+  const isAuthorized = cronSecret && authHeader === `Bearer ${cronSecret}`;
+
+  // Public callers only get a simple status
+  if (!isAuthorized) {
+    return NextResponse.json({ status: "ok", timestamp: new Date().toISOString() });
+  }
+
   const checks = await Promise.all([
     checkDatabase(),
     checkAuth(),
