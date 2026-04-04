@@ -4,6 +4,7 @@ import { completeOnboarding } from "../actions";
 import { useState } from "react";
 import { useLocale } from "@/lib/i18n/context";
 import { StepIndicator } from "@/components/ui/StepIndicator";
+import type { VatFrequency } from "@/lib/types";
 
 const textInputStyle: React.CSSProperties = {
   fontFamily: "var(--font-body), sans-serif",
@@ -23,13 +24,26 @@ const monoInputStyle: React.CSSProperties = {
   ...textInputStyle,
 };
 
-const stepLabels = ["Registratie", "Adres", "Bank"];
+const radioStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+  padding: "14px 0",
+  borderBottom: "0.5px solid rgba(13,13,11,0.06)",
+  cursor: "pointer",
+  fontSize: "13px",
+  fontWeight: 300,
+};
+
+type BookkeepingStartOption = "current_year" | "today" | "custom";
 
 export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [step, setStep] = useState(1);
   const { t } = useLocale();
+
+  const stepLabels = [t.auth.registration, t.auth.address, t.auth.bankDetails, t.auth.fiscalProfile];
 
   // Field state for step navigation
   const [kvk, setKvk] = useState("");
@@ -39,6 +53,11 @@ export default function OnboardingPage() {
   const [city, setCity] = useState("");
   const [iban, setIban] = useState("");
   const [bic, setBic] = useState("");
+
+  // Fiscal profile state (step 4)
+  const [vatFrequency, setVatFrequency] = useState<VatFrequency>("quarterly");
+  const [bookkeepingStartOption, setBookkeepingStartOption] = useState<BookkeepingStartOption>("current_year");
+  const [customStartDate, setCustomStartDate] = useState("");
 
   // Inline validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
@@ -60,7 +79,8 @@ export default function OnboardingPage() {
       }
       if (!city.trim()) errors.city = "Plaats is verplicht";
     }
-    // Step 3 (bank) has IBAN required but no real-time block needed
+    // Step 3 (bank) — no blocking validation
+    // Step 4 (fiscal) — defaults are always valid
 
     setFieldErrors(errors);
     return Object.values(errors).every((e) => !e);
@@ -68,7 +88,7 @@ export default function OnboardingPage() {
 
   function handleNext() {
     if (validateStep()) {
-      setStep((s) => Math.min(s + 1, 3));
+      setStep((s) => Math.min(s + 1, 4));
       setError(null);
     }
   }
@@ -76,6 +96,18 @@ export default function OnboardingPage() {
   function handleBack() {
     setStep((s) => Math.max(s - 1, 1));
     setError(null);
+  }
+
+  function getBookkeepingStartDate(): string {
+    const now = new Date();
+    if (bookkeepingStartOption === "today") {
+      return now.toISOString().split("T")[0];
+    }
+    if (bookkeepingStartOption === "custom" && customStartDate) {
+      return customStartDate;
+    }
+    // Default: start of current fiscal year
+    return `${now.getFullYear()}-01-01`;
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -94,6 +126,8 @@ export default function OnboardingPage() {
     formData.append("city", city);
     formData.append("iban", iban);
     formData.append("bic", bic);
+    formData.append("vat_frequency", vatFrequency);
+    formData.append("bookkeeping_start_date", getBookkeepingStartDate());
 
     const result = await completeOnboarding(formData);
 
@@ -129,7 +163,7 @@ export default function OnboardingPage() {
           {t.auth.fillCompanyDetails}
         </p>
 
-        <StepIndicator currentStep={step} totalSteps={3} labels={stepLabels} />
+        <StepIndicator currentStep={step} totalSteps={4} labels={stepLabels} />
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
           {/* Stap 1: Bedrijfsregistratie */}
@@ -273,6 +307,81 @@ export default function OnboardingPage() {
             </div>
           )}
 
+          {/* Stap 4: Fiscaal profiel */}
+          {step === 4 && (
+            <div>
+              <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 8, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
+                {t.auth.fiscalProfile}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                {/* BTW frequentie */}
+                <div>
+                  <label className="label" style={{ display: "block", marginBottom: 12 }}>
+                    {t.auth.vatFrequency}
+                  </label>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {(["quarterly", "monthly", "yearly"] as const).map((freq) => (
+                      <label key={freq} style={radioStyle}>
+                        <input
+                          type="radio"
+                          name="vat_frequency"
+                          value={freq}
+                          checked={vatFrequency === freq}
+                          onChange={() => setVatFrequency(freq)}
+                          style={{ accentColor: "var(--foreground)" }}
+                        />
+                        <span>
+                          {freq === "quarterly" && t.auth.vatQuarterly}
+                          {freq === "monthly" && t.auth.vatMonthly}
+                          {freq === "yearly" && t.auth.vatYearly}
+                          {freq === "quarterly" && (
+                            <span style={{ opacity: 0.4, fontSize: 11, marginLeft: 8 }}>
+                              {t.auth.vatQuarterlyHint}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Boekhouding startdatum */}
+                <div>
+                  <label className="label" style={{ display: "block", marginBottom: 12 }}>
+                    {t.auth.bookkeepingStart}
+                  </label>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {(["current_year", "today", "custom"] as const).map((opt) => (
+                      <label key={opt} style={radioStyle}>
+                        <input
+                          type="radio"
+                          name="bookkeeping_start"
+                          value={opt}
+                          checked={bookkeepingStartOption === opt}
+                          onChange={() => setBookkeepingStartOption(opt)}
+                          style={{ accentColor: "var(--foreground)" }}
+                        />
+                        <span>
+                          {opt === "current_year" && t.auth.bookkeepingStartCurrent}
+                          {opt === "today" && t.auth.bookkeepingStartToday}
+                          {opt === "custom" && t.auth.bookkeepingStartCustom}
+                        </span>
+                      </label>
+                    ))}
+                    {bookkeepingStartOption === "custom" && (
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        style={{ ...textInputStyle, marginTop: 8, maxWidth: 200 }}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div
               role="alert"
@@ -309,7 +418,7 @@ export default function OnboardingPage() {
                 {t.common.back}
               </button>
             )}
-            {step < 3 ? (
+            {step < 4 ? (
               <button
                 type="button"
                 onClick={handleNext}
