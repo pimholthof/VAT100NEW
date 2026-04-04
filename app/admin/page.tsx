@@ -25,7 +25,7 @@ export default async function AdminDashboardPage() {
   if (overviewResult.error || !overviewResult.data) {
     return (
       <AdminStatePanel
-        eyebrow="Command Center"
+        eyebrow="Beheercentrum"
         title="Platformdata kon niet worden geladen"
         description={overviewResult.error ?? "Onbekende fout"}
         actions={[{ href: "/dashboard", label: "Terug naar dashboard", variant: "secondary" }]}
@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
       {/* ─── Hero ─── */}
       <section className="admin-hero">
         <div className="admin-hero-copy">
-          <p className="label">Command Center</p>
+          <p className="label">Beheercentrum</p>
           <h1 className="admin-hero-title">Goedemorgen</h1>
           <p className="admin-hero-description">
             Strategisch overzicht van je platform.
@@ -134,7 +134,7 @@ export default async function AdminDashboardPage() {
               { label: "Klanten beoordelen", href: "/admin/klanten", count: stats.usersThisWeek },
               { label: "Pipeline opvolgen", href: "/admin/pipeline", count: stats.waitlistCount },
               { label: "Groei-analyse", href: "/admin/groei" },
-              { label: "Financieel overzicht", href: "/admin/financieel" },
+              { label: "Financieel overzicht", href: "/admin/financials" },
               { label: "Systeem", href: "/admin/systeem" },
             ]}
           />
