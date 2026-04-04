@@ -29,7 +29,7 @@ export default function AdminFinancialsPage() {
   if (invoiceResult?.error || expenseResult?.error) {
     return (
       <div className="admin-layout">
-        <PageHeader title="Financieel" backHref="/admin" backLabel="Command Center" />
+        <PageHeader title="Financieel" backHref="/admin" backLabel="Beheercentrum" />
         <AdminStatePanel eyebrow="Financieel" title="Kon niet worden geladen" description={invoiceResult?.error ?? expenseResult?.error ?? "Fout"} actions={[{ href: "/admin", label: "Terug", variant: "secondary" }]} />
       </div>
     );
@@ -42,7 +42,7 @@ export default function AdminFinancialsPage() {
 
   return (
     <div className="admin-layout">
-      <PageHeader title="Financieel overzicht" backHref="/admin" backLabel="Command Center" />
+      <PageHeader title="Financieel overzicht" backHref="/admin" backLabel="Beheercentrum" />
 
       {isLoading ? (
         <div className="admin-table-shell"><div className="admin-empty-state">Laden...</div></div>

@@ -3,7 +3,7 @@
 // Import from specific modules for better code splitting:
 //   import { getUsers } from "@/features/admin/actions/users"
 
-export { getPlatformStats, getRevenueMetrics, getAdminDashboardData, getCustomerKpis, getUserKpis, getWaitlistKpis } from "./stats";
+export { getPlatformStats, getRevenueMetrics, getAdminDashboardData, getCustomerKpis, getUserKpis, getWaitlistKpis, getRecentActivityFeed } from "./stats";
 
 export { getAdminOverview, getUsers, getUserDetail, suspendUser, reactivateUser } from "./users";
 
@@ -20,8 +20,14 @@ export type { PlatformInvoice, PlatformInvoiceStats, PlatformBankConnection, Pla
 
 export { getChatConversations, getChatConversationMessages, sendAdminChatMessage, getChatKpis } from "./chat";
 
+export { getForecasts } from "./forecasts";
+export type { ForecastData, MrrProjection } from "./forecasts";
+
+export { getSubscriptionAnalytics } from "./analytics";
+export type { SubscriptionAnalytics } from "./analytics";
+
 // Type re-exports
-export type { RevenueMetrics, AdminAlert, AdminLeadRow, AdminCustomerRow, AdminDashboardData, PageKpis } from "./stats";
+export type { RevenueMetrics, AdminAlert, AdminLeadRow, AdminCustomerRow, AdminDashboardData, PageKpis, ActivityFeedItem } from "./stats";
 export type { CustomerOverviewItem, CustomerDetail, CustomerBenchmarks } from "./customers";
 export type { WaitlistEntry } from "./waitlist";
 export type { AuditLogEntry } from "./audit";

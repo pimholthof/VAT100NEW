@@ -129,7 +129,7 @@ const TARGET_LABELS: Record<string, string> = {
 export default function SysteemPage() {
   return (
     <div>
-      <PageHeader title="Systeem" backHref="/admin" backLabel="Command Center" />
+      <PageHeader title="Systeem" backHref="/admin" backLabel="Beheercentrum" />
       <SysteemTabs>
         <StatusTab />
         <InstellingenTab />

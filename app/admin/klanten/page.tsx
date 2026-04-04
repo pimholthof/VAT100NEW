@@ -92,7 +92,7 @@ export default function AdminKlantenPage() {
   if (result?.error) {
     return (
       <div className="admin-layout">
-        <PageHeader title="Klanten" backHref="/admin" backLabel="Command Center" />
+        <PageHeader title="Klanten" backHref="/admin" backLabel="Beheercentrum" />
         <AdminStatePanel
           eyebrow="Klanten"
           title="Klanten konden niet worden geladen"
@@ -105,7 +105,7 @@ export default function AdminKlantenPage() {
 
   return (
     <div className="admin-layout">
-      <PageHeader title="Klanten" backHref="/admin" backLabel="Command Center" />
+      <PageHeader title="Klanten" backHref="/admin" backLabel="Beheercentrum" />
 
       {/* KPI Strip */}
       <AdminPageKpis queryKey="admin-user-kpis" queryFn={getUserKpis} />
