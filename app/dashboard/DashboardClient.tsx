@@ -14,15 +14,18 @@ import {
   SkeletonTable,
 } from "@/components/ui";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
-import { WelcomeBanner } from "@/features/dashboard/components/WelcomeBanner";
+import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
+import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
 
 
 
 export default function DashboardClient({
   initialResult,
+  initialOnboarding,
 }: {
   initialResult?: ActionResult<DashboardData>;
+  initialOnboarding?: OnboardingProgress | null;
 }) {
   const { locale, t } = useLocale();
   const { data: dashboardResult, isLoading } = useQuery({
@@ -32,6 +35,16 @@ export default function DashboardClient({
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
+  });
+
+  const { data: onboardingResult } = useQuery({
+    queryKey: ["onboarding-progress"],
+    queryFn: async () => {
+      const res = await getOnboardingProgress();
+      return res.data ?? null;
+    },
+    initialData: initialOnboarding,
+    staleTime: 30_000,
   });
 
   const data = dashboardResult?.data;
@@ -99,12 +112,14 @@ export default function DashboardClient({
       }}
       className="dashboard-content-inner dashboard-home"
     >
-      {/* ── WELCOME BANNER (new users) ── */}
-      {!isLoading && stats && (
-        <WelcomeBanner
-          hasClients={(openInvoices?.length ?? 0) > 0 || (stats.openInvoiceCount ?? 0) > 0}
-          hasInvoices={(data?.recentInvoices?.length ?? 0) > 0}
-          hasReceipts={(stats.receiptsThisMonth ?? 0) > 0}
+      {/* ── ONBOARDING CHECKLIST (new users) ── */}
+      {!isLoading && onboardingResult && !onboardingResult.onboardingCompleted && (
+        <OnboardingChecklist
+          hasProfile={onboardingResult.hasProfile}
+          hasClient={onboardingResult.hasClient}
+          hasInvoice={onboardingResult.hasInvoice}
+          hasReceipt={onboardingResult.hasReceipt}
+          hasBankConnection={onboardingResult.hasBankConnection}
         />
       )}
 

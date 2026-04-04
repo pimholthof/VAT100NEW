@@ -5,6 +5,8 @@ export type InvoiceUnit = "uren" | "dagen" | "stuks";
 export type VatRate = 0 | 9 | 21;
 export type VatScheme = "standard" | "eu_reverse_charge" | "export_outside_eu";
 
+export type VatFrequency = "monthly" | "quarterly" | "yearly";
+
 export interface Profile {
   id: string;
   full_name: string;
@@ -17,6 +19,9 @@ export interface Profile {
   iban: string | null;
   bic: string | null;
   logo_path: string | null;
+  vat_frequency: VatFrequency | null;
+  bookkeeping_start_date: string | null;
+  onboarding_completed_at: string | null;
   created_at: string;
 }
 
