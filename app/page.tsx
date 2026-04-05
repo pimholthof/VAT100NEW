@@ -55,6 +55,7 @@ export default function LandingPage() {
     { title: t.landing.featureClients, description: t.landing.featureClientsDesc },
     { title: t.landing.featureCashflow, description: t.landing.featureCashflowDesc },
     { title: t.landing.featureQuotes, description: t.landing.featureQuotesDesc },
+    { title: t.landing.featureIncomeTax, description: t.landing.featureIncomeTaxDesc },
   ];
 
   const pricingPlans = [

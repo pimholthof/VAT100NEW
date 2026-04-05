@@ -73,7 +73,7 @@ const nl = {
     theIdea: "Het idee",
     lessSoftware: "Eén factuur.",
     moreClarity: "Meer dan genoeg.",
-    ideaDescription: "Jouw hele administratie begint bij de factuur. Bedrag, ontvanger, verstuur. Alles wat daaruit volgt — BTW, cashflow, deadlines — regelt het systeem. Eén handeling, totaal overzicht.",
+    ideaDescription: "Jouw hele administratie begint bij de factuur. Bedrag, ontvanger, verstuur. Alles wat daaruit volgt — BTW, inkomstenbelasting, cashflow, deadlines — regelt het systeem. Eén handeling, totaal overzicht.",
     perInvoice: "Per factuur",
     vatInsight: "BTW-inzicht",
     manualWork: "Stappen na verzenden",
@@ -103,6 +103,8 @@ const nl = {
     featureCashflowDesc: "Zie welke facturen betaald zijn, welke openstaan en wat je veilig kunt uitgeven. Per maand, per kwartaal.",
     featureQuotes: "Offertes",
     featureQuotesDesc: "Een offerte is een factuur die wacht op akkoord. Eén klik en hij gaat de deur uit.",
+    featureIncomeTax: "Inkomstenbelasting",
+    featureIncomeTaxDesc: "Realtime inzicht in je verwachte inkomstenbelasting. Geen verrassingen bij de aangifte. Je weet altijd waar je staat.",
     // Pricing
     perMonth: "per maand",
     basis: "Basis",

@@ -73,7 +73,7 @@ const en = {
     theIdea: "The idea",
     lessSoftware: "One invoice.",
     moreClarity: "More than enough.",
-    ideaDescription: "Your entire administration starts with the invoice. Amount, recipient, send. Everything that follows — VAT, cashflow, deadlines — the system handles. One action, total clarity.",
+    ideaDescription: "Your entire administration starts with the invoice. Amount, recipient, send. Everything that follows — VAT, income tax, cashflow, deadlines — the system handles. One action, total clarity.",
     perInvoice: "Per invoice",
     vatInsight: "VAT insight",
     manualWork: "Steps after sending",
@@ -103,6 +103,8 @@ const en = {
     featureCashflowDesc: "See which invoices are paid, which are outstanding and what you can safely spend. By month, by quarter.",
     featureQuotes: "Quotes",
     featureQuotesDesc: "A quote is an invoice waiting for approval. One click and it's out the door.",
+    featureIncomeTax: "Income tax",
+    featureIncomeTaxDesc: "Real-time insight into your expected income tax. No surprises when filing. You always know where you stand.",
     // Pricing
     perMonth: "per month",
     basis: "Basic",
