@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const publicRoutes = ["/login", "/register", "/auth/callback", "/invoice", "/setup-founder"];
+  const publicRoutes = ["/login", "/register", "/auth/callback", "/invoice", "/setup-founder", "/privacy", "/voorwaarden"];
   const authOnlyRoutes = ["/onboarding", "/abonnement"];
   const isPublicRoute =
     pathname === "/" ||
@@ -80,21 +80,21 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // TEMPORARILY DISABLED: Subscription gating
-    // if (pathname.startsWith("/dashboard") && profile?.role !== "admin") {
-    //   const { data: subscription } = await supabase
-    //     .from("subscriptions")
-    //     .select("status")
-    //     .eq("user_id", user.id)
-    //     .in("status", ["active", "past_due"])
-    //     .single();
-    //
-    //   if (!subscription) {
-    //     const url = request.nextUrl.clone();
-    //     url.pathname = "/abonnement/kies";
-    //     return NextResponse.redirect(url);
-    //   }
-    // }
+    // Subscription gating: users without active subscription → plan selection
+    if (pathname.startsWith("/dashboard") && profile?.role !== "admin") {
+      const { data: subscription } = await supabase
+        .from("subscriptions")
+        .select("status")
+        .eq("user_id", user.id)
+        .in("status", ["active", "past_due"])
+        .single();
+
+      if (!subscription) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/onboarding";
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

@@ -954,6 +954,28 @@ export default function LandingPage() {
         </span>
         <div style={{ display: "flex", gap: 24 }}>
           <Link
+            href="/privacy"
+            className="label"
+            style={{
+              opacity: 0.2,
+              textDecoration: "none",
+              color: "var(--color-black)",
+            }}
+          >
+            Privacy
+          </Link>
+          <Link
+            href="/voorwaarden"
+            className="label"
+            style={{
+              opacity: 0.2,
+              textDecoration: "none",
+              color: "var(--color-black)",
+            }}
+          >
+            Voorwaarden
+          </Link>
+          <Link
             href="/login"
             className="label"
             style={{

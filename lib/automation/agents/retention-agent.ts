@@ -130,25 +130,46 @@ async function runDailyMaintenance(supabase: SupabaseClient) {
   const twoDaysAgo = new Date();
   twoDaysAgo.setHours(twoDaysAgo.getHours() - 48);
 
-  const { data: _stuckLeads } = await supabase
+  const { data: stuckLeads } = await supabase
     .from("leads")
     .select("id, email")
     .eq("lifecycle_stage", "Plan Gekozen")
     .lt("updated_at", twoDaysAgo.toISOString());
 
-  // TODO: Emit lead.stuck_in_pipeline events for stuckLeads
+  // Emit lead.stuck_in_pipeline events for stuck leads
+  for (const lead of stuckLeads ?? []) {
+    await supabase.from("system_events").insert({
+      event_type: "lead.stuck_in_pipeline",
+      payload: { lead_id: lead.id, email: lead.email, stage: "Plan Gekozen" },
+    });
+
+    // Send a nudge email if we have their email
+    if (lead.email) {
+      sendPaymentNudge({
+        email: lead.email,
+        leadId: lead.id,
+        planName: "VAT100",
+      }).catch((err) => console.error("[Retention Agent] Stuck lead nudge error:", err));
+    }
+  }
 
   // 2. Find users with no activity in 30 days
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  // This is a simplified check - in reality, we'd check latest doc/invoice date
-  const { data: _inactiveUsers } = await supabase
+  const { data: inactiveUsers } = await supabase
     .from("profiles")
     .select("id, full_name")
-    .lt("updated_at", thirtyDaysAgo.toISOString());
+    .lt("updated_at", thirtyDaysAgo.toISOString())
+    .neq("role", "admin");
 
-  // TODO: Record churn risk for inactiveUsers in health table
+  // Record churn risk events for inactive users
+  for (const user of inactiveUsers ?? []) {
+    await supabase.from("system_events").insert({
+      event_type: "user.inactive_30d",
+      payload: { user_id: user.id, full_name: user.full_name },
+    });
+  }
 
   return true;
 }
