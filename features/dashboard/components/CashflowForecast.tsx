@@ -5,15 +5,27 @@ import { formatCurrency } from "@/lib/format";
 
 export function CashflowForecast({
   weeks,
+  hasBank = true,
 }: {
   weeks: CashflowForecastWeek[];
+  hasBank?: boolean;
 }) {
   if (!weeks || weeks.length === 0) return null;
 
-  // Toon max 6 weken
   const visibleWeeks = weeks.slice(0, 6);
-  const hasNegativeBalance = visibleWeeks.some((w) => w.runningBalance < 0);
   const allEvents = visibleWeeks.flatMap((w) => w.events).filter(Boolean);
+
+  // Zonder bank: toon geen forecast, alleen verwachte inkomsten
+  const hasAnyData = visibleWeeks.some(
+    (w) => w.expectedIncome > 0 || (hasBank && w.runningBalance !== 0)
+  );
+
+  // Alleen rood tonen als er daadwerkelijk een bankbalans is die negatief wordt
+  const hasNegativeBalance = hasBank && visibleWeeks.some((w) => w.runningBalance < 0);
+
+  if (!hasBank && !hasAnyData) {
+    return null; // Verberg forecast als er geen bank en geen data is
+  }
 
   return (
     <div>
@@ -26,7 +38,6 @@ export function CashflowForecast({
         style={{
           width: "100%",
           borderCollapse: "collapse",
-          fontSize: "var(--text-body-sm)",
           marginBottom: allEvents.length > 0 || hasNegativeBalance ? 12 : 0,
         }}
       >
@@ -34,7 +45,7 @@ export function CashflowForecast({
           <tr>
             <th style={thStyle}>Week</th>
             <th style={{ ...thStyle, textAlign: "right" }}>Verwacht</th>
-            <th style={{ ...thStyle, textAlign: "right" }}>Saldo</th>
+            {hasBank && <th style={{ ...thStyle, textAlign: "right" }}>Saldo</th>}
           </tr>
         </thead>
         <tbody>
@@ -44,7 +55,7 @@ export function CashflowForecast({
               day: "numeric",
               month: "short",
             });
-            const isNegative = week.runningBalance < 0;
+            const isNegative = hasBank && week.runningBalance < 0;
             const isCurrentWeek = i === 0;
 
             return (
@@ -55,23 +66,28 @@ export function CashflowForecast({
                   background: isNegative ? "rgba(220,38,38,0.04)" : "transparent",
                 }}
               >
-                <td style={{ ...tdStyle, fontWeight: isCurrentWeek ? 600 : 400, opacity: isCurrentWeek ? 1 : 0.6 }}>
+                <td style={{ ...tdStyle, fontWeight: isCurrentWeek ? 600 : 400, opacity: isCurrentWeek ? 1 : 0.5 }}>
                   {isCurrentWeek ? "Nu" : label}
                 </td>
-                <td style={{ ...tdStyle, textAlign: "right", fontFamily: "var(--font-geist-mono)", opacity: 0.5 }}>
-                  {week.expectedIncome > 0 ? `+${formatCurrency(week.expectedIncome)}` : "—"}
+                <td style={{ ...tdStyle, textAlign: "right" }}>
+                  {week.expectedIncome > 0 ? (
+                    <span style={{ fontWeight: 500 }}>+{formatCurrency(week.expectedIncome)}</span>
+                  ) : (
+                    <span style={{ opacity: 0.25 }}>—</span>
+                  )}
                 </td>
-                <td
-                  style={{
-                    ...tdStyle,
-                    textAlign: "right",
-                    fontFamily: "var(--font-geist-mono)",
-                    fontWeight: 600,
-                    color: isNegative ? "#DC2626" : "inherit",
-                  }}
-                >
-                  {formatCurrency(week.runningBalance)}
-                </td>
+                {hasBank && (
+                  <td
+                    style={{
+                      ...tdStyle,
+                      textAlign: "right",
+                      fontWeight: 600,
+                      color: isNegative ? "#DC2626" : "inherit",
+                    }}
+                  >
+                    {formatCurrency(week.runningBalance)}
+                  </td>
+                )}
               </tr>
             );
           })}
@@ -79,8 +95,8 @@ export function CashflowForecast({
       </table>
 
       {(hasNegativeBalance || allEvents.length > 0) && (
-        <p style={{ fontSize: "11px", opacity: 0.4, margin: "0 0 16px", lineHeight: 1.5 }}>
-          {hasNegativeBalance && "Let op: saldo daalt onder €0. "}
+        <p style={{ fontSize: "11px", opacity: 0.35, margin: "0 0 16px", lineHeight: 1.5 }}>
+          {hasNegativeBalance && "Saldo daalt onder €0 — overweeg facturen sneller te innen. "}
           {allEvents.length > 0 && allEvents.join(" · ")}
         </p>
       )}
@@ -94,11 +110,12 @@ const thStyle: React.CSSProperties = {
   fontSize: "10px",
   fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.1em",
+  letterSpacing: "0.08em",
   opacity: 0.25,
-  borderBottom: "0.5px solid rgba(0,0,0,0.12)",
+  borderBottom: "0.5px solid rgba(0,0,0,0.10)",
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: "8px 4px",
+  padding: "9px 4px",
+  fontSize: "13px",
 };

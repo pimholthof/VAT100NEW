@@ -103,7 +103,11 @@ export function calculateFinancialHealth(params: {
   const { safeToSpend: sts } = params;
   let taxScore: number;
   let taxMessage: string;
-  if (sts.reservedTotal === 0) {
+  if (sts.currentBalance === 0 && sts.reservedTotal === 0) {
+    // Geen bankkoppeling: niet bestraffen
+    taxScore = 50;
+    taxMessage = "Koppel je bank voor inzicht in je belastingreserve";
+  } else if (sts.reservedTotal === 0) {
     taxScore = 50;
     taxMessage = "Nog geen belastingreserve nodig";
   } else if (sts.safeToSpend > sts.reservedTotal * 0.5) {
@@ -131,8 +135,8 @@ export function calculateFinancialHealth(params: {
     adminParts.push(`bank ${params.daysSinceLastBankSync} dagen niet gesynchroniseerd`);
   }
   if (params.daysSinceLastBankSync === null) {
-    adminScore -= 20;
-    adminParts.push("geen bankkoppeling");
+    adminScore -= 10; // Milde penalty — bank is optioneel
+    adminParts.push("bank niet gekoppeld");
   }
 
   const adminMessage = adminScore >= 80

@@ -220,7 +220,10 @@ export default function DashboardClient({
       {/* ── CASHFLOW FORECAST ── */}
       {data?.cashflowForecast && !isLoading && (
         <motion.div variants={itemVariants}>
-          <CashflowForecast weeks={data.cashflowForecast} />
+          <CashflowForecast
+            weeks={data.cashflowForecast}
+            hasBank={(safeToSpend?.currentBalance ?? 0) !== 0}
+          />
         </motion.div>
       )}
 
