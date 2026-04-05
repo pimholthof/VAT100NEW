@@ -17,6 +17,7 @@ import {
   getGroepen,
   getKostensoortenByGroep,
 } from "@/lib/constants/costs";
+import { isRepresentatie, HORECA_CODES } from "@/lib/tax/chart-of-accounts";
 import type { Receipt, ReceiptInput } from "@/lib/types";
 import {
   FieldGroup,
@@ -84,6 +85,20 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const category = costCode
     ? KOSTENSOORTEN.find((k) => k.code === costCode)?.label ?? "Overig"
     : "Overig";
+
+  const [autoRuleMessage, setAutoRuleMessage] = useState<string | null>(null);
+
+  // Auto-apply fiscale regels bij kostsoort wijziging
+  useEffect(() => {
+    if (costCode && isRepresentatie(costCode)) {
+      setBusinessPercentage(80);
+      setAutoRuleMessage("Representatiekosten: automatisch 80% zakelijk, 20% privé (fiscale regel)");
+    } else if (costCode && HORECA_CODES.has(costCode)) {
+      setAutoRuleMessage("Horeca: BTW is niet aftrekbaar (Nederlandse wetgeving)");
+    } else {
+      setAutoRuleMessage(null);
+    }
+  }, [costCode]);
 
   useEffect(() => {
     if (receipt?.storage_path && !imageUrl) {
@@ -432,6 +447,22 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             <option value="0">0%</option>
           </select>
         </FieldGroup>
+
+        {autoRuleMessage && (
+          <p
+            style={{
+              fontSize: "var(--text-body-xs)",
+              opacity: 0.5,
+              fontWeight: 500,
+              padding: "8px 0",
+              margin: "0 0 8px",
+              borderTop: "0.5px solid rgba(13,13,11,0.08)",
+              fontStyle: "italic",
+            }}
+          >
+            {autoRuleMessage}
+          </p>
+        )}
 
         <FieldGroup label={t.receipts.businessPercentage}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

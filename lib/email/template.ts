@@ -18,6 +18,7 @@ export function buildBaseEmailHtml(options: {
   contentHtml: string;
   cta?: { label: string; url: string };
   footerText?: string;
+  unsubscribeToken?: string;
 }): string {
   const ctaHtml = options.cta 
     ? `<div style="text-align:center;margin:40px 0;"><a href="${escapeHtml(options.cta.url)}" style="display:inline-block;background:#000000;color:#FFFFFF;padding:18px 36px;text-decoration:none;font-weight:900;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;font-style:italic;">${escapeHtml(options.cta.label)}</a></div>`
@@ -45,6 +46,7 @@ export function buildBaseEmailHtml(options: {
           ${options.footerText || "De premium standaard voor creatief boekhouden."}<br>
           © ${new Date().getFullYear()} VAT100 Project Management
         </p>
+        ${options.unsubscribeToken ? `<p style="font-size:11px;color:#A0A0A0;margin:12px 0 0;"><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://vat100.nl"}/api/unsubscribe/${options.unsubscribeToken}" style="color:#A0A0A0;text-decoration:underline;">Emailvoorkeuren beheren</a></p>` : ""}
       </div>
     </td></tr>
   </table>
