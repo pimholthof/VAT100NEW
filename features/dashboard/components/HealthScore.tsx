@@ -14,91 +14,50 @@ export function HealthScore({ health }: { health: FinancialHealth }) {
   const color = gradeColors[health.grade] ?? "#000";
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 24,
-        alignItems: "flex-start",
-        padding: "24px 0",
-      }}
-    >
-      {/* Grade */}
+    <div style={{ display: "flex", gap: 20, alignItems: "center", padding: "16px 0" }}>
       <div
         style={{
-          fontSize: 48,
+          fontSize: 36,
           fontWeight: 900,
           lineHeight: 1,
           color,
           fontStyle: "italic",
-          minWidth: 56,
+          minWidth: 44,
           textAlign: "center",
         }}
       >
         {health.grade}
       </div>
-
-      {/* Factors */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-        {health.factors.map((factor) => (
-          <div key={factor.name}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 4,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {factor.name}
-              </span>
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontFamily: "var(--font-geist-mono)",
-                  opacity: 0.4,
-                }}
-              >
-                {factor.score}
-              </span>
-            </div>
-            <div
-              style={{
-                width: "100%",
-                height: 3,
-                background: "rgba(0,0,0,0.06)",
-                borderRadius: 2,
-                overflow: "hidden",
-              }}
-            >
+      <div style={{ flex: 1 }}>
+        <p style={{ fontSize: "13px", fontWeight: 500, margin: "0 0 8px" }}>
+          {health.summary}
+        </p>
+        <div style={{ display: "flex", gap: 6 }}>
+          {health.factors.map((factor) => (
+            <div key={factor.name} style={{ flex: 1 }}>
               <div
                 style={{
-                  width: `${factor.score}%`,
-                  height: "100%",
-                  background: factor.score >= 70 ? "#16a34a" : factor.score >= 40 ? "#ca8a04" : "#dc2626",
+                  height: 3,
+                  background: "rgba(0,0,0,0.06)",
                   borderRadius: 2,
-                  transition: "width 0.6s ease",
+                  overflow: "hidden",
                 }}
-              />
+              >
+                <div
+                  style={{
+                    width: `${factor.score}%`,
+                    height: "100%",
+                    background: factor.score >= 70 ? "#16a34a" : factor.score >= 40 ? "#ca8a04" : "#dc2626",
+                    borderRadius: 2,
+                  }}
+                />
+              </div>
+              <p style={{ fontSize: "9px", opacity: 0.3, margin: "3px 0 0", letterSpacing: "0.04em" }}>
+                {factor.name}
+              </p>
             </div>
-            <p
-              style={{
-                fontSize: "11px",
-                opacity: 0.4,
-                margin: "3px 0 0",
-                lineHeight: 1.4,
-              }}
-            >
-              {factor.message}
-            </p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

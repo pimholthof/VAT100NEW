@@ -360,7 +360,13 @@ export default function EditInvoicePage() {
       </div>
 
       <div style={{ marginTop: 24 }}>
-        <InvoiceForm invoiceId={params.id} />
+        {currentStatus === "draft" ? (
+          <InvoiceForm invoiceId={params.id} />
+        ) : (
+          <p style={{ opacity: 0.3, fontSize: "var(--text-body-sm)", padding: "24px 0", fontStyle: "italic" }}>
+            Deze factuur is verzonden en kan niet meer worden bewerkt.
+          </p>
+        )}
       </div>
 
       <ConfirmDialog

@@ -78,6 +78,18 @@ export async function updateInvoice(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  // Verzonden facturen zijn onwijzigbaar
+  const { data: current } = await supabase
+    .from("invoices")
+    .select("status")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (current && current.status !== "draft") {
+    return { error: "Verzonden facturen kunnen niet worden bewerkt. Maak een creditnota aan." };
+  }
+
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
 

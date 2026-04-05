@@ -213,10 +213,6 @@ export default function DashboardClient({
       {/* ── FINANCIAL HEALTH ── */}
       {data?.financialHealth && !isLoading && (
         <motion.div variants={itemVariants}>
-          <h2 className="brutalist-section-title">
-            <span>Financiële Gezondheid</span>
-            <span className="brutalist-rule" />
-          </h2>
           <HealthScore health={data.financialHealth} />
         </motion.div>
       )}

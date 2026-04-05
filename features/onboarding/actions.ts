@@ -19,14 +19,15 @@ export async function getOnboardingProgress(): Promise<ActionResult<OnboardingPr
   const { supabase, user } = auth;
 
   const [profileRes, clientRes, invoiceRes, receiptRes, bankRes] = await Promise.all([
-    supabase.from("profiles").select("kvk_number, onboarding_completed_at").eq("id", user.id).single(),
+    supabase.from("profiles").select("kvk_number, studio_name, onboarding_completed_at").eq("id", user.id).single(),
     supabase.from("clients").select("id").eq("user_id", user.id).limit(1),
     supabase.from("invoices").select("id").eq("user_id", user.id).limit(1),
     supabase.from("receipts").select("id").eq("user_id", user.id).limit(1),
     supabase.from("bank_connections").select("id").eq("user_id", user.id).limit(1),
   ]);
 
-  const hasProfile = !!profileRes.data?.kvk_number;
+  // Profiel is compleet als studio_name OF kvk_number is ingevuld
+  const hasProfile = !!(profileRes.data?.kvk_number || profileRes.data?.studio_name);
   const hasClient = (clientRes.data?.length ?? 0) > 0;
   const hasInvoice = (invoiceRes.data?.length ?? 0) > 0;
   const hasReceipt = (receiptRes.data?.length ?? 0) > 0;

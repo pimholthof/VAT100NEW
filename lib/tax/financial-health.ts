@@ -9,6 +9,7 @@ export interface HealthFactor {
 export interface FinancialHealth {
   score: number;
   grade: "A" | "B" | "C" | "D" | "F";
+  summary: string;
   factors: HealthFactor[];
 }
 
@@ -145,9 +146,19 @@ export function calculateFinancialHealth(params: {
     factors.reduce((sum, f) => sum + f.score, 0) / factors.length
   );
 
+  const grade = gradeFromScore(totalScore);
+  const summaries: Record<string, string> = {
+    A: "Je financiën zijn uitstekend op orde",
+    B: "Goed op weg, kleine verbeterpunten",
+    C: "Aandachtspunten in je administratie",
+    D: "Actie vereist: financiële risico's",
+    F: "Kritiek: directe actie nodig",
+  };
+
   return {
     score: totalScore,
-    grade: gradeFromScore(totalScore),
+    grade,
+    summary: summaries[grade],
     factors,
   };
 }

@@ -341,7 +341,7 @@ function calculateCashflowForecast(
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
 
-  for (let w = 0; w < 13; w++) {
+  for (let w = 0; w < 6; w++) {
     const weekStart = new Date(startOfWeek);
     weekStart.setDate(startOfWeek.getDate() + w * 7);
     const weekEnd = new Date(weekStart);
