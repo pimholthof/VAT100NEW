@@ -100,3 +100,41 @@ export async function sendChatMessage(message: string): Promise<ActionResult> {
 
   return { error: null };
 }
+
+export async function getUnreadCount(): Promise<ActionResult<number>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { data: conversation } = await supabase
+    .from("chat_conversations")
+    .select("id, last_read_at")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!conversation) return { error: null, data: 0 };
+
+  const { count, error } = await supabase
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("conversation_id", conversation.id)
+    .eq("sender", "admin")
+    .gt("created_at", conversation.last_read_at ?? "1970-01-01");
+
+  if (error) return { error: error.message };
+  return { error: null, data: count ?? 0 };
+}
+
+export async function markMessagesRead(): Promise<ActionResult> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { error } = await supabase
+    .from("chat_conversations")
+    .update({ last_read_at: new Date().toISOString() })
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  return { error: null };
+}

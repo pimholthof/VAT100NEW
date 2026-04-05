@@ -33,6 +33,7 @@ export function InvoiceMetadata({ defaultCollapsed = false }: { defaultCollapsed
   const setVatScheme = useInvoiceStore((s) => s.setVatScheme);
 
   const currentValue = `${vatRate}_${vatScheme}`;
+  const isAutoLocked = vatScheme === "eu_reverse_charge" || vatScheme === "export_outside_eu";
 
   const handleVatChange = (value: string) => {
     const option = VAT_OPTIONS.find((o) => o.value === value);
@@ -113,18 +114,33 @@ export function InvoiceMetadata({ defaultCollapsed = false }: { defaultCollapsed
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <p className="label">{vatLabel(vatRate, vatScheme)}</p>
-            <select
-              value={currentValue}
-              onChange={(e) => handleVatChange(e.target.value)}
-              className="form-input"
-              style={{ border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
-            >
-              {VAT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {t.invoices[opt.labelKey as keyof typeof t.invoices]}
-                </option>
-              ))}
-            </select>
+            {isAutoLocked ? (
+              <span
+                className="form-input"
+                style={{
+                  border: "none",
+                  padding: 0,
+                  opacity: 0.4,
+                  fontSize: 13,
+                  fontStyle: "italic",
+                }}
+              >
+                {vatLabel(vatRate, vatScheme)} — automatisch toegepast
+              </span>
+            ) : (
+              <select
+                value={currentValue}
+                onChange={(e) => handleVatChange(e.target.value)}
+                className="form-input"
+                style={{ border: "none", padding: 0, opacity: 0.6, fontSize: 13, background: "transparent" }}
+              >
+                {VAT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {t.invoices[opt.labelKey as keyof typeof t.invoices]}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
       )}

@@ -1,7 +1,8 @@
 "use server";
 
 import { requireAuth } from "@/lib/supabase/server";
-import type { ActionResult, LedgerEntry, LedgerEntryInput, LedgerAccount } from "@/lib/types";
+import type { ActionResult, LedgerEntry, LedgerEntryInput, LedgerAccount, VatScheme } from "@/lib/types";
+import { getRevenueAccountCode } from "@/lib/tax/chart-of-accounts";
 
 // ─── Ledger Account Constants ───
 
@@ -267,12 +268,14 @@ export async function autoBookInvoice(params: {
   description: string;
   subtotalExVat: number;
   vatAmount: number;
+  vatScheme?: VatScheme;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any;
 }): Promise<void> {
-  const { invoiceId, userId, entryDate, description, subtotalExVat, vatAmount, supabase } = params;
+  const { invoiceId, userId, entryDate, description, subtotalExVat, vatAmount, vatScheme, supabase } = params;
   const round2 = (v: number) => Math.round(v * 100) / 100;
   const totalIncVat = round2(subtotalExVat + vatAmount);
+  const revenueAccount = getRevenueAccountCode(vatScheme ?? "standard");
 
   const entries: Array<{
     user_id: string;
@@ -283,14 +286,14 @@ export async function autoBookInvoice(params: {
     credit_account: number;
     amount: number;
   }> = [
-    // Debiteur aan Omzet
+    // Debiteur aan Omzet (juiste omzetrekening op basis van BTW-regime)
     {
       user_id: userId,
       entry_date: entryDate,
       description,
       source_invoice_id: invoiceId,
       debit_account: ACCOUNTS.DEBITEUREN,
-      credit_account: ACCOUNTS.OMZET,
+      credit_account: revenueAccount,
       amount: round2(subtotalExVat),
     },
   ];

@@ -51,6 +51,14 @@ export async function createInvoice(
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
 
+  // Dwing Nederlandse BTW-wetgeving af
+  if (
+    (input.vat_scheme === "eu_reverse_charge" || input.vat_scheme === "export_outside_eu") &&
+    input.vat_rate !== 0
+  ) {
+    return { error: "BTW-tarief moet 0% zijn bij EU-levering of export buiten EU." };
+  }
+
   try {
     const invoiceId = await createInvoiceInService(supabase, user.id, input);
     return { error: null, data: invoiceId };
@@ -72,6 +80,14 @@ export async function updateInvoice(
 
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
+
+  // Dwing Nederlandse BTW-wetgeving af
+  if (
+    (input.vat_scheme === "eu_reverse_charge" || input.vat_scheme === "export_outside_eu") &&
+    input.vat_rate !== 0
+  ) {
+    return { error: "BTW-tarief moet 0% zijn bij EU-levering of export buiten EU." };
+  }
 
   try {
     await updateInvoiceInService(supabase, user.id, id, input);
@@ -241,7 +257,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
     // Auto-create Mollie payment link if not yet present
     const { data: inv } = await supabase
       .from("invoices")
-      .select("payment_link, invoice_number, subtotal_ex_vat, vat_amount, issue_date")
+      .select("payment_link, invoice_number, subtotal_ex_vat, vat_amount, issue_date, vat_scheme")
       .eq("id", id)
       .eq("user_id", user.id)
       .single();
@@ -260,6 +276,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
         description: `Factuur ${inv.invoice_number}`,
         subtotalExVat: Number(inv.subtotal_ex_vat) || 0,
         vatAmount: Number(inv.vat_amount) || 0,
+        vatScheme: inv.vat_scheme ?? "standard",
         supabase,
       }).catch(() => {}); // Non-fatal
     }

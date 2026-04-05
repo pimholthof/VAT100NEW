@@ -66,6 +66,7 @@ export default function ClientDetailPage() {
   const [city, setCity] = useState("");
   const [kvkNumber, setKvkNumber] = useState("");
   const [btwNumber, setBtwNumber] = useState("");
+  const [country, setCountry] = useState("NL");
 
   const startEditing = () => {
     if (!client) return;
@@ -77,6 +78,7 @@ export default function ClientDetailPage() {
     setCity(client.city ?? "");
     setKvkNumber(client.kvk_number ?? "");
     setBtwNumber(client.btw_number ?? "");
+    setCountry(client.country ?? "NL");
     setEditing(true);
     setError(null);
   };
@@ -107,6 +109,7 @@ export default function ClientDetailPage() {
       postal_code: postalCode || null,
       kvk_number: kvkNumber || null,
       btw_number: btwNumber || null,
+      country: country || "NL",
     };
 
     const result = await updateClient(id, input);

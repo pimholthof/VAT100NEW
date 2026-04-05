@@ -2,9 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardNav } from "@/components/layout/DashboardNav";
 import { DashboardTransition } from "@/components/layout/DashboardTransition";
-import { ChatWidget } from "@/features/chat/ChatWidget";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { getUnreadCount } from "@/features/chat/actions";
 
 export default async function DashboardLayout({
   children,
@@ -16,12 +16,15 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  // Fetch profile for studio name
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("studio_name")
-    .eq("id", user.id)
-    .single();
+  // Fetch profile and unread count in parallel
+  const [profileResult, unreadResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("studio_name")
+      .eq("id", user.id)
+      .single(),
+    getUnreadCount(),
+  ]);
 
   return (
     <div className="dashboard-shell">
@@ -29,7 +32,8 @@ export default async function DashboardLayout({
         Skip to content
       </a>
       <DashboardNav
-        studioName={profile?.studio_name ?? undefined}
+        studioName={profileResult.data?.studio_name ?? undefined}
+        unreadMessages={unreadResult.data ?? 0}
       />
       <DashboardTransition>
         <main id="main" className="dashboard-content">
@@ -37,7 +41,6 @@ export default async function DashboardLayout({
           {children}
         </main>
       </DashboardTransition>
-      <ChatWidget />
       <MobileBottomNav />
     </div>
   );

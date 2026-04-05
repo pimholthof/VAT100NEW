@@ -26,8 +26,10 @@ function useIsMobile(breakpoint = 768) {
 
 export function DashboardNav({
   studioName,
+  unreadMessages = 0,
 }: {
   studioName?: string;
+  unreadMessages?: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -146,6 +148,12 @@ export function DashboardNav({
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")}>{t.nav.clients}</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")}>{t.nav.expenses}</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")}>{t.nav.tax}</Link>
+                <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  Berichten
+                  {unreadMessages > 0 && (
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent, #E53E3E)", flexShrink: 0 }} />
+                  )}
+                </Link>
               </div>
 
               {/* Account */}

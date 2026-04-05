@@ -33,6 +33,7 @@ export function ClientForm({ client }: ClientFormProps) {
   const [city, setCity] = useState(client?.city ?? "");
   const [kvkNumber, setKvkNumber] = useState(client?.kvk_number ?? "");
   const [btwNumber, setBtwNumber] = useState(client?.btw_number ?? "");
+  const [country, setCountry] = useState(client?.country ?? "NL");
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
 
@@ -71,6 +72,7 @@ export function ClientForm({ client }: ClientFormProps) {
       postal_code: postalCode || null,
       kvk_number: kvkNumber || null,
       btw_number: btwNumber || null,
+      country: country || "NL",
     };
 
     const result = client
@@ -165,6 +167,47 @@ export function ClientForm({ client }: ClientFormProps) {
           />
         </FieldGroup>
       </div>
+
+      <FieldGroup label="Land">
+        <select
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          className="form-input"
+        >
+          <option value="NL">Nederland</option>
+          <option value="BE">België</option>
+          <option value="DE">Duitsland</option>
+          <option value="FR">Frankrijk</option>
+          <option value="GB">Verenigd Koninkrijk</option>
+          <option value="AT">Oostenrijk</option>
+          <option value="ES">Spanje</option>
+          <option value="IT">Italië</option>
+          <option value="IE">Ierland</option>
+          <option value="LU">Luxemburg</option>
+          <option value="PL">Polen</option>
+          <option value="SE">Zweden</option>
+          <option value="DK">Denemarken</option>
+          <option value="FI">Finland</option>
+          <option value="PT">Portugal</option>
+          <option value="CZ">Tsjechië</option>
+          <option value="RO">Roemenië</option>
+          <option value="HU">Hongarije</option>
+          <option value="BG">Bulgarije</option>
+          <option value="HR">Kroatië</option>
+          <option value="SK">Slowakije</option>
+          <option value="SI">Slovenië</option>
+          <option value="LT">Litouwen</option>
+          <option value="LV">Letland</option>
+          <option value="EE">Estland</option>
+          <option value="CY">Cyprus</option>
+          <option value="MT">Malta</option>
+          <option value="EL">Griekenland</option>
+          <option value="US">Verenigde Staten</option>
+          <option value="CH">Zwitserland</option>
+          <option value="NO">Noorwegen</option>
+          <option value="OTHER">Overig</option>
+        </select>
+      </FieldGroup>
 
       <div
         style={{

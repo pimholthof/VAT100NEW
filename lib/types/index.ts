@@ -36,6 +36,7 @@ export interface Client {
   postal_code: string | null;
   kvk_number: string | null;
   btw_number: string | null;
+  country: string | null;
   created_at: string;
 }
 
@@ -132,6 +133,7 @@ export interface ClientInput {
   postal_code: string | null;
   kvk_number: string | null;
   btw_number: string | null;
+  country?: string | null;
 }
 
 // ─── Receipt types ───
@@ -543,6 +545,7 @@ export interface ImportPreviewRow {
 export interface ChatConversation {
   id: string;
   user_id: string;
+  last_read_at: string | null;
   updated_at: string;
   created_at: string;
 }

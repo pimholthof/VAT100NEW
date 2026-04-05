@@ -20,6 +20,7 @@ export const clientSchema = z.object({
   postal_code: optionalString,
   kvk_number: optionalString,
   btw_number: optionalString,
+  country: optionalString,
 });
 
 export type ClientSchema = z.infer<typeof clientSchema>;
