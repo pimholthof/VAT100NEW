@@ -15,10 +15,10 @@ const klantenItems = [
 ];
 
 const vat100Items = [
-  { href: "/admin", label: "Command Center", match: "/admin" },
+  { href: "/admin", label: "Beheercentrum", match: "/admin" },
   { href: "/admin/groei", label: "Groei", match: "/admin/groei" },
   { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline" },
-  { href: "/admin/financieel", label: "Financieel", match: "/admin/financieel" },
+  { href: "/admin/financials", label: "Financieel", match: "/admin/financials" },
   { href: "/admin/systeem", label: "Systeem", match: "/admin/systeem" },
 ];
 
@@ -92,7 +92,7 @@ export function AdminNav() {
               className="label-strong dashboard-nav-menu"
               data-open={isDrawerOpen}
             >
-              {isDrawerOpen ? "CLOSE" : "MENU"}
+              {isDrawerOpen ? "SLUIT" : "MENU"}
             </button>
           </div>
         </div>

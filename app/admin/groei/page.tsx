@@ -25,7 +25,7 @@ export default async function GroeiPage() {
         eyebrow="Groei"
         title="Groeidata kon niet worden geladen"
         description={analyticsResult.error ?? "Onbekende fout"}
-        actions={[{ href: "/admin", label: "Terug naar Command Center", variant: "secondary" }]}
+        actions={[{ href: "/admin", label: "Terug naar Beheercentrum", variant: "secondary" }]}
       />
     );
   }
