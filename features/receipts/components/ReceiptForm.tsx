@@ -17,6 +17,8 @@ import {
   getGroepen,
   getKostensoortenByGroep,
 } from "@/lib/constants/costs";
+import { isRepresentatie, HORECA_CODES } from "@/lib/tax/chart-of-accounts";
+import { getDefaultVatRateForCostCode, getDefaultBusinessPercentage } from "@/lib/tax/transaction-classifier";
 import type { Receipt, ReceiptInput } from "@/lib/types";
 import {
   FieldGroup,
@@ -84,6 +86,37 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   const category = costCode
     ? KOSTENSOORTEN.find((k) => k.code === costCode)?.label ?? "Overig"
     : "Overig";
+
+  const [autoRuleMessage, setAutoRuleMessage] = useState<string | null>(null);
+
+  // Auto-apply fiscale regels bij kostsoort wijziging
+  useEffect(() => {
+    if (!costCode) {
+      setAutoRuleMessage(null);
+      return;
+    }
+
+    // Stel automatisch het juiste BTW-tarief in op basis van kostsoort
+    const suggestedVat = getDefaultVatRateForCostCode(costCode);
+    setVatRate(String(suggestedVat));
+
+    // Stel zakelijk percentage in op basis van kostsoort
+    const suggestedBp = getDefaultBusinessPercentage(costCode);
+    setBusinessPercentage(suggestedBp);
+
+    // Toon uitleg bij speciale regels
+    if (isRepresentatie(costCode)) {
+      setAutoRuleMessage("Representatiekosten: automatisch 80% zakelijk, 20% privé (fiscale regel)");
+    } else if (HORECA_CODES.has(costCode)) {
+      setAutoRuleMessage("Horeca: BTW is niet aftrekbaar (Nederlandse wetgeving)");
+    } else if (suggestedVat === 9) {
+      setAutoRuleMessage(`Standaard BTW-tarief: ${suggestedVat}% (verlaagd tarief)`);
+    } else if (suggestedVat === 0) {
+      setAutoRuleMessage("Geen BTW van toepassing op deze kostsoort");
+    } else {
+      setAutoRuleMessage(null);
+    }
+  }, [costCode]);
 
   useEffect(() => {
     if (receipt?.storage_path && !imageUrl) {
@@ -432,6 +465,22 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             <option value="0">0%</option>
           </select>
         </FieldGroup>
+
+        {autoRuleMessage && (
+          <p
+            style={{
+              fontSize: "var(--text-body-xs)",
+              opacity: 0.5,
+              fontWeight: 500,
+              padding: "8px 0",
+              margin: "0 0 8px",
+              borderTop: "0.5px solid rgba(13,13,11,0.08)",
+              fontStyle: "italic",
+            }}
+          >
+            {autoRuleMessage}
+          </p>
+        )}
 
         <FieldGroup label={t.receipts.businessPercentage}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

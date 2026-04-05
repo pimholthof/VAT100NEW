@@ -24,6 +24,7 @@ export async function sendSubscriptionReceipt(options: {
   periodStart: string;
   periodEnd: string;
   paidAt: string;
+  unsubscribeToken?: string;
 }): Promise<ActionResult> {
   const { email, fullName, planName, amountCents, invoiceNumber, periodStart, periodEnd, paidAt } = options;
 
@@ -73,6 +74,7 @@ export async function sendSubscriptionReceipt(options: {
         contentHtml,
         cta: { label: "Open dashboard", url: `${process.env.NEXT_PUBLIC_APP_URL || "https://vat100.nl"}/dashboard` },
         footerText: "Automatisch gegenereerd door VAT100.",
+        unsubscribeToken: options.unsubscribeToken,
       }),
     });
 
@@ -95,6 +97,7 @@ export async function sendSubscriptionReminder(options: {
   planName: string;
   amount: string;
   step: number;
+  unsubscribeToken?: string;
 }): Promise<ActionResult> {
   const { email, fullName, planName, amount, step } = options;
   const billingUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://vat100.nl"}/dashboard/settings/subscription`;
@@ -137,6 +140,7 @@ export async function sendSubscriptionReminder(options: {
         title: step >= 3 ? "Laatste waarschuwing" : step >= 2 ? "Aanmaning" : "Betaalherinnering",
         contentHtml,
         cta: { label: "Nu betalen", url: billingUrl },
+        unsubscribeToken: options.unsubscribeToken,
       }),
     });
 

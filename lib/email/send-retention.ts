@@ -51,6 +51,7 @@ export async function sendBillingAlert(options: {
   email: string;
   fullName: string;
   amount: string;
+  unsubscribeToken?: string;
 }): Promise<ActionResult> {
   const { email, fullName, amount } = options;
   const billingUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://vat100.nl'}/dashboard/settings/subscription`;
@@ -70,7 +71,8 @@ export async function sendBillingAlert(options: {
         title: "Billing Alert",
         contentHtml,
         cta: { label: "Nu betalen", url: billingUrl },
-        footerText: "Houd je accounts pro-actief."
+        footerText: "Houd je accounts pro-actief.",
+        unsubscribeToken: options.unsubscribeToken,
       }),
     });
 

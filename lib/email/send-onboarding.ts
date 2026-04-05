@@ -15,6 +15,7 @@ export async function sendWelcomeEmail(options: {
   fullName: string;
   tempPassword?: string;
   studioName?: string;
+  unsubscribeToken?: string;
 }): Promise<ActionResult> {
   const { email, fullName, tempPassword, studioName } = options;
   const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://vat100.nl'}/login`;
@@ -48,7 +49,8 @@ export async function sendWelcomeEmail(options: {
         title: "Welcome aboard",
         contentHtml,
         cta: { label: "Naar de Hub", url: loginUrl },
-        footerText: "Je bent nu onderdeel van de 100."
+        footerText: "Je bent nu onderdeel van de 100.",
+        unsubscribeToken: options.unsubscribeToken,
       }),
     });
 

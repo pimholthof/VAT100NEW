@@ -6,6 +6,7 @@ import { activateSubscriptionAfterPayment } from "@/features/subscriptions/actio
 import { autoProvisionAccount } from "@/features/admin/actions";
 import { isRateLimited } from "@/lib/rate-limit";
 import { sendSubscriptionReceipt } from "@/lib/email/send-subscription";
+import { getOrCreateUnsubscribeToken } from "@/lib/email/preferences";
 
 /**
  * Mollie webhook: wordt aangeroepen wanneer een betaalstatus wijzigt.
@@ -143,7 +144,8 @@ async function handleSubscriptionPayment(
         const seqNum = String((existingCount ?? 0) + 1).padStart(4, "0");
         const invoiceNumber = `SUB-${year}-${seqNum}`;
 
-        await supabase.from("subscription_payments").insert({
+        // Idempotent insert: UNIQUE constraint on mollie_payment_id prevents duplicates
+        const { error: insertError } = await supabase.from("subscription_payments").insert({
           subscription_id: subscription.id,
           mollie_payment_id: paymentId,
           amount_cents: amountCents,
@@ -152,6 +154,11 @@ async function handleSubscriptionPayment(
           invoice_number: invoiceNumber,
         });
 
+        // Duplicate webhook — payment already processed
+        if (insertError?.code === "23505") {
+          return NextResponse.json({ status: "already_processed", paymentId });
+        }
+
         await supabase.from("subscriptions").update({
           status: "active",
           current_period_start: now.toISOString(),
@@ -159,7 +166,7 @@ async function handleSubscriptionPayment(
           updated_at: now.toISOString(),
         }).eq("id", subscription.id);
 
-        // Auto-send subscription receipt email
+        // Auto-send subscription receipt email (only for new payments)
         try {
           const { data: subDetail } = await supabase
             .from("subscriptions")
@@ -171,9 +178,10 @@ async function handleSubscriptionPayment(
             const userId = subDetail.user_id;
             const planName = (subDetail.plan as unknown as { name: string })?.name ?? "VAT100";
 
-            const [{ data: profile }, { data: authUser }] = await Promise.all([
+            const [{ data: profile }, { data: authUser }, unsubscribeToken] = await Promise.all([
               supabase.from("profiles").select("full_name").eq("id", userId).single(),
               supabase.auth.admin.getUserById(userId),
+              getOrCreateUnsubscribeToken(userId),
             ]);
 
             const email = authUser?.user?.email;
@@ -189,6 +197,7 @@ async function handleSubscriptionPayment(
                 periodStart: now.toISOString(),
                 periodEnd: periodEnd.toISOString(),
                 paidAt: now.toISOString(),
+                unsubscribeToken: unsubscribeToken ?? undefined,
               });
 
               if (!receiptResult.error) {

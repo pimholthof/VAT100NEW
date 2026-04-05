@@ -5,24 +5,9 @@ import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/lib/i18n/context";
 
-interface ChatMessage {
-  role: "user" | "ai";
-  content: string;
-}
-
-interface ChatApiResponse {
-  text?: string;
-  error?: string;
-}
-
 export function CommandMenu() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-
-  // AI Chat State
-  const [chatMode, setChatMode] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isChatLoading, setIsChatLoading] = useState(false);
 
   const router = useRouter();
   const { t } = useLocale();
@@ -34,49 +19,18 @@ export function CommandMenu() {
         setOpen((open) => !open);
       }
       if (e.key === "Escape") {
-        if (chatMode) {
-          setChatMode(false);
-          setQuery("");
-        } else {
-          setOpen(false);
-        }
+        setOpen(false);
       }
     };
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, [chatMode]);
+  }, []);
 
   const runCommand = useCallback((command: () => unknown) => {
     setOpen(false);
     command();
   }, []);
-
-  const askAI = async (userQuery: string) => {
-    if (!userQuery.trim()) return;
-    setChatMode(true);
-    const updatedMessages: ChatMessage[] = [...chatMessages, { role: 'user', content: userQuery }];
-    setChatMessages(updatedMessages);
-    setQuery("");
-    setIsChatLoading(true);
-
-    try {
-      const res = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: userQuery,
-          history: updatedMessages.slice(0, -1),
-        }),
-      });
-      const data: ChatApiResponse = await res.json();
-      setChatMessages(prev => [...prev, { role: 'ai', content: data.text || data.error || t.commandMenu.chatNoResponse }]);
-    } catch {
-      setChatMessages(prev => [...prev, { role: 'ai', content: t.commandMenu.chatError }]);
-    } finally {
-      setIsChatLoading(false);
-    }
-  };
 
   if (!open) return null;
 
@@ -117,30 +71,13 @@ export function CommandMenu() {
         <Command
           style={{ width: "100%" }}
           label="Global commands"
-          shouldFilter={!chatMode} 
         >
-          <div style={{ display: 'flex', alignItems: 'center', borderBottom: "var(--border-rule)" }}>
-            {chatMode && (
-              <button 
-                onClick={() => setChatMode(false)}
-                style={{
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  padding: '20px 0 20px 24px', color: 'rgba(13,13,11,0.5)'
-                }}
-              >
-                ←
-              </button>
-            )}
+          <div style={{ borderBottom: "var(--border-rule)" }}>
             <Command.Input
-              placeholder={chatMode ? t.commandMenu.chatPlaceholder : t.commandMenu.placeholder}
+              placeholder={t.commandMenu.placeholder}
               autoFocus
               value={query}
               onValueChange={setQuery}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && chatMode && query) {
-                  askAI(query);
-                }
-              }}
               style={{
                 width: "100%",
                 padding: "20px 24px",
@@ -153,7 +90,6 @@ export function CommandMenu() {
             />
           </div>
 
-          {!chatMode ? (
           <Command.List
             style={{
               maxHeight: 320,
@@ -166,26 +102,7 @@ export function CommandMenu() {
               style={{ padding: "24px", textAlign: "center", opacity: 0.5 }}
             >
               {t.commandMenu.noResults} &quot;{query}&quot;.
-              {query && (
-                <div 
-                  onClick={() => askAI(query)}
-                  style={{ marginTop: 12, padding: "8px 16px", background: "var(--foreground)", color: "var(--background)", borderRadius: 0, cursor: "pointer", display: "inline-block" }}
-                >
-                  {t.commandMenu.askAssistant}
-                </div>
-              )}
             </Command.Empty>
-
-            <Command.Group heading={t.commandMenu.aiAssistant} className="cmdk-group">
-              <Command.Item
-                onSelect={() => {
-                  if (query) { askAI(query); } else { setChatMode(true); }
-                }}
-                className="cmdk-item"
-              >
-                <span style={{color: 'var(--color-accent)'}}>{t.commandMenu.askQuestion}</span> {query ? `"${query}"` : "..."}
-              </Command.Item>
-            </Command.Group>
 
             <Command.Group heading={t.commandMenu.actionsGroup} className="cmdk-group">
               <Command.Item
@@ -228,6 +145,12 @@ export function CommandMenu() {
                 {t.commandMenu.clientsOverview}
               </Command.Item>
               <Command.Item
+                onSelect={() => runCommand(() => router.push("/dashboard/berichten"))}
+                className="cmdk-item"
+              >
+                Berichten
+              </Command.Item>
+              <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/settings"))}
                 className="cmdk-item"
               >
@@ -236,37 +159,6 @@ export function CommandMenu() {
             </Command.Group>
 
           </Command.List>
-          ) : (
-            <div style={{ maxHeight: 400, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-              {chatMessages.length === 0 && (
-                <div style={{ textAlign: "center", opacity: 0.5, padding: "24px 0" }}>
-                  {t.commandMenu.chatEmpty}
-                </div>
-              )}
-              {chatMessages.map((msg, i) => (
-                <div key={i} style={{
-                  alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  background: msg.role === 'user' ? 'var(--color-black)' : 'transparent',
-                  color: msg.role === 'user' ? 'var(--color-white)' : 'var(--color-black)',
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  maxWidth: '85%',
-                  whiteSpace: 'pre-wrap',
-                  fontFamily: "var(--font-geist), sans-serif",
-                  fontSize: "var(--text-body-md)",
-                  border: msg.role === 'ai' ? 'var(--border-light)' : 'none'
-                }}>
-                  {msg.role === 'ai' && <strong style={{color: 'var(--color-accent)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '11px'}}>VAT100 ASSISTANT</strong>}
-                  {msg.content}
-                </div>
-              ))}
-              {isChatLoading && (
-                <div style={{ alignSelf: 'flex-start', opacity: 0.5, fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span className="spinner"></span> {t.commandMenu.chatLoading}
-                </div>
-              )}
-            </div>
-          )}
         </Command>
       </div>
       <style dangerouslySetInnerHTML={{ __html: `

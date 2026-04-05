@@ -166,8 +166,8 @@ export function validateDutchInvoiceRequirements(
     results.push({
       id: "btw_verlegd",
       label: "BTW verlegd",
-      severity: "warning",
-      message: "Bij EU intracommunautair moet het BTW-nummer van de afnemer op de factuur staan.",
+      severity: "error",
+      message: "BTW-nummer van de afnemer is verplicht bij intracommunautaire levering.",
       passed: !!client.btw_number?.trim(),
     });
   }

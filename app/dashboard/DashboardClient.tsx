@@ -14,6 +14,8 @@ import {
   SkeletonTable,
 } from "@/components/ui";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
+import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
+import { HealthScore } from "@/features/dashboard/components/HealthScore";
 import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
 import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
@@ -207,6 +209,23 @@ export default function DashboardClient({
         </div>
       )}
 
+
+      {/* ── FINANCIAL HEALTH ── */}
+      {data?.financialHealth && !isLoading && (
+        <motion.div variants={itemVariants}>
+          <HealthScore health={data.financialHealth} />
+        </motion.div>
+      )}
+
+      {/* ── CASHFLOW FORECAST ── */}
+      {data?.cashflowForecast && !isLoading && (
+        <motion.div variants={itemVariants}>
+          <CashflowForecast
+            weeks={data.cashflowForecast}
+            hasBank={(safeToSpend?.currentBalance ?? 0) !== 0}
+          />
+        </motion.div>
+      )}
 
       {/* ── OPEN INVOICES ── */}
       <motion.div variants={itemVariants}>

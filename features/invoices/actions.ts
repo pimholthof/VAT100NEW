@@ -51,6 +51,14 @@ export async function createInvoice(
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
 
+  // Dwing Nederlandse BTW-wetgeving af
+  if (
+    (input.vat_scheme === "eu_reverse_charge" || input.vat_scheme === "export_outside_eu") &&
+    input.vat_rate !== 0
+  ) {
+    return { error: "BTW-tarief moet 0% zijn bij EU-levering of export buiten EU." };
+  }
+
   try {
     const invoiceId = await createInvoiceInService(supabase, user.id, input);
     return { error: null, data: invoiceId };
@@ -70,8 +78,28 @@ export async function updateInvoice(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  // Verzonden facturen zijn onwijzigbaar
+  const { data: current } = await supabase
+    .from("invoices")
+    .select("status")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (current && current.status !== "draft") {
+    return { error: "Verzonden facturen kunnen niet worden bewerkt. Maak een creditnota aan." };
+  }
+
   const v = validate(invoiceSchema, input);
   if (v.error) return { error: v.error };
+
+  // Dwing Nederlandse BTW-wetgeving af
+  if (
+    (input.vat_scheme === "eu_reverse_charge" || input.vat_scheme === "export_outside_eu") &&
+    input.vat_rate !== 0
+  ) {
+    return { error: "BTW-tarief moet 0% zijn bij EU-levering of export buiten EU." };
+  }
 
   try {
     await updateInvoiceInService(supabase, user.id, id, input);
@@ -80,6 +108,14 @@ export async function updateInvoice(
     return { error: e instanceof Error ? e.message : String(e) };
   }
 }
+
+// Toegestane status transities — voorkomt dat verzonden facturen terug naar draft gaan
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  draft: ["sent"],
+  sent: ["paid", "overdue"],
+  overdue: ["paid"],
+  paid: [], // Betaalde facturen kunnen niet meer wijzigen
+};
 
 export async function updateInvoiceStatus(
   id: string,
@@ -91,6 +127,21 @@ export async function updateInvoiceStatus(
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
+
+  // Haal huidige status op voor transitie validatie
+  const { data: current } = await supabase
+    .from("invoices")
+    .select("status")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!current) return { error: "Factuur niet gevonden." };
+
+  const allowed = ALLOWED_TRANSITIONS[current.status] ?? [];
+  if (!allowed.includes(status)) {
+    return { error: `Status kan niet worden gewijzigd van "${current.status}" naar "${status}".` };
+  }
 
   try {
     await updateInvoiceStatusInService(supabase, user.id, id, status);
@@ -241,7 +292,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
     // Auto-create Mollie payment link if not yet present
     const { data: inv } = await supabase
       .from("invoices")
-      .select("payment_link, invoice_number, subtotal_ex_vat, vat_amount, issue_date")
+      .select("payment_link, invoice_number, subtotal_ex_vat, vat_amount, issue_date, vat_scheme")
       .eq("id", id)
       .eq("user_id", user.id)
       .single();
@@ -260,6 +311,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
         description: `Factuur ${inv.invoice_number}`,
         subtotalExVat: Number(inv.subtotal_ex_vat) || 0,
         vatAmount: Number(inv.vat_amount) || 0,
+        vatScheme: inv.vat_scheme ?? "standard",
         supabase,
       }).catch(() => {}); // Non-fatal
     }
@@ -342,6 +394,19 @@ export async function createCreditNote(
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
+
+  // Blokkeer dubbele creditnota's voor dezelfde factuur
+  const { data: existing } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("original_invoice_id", invoiceId)
+    .eq("is_credit_note", true)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    return { error: "Er bestaat al een creditnota voor deze factuur." };
+  }
 
   try {
     const creditNoteId = await createCreditNoteInService(supabase, user.id, invoiceId);

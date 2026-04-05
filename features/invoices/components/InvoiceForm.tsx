@@ -11,6 +11,7 @@ import {
   generateInvoiceNumber,
 } from "@/features/invoices/actions";
 import { getClients } from "@/features/clients/actions";
+import { detectVatScheme } from "@/lib/tax/vat-scheme-detector";
 import { InvoiceMetadata } from "./InvoiceMetadata";
 import { InvoiceTotals } from "./InvoiceTotals";
 import { ErrorMessage } from "@/components/ui";
@@ -42,6 +43,10 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const lastSavedAt = useInvoiceStore((s) => s.lastSavedAt);
   const markSaved = useInvoiceStore((s) => s.markSaved);
   const toInput = useInvoiceStore((s) => s.toInput);
+  const setVatScheme = useInvoiceStore((s) => s.setVatScheme);
+  const setVatRate = useInvoiceStore((s) => s.setVatRate);
+  const setDueDate = useInvoiceStore((s) => s.setDueDate);
+  const [vatReason, setVatReason] = useState<string | null>(null);
 
   const { data: clientsResult, isLoading: clientsLoading, isError: clientsError } = useQuery({
     queryKey: ["clients"],
@@ -50,6 +55,27 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const clients = clientsResult?.data ?? [];
   const hasClientError = clientsError || !!clientsResult?.error;
   const clientErrorMessage = clientsResult?.error || t.errors.generic;
+
+  // Auto-detect VAT scheme when client changes
+  useEffect(() => {
+    if (!clientId) {
+      setVatReason(null);
+      return;
+    }
+    const client = clients.find((c) => c.id === clientId);
+    if (!client) return;
+
+    const detection = detectVatScheme(client);
+    setVatScheme(detection.scheme);
+    setVatRate(detection.rate as 0 | 9 | 21);
+    setVatReason(detection.reason);
+
+    // Set due date based on client payment terms
+    const termDays = client.payment_terms_days ?? 30;
+    const due = new Date();
+    due.setDate(due.getDate() + termDays);
+    setDueDate(due.toISOString().split("T")[0]);
+  }, [clientId, clients, setVatScheme, setVatRate, setDueDate]);
 
   // Generate invoice number for new invoices
   useEffect(() => {
@@ -157,6 +183,22 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         updateLine={updateLine}
         removeLine={removeLine}
       />
+
+      {/* ── VAT auto-detection feedback ── */}
+      {vatReason && (
+        <div
+          style={{
+            padding: "12px 0",
+            marginBottom: 16,
+            fontSize: "var(--text-body-sm)",
+            opacity: 0.5,
+            fontWeight: 500,
+            letterSpacing: "0.02em",
+          }}
+        >
+          {vatReason}
+        </div>
+      )}
 
       {/* ── Metadata: Precision lines ── */}
       <InvoiceMetadata defaultCollapsed={!!invoiceId} />

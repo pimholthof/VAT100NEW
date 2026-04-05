@@ -66,6 +66,8 @@ export default function ClientDetailPage() {
   const [city, setCity] = useState("");
   const [kvkNumber, setKvkNumber] = useState("");
   const [btwNumber, setBtwNumber] = useState("");
+  const [country, setCountry] = useState("NL");
+  const [paymentTermsDays, setPaymentTermsDays] = useState(30);
 
   const startEditing = () => {
     if (!client) return;
@@ -77,6 +79,8 @@ export default function ClientDetailPage() {
     setCity(client.city ?? "");
     setKvkNumber(client.kvk_number ?? "");
     setBtwNumber(client.btw_number ?? "");
+    setCountry(client.country ?? "NL");
+    setPaymentTermsDays(client.payment_terms_days ?? 30);
     setEditing(true);
     setError(null);
   };
@@ -107,6 +111,8 @@ export default function ClientDetailPage() {
       postal_code: postalCode || null,
       kvk_number: kvkNumber || null,
       btw_number: btwNumber || null,
+      country: country || "NL",
+      payment_terms_days: paymentTermsDays,
     };
 
     const result = await updateClient(id, input);

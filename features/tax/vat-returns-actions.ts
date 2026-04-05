@@ -111,15 +111,10 @@ export async function generateVatReturn(
 
     // Route to correct rubriek based on vat_scheme
     if (scheme === "eu_reverse_charge") {
-      // For ZZP'ers (dienstverleners): EU diensten → rubriek 3b
-      // ICP leveringen (goederen) → rubriek 2a
-      // Since most ZZP'ers provide services, default to 3b.
-      // Rubriek 2a is populated separately when client has EU VAT number
-      // and the invoice explicitly represents goods (leveringen).
+      // ZZP'ers leveren diensten → rubriek 3b (diensten aan EU-ondernemers)
+      // Rubriek 2a is uitsluitend voor intracommunautaire leveringen van goederen
       const amount = Number(inv.subtotal_ex_vat) || 0;
       rubrieken["3b"].omzet += sign * amount;
-      // Also count towards 2a for ICP listing (diensten are also ICP)
-      rubrieken["2a"].omzet += sign * amount;
       continue;
     }
 
@@ -404,4 +399,58 @@ export async function getVatReturns(): Promise<ActionResult<VatReturn[]>> {
     };
   }
   return { error: null, data: (data ?? []) as VatReturn[] };
+}
+
+/**
+ * Auto-prepare BTW-aangifte voor het meest recente afgelopen kwartaal.
+ * Wordt stil op de achtergrond aangeroepen vanuit het dashboard.
+ * Genereert alleen een draft als er nog geen aangifte bestaat.
+ */
+export async function autoPreparePreviousQuarterVatReturn(): Promise<ActionResult<{ prepared: boolean; quarter?: number; year?: number }>> {
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentYear = now.getFullYear();
+
+  // Bepaal het meest recente afgelopen kwartaal
+  let prevQuarter: number;
+  let prevYear: number;
+  if (currentMonth <= 3) {
+    prevQuarter = 4;
+    prevYear = currentYear - 1;
+  } else if (currentMonth <= 6) {
+    prevQuarter = 1;
+    prevYear = currentYear;
+  } else if (currentMonth <= 9) {
+    prevQuarter = 2;
+    prevYear = currentYear;
+  } else {
+    prevQuarter = 3;
+    prevYear = currentYear;
+  }
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Check of er al een aangifte bestaat voor dit kwartaal
+  const { data: existing } = await supabase
+    .from("vat_returns")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("year", prevYear)
+    .eq("quarter", prevQuarter)
+    .single();
+
+  if (existing) {
+    // Al voorbereid
+    return { error: null, data: { prepared: false } };
+  }
+
+  // Genereer draft
+  const result = await generateVatReturn(prevYear, prevQuarter);
+  if (result.error) {
+    return { error: null, data: { prepared: false } }; // Non-fatal
+  }
+
+  return { error: null, data: { prepared: true, quarter: prevQuarter, year: prevYear } };
 }

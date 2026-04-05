@@ -386,6 +386,28 @@ export async function syncTransactions(
       };
     }
 
+    // 6. Onzichtbare assistent: automatische verwerking na sync
+    try {
+      const { runPaymentDetectionAgent, runMissingReceiptDetection } = await import("@/features/dashboard/action-feed");
+      // Match betalingen aan openstaande facturen
+      await runPaymentDetectionAgent(user.id, supabase);
+      // Categoriseer nieuwe, ongecategoriseerde transacties automatisch
+      const { data: uncategorized } = await supabase
+        .from("bank_transactions")
+        .select("id")
+        .eq("user_id", user.id)
+        .is("category", null)
+        .order("booking_date", { ascending: false })
+        .limit(20);
+      if (uncategorized && uncategorized.length > 0) {
+        await autoCategorizeTransactions(uncategorized.map((t: { id: string }) => t.id)).catch(() => {});
+      }
+      // Detecteer uitgaven zonder bon
+      await runMissingReceiptDetection(user.id, supabase).catch(() => {});
+    } catch {
+      // Non-fatal: automatisering mag niet de sync blokkeren
+    }
+
     return { error: null, data: newTransactions.length };
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };
@@ -492,7 +514,22 @@ export async function autoCategorizeTransactions(
       ruleMatched.push({ id: tx.id, category: rule.category, is_income: rule.is_income });
       results[tx.id] = rule.category;
     } else {
-      needsAI.push(tx);
+      // Probeer hardcoded keyword classificatie (geen AI nodig)
+      const { classifyTransaction } = await import("@/lib/tax/transaction-classifier");
+      const classification = classifyTransaction(
+        tx.description ?? "",
+        tx.counterpart_name ?? ""
+      );
+      if (classification) {
+        ruleMatched.push({
+          id: tx.id,
+          category: classification.category,
+          is_income: Number(tx.amount) > 0,
+        });
+        results[tx.id] = classification.category;
+      } else {
+        needsAI.push(tx);
+      }
     }
   }
 
