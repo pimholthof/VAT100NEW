@@ -386,6 +386,14 @@ export async function syncTransactions(
       };
     }
 
+    // 6. Auto-reconciliatie: match betalingen aan openstaande facturen
+    try {
+      const { runPaymentDetectionAgent } = await import("@/features/dashboard/action-feed");
+      await runPaymentDetectionAgent(user.id, supabase);
+    } catch {
+      // Non-fatal: reconciliatie mag niet de sync blokkeren
+    }
+
     return { error: null, data: newTransactions.length };
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };

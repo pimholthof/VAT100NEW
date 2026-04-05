@@ -400,3 +400,57 @@ export async function getVatReturns(): Promise<ActionResult<VatReturn[]>> {
   }
   return { error: null, data: (data ?? []) as VatReturn[] };
 }
+
+/**
+ * Auto-prepare BTW-aangifte voor het meest recente afgelopen kwartaal.
+ * Wordt stil op de achtergrond aangeroepen vanuit het dashboard.
+ * Genereert alleen een draft als er nog geen aangifte bestaat.
+ */
+export async function autoPreparePreviousQuarterVatReturn(): Promise<ActionResult<{ prepared: boolean; quarter?: number; year?: number }>> {
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentYear = now.getFullYear();
+
+  // Bepaal het meest recente afgelopen kwartaal
+  let prevQuarter: number;
+  let prevYear: number;
+  if (currentMonth <= 3) {
+    prevQuarter = 4;
+    prevYear = currentYear - 1;
+  } else if (currentMonth <= 6) {
+    prevQuarter = 1;
+    prevYear = currentYear;
+  } else if (currentMonth <= 9) {
+    prevQuarter = 2;
+    prevYear = currentYear;
+  } else {
+    prevQuarter = 3;
+    prevYear = currentYear;
+  }
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Check of er al een aangifte bestaat voor dit kwartaal
+  const { data: existing } = await supabase
+    .from("vat_returns")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("year", prevYear)
+    .eq("quarter", prevQuarter)
+    .single();
+
+  if (existing) {
+    // Al voorbereid
+    return { error: null, data: { prepared: false } };
+  }
+
+  // Genereer draft
+  const result = await generateVatReturn(prevYear, prevQuarter);
+  if (result.error) {
+    return { error: null, data: { prepared: false } }; // Non-fatal
+  }
+
+  return { error: null, data: { prepared: true, quarter: prevQuarter, year: prevYear } };
+}
