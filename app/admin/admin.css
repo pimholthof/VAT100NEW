@@ -1,5 +1,26 @@
 /* Admin-specifieke stijlen — bouwt voort op dashboard design system */
 
+/* Nav Domain Groups */
+.admin-nav-group-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.3;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-nav-divider {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 0 4px;
+  vertical-align: middle;
+}
+
 /* Pipeline Grid — subtiele architectural lines */
 .pipeline-grid {
   display: grid;

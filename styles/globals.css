@@ -2171,9 +2171,9 @@ a {
 }
 
 .stat-card--compact {
-  padding: 20px;
-  gap: 12px;
-  min-height: 132px;
+  padding: 14px 16px;
+  gap: 8px;
+  min-height: 80px;
 }
 
 .stat-card__value {
@@ -2185,7 +2185,7 @@ a {
 }
 
 .stat-card--compact .stat-card__value {
-  font-size: clamp(1.35rem, 2.1vw, 2rem);
+  font-size: clamp(1.1rem, 1.8vw, 1.5rem);
 }
 
 .stat-card__rule {

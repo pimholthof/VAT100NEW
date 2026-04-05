@@ -7,24 +7,29 @@ import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { AdminGlobalSearch } from "@/features/admin/AdminGlobalSearch";
 
+const klantenItems = [
+  { href: "/admin/klanten", label: "Klanten", match: "/admin/klanten" },
+  { href: "/admin/klanten/facturen", label: "Facturen", match: "/admin/klanten/facturen" },
+  { href: "/admin/klanten/bank", label: "Bank", match: "/admin/klanten/bank" },
+  { href: "/admin/klanten/feedback", label: "Feedback", match: "/admin/klanten/feedback" },
+];
+
+const vat100Items = [
+  { href: "/admin", label: "Command Center", match: "/admin" },
+  { href: "/admin/groei", label: "Groei", match: "/admin/groei" },
+  { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline" },
+  { href: "/admin/financieel", label: "Financieel", match: "/admin/financieel" },
+  { href: "/admin/systeem", label: "Systeem", match: "/admin/systeem" },
+];
+
 export function AdminNav() {
   const router = useRouter();
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const items = [
-    { href: "/admin", label: "Command Center", match: "/admin" },
-    { href: "/admin/invoices", label: "Facturen", match: "/admin/invoices" },
-    { href: "/admin/financials", label: "Financieel", match: "/admin/financials" },
-    { href: "/admin/bank", label: "Bank", match: "/admin/bank" },
-    { href: "/admin/users", label: "Klanten", match: "/admin/users" },
-    { href: "/admin/growth", label: "Groei", match: "/admin/growth" },
-    { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline" },
-    { href: "/admin/setup", label: "Systeem", match: "/admin/setup" },
-    { href: "/admin/settings", label: "Instellingen", match: "/admin/settings" },
-  ];
 
   function isActive(match: string) {
-    return match === "/admin" ? pathname === "/admin" : pathname.startsWith(match);
+    if (match === "/admin") return pathname === "/admin";
+    return pathname.startsWith(match);
   }
 
   async function handleLogout() {
@@ -49,7 +54,9 @@ export function AdminNav() {
 
           <div className="dashboard-nav-actions">
             <nav className="admin-nav-links-desktop" aria-label="Admin navigatie">
-              {items.map((item) => (
+              {/* Klanten groep */}
+              <span className="admin-nav-group-label">KLANTEN</span>
+              {klantenItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -59,6 +66,23 @@ export function AdminNav() {
                   {item.label}
                 </Link>
               ))}
+
+              {/* Divider */}
+              <span className="admin-nav-divider" />
+
+              {/* VAT100 groep */}
+              <span className="admin-nav-group-label">VAT100</span>
+              {vat100Items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="admin-nav-link"
+                  data-active={isActive(item.match)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+
               <Link href="/dashboard" className="admin-nav-link" data-active={false}>
                 Dashboard
               </Link>
@@ -85,8 +109,20 @@ export function AdminNav() {
           >
             <div className="dashboard-drawer-inner">
               <div className="dashboard-drawer-col">
-                <span className="label mb-4">Beheer</span>
-                {items.map((item) => (
+                <span className="label mb-4">KLANTEN</span>
+                {klantenItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={`drawer-link${isActive(item.match) ? " drawer-link-active" : ""}`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+
+                <span className="label mb-4" style={{ marginTop: 24 }}>VAT100</span>
+                {vat100Items.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}

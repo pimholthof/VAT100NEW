@@ -7,7 +7,7 @@ export { getPlatformStats, getRevenueMetrics, getAdminDashboardData, getCustomer
 
 export { getAdminOverview, getUsers, getUserDetail, suspendUser, reactivateUser } from "./users";
 
-export { getCustomerOverview, getCustomerDetail, updateCustomerProfile, updateInvoiceStatusAsAdmin, updateInvoiceAsAdmin, deleteInvoiceAsAdmin, updateClientAsAdmin, deleteClientAsAdmin, updateReceiptAsAdmin, deleteReceiptAsAdmin, exportCustomerInvoicesCSV, exportCustomerReceiptsCSV, exportAllCustomersCSV } from "./customers";
+export { getCustomerOverview, getCustomerDetail, updateCustomerProfile, updateInvoiceStatusAsAdmin, updateInvoiceAsAdmin, deleteInvoiceAsAdmin, updateClientAsAdmin, deleteClientAsAdmin, updateReceiptAsAdmin, deleteReceiptAsAdmin, exportCustomerInvoicesCSV, exportCustomerReceiptsCSV, exportAllCustomersCSV, getCustomerBenchmarks } from "./customers";
 
 export { getLeads, updateLeadStage, getLeadDetail, getLeadActivities, getLeadTasks, toggleLeadTask, initializeLeadTasks, updateLeadPlan, autoProvisionAccount, getLeadByToken, initiateLeadPayment, checkLeadActivation } from "./leads";
 
@@ -22,7 +22,7 @@ export { getChatConversations, getChatConversationMessages, sendAdminChatMessage
 
 // Type re-exports
 export type { RevenueMetrics, AdminAlert, AdminLeadRow, AdminCustomerRow, AdminDashboardData, PageKpis } from "./stats";
-export type { CustomerOverviewItem, CustomerDetail } from "./customers";
+export type { CustomerOverviewItem, CustomerDetail, CustomerBenchmarks } from "./customers";
 export type { WaitlistEntry } from "./waitlist";
 export type { AuditLogEntry } from "./audit";
 export type { ChatConversationWithUser } from "./chat";

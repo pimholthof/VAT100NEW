@@ -332,7 +332,7 @@ export async function getAdminDashboardData(): Promise<ActionResult<AdminDashboa
         type: "inactive",
         count: inactiveCount,
         message: `${inactiveCount} klant${inactiveCount !== 1 ? "en" : ""} zonder activiteit (14 dagen)`,
-        href: "/admin/users",
+        href: "/admin/klanten",
       });
     }
     if ((suspendedCount ?? 0) > 0) {
@@ -340,7 +340,7 @@ export async function getAdminDashboardData(): Promise<ActionResult<AdminDashboa
         type: "suspended",
         count: suspendedCount ?? 0,
         message: `${suspendedCount} account${(suspendedCount ?? 0) !== 1 ? "s" : ""} geblokkeerd`,
-        href: "/admin/users",
+        href: "/admin/klanten",
       });
     }
     if ((incompleteProfiles ?? []).length > 0) {
