@@ -509,3 +509,24 @@ export async function getControllerAuditHistory(): Promise<ActionResult<any[]>> 
   if (error) return { error: error.message };
   return { error: null, data: data || [] };
 }
+
+/**
+ * Onzichtbare assistent: draai alle achtergrond-agents bij dashboard load.
+ * Alle agents zijn non-fatal — fouten worden gelogd maar blokkeren niets.
+ */
+export async function runBackgroundAgents(): Promise<void> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return;
+  const { user } = auth;
+
+  await Promise.allSettled([
+    // BTW-aangifte automatisch voorbereiden
+    import("@/features/tax/vat-returns-actions").then(
+      (m) => m.autoPreparePreviousQuarterVatReturn()
+    ),
+    // BTW-deadline alert als deadline <14 dagen
+    import("@/features/dashboard/action-feed").then(
+      (m) => m.runBtwDeadlineAlert(user.id)
+    ),
+  ]);
+}
