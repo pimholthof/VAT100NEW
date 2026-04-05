@@ -109,6 +109,14 @@ export async function updateInvoice(
   }
 }
 
+// Toegestane status transities — voorkomt dat verzonden facturen terug naar draft gaan
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  draft: ["sent"],
+  sent: ["paid", "overdue"],
+  overdue: ["paid"],
+  paid: [], // Betaalde facturen kunnen niet meer wijzigen
+};
+
 export async function updateInvoiceStatus(
   id: string,
   status: InvoiceStatus
@@ -119,6 +127,21 @@ export async function updateInvoiceStatus(
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
+
+  // Haal huidige status op voor transitie validatie
+  const { data: current } = await supabase
+    .from("invoices")
+    .select("status")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!current) return { error: "Factuur niet gevonden." };
+
+  const allowed = ALLOWED_TRANSITIONS[current.status] ?? [];
+  if (!allowed.includes(status)) {
+    return { error: `Status kan niet worden gewijzigd van "${current.status}" naar "${status}".` };
+  }
 
   try {
     await updateInvoiceStatusInService(supabase, user.id, id, status);
@@ -371,6 +394,19 @@ export async function createCreditNote(
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
+
+  // Blokkeer dubbele creditnota's voor dezelfde factuur
+  const { data: existing } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("original_invoice_id", invoiceId)
+    .eq("is_credit_note", true)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    return { error: "Er bestaat al een creditnota voor deze factuur." };
+  }
 
   try {
     const creditNoteId = await createCreditNoteInService(supabase, user.id, invoiceId);

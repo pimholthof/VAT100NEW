@@ -263,10 +263,15 @@ export async function generateShareToken(
   if (existing) return existing;
 
   const token = crypto.randomUUID().replace(/-/g, "");
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 90); // 90 dagen geldig
 
   const { error } = await supabase
     .from("invoices")
-    .update({ share_token: token })
+    .update({
+      share_token: token,
+      share_token_expires_at: expiresAt.toISOString(),
+    })
     .eq("id", invoiceId)
     .eq("user_id", userId);
 
