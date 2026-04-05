@@ -83,6 +83,9 @@ export async function completeOnboarding(
     address: formData.get("address") as string,
     city: formData.get("city") as string,
     postal_code: formData.get("postal_code") as string,
+    vat_frequency: (formData.get("vat_frequency") as string) || "quarterly",
+    bookkeeping_start_date: (formData.get("bookkeeping_start_date") as string) || null,
+    onboarding_completed_at: new Date().toISOString(),
   });
 
   if (error) {

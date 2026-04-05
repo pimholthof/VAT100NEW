@@ -190,6 +190,33 @@ const en = {
     bic: "BIC",
     saveAndContinue: "Save and continue",
     eightDigits: "8 digits",
+    // Fiscal profile step
+    fiscalProfile: "Fiscal profile",
+    vatFrequency: "VAT filing frequency",
+    vatQuarterly: "Quarterly",
+    vatMonthly: "Monthly",
+    vatYearly: "Yearly",
+    vatQuarterlyHint: "Most common for freelancers",
+    bookkeepingStart: "Start bookkeeping in VAT100",
+    bookkeepingStartCurrent: "Start of current fiscal year",
+    bookkeepingStartToday: "From today",
+    bookkeepingStartCustom: "Custom date",
+  },
+
+  // ─── Onboarding Checklist ───
+  onboarding: {
+    title: "Your VAT100 setup",
+    subtitle: "Complete these steps to get the most out of VAT100.",
+    stepProfile: "Company details completed",
+    stepSubscription: "Subscription chosen",
+    stepClient: "First client added",
+    stepInvoice: "First invoice sent",
+    stepBank: "Bank connected",
+    stepReceipt: "First receipt uploaded",
+    nextAction: "Next step",
+    complete: "Setup complete",
+    of: "of",
+    dismiss: "Hide checklist",
   },
 
   // ─── Dashboard ───

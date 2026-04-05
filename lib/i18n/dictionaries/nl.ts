@@ -190,6 +190,33 @@ const nl = {
     bic: "BIC",
     saveAndContinue: "Opslaan en doorgaan",
     eightDigits: "8 cijfers",
+    // Fiscal profile step
+    fiscalProfile: "Fiscaal profiel",
+    vatFrequency: "BTW-aangifte frequentie",
+    vatQuarterly: "Per kwartaal",
+    vatMonthly: "Per maand",
+    vatYearly: "Per jaar",
+    vatQuarterlyHint: "Meest voorkomend voor zzp'ers",
+    bookkeepingStart: "Start boekhouding in VAT100",
+    bookkeepingStartCurrent: "Begin huidig boekjaar",
+    bookkeepingStartToday: "Vanaf vandaag",
+    bookkeepingStartCustom: "Aangepaste datum",
+  },
+
+  // ─── Onboarding Checklist ───
+  onboarding: {
+    title: "Je VAT100 setup",
+    subtitle: "Rond deze stappen af om het meeste uit VAT100 te halen.",
+    stepProfile: "Bedrijfsgegevens ingevuld",
+    stepSubscription: "Abonnement gekozen",
+    stepClient: "Eerste klant toegevoegd",
+    stepInvoice: "Eerste factuur verstuurd",
+    stepBank: "Bank gekoppeld",
+    stepReceipt: "Eerste bon geüpload",
+    nextAction: "Volgende stap",
+    complete: "Setup voltooid",
+    of: "van",
+    dismiss: "Verberg checklist",
   },
 
   // ─── Dashboard ───
