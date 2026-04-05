@@ -131,13 +131,24 @@ async function handleSubscriptionPayment(
         const now = new Date();
         const periodEnd = new Date(now);
         periodEnd.setMonth(periodEnd.getMonth() + 1);
+        const amountCents = Math.round(parseFloat(payment.amount.value) * 100);
+
+        // Generate invoice number: SUB-YYYY-NNNN
+        const year = now.getFullYear();
+        const { count: existingCount } = await supabase
+          .from("subscription_payments")
+          .select("*", { count: "exact", head: true })
+          .like("invoice_number", `SUB-${year}-%`);
+        const seqNum = String((existingCount ?? 0) + 1).padStart(4, "0");
+        const invoiceNumber = `SUB-${year}-${seqNum}`;
 
         await supabase.from("subscription_payments").insert({
           subscription_id: subscription.id,
           mollie_payment_id: paymentId,
-          amount_cents: Math.round(parseFloat(payment.amount.value) * 100),
+          amount_cents: amountCents,
           status: "paid",
           paid_at: now.toISOString(),
+          invoice_number: invoiceNumber,
         });
 
         await supabase.from("subscriptions").update({
@@ -146,6 +157,53 @@ async function handleSubscriptionPayment(
           current_period_end: periodEnd.toISOString(),
           updated_at: now.toISOString(),
         }).eq("id", subscription.id);
+
+        // Auto-send subscription receipt email
+        try {
+          const { data: subDetail } = await supabase
+            .from("subscriptions")
+            .select("user_id, plan:plans(name)")
+            .eq("id", subscription.id)
+            .single();
+
+          if (subDetail) {
+            const userId = subDetail.user_id;
+            const planName = (subDetail.plan as unknown as { name: string })?.name ?? "VAT100";
+
+            const [{ data: profile }, { data: authUser }] = await Promise.all([
+              supabase.from("profiles").select("full_name").eq("id", userId).single(),
+              supabase.auth.admin.getUserById(userId),
+            ]);
+
+            const email = authUser?.user?.email;
+            const fullName = profile?.full_name ?? "Klant";
+
+            if (email) {
+              const receiptResult = await sendSubscriptionReceipt({
+                email,
+                fullName,
+                planName,
+                amountCents,
+                invoiceNumber,
+                periodStart: now.toISOString(),
+                periodEnd: periodEnd.toISOString(),
+                paidAt: now.toISOString(),
+              });
+
+              if (!receiptResult.error) {
+                await supabase.from("subscription_payments")
+                  .update({ receipt_sent_at: now.toISOString() })
+                  .eq("mollie_payment_id", paymentId);
+              }
+            }
+          }
+        } catch (receiptError) {
+          // Non-fatal: log but don't fail the webhook
+          Sentry.captureException(receiptError, {
+            tags: { area: "subscription-receipt" },
+            extra: { subscriptionId: subscription.id, paymentId },
+          });
+        }
 
         return NextResponse.json({ status: "subscription_renewed", subscriptionId: subscription.id });
       }

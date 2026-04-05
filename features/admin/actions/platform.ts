@@ -198,6 +198,145 @@ export async function getPlatformBankConnections(): Promise<ActionResult<{ conne
 
 // ─── Platform Expenses Overview ───
 
+export interface SubscriptionPaymentRow {
+  id: string;
+  subscription_id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  plan_name: string;
+  amount_cents: number;
+  status: string;
+  paid_at: string | null;
+  created_at: string;
+  period_start: string | null;
+  period_end: string | null;
+  invoice_number: string | null;
+  receipt_sent_at: string | null;
+}
+
+export interface SubscriptionPaymentStats {
+  totalPayments: number;
+  totalPaid: number;
+  totalRevenueCents: number;
+  recentMonthRevenueCents: number;
+  avgPaymentCents: number;
+}
+
+export async function getSubscriptionPayments(filters?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<ActionResult<{ payments: SubscriptionPaymentRow[]; total: number; stats: SubscriptionPaymentStats }>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const page = filters?.page ?? 1;
+    const pageSize = filters?.pageSize ?? 25;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    // Get paginated payments with subscription + plan + profile info
+    const { data: payments, count, error } = await supabase
+      .from("subscription_payments")
+      .select(
+        "id, subscription_id, amount_cents, status, paid_at, created_at, invoice_number, receipt_sent_at, subscription:subscriptions(user_id, current_period_start, current_period_end, plan:plans(name))",
+        { count: "exact" }
+      )
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error) return { error: sanitizeError(error, { action: "getSubscriptionPayments" }) };
+
+    // Get user profiles + emails for display
+    const userIds = [
+      ...new Set(
+        (payments ?? [])
+          .map((p) => (p.subscription as unknown as { user_id: string })?.user_id)
+          .filter(Boolean)
+      ),
+    ];
+
+    const [profilesResult, authResult] = await Promise.all([
+      userIds.length > 0
+        ? supabase.from("profiles").select("id, full_name, studio_name").in("id", userIds)
+        : Promise.resolve({ data: [] }),
+      supabase.auth.admin.listUsers({ perPage: 1000 }),
+    ]);
+
+    const profileMap = new Map<string, string>();
+    for (const p of (profilesResult as { data: Array<{ id: string; full_name: string | null; studio_name: string | null }> }).data ?? []) {
+      profileMap.set(p.id, p.full_name || p.studio_name || "Naamloos");
+    }
+    const emailMap = new Map<string, string>();
+    for (const u of authResult.data?.users ?? []) {
+      emailMap.set(u.id, u.email ?? "");
+    }
+
+    const mapped: SubscriptionPaymentRow[] = (payments ?? []).map((p) => {
+      const sub = p.subscription as unknown as {
+        user_id: string;
+        current_period_start: string | null;
+        current_period_end: string | null;
+        plan: { name: string } | null;
+      } | null;
+      const userId = sub?.user_id ?? "";
+      return {
+        id: p.id,
+        subscription_id: p.subscription_id,
+        user_id: userId,
+        user_name: profileMap.get(userId) ?? "Onbekend",
+        user_email: emailMap.get(userId) ?? "",
+        plan_name: sub?.plan?.name ?? "—",
+        amount_cents: p.amount_cents,
+        status: p.status,
+        paid_at: p.paid_at,
+        created_at: p.created_at,
+        period_start: sub?.current_period_start ?? null,
+        period_end: sub?.current_period_end ?? null,
+        invoice_number: (p as Record<string, unknown>).invoice_number as string | null ?? null,
+        receipt_sent_at: (p as Record<string, unknown>).receipt_sent_at as string | null ?? null,
+      };
+    });
+
+    // Aggregate stats
+    const { data: allPayments } = await supabase
+      .from("subscription_payments")
+      .select("amount_cents, status, paid_at");
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    let totalRevenueCents = 0;
+    let totalPaid = 0;
+    let recentMonthRevenueCents = 0;
+
+    for (const ap of allPayments ?? []) {
+      if (ap.status === "paid") {
+        totalPaid++;
+        totalRevenueCents += ap.amount_cents ?? 0;
+        if (ap.paid_at && ap.paid_at >= monthStart) {
+          recentMonthRevenueCents += ap.amount_cents ?? 0;
+        }
+      }
+    }
+
+    const stats: SubscriptionPaymentStats = {
+      totalPayments: allPayments?.length ?? 0,
+      totalPaid,
+      totalRevenueCents,
+      recentMonthRevenueCents,
+      avgPaymentCents: totalPaid > 0 ? Math.round(totalRevenueCents / totalPaid) : 0,
+    };
+
+    return { error: null, data: { payments: mapped, total: count ?? 0, stats } };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "getSubscriptionPayments" }) };
+  }
+}
+
+// ─── Platform Expenses Overview ───
+
 export interface PlatformExpenseStats {
   totalReceipts: number;
   totalExpenseAmount: number;

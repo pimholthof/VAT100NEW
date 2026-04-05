@@ -15,8 +15,8 @@ export { getWaitlist, getWaitlistCount } from "./waitlist";
 
 export { getAuditLog } from "./audit";
 
-export { getPlatformInvoices, getPlatformBankConnections, getPlatformExpenses } from "./platform";
-export type { PlatformInvoice, PlatformInvoiceStats, PlatformBankConnection, PlatformBankStats, PlatformExpenseStats } from "./platform";
+export { getPlatformInvoices, getPlatformBankConnections, getPlatformExpenses, getSubscriptionPayments } from "./platform";
+export type { PlatformInvoice, PlatformInvoiceStats, PlatformBankConnection, PlatformBankStats, PlatformExpenseStats, SubscriptionPaymentRow, SubscriptionPaymentStats } from "./platform";
 
 export { getChatConversations, getChatConversationMessages, sendAdminChatMessage, getChatKpis } from "./chat";
 
