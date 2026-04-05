@@ -1,101 +1,198 @@
 "use client";
 
+import { m as motion } from "framer-motion";
 import type { FinancialHealth } from "@/lib/tax/financial-health";
 
-const gradeColors: Record<string, string> = {
-  A: "#16a34a",
-  B: "#2563eb",
-  C: "#ca8a04",
-  D: "#ea580c",
-  F: "#dc2626",
+const gradeGlow: Record<string, string> = {
+  A: "#1a7a3a",
+  B: "#2D5A7B",
+  C: "#b45309",
+  D: "#C44D2A",
+  F: "#A51C30",
 };
 
-const gradeBg: Record<string, string> = {
-  A: "rgba(22,163,74,0.06)",
-  B: "rgba(37,99,235,0.06)",
-  C: "rgba(202,138,4,0.06)",
-  D: "rgba(234,88,12,0.06)",
-  F: "rgba(220,38,38,0.06)",
-};
+function factorBarColor(score: number): string {
+  if (score >= 70) return "var(--color-success)";
+  if (score >= 40) return "var(--color-warning)";
+  return "var(--color-overdue)";
+}
 
 export function HealthScore({ health }: { health: FinancialHealth }) {
-  const color = gradeColors[health.grade] ?? "#000";
-  const bg = gradeBg[health.grade] ?? "transparent";
+  const glow = gradeGlow[health.grade] ?? "#1a1a19";
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        display: "flex",
-        gap: 24,
-        alignItems: "center",
-        padding: "20px 24px",
-        background: bg,
+        padding: "clamp(32px, 5vw, 48px) clamp(28px, 4vw, 40px)",
+        border: "0.5px solid rgba(0, 0, 0, 0.08)",
         borderRadius: "var(--radius)",
-        border: `0.5px solid ${color}20`,
+        background: "var(--dashboard-surface, var(--background))",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      {/* Grade */}
-      <div
-        style={{
-          fontSize: 42,
-          fontWeight: 900,
-          lineHeight: 1,
-          color,
-          fontStyle: "italic",
-          minWidth: 48,
-          textAlign: "center",
-        }}
-      >
-        {health.grade}
+      {/* ── Zone 1: Grade Statement ── */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "clamp(20px, 4vw, 32px)", marginBottom: 28 }}>
+        {/* Grade letter with atmospheric glow */}
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 120,
+              height: 120,
+              background: glow,
+              filter: "blur(80px)",
+              opacity: 0.12,
+              borderRadius: "50%",
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: "clamp(72px, 10vw, 104px)",
+              fontWeight: 300,
+              fontStyle: "italic",
+              lineHeight: 0.85,
+              letterSpacing: "-0.04em",
+              color: "var(--foreground)",
+              position: "relative",
+            }}
+          >
+            {health.grade}
+          </div>
+        </div>
+
+        {/* Score + Summary */}
+        <div style={{ paddingTop: "clamp(8px, 1.5vw, 16px)" }}>
+          <p
+            className="label"
+            style={{
+              margin: "0 0 6px",
+              opacity: 0.35,
+              fontSize: 10,
+              letterSpacing: "0.12em",
+            }}
+          >
+            {health.score} / 100
+          </p>
+          <p
+            style={{
+              fontSize: "clamp(14px, 2vw, 16px)",
+              fontWeight: 500,
+              margin: 0,
+              opacity: 0.55,
+              letterSpacing: "-0.01em",
+              lineHeight: 1.4,
+            }}
+          >
+            {health.summary}
+          </p>
+        </div>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: "14px", fontWeight: 600, margin: "0 0 12px", letterSpacing: "-0.01em" }}>
-          {health.summary}
-        </p>
-        <div style={{ display: "flex", gap: 16 }}>
-          {health.factors.map((factor) => {
-            const barColor = factor.score >= 70 ? "#16a34a" : factor.score >= 40 ? "#ca8a04" : "#dc2626";
-            return (
-              <div key={factor.name} style={{ flex: 1, minWidth: 0 }}>
-                <div
+      {/* Divider */}
+      <div style={{ width: 40, height: "0.5px", background: "rgba(0, 0, 0, 0.08)", marginBottom: 4 }} />
+
+      {/* ── Zone 2: Factor List ── */}
+      <div>
+        {health.factors.map((factor, index) => {
+          const fill = factorBarColor(factor.score);
+          return (
+            <motion.div
+              key={factor.name}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                duration: 0.5,
+                delay: 0.3 + index * 0.1,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              style={{
+                padding: "14px 0",
+                borderTop: "0.5px solid rgba(0, 0, 0, 0.06)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+              }}
+            >
+              {/* Left: name + message */}
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p
+                  className="label"
                   style={{
-                    height: 6,
-                    background: "rgba(0,0,0,0.06)",
-                    borderRadius: 3,
-                    overflow: "hidden",
+                    margin: "0 0 3px",
+                    opacity: 0.35,
+                    fontSize: 10,
+                    letterSpacing: "0.12em",
                   }}
                 >
-                  <div
-                    style={{
-                      width: `${factor.score}%`,
-                      height: "100%",
-                      background: barColor,
-                      borderRadius: 3,
-                      transition: "width 0.8s ease",
-                    }}
-                  />
-                </div>
+                  {factor.name}
+                </p>
                 <p
                   style={{
-                    fontSize: "10px",
-                    fontWeight: 500,
-                    opacity: 0.4,
-                    margin: "5px 0 0",
-                    letterSpacing: "0.02em",
+                    fontSize: 12,
+                    margin: 0,
+                    opacity: 0.55,
+                    lineHeight: 1.4,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {factor.name}
+                  {factor.message}
                 </p>
               </div>
-            );
-          })}
-        </div>
+
+              {/* Right: bar + score */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                <div
+                  style={{
+                    width: 80,
+                    height: 3,
+                    background: "rgba(0, 0, 0, 0.04)",
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${factor.score}%` }}
+                    transition={{
+                      duration: 1.2,
+                      delay: 0.5 + index * 0.12,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    style={{
+                      height: "100%",
+                      background: fill,
+                      borderRadius: 2,
+                    }}
+                  />
+                </div>
+                <span
+                  style={{
+                    fontSize: 11,
+                    opacity: 0.35,
+                    fontVariantNumeric: "tabular-nums",
+                    minWidth: 20,
+                    textAlign: "right",
+                  }}
+                >
+                  {factor.score}
+                </span>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
-    </div>
+    </motion.div>
   );
 }
