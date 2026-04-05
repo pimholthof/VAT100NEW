@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { activateSubscriptionAfterPayment } from "@/features/subscriptions/actions";
 import { autoProvisionAccount } from "@/features/admin/actions";
 import { isRateLimited } from "@/lib/rate-limit";
+import { sendSubscriptionReceipt } from "@/lib/email/send-subscription";
 
 /**
  * Mollie webhook: wordt aangeroepen wanneer een betaalstatus wijzigt.
