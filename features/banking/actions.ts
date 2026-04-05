@@ -514,7 +514,22 @@ export async function autoCategorizeTransactions(
       ruleMatched.push({ id: tx.id, category: rule.category, is_income: rule.is_income });
       results[tx.id] = rule.category;
     } else {
-      needsAI.push(tx);
+      // Probeer hardcoded keyword classificatie (geen AI nodig)
+      const { classifyTransaction } = await import("@/lib/tax/transaction-classifier");
+      const classification = classifyTransaction(
+        tx.description ?? "",
+        tx.counterpart_name ?? ""
+      );
+      if (classification) {
+        ruleMatched.push({
+          id: tx.id,
+          category: classification.category,
+          is_income: Number(tx.amount) > 0,
+        });
+        results[tx.id] = classification.category;
+      } else {
+        needsAI.push(tx);
+      }
     }
   }
 

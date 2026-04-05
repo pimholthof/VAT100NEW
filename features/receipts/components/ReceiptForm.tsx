@@ -18,6 +18,7 @@ import {
   getKostensoortenByGroep,
 } from "@/lib/constants/costs";
 import { isRepresentatie, HORECA_CODES } from "@/lib/tax/chart-of-accounts";
+import { getDefaultVatRateForCostCode, getDefaultBusinessPercentage } from "@/lib/tax/transaction-classifier";
 import type { Receipt, ReceiptInput } from "@/lib/types";
 import {
   FieldGroup,
@@ -90,11 +91,28 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
   // Auto-apply fiscale regels bij kostsoort wijziging
   useEffect(() => {
-    if (costCode && isRepresentatie(costCode)) {
-      setBusinessPercentage(80);
+    if (!costCode) {
+      setAutoRuleMessage(null);
+      return;
+    }
+
+    // Stel automatisch het juiste BTW-tarief in op basis van kostsoort
+    const suggestedVat = getDefaultVatRateForCostCode(costCode);
+    setVatRate(String(suggestedVat));
+
+    // Stel zakelijk percentage in op basis van kostsoort
+    const suggestedBp = getDefaultBusinessPercentage(costCode);
+    setBusinessPercentage(suggestedBp);
+
+    // Toon uitleg bij speciale regels
+    if (isRepresentatie(costCode)) {
       setAutoRuleMessage("Representatiekosten: automatisch 80% zakelijk, 20% privé (fiscale regel)");
-    } else if (costCode && HORECA_CODES.has(costCode)) {
+    } else if (HORECA_CODES.has(costCode)) {
       setAutoRuleMessage("Horeca: BTW is niet aftrekbaar (Nederlandse wetgeving)");
+    } else if (suggestedVat === 9) {
+      setAutoRuleMessage(`Standaard BTW-tarief: ${suggestedVat}% (verlaagd tarief)`);
+    } else if (suggestedVat === 0) {
+      setAutoRuleMessage("Geen BTW van toepassing op deze kostsoort");
     } else {
       setAutoRuleMessage(null);
     }
