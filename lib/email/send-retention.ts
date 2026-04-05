@@ -53,7 +53,7 @@ export async function sendBillingAlert(options: {
   amount: string;
 }): Promise<ActionResult> {
   const { email, fullName, amount } = options;
-  const billingUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://vat100.nl'}/dashboard/subscription`;
+  const billingUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://vat100.nl'}/dashboard/settings/subscription`;
 
   const contentHtml = `
     <p style="margin-bottom:24px;">Beste ${fullName},</p>
