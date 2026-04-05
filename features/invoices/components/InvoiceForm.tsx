@@ -45,6 +45,7 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const toInput = useInvoiceStore((s) => s.toInput);
   const setVatScheme = useInvoiceStore((s) => s.setVatScheme);
   const setVatRate = useInvoiceStore((s) => s.setVatRate);
+  const setDueDate = useInvoiceStore((s) => s.setDueDate);
   const [vatReason, setVatReason] = useState<string | null>(null);
 
   const { data: clientsResult, isLoading: clientsLoading, isError: clientsError } = useQuery({
@@ -68,7 +69,13 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     setVatScheme(detection.scheme);
     setVatRate(detection.rate as 0 | 9 | 21);
     setVatReason(detection.reason);
-  }, [clientId, clients, setVatScheme, setVatRate]);
+
+    // Set due date based on client payment terms
+    const termDays = client.payment_terms_days ?? 30;
+    const due = new Date();
+    due.setDate(due.getDate() + termDays);
+    setDueDate(due.toISOString().split("T")[0]);
+  }, [clientId, clients, setVatScheme, setVatRate, setDueDate]);
 
   // Generate invoice number for new invoices
   useEffect(() => {

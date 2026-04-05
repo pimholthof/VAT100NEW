@@ -34,6 +34,7 @@ export function ClientForm({ client }: ClientFormProps) {
   const [kvkNumber, setKvkNumber] = useState(client?.kvk_number ?? "");
   const [btwNumber, setBtwNumber] = useState(client?.btw_number ?? "");
   const [country, setCountry] = useState(client?.country ?? "NL");
+  const [paymentTermsDays, setPaymentTermsDays] = useState(client?.payment_terms_days ?? 30);
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
 
@@ -73,6 +74,7 @@ export function ClientForm({ client }: ClientFormProps) {
       kvk_number: kvkNumber || null,
       btw_number: btwNumber || null,
       country: country || "NL",
+      payment_terms_days: paymentTermsDays,
     };
 
     const result = client
@@ -207,6 +209,18 @@ export function ClientForm({ client }: ClientFormProps) {
           <option value="NO">Noorwegen</option>
           <option value="OTHER">Overig</option>
         </select>
+      </FieldGroup>
+
+      <FieldGroup label="Betaaltermijn (dagen)">
+        <input
+          type="number"
+          min={0}
+          max={120}
+          value={paymentTermsDays}
+          onChange={(e) => setPaymentTermsDays(Number(e.target.value) || 30)}
+          className="form-input"
+          style={{ maxWidth: 120 }}
+        />
       </FieldGroup>
 
       <div

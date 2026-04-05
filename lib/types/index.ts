@@ -37,6 +37,7 @@ export interface Client {
   kvk_number: string | null;
   btw_number: string | null;
   country: string | null;
+  payment_terms_days: number | null;
   created_at: string;
 }
 
@@ -134,6 +135,7 @@ export interface ClientInput {
   kvk_number: string | null;
   btw_number: string | null;
   country?: string | null;
+  payment_terms_days?: number | null;
 }
 
 // ─── Receipt types ───

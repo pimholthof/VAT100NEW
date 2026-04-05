@@ -3,6 +3,7 @@
 import { requireAuth, requireAdmin } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
 import { calculateZZPTaxProjection, calculateKIA } from "@/lib/tax/dutch-tax-2026";
+import { calculateFinancialHealth, type FinancialHealth } from "@/lib/tax/financial-health";
 import * as Sentry from "@sentry/nextjs";
 
 export interface DashboardStats {
@@ -67,6 +68,14 @@ export interface TaxAuditSummary {
   findingsCount: number;
 }
 
+export interface CashflowForecastWeek {
+  weekStart: string;
+  expectedIncome: number;
+  expectedExpenses: number;
+  runningBalance: number;
+  events: string[];
+}
+
 export interface DashboardData {
   stats: DashboardStats;
   recentInvoices: RecentInvoice[];
@@ -76,6 +85,8 @@ export interface DashboardData {
   vatDeadline: VatDeadline;
   safeToSpend: SafeToSpendData;
   latestTaxAudit?: TaxAuditSummary;
+  cashflowForecast: CashflowForecastWeek[];
+  financialHealth: FinancialHealth;
 }
 
 interface RpcCashflowEntry {
@@ -264,6 +275,28 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     inputVat
   );
 
+  // ── Cashflow Forecast (13 weken) ──
+  const cashflowForecast = calculateCashflowForecast(
+    bankBalance,
+    upcomingInvoices,
+    Number(rpc.avgMonthlyExpenses) || 0,
+    nextVatFiling
+  );
+
+  // ── Financial Health Score ──
+  const overdueCount = upcomingInvoices.filter((i) => i.days_overdue > 0).length;
+  const financialHealth = calculateFinancialHealth({
+    averageDSO: Number(rpc.averageDSO) || 30,
+    openInvoiceAmount: Number(rpc.openInvoiceAmount) || 0,
+    yearRevenue: yearRevenueRecords.reduce(
+      (sum, inv) => sum + (Number(inv.total_inc_vat) || 0),
+      0
+    ),
+    safeToSpend,
+    receiptsThisMonth: Number(rpc.receiptsThisMonth) || 0,
+    daysSinceLastBankSync: rpc.daysSinceLastBankSync != null ? Number(rpc.daysSinceLastBankSync) : null,
+    overdueCount,
+  });
 
   return {
     error: null,
@@ -287,8 +320,68 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         forecastedAmount: Math.round(((outputVat - inputVat) * (90 / Math.max(1, 90 - nextVatFiling.daysRemaining))) * 100) / 100,
       },
       safeToSpend,
+      cashflowForecast,
+      financialHealth,
     },
   };
+}
+
+// ── Cashflow Forecast Calculator ──
+function calculateCashflowForecast(
+  currentBalance: number,
+  upcomingInvoices: UpcomingInvoice[],
+  avgMonthlyExpenses: number,
+  vatFiling: { deadlineDate: Date; daysRemaining: number; quarter: number; year: number }
+): CashflowForecastWeek[] {
+  const weeks: CashflowForecastWeek[] = [];
+  const weeklyExpenses = Math.round((avgMonthlyExpenses / 4.33) * 100) / 100;
+  let balance = currentBalance;
+
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+
+  for (let w = 0; w < 13; w++) {
+    const weekStart = new Date(startOfWeek);
+    weekStart.setDate(startOfWeek.getDate() + w * 7);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const weekStartStr = weekStart.toISOString().split("T")[0];
+    const events: string[] = [];
+
+    // Expected income: invoices with due_date in this week
+    let expectedIncome = 0;
+    for (const inv of upcomingInvoices) {
+      if (!inv.due_date) continue;
+      const dueDate = new Date(inv.due_date);
+      if (dueDate >= weekStart && dueDate <= weekEnd) {
+        expectedIncome += inv.total_inc_vat;
+        if (inv.days_overdue > 0) {
+          events.push(`Verlopen: ${inv.invoice_number} (${inv.client_name})`);
+        } else {
+          events.push(`Verwacht: ${inv.invoice_number} (${inv.client_name})`);
+        }
+      }
+    }
+
+    // BTW deadline event
+    if (vatFiling.deadlineDate >= weekStart && vatFiling.deadlineDate <= weekEnd) {
+      events.push(`BTW-aangifte Q${vatFiling.quarter} ${vatFiling.year}`);
+    }
+
+    balance = Math.round((balance + expectedIncome - weeklyExpenses) * 100) / 100;
+
+    weeks.push({
+      weekStart: weekStartStr,
+      expectedIncome: Math.round(expectedIncome * 100) / 100,
+      expectedExpenses: weeklyExpenses,
+      runningBalance: balance,
+      events,
+    });
+  }
+
+  return weeks;
 }
 
 // ── Safe-to-Spend Calculator ──

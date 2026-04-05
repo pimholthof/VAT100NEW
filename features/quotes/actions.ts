@@ -317,6 +317,16 @@ export async function convertQuoteToInvoice(
     return { error: numberResult.error ?? "Kon geen factuurnummer genereren." };
   }
 
+  // Fetch client payment terms for smart due date
+  const { data: clientData } = await supabase
+    .from("clients")
+    .select("payment_terms_days")
+    .eq("id", quote.client_id)
+    .eq("user_id", user.id)
+    .single();
+
+  const termDays = clientData?.payment_terms_days ?? 30;
+
   // Create the invoice with the quote's data
   const invoiceResult = await createInvoice({
     client_id: quote.client_id,
@@ -325,7 +335,7 @@ export async function convertQuoteToInvoice(
     issue_date: new Date().toISOString().split("T")[0],
     due_date: (() => {
       const d = new Date();
-      d.setDate(d.getDate() + 30);
+      d.setDate(d.getDate() + termDays);
       return d.toISOString().split("T")[0];
     })(),
     vat_rate: quote.vat_rate as 0 | 9 | 21,

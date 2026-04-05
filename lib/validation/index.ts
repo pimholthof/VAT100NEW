@@ -21,6 +21,7 @@ export const clientSchema = z.object({
   kvk_number: optionalString,
   btw_number: optionalString,
   country: optionalString,
+  payment_terms_days: z.number().min(0).max(120).nullable().optional(),
 });
 
 export type ClientSchema = z.infer<typeof clientSchema>;
