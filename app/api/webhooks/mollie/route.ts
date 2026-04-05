@@ -4,6 +4,7 @@ import { getMolliePayment } from "@/lib/payments/mollie";
 import { createServiceClient } from "@/lib/supabase/service";
 import { activateSubscriptionAfterPayment } from "@/features/subscriptions/actions";
 import { autoProvisionAccount } from "@/features/admin/actions";
+import { isRateLimited } from "@/lib/rate-limit";
 
 /**
  * Mollie webhook: wordt aangeroepen wanneer een betaalstatus wijzigt.
@@ -15,6 +16,11 @@ import { autoProvisionAccount } from "@/features/admin/actions";
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit webhook calls (100 per minute per IP)
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    if (await isRateLimited(`webhook-mollie:${ip}`, 100, 60_000)) {
+      return NextResponse.json({ error: "Te veel verzoeken" }, { status: 429 });
+    }
     const formData = await request.formData();
     const paymentId = formData.get("id") as string | null;
 
