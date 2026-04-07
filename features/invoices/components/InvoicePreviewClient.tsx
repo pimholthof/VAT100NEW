@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import type { InvoiceData, InvoiceTemplate } from "@/lib/types";
 import { InvoiceHTML } from "./InvoiceHTML";
 import { TemplatePicker } from "./TemplatePicker";
@@ -15,7 +15,7 @@ export function InvoicePreviewClient({ data }: { data: InvoiceData }) {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
     if (saved && ["minimaal", "klassiek", "strak", "poster"].includes(saved)) {
-      setTemplate(saved);
+      startTransition(() => setTemplate(saved));
     }
   }, []);
 

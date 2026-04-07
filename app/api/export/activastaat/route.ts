@@ -1,8 +1,12 @@
+import { requireAuth } from "@/lib/supabase/server";
 import { getActivastaat } from "@/features/assets/actions";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error !== null) return NextResponse.json({ error: auth.error }, { status: 401 });
+
   const year = Number(request.nextUrl.searchParams.get("year")) || new Date().getFullYear();
 
   const result = await getActivastaat(year);

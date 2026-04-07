@@ -496,7 +496,7 @@ export async function getControllerAuditData(): Promise<ActionResult<TaxAuditSum
   return { error: null, data: summary };
 }
 
-export async function getControllerAuditHistory(): Promise<ActionResult<any[]>> {
+export async function getControllerAuditHistory(): Promise<ActionResult<Record<string, unknown>[]>> {
   const auth = await requireAdmin();
   if (auth.error !== null) return { error: auth.error };
   const { supabase } = auth;

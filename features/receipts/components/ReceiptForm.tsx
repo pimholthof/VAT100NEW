@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
@@ -91,31 +91,33 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
   // Auto-apply fiscale regels bij kostsoort wijziging
   useEffect(() => {
-    if (!costCode) {
-      setAutoRuleMessage(null);
-      return;
-    }
+    startTransition(() => {
+      if (!costCode) {
+        setAutoRuleMessage(null);
+        return;
+      }
 
-    // Stel automatisch het juiste BTW-tarief in op basis van kostsoort
-    const suggestedVat = getDefaultVatRateForCostCode(costCode);
-    setVatRate(String(suggestedVat));
+      // Stel automatisch het juiste BTW-tarief in op basis van kostsoort
+      const suggestedVat = getDefaultVatRateForCostCode(costCode);
+      setVatRate(String(suggestedVat));
 
-    // Stel zakelijk percentage in op basis van kostsoort
-    const suggestedBp = getDefaultBusinessPercentage(costCode);
-    setBusinessPercentage(suggestedBp);
+      // Stel zakelijk percentage in op basis van kostsoort
+      const suggestedBp = getDefaultBusinessPercentage(costCode);
+      setBusinessPercentage(suggestedBp);
 
-    // Toon uitleg bij speciale regels
-    if (isRepresentatie(costCode)) {
-      setAutoRuleMessage("Representatiekosten: automatisch 80% zakelijk, 20% privé (fiscale regel)");
-    } else if (HORECA_CODES.has(costCode)) {
-      setAutoRuleMessage("Horeca: BTW is niet aftrekbaar (Nederlandse wetgeving)");
-    } else if (suggestedVat === 9) {
-      setAutoRuleMessage(`Standaard BTW-tarief: ${suggestedVat}% (verlaagd tarief)`);
-    } else if (suggestedVat === 0) {
-      setAutoRuleMessage("Geen BTW van toepassing op deze kostsoort");
-    } else {
-      setAutoRuleMessage(null);
-    }
+      // Toon uitleg bij speciale regels
+      if (isRepresentatie(costCode)) {
+        setAutoRuleMessage("Representatiekosten: automatisch 80% zakelijk, 20% privé (fiscale regel)");
+      } else if (HORECA_CODES.has(costCode)) {
+        setAutoRuleMessage("Horeca: BTW is niet aftrekbaar (Nederlandse wetgeving)");
+      } else if (suggestedVat === 9) {
+        setAutoRuleMessage(`Standaard BTW-tarief: ${suggestedVat}% (verlaagd tarief)`);
+      } else if (suggestedVat === 0) {
+        setAutoRuleMessage("Geen BTW van toepassing op deze kostsoort");
+      } else {
+        setAutoRuleMessage(null);
+      }
+    });
   }, [costCode]);
 
   useEffect(() => {

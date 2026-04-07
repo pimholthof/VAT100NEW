@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "@/lib/i18n/context";
@@ -58,23 +58,25 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
   // Auto-detect VAT scheme when client changes
   useEffect(() => {
-    if (!clientId) {
-      setVatReason(null);
-      return;
-    }
-    const client = clients.find((c) => c.id === clientId);
-    if (!client) return;
+    startTransition(() => {
+      if (!clientId) {
+        setVatReason(null);
+        return;
+      }
+      const client = clients.find((c) => c.id === clientId);
+      if (!client) return;
 
-    const detection = detectVatScheme(client);
-    setVatScheme(detection.scheme);
-    setVatRate(detection.rate as 0 | 9 | 21);
-    setVatReason(detection.reason);
+      const detection = detectVatScheme(client);
+      setVatScheme(detection.scheme);
+      setVatRate(detection.rate as 0 | 9 | 21);
+      setVatReason(detection.reason);
 
-    // Set due date based on client payment terms
-    const termDays = client.payment_terms_days ?? 30;
-    const due = new Date();
-    due.setDate(due.getDate() + termDays);
-    setDueDate(due.toISOString().split("T")[0]);
+      // Set due date based on client payment terms
+      const termDays = client.payment_terms_days ?? 30;
+      const due = new Date();
+      due.setDate(due.getDate() + termDays);
+      setDueDate(due.toISOString().split("T")[0]);
+    });
   }, [clientId, clients, setVatScheme, setVatRate, setDueDate]);
 
   // Generate invoice number for new invoices

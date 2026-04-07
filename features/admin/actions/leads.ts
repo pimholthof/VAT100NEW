@@ -405,7 +405,7 @@ export async function initiateLeadPayment(
     }
 
     // 4. Initiate Payment
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vat100.nl";
     const paymentResult = await createFirstPayment({
       customerId: customerResult.data.id,
       amount: plan.price_cents / 100,

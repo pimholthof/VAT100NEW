@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'De slimste facturatie- en administratie-app voor zzp\'ers.',
     start_url: '/dashboard',
     display: 'standalone',
-    background_color: '#0d0d0b',
-    theme_color: '#0d0d0b',
+    background_color: '#ffffff',
+    theme_color: '#f4f4f4',
     orientation: 'portrait-primary',
     icons: [
       {

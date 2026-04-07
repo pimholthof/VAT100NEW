@@ -523,7 +523,7 @@ export async function createPaymentLink(
     return { error: "Mollie is niet geconfigureerd. Voeg MOLLIE_API_KEY toe." };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.vat100.nl";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vat100.nl";
   const token = invoice.share_token;
 
   const { data: payment, error: paymentError } = await createMolliePayment({

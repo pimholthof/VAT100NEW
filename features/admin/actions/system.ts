@@ -46,7 +46,7 @@ export async function getSystemStatus(): Promise<ActionResult<SystemStatus>> {
     // Fetch health from our own endpoint
     let health: SystemStatus["health"] = null;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vat100.nl";
       const res = await fetch(`${baseUrl}/api/health`, { signal: AbortSignal.timeout(10000) });
       health = await res.json();
     } catch {

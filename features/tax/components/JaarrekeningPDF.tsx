@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Document,
   Page,
@@ -234,6 +235,18 @@ const s = StyleSheet.create({
 
 // ─── Component ───
 
+function FooterBlock({ pageNum, totalPages, studioName, kvkNumber, genDate }: {
+  pageNum: number; totalPages: number; studioName: string; kvkNumber?: string | null; genDate: string;
+}) {
+  return (
+    <View style={s.footer} fixed>
+      <Text style={s.footerText}>{studioName}{kvkNumber ? ` — KVK ${kvkNumber}` : ""}</Text>
+      <Text style={s.footerText}>Gegenereerd {genDate}</Text>
+      <Text style={s.footerText}>Pagina {pageNum}/{totalPages}</Text>
+    </View>
+  );
+}
+
 export function JaarrekeningPDF({ data }: { data: JaarrekeningData }) {
   const { profiel, winstEnVerlies: wv, balans, btwKwartalen, btwJaarTotaal, fiscaal, investeringen } = data;
   const genDate = new Date().toLocaleDateString("nl-NL", {
@@ -242,15 +255,8 @@ export function JaarrekeningPDF({ data }: { data: JaarrekeningData }) {
     year: "numeric",
   });
 
-  const FooterBlock = ({ pageNum, totalPages }: { pageNum: number; totalPages: number }) => (
-    <View style={s.footer} fixed>
-      <Text style={s.footerText}>{profiel.studioName}{profiel.kvkNumber ? ` — KVK ${profiel.kvkNumber}` : ""}</Text>
-      <Text style={s.footerText}>Gegenereerd {genDate}</Text>
-      <Text style={s.footerText}>Pagina {pageNum}/{totalPages}</Text>
-    </View>
-  );
-
   const totalPages = investeringen.length > 0 ? 3 : 2;
+  const footerProps = { studioName: profiel.studioName, kvkNumber: profiel.kvkNumber, genDate, totalPages };
 
   return (
     <Document>
@@ -349,7 +355,7 @@ export function JaarrekeningPDF({ data }: { data: JaarrekeningData }) {
           <Text style={[s.tableCellBold, s.plTotal, { fontSize: 12 }]}>{fc(wv.brutoWinst)}</Text>
         </View>
 
-        <FooterBlock pageNum={1} totalPages={totalPages} />
+        <FooterBlock pageNum={1} {...footerProps} />
       </Page>
 
       {/* ═══ PAGE 2: Balans + BTW Jaaroverzicht ═══ */}
@@ -493,7 +499,7 @@ export function JaarrekeningPDF({ data }: { data: JaarrekeningData }) {
           <Text style={s.fiscValue}>{fiscaal.effectiefTarief}%</Text>
         </View>
 
-        <FooterBlock pageNum={2} totalPages={totalPages} />
+        <FooterBlock pageNum={2} {...footerProps} />
       </Page>
 
       {/* ═══ PAGE 3: Investeringen & Afschrijvingen (conditional) ═══ */}
@@ -536,7 +542,7 @@ export function JaarrekeningPDF({ data }: { data: JaarrekeningData }) {
             <Text style={[s.tableCellBold, s.invRest]} />
           </View>
 
-          <FooterBlock pageNum={3} totalPages={totalPages} />
+          <FooterBlock pageNum={3} {...footerProps} />
         </Page>
       )}
     </Document>

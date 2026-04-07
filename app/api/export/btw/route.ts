@@ -1,8 +1,11 @@
+import { requireAuth } from "@/lib/supabase/server";
 import { getBtwOverview } from "@/features/tax/actions";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth.error !== null) return NextResponse.json({ error: auth.error }, { status: 401 });
   const result = await getBtwOverview();
   if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
 

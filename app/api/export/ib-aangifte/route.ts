@@ -1,8 +1,11 @@
+import { requireAuth } from "@/lib/supabase/server";
 import { generateIBAangifteData } from "@/features/tax/ib-aangifte";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error !== null) return NextResponse.json({ error: auth.error }, { status: 401 });
   const year = Number(request.nextUrl.searchParams.get("year")) || new Date().getFullYear() - 1;
 
   const result = await generateIBAangifteData(year);

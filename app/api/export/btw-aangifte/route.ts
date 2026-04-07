@@ -1,8 +1,11 @@
+import { requireAuth } from "@/lib/supabase/server";
 import { generateBtwAangifte } from "@/features/tax/btw-aangifte";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error !== null) return NextResponse.json({ error: auth.error }, { status: 401 });
   const { searchParams } = request.nextUrl;
   const year = Number(searchParams.get("year")) || new Date().getFullYear();
   const quarter = Number(searchParams.get("quarter")) || Math.ceil((new Date().getMonth() + 1) / 3);

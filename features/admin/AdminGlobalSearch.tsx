@@ -35,13 +35,18 @@ export function AdminGlobalSearch() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  const prevOpenRef = useRef(open);
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50);
-    } else {
-      setQuery("");
-      setResults([]);
     }
+    if (prevOpenRef.current && !open) {
+      // Reset on close — deferred to avoid synchronous setState in effect
+      const id = setTimeout(() => { setQuery(""); setResults([]); }, 0);
+      prevOpenRef.current = open;
+      return () => clearTimeout(id);
+    }
+    prevOpenRef.current = open;
   }, [open]);
 
   const handleSearch = useCallback((value: string) => {
