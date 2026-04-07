@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -87,10 +88,8 @@ async function checkResend(): Promise<HealthCheck> {
 }
 
 export async function GET(request: Request) {
-  // Require CRON_SECRET or admin auth for detailed health info
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get("authorization");
-  const isAuthorized = cronSecret && authHeader === `Bearer ${cronSecret}`;
+  // Require CRON_SECRET for detailed health info (timing-safe comparison)
+  const isAuthorized = verifyCronSecret(request);
 
   // Public callers only get a simple status
   if (!isAuthorized) {

@@ -1,11 +1,15 @@
 "use server";
 
+import { requireAdmin } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendPaymentNudge, sendBillingAlert } from "@/lib/email/send-retention";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/types";
 
 export async function manualNudgeLead(leadId: string): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
   const supabase = createServiceClient();
 
   // 1. Fetch Lead
@@ -41,6 +45,9 @@ export async function manualNudgeLead(leadId: string): Promise<ActionResult> {
 }
 
 export async function manualBillingAlert(userId: string): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
   const supabase = createServiceClient();
 
   // 1. Fetch Profile & Subscription
