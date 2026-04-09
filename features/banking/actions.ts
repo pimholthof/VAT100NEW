@@ -2,7 +2,11 @@
 
 import { z } from "zod";
 import * as Sentry from "@sentry/nextjs";
-import { runAgentSession } from "@/lib/services/managed-agent";
+import {
+  AgentSession,
+  PLAN_CONFIDENCE_THRESHOLDS,
+  DEFAULT_CONFIDENCE_THRESHOLD,
+} from "@/lib/services/managed-agent";
 import { requireAuth, requirePlan } from "@/lib/supabase/server";
 import { bankingClient, checkBankingRateLimit } from "@/lib/banking/tink";
 import { sanitizeSupabaseError } from "@/lib/errors";
@@ -457,9 +461,14 @@ export async function autoCategorizeTransactions(
     return { error: "Ongeldige transactie-ID(s)." };
   }
 
-  const auth = await requireAuth();
-  if (auth.error !== null) return { error: auth.error };
-  const { supabase, user } = auth;
+  // Agent classificatie vereist minimaal Studio plan
+  const planCheck = await requirePlan("studio");
+  if (planCheck.error !== null) return { error: planCheck.error };
+  const { supabase, user, planId } = planCheck;
+
+  // Confidence threshold: Studio = conservatief, Complete = agressief
+  const confidenceThreshold =
+    PLAN_CONFIDENCE_THRESHOLDS[planId] ?? DEFAULT_CONFIDENCE_THRESHOLD;
 
   // Fetch the transactions
   const { data: transactions, error: fetchError } = await supabase
@@ -549,8 +558,14 @@ export async function autoCategorizeTransactions(
   }
 
   // Managed agent classificatie voor transacties die geen keyword-match hebben
-  const AI_CONFIDENCE_THRESHOLD = 0.8;
   const categoryList = AI_CATEGORIES.join(", ");
+
+  // Bouw user-context: bestaande categorization_rules als hint voor de agent
+  const rulesContext = (rules ?? []).length > 0
+    ? `\nDeze user heeft eerder de volgende tegenpartijen gecategoriseerd:\n${(rules ?? []).map(
+        (r: CatRule) => `- "${r.counterpart_pattern}" → ${r.category}`
+      ).join("\n")}\nGebruik deze kennis om vergelijkbare transacties te classificeren.\n`
+    : "";
 
   // Batch in groups of 20
   const batches: (typeof needsAI)[] = [];
@@ -567,6 +582,18 @@ export async function autoCategorizeTransactions(
     })
   );
 
+  // Eén sessie hergebruiken voor alle batches (scheelt latency en kosten)
+  const agentSession = new AgentSession();
+  try {
+    await agentSession.open();
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { area: "auto-categorize-agent-init" },
+      extra: { userId: user.id },
+    });
+    return { error: null, data: results };
+  }
+
   for (const batch of batches) {
     const input = batch.map((tx) => ({
       id: tx.id,
@@ -581,10 +608,10 @@ Categoriseer elke transactie in exact één van deze categorieën: ${categoryLis
 Markeer ook of het inkomsten (is_income: true) of uitgaven (is_income: false) zijn.
 Geef per transactie een confidence score (0-1) aan.
 Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income, confidence}]
-
+${rulesContext}
 ${JSON.stringify(input)}`;
 
-      const text = await runAgentSession(prompt);
+      const text = await agentSession.send(prompt);
       if (!text) continue;
 
       // Extract JSON from response (may be wrapped in markdown code block)
@@ -611,12 +638,12 @@ ${JSON.stringify(input)}`;
         )
       );
 
-      // Confidence routing: hoog → auto-boek, laag → action_feed
+      // Confidence routing op basis van plan-tier threshold
       const highConfidence = validItems.filter(
-        (item) => (item.confidence ?? 1) >= AI_CONFIDENCE_THRESHOLD
+        (item) => (item.confidence ?? 1) >= confidenceThreshold
       );
       const lowConfidence = validItems.filter(
-        (item) => (item.confidence ?? 1) < AI_CONFIDENCE_THRESHOLD
+        (item) => (item.confidence ?? 1) < confidenceThreshold
       );
 
       // Hoge confidence: direct categorie toewijzen
