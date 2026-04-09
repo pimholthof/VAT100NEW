@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { processSystemEvents } from "@/lib/automation/event-processor";
+import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { createServiceClient } from "@/lib/supabase/service";
 
 /**
  * Agent Fleet Orchestrator (Master Cron Endpoint)
@@ -17,13 +19,7 @@ import { processSystemEvents } from "@/lib/automation/event-processor";
  * }
  */
 export async function GET(request: Request) {
-  // 1. Verify cron secret (Vercel sends this automatically)
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -31,6 +27,18 @@ export async function GET(request: Request) {
     // 2. Run the processor
     // It will fetch 25 events per batch by default
     const result = await processSystemEvents(50);
+
+    const supabase = createServiceClient();
+    await supabase.from("system_events").insert({
+      event_type: "cron.events",
+      payload: {
+        events_processed: result.eventsProcessed,
+        successes: result.successes,
+        failures: result.failures,
+        errors: result.errors.length,
+      },
+      processed_at: new Date().toISOString(),
+    });
 
     return NextResponse.json({
       status: "success",

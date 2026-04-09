@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { createServiceClient } from "@/lib/supabase/service";
 import { ProcessingResult } from "./types";
 import { agents } from "./agents"; // We'll create this registry next
@@ -6,14 +7,36 @@ import { agents } from "./agents"; // We'll create this registry next
  * The core engine of the VAT100 Automation Ecosystem.
  * This function is intended to be called by a cron job (API route).
  */
+const MAX_EVENT_ATTEMPTS = 3;
+const STALE_CLAIM_MINUTES = 15;
+
+function serializeError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
 export async function processSystemEvents(batchSize = 25): Promise<ProcessingResult> {
   const supabase = createServiceClient();
-  // 1. Fetch unprocessed events
-  // We use processed_at IS NULL to find new events
+  const now = new Date();
+  const staleBefore = new Date(now.getTime() - STALE_CLAIM_MINUTES * 60 * 1000).toISOString();
+
+  await supabase
+    .from("system_events")
+    .update({
+      processing_started_at: null,
+      processing_token: null,
+    })
+    .is("processed_at", null)
+    .is("failed_at", null)
+    .lt("processing_started_at", staleBefore);
+
+  // 1. Fetch claimable events
   const { data: events, error } = await supabase
     .from("system_events")
     .select("*")
     .is("processed_at", null)
+    .is("failed_at", null)
+    .or(`processing_started_at.is.null,processing_started_at.lt.${staleBefore}`)
     .order("created_at", { ascending: true })
     .limit(batchSize);
 
@@ -24,7 +47,7 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
 
   const result: ProcessingResult = {
     batchesProcessed: 1,
-    eventsProcessed: events?.length || 0,
+    eventsProcessed: 0,
     successes: 0,
     failures: 0,
     errors: [],
@@ -38,48 +61,111 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
 
   // 2. Process each event through matching agents
   for (const event of events) {
+    const token = randomUUID();
+    const claimStartedAt = new Date().toISOString();
+    const { data: claimedEvent, error: claimError } = await supabase
+      .from("system_events")
+      .update({
+        processing_started_at: claimStartedAt,
+        processing_token: token,
+        attempts: (event.attempts ?? 0) + 1,
+        failed_at: null,
+      })
+      .eq("id", event.id)
+      .is("processed_at", null)
+      .is("failed_at", null)
+      .or(`processing_token.is.null,processing_started_at.lt.${staleBefore}`)
+      .select("*")
+      .maybeSingle();
+
+    if (claimError) {
+      console.error(`[EventProcessor] Error claiming event ${event.id}:`, claimError);
+      result.errors.push(claimError);
+      continue;
+    }
+
+    if (!claimedEvent) {
+      continue;
+    }
+
+    result.eventsProcessed++;
+
     try {
       // Find agents interested in this event type
       const matchingAgents = agents.filter(
-        (a) => a.targetEvents.includes(event.event_type) || a.targetEvents.includes("*")
+        (a) => a.targetEvents.includes(claimedEvent.event_type) || a.targetEvents.includes("*")
       );
+
+      let anyFailure = false;
+      let lastError: string | null = null;
 
       if (matchingAgents.length === 0) {
         // No matching agents for this event type
       } else {
-        
         // Execute all matching agents in parallel
         const agentResults = await Promise.allSettled(
-          matchingAgents.map((agent) => agent.run(event))
+          matchingAgents.map((agent) => agent.run(claimedEvent))
         );
 
-        // Check if all agents succeeded
-        const anyFailure = agentResults.some((r) => r.status === "rejected" || r.value === false);
-        if (anyFailure) {
-          result.failures++;
-        } else {
-          result.successes++;
-        }
+        const agentErrors = agentResults.flatMap((agentResult) => {
+          if (agentResult.status === "rejected") return [serializeError(agentResult.reason)];
+          if (agentResult.value === false) return ["Agent returned false"];
+          return [];
+        });
+
+        anyFailure = agentErrors.length > 0;
+        lastError = agentErrors.length > 0 ? agentErrors.join(" | ") : null;
       }
 
-      // 3. Mark event as processed
-      // We mark it even on failure to avoid infinite loops, 
-      // specific error info should be logged by agents or in an activity table.
-      await supabase
-        .from("system_events")
-        .update({ processed_at: new Date().toISOString() })
-        .eq("id", event.id);
+      if (anyFailure) {
+        const exhausted = claimedEvent.attempts >= MAX_EVENT_ATTEMPTS;
+        await supabase
+          .from("system_events")
+          .update({
+            processing_started_at: null,
+            processing_token: null,
+            last_error: lastError,
+            failed_at: exhausted ? new Date().toISOString() : null,
+          })
+          .eq("id", claimedEvent.id)
+          .eq("processing_token", token);
+
+        result.failures++;
+        if (lastError) {
+          result.errors.push(lastError);
+        }
+      } else {
+        await supabase
+          .from("system_events")
+          .update({
+            processed_at: new Date().toISOString(),
+            processing_started_at: null,
+            processing_token: null,
+            last_error: null,
+            failed_at: null,
+          })
+          .eq("id", claimedEvent.id)
+          .eq("processing_token", token);
+
+        result.successes++;
+      }
 
     } catch (e) {
-      console.error(`[EventProcessor] Unexpected error processing event ${event.id}:`, e);
+      console.error(`[EventProcessor] Unexpected error processing event ${claimedEvent.id}:`, e);
       result.errors.push(e);
       result.failures++;
-      
-      // Still mark it as processed to keep moving
+
+      const exhausted = claimedEvent.attempts >= MAX_EVENT_ATTEMPTS;
       await supabase
         .from("system_events")
-        .update({ processed_at: new Date().toISOString() })
-        .eq("id", event.id);
+        .update({
+          processing_started_at: null,
+          processing_token: null,
+          last_error: serializeError(e),
+          failed_at: exhausted ? new Date().toISOString() : null,
+        })
+        .eq("id", claimedEvent.id)
+        .eq("processing_token", token);
     }
   }
 

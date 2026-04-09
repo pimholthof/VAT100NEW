@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
         subscription_reminders_processed: subscriptionData.processed,
         subscription_emails_sent: subscriptionData.results.filter((r) => r.emailSent).length,
       },
+      processed_at: new Date().toISOString(),
     });
 
     return NextResponse.json({

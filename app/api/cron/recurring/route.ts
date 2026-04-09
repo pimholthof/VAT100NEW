@@ -2,6 +2,25 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 
+function calculateNextRunDate(runDate: string, frequency: string): string {
+  const nextDate = new Date(runDate);
+  switch (frequency) {
+    case "weekly":
+      nextDate.setDate(nextDate.getDate() + 7);
+      break;
+    case "monthly":
+      nextDate.setMonth(nextDate.getMonth() + 1);
+      break;
+    case "quarterly":
+      nextDate.setMonth(nextDate.getMonth() + 3);
+      break;
+    case "yearly":
+      nextDate.setFullYear(nextDate.getFullYear() + 1);
+      break;
+  }
+  return nextDate.toISOString().split("T")[0];
+}
+
 /**
  * Cron job: Process recurring invoices.
  * Runs daily, finds templates where next_run_date <= today, generates invoices.
@@ -29,6 +48,29 @@ export async function GET(request: Request) {
 
   for (const template of templates ?? []) {
     try {
+      const runDate = template.next_run_date;
+      const nextRunDate = calculateNextRunDate(runDate, template.frequency);
+
+      const { data: existingInvoice } = await supabase
+        .from("invoices")
+        .select("id")
+        .eq("source_recurring_invoice_id", template.id)
+        .eq("source_run_date", runDate)
+        .maybeSingle();
+
+      if (existingInvoice?.id) {
+        await supabase
+          .from("recurring_invoices")
+          .update({
+            next_run_date: nextRunDate,
+            last_generated_at: new Date().toISOString(),
+          })
+          .eq("id", template.id);
+
+        results.push({ templateId: template.id, invoiceId: existingInvoice.id });
+        continue;
+      }
+
       // Generate invoice number
       const { data: invoiceNumber, error: rpcError } = await supabase.rpc(
         "generate_invoice_number",
@@ -63,6 +105,8 @@ export async function GET(request: Request) {
         .insert({
           user_id: template.user_id,
           client_id: template.client_id,
+          source_recurring_invoice_id: template.id,
+          source_run_date: runDate,
           invoice_number: invoiceNumber as string,
           status: template.auto_send ? "sent" : "draft",
           issue_date: today,
@@ -77,6 +121,28 @@ export async function GET(request: Request) {
         .single();
 
       if (insertError || !invoice) {
+        if (insertError?.code === "23505") {
+          const { data: duplicateInvoice } = await supabase
+            .from("invoices")
+            .select("id")
+            .eq("source_recurring_invoice_id", template.id)
+            .eq("source_run_date", runDate)
+            .maybeSingle();
+
+          if (duplicateInvoice?.id) {
+            await supabase
+              .from("recurring_invoices")
+              .update({
+                next_run_date: nextRunDate,
+                last_generated_at: new Date().toISOString(),
+              })
+              .eq("id", template.id);
+
+            results.push({ templateId: template.id, invoiceId: duplicateInvoice.id });
+            continue;
+          }
+        }
+
         results.push({ templateId: template.id, error: insertError?.message ?? "Insert failed" });
         continue;
       }
@@ -103,27 +169,10 @@ export async function GET(request: Request) {
         }
       }
 
-      // Calculate next run date
-      const nextDate = new Date(template.next_run_date);
-      switch (template.frequency) {
-        case "weekly":
-          nextDate.setDate(nextDate.getDate() + 7);
-          break;
-        case "monthly":
-          nextDate.setMonth(nextDate.getMonth() + 1);
-          break;
-        case "quarterly":
-          nextDate.setMonth(nextDate.getMonth() + 3);
-          break;
-        case "yearly":
-          nextDate.setFullYear(nextDate.getFullYear() + 1);
-          break;
-      }
-
       await supabase
         .from("recurring_invoices")
         .update({
-          next_run_date: nextDate.toISOString().split("T")[0],
+          next_run_date: nextRunDate,
           last_generated_at: new Date().toISOString(),
         })
         .eq("id", template.id);
@@ -136,6 +185,16 @@ export async function GET(request: Request) {
       });
     }
   }
+
+  await supabase.from("system_events").insert({
+    event_type: "cron.recurring",
+    payload: {
+      processed: results.length,
+      generated: results.filter((result) => result.invoiceId).length,
+      errors: results.filter((result) => result.error).length,
+    },
+    processed_at: new Date().toISOString(),
+  });
 
   return NextResponse.json({
     processed: results.length,

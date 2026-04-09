@@ -5,8 +5,16 @@
       "schedule": "0 6 * * *"
     },
     {
+      "path": "/api/cron/recurring",
+      "schedule": "0 2 * * *"
+    },
+    {
       "path": "/api/cron/agents",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/agents/run-all",
+      "schedule": "0 4 * * *"
     }
   ]
 }

@@ -18,6 +18,7 @@ const EVENT_LABELS: Record<string, string> = {
   "subscription.created": "Nieuw abonnement",
   "subscription.cancelled": "Abonnement opgezegd",
   "cron.agents": "Agents gedraaid",
+  "cron.events": "Event processor gedraaid",
   "cron.overdue": "Herinneringen verstuurd",
   "cron.recurring": "Terugkerende facturen verwerkt",
   "payment.received": "Betaling ontvangen",

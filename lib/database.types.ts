@@ -20,6 +20,11 @@ export interface Database {
           payload: Record<string, unknown>
           processed_at: string | null
           created_at: string
+          processing_started_at: string | null
+          processing_token: string | null
+          attempts: number
+          last_error: string | null
+          failed_at: string | null
           type?: string
           user_id?: string
         }
@@ -29,6 +34,11 @@ export interface Database {
           payload?: Json
           processed_at?: string | null
           created_at?: string
+          processing_started_at?: string | null
+          processing_token?: string | null
+          attempts?: number
+          last_error?: string | null
+          failed_at?: string | null
         }
         Update: {
           id?: string
@@ -36,6 +46,11 @@ export interface Database {
           payload?: Json
           processed_at?: string | null
           created_at?: string
+          processing_started_at?: string | null
+          processing_token?: string | null
+          attempts?: number
+          last_error?: string | null
+          failed_at?: string | null
         }
       }
       [key: string]: {

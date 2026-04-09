@@ -158,7 +158,8 @@ function StatusTab() {
   const cronJobs = [
     { name: "Agents", schedule: "Dagelijks 03:00", lastRun: crons.lastAgentRun },
     { name: "Herinneringen", schedule: "Dagelijks 06:00", lastRun: crons.lastOverdueRun },
-    { name: "Terugkerend", schedule: "Dagelijks", lastRun: crons.lastRecurringRun },
+    { name: "Terugkerend", schedule: "Dagelijks 02:00", lastRun: crons.lastRecurringRun },
+    { name: "Event Processor", schedule: "Dagelijks 04:00", lastRun: crons.lastEventProcessorRun },
   ];
 
   return (

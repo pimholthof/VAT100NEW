@@ -29,6 +29,7 @@ export interface SystemStatus {
     lastAgentRun: string | null;
     lastOverdueRun: string | null;
     lastRecurringRun: string | null;
+    lastEventProcessorRun: string | null;
   };
   eventBacklog: number;
 }
@@ -105,10 +106,18 @@ export async function getSystemStatus(): Promise<ActionResult<SystemStatus>> {
       .order("created_at", { ascending: false })
       .limit(1);
 
+    const { data: lastEventProcessorEvent } = await supabase
+      .from("system_events")
+      .select("created_at")
+      .eq("event_type", "cron.events")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
     const { count: unprocessedEvents } = await supabase
       .from("system_events")
       .select("*", { count: "exact", head: true })
-      .is("processed_at", null);
+      .is("processed_at", null)
+      .is("failed_at", null);
 
     return {
       error: null,
@@ -132,6 +141,7 @@ export async function getSystemStatus(): Promise<ActionResult<SystemStatus>> {
           lastAgentRun: lastAgentEvent?.[0]?.created_at ?? null,
           lastOverdueRun: lastOverdueEvent?.[0]?.created_at ?? null,
           lastRecurringRun: lastRecurringEvent?.[0]?.created_at ?? null,
+          lastEventProcessorRun: lastEventProcessorEvent?.[0]?.created_at ?? null,
         },
         eventBacklog: unprocessedEvents ?? 0,
       },
