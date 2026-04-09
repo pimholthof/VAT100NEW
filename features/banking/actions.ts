@@ -15,8 +15,8 @@ import { uuidSchema } from "@/lib/validation";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
 
 export async function getBankConnections(): Promise<ActionResult<BankConnection[]>> {
-  // Feature-gate: Bank koppeling is Compleet-only
-  const planCheck = await requirePlan("compleet");
+  // Feature-gate: Bank koppeling beschikbaar vanaf Studio
+  const planCheck = await requirePlan("studio");
   if (planCheck.error !== null) return { error: planCheck.error };
   const { supabase, user } = planCheck;
 
