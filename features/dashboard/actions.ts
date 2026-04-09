@@ -270,8 +270,8 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
 
   let safeToSpend: SafeToSpendData;
 
-  // Check of er een recent reserve_snapshot is (<4 uur oud)
-  const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+  // Check of er een recent reserve_snapshot is (<24 uur oud)
+  const fourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data: recentSnapshot } = await supabase
     .from("reserve_snapshots")
     .select("bank_balance, estimated_vat, estimated_income_tax, reserved_total, safe_to_spend")

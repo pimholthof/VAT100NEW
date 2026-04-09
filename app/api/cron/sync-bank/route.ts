@@ -7,7 +7,7 @@ import { autoCategorizeTransactionsInternal } from "@/features/banking/actions";
 import { recalculateReserves } from "@/lib/services/reserve-recalculator";
 
 /**
- * Cron: Bank Sync (elke 4 uur)
+ * Cron: Bank Sync (dagelijks 07:00 UTC)
  *
  * Haalt automatisch nieuwe transacties op voor alle actieve bankverbindingen,
  * categoriseert ze via de managed agent, en triggert reserve-herberekening.
