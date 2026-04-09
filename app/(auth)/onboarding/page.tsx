@@ -2,6 +2,7 @@
 
 import { completeOnboarding } from "../actions";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/lib/i18n/context";
 import { StepIndicator } from "@/components/ui/StepIndicator";
 import type { VatFrequency } from "@/lib/types";
@@ -38,10 +39,12 @@ const radioStyle: React.CSSProperties = {
 type BookkeepingStartOption = "current_year" | "today" | "custom";
 
 export default function OnboardingPage() {
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [step, setStep] = useState(1);
   const { t } = useLocale();
+  const plan = searchParams.get("plan");
 
   const stepLabels = [t.auth.registration, t.auth.address, t.auth.bankDetails, t.auth.fiscalProfile];
 
@@ -128,6 +131,7 @@ export default function OnboardingPage() {
     formData.append("bic", bic);
     formData.append("vat_frequency", vatFrequency);
     formData.append("bookkeeping_start_date", getBookkeepingStartDate());
+    if (plan) formData.append("plan", plan);
 
     const result = await completeOnboarding(formData);
 

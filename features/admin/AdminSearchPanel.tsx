@@ -117,8 +117,9 @@ export function AdminSearchPanel({
                 onChange={(e) => onFiltersChange({ ...filters, planType: e.target.value })}
               >
                 <option value="all">Alle plannen</option>
-                <option value="basis">Basis</option>
-                <option value="compleet">Compleet</option>
+                <option value="basis">Start</option>
+                <option value="studio">Studio</option>
+                <option value="compleet">Complete</option>
                 <option value="none">Geen plan</option>
               </Select>
             </div>

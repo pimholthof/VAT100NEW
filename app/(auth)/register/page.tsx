@@ -124,6 +124,12 @@ function RegisterForm() {
           >
             {t.auth.createAccount}
           </h1>
+          <p
+            className="label"
+            style={{ margin: 0, opacity: 0.45, maxWidth: 360, lineHeight: 1.6 }}
+          >
+            Maak je account aan en zet de stap naar facturen, realtime belastinginzicht en meer rust in je administratie.
+          </p>
           {leadData && (
             <div style={{ 
               marginTop: "16px", 
@@ -188,6 +194,12 @@ function RegisterForm() {
             >
               {pending ? t.common.waiting : (leadData ? "Betalen & Activeren" : t.auth.createAccount)}
             </button>
+            <p
+              className="label"
+              style={{ margin: 0, opacity: 0.35, lineHeight: 1.6 }}
+            >
+              Na registratie rond je eerst je basisgegevens af en kies je daarna het abonnement dat bij je past.
+            </p>
           </form>
 
         <p

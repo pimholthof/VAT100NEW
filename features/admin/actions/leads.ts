@@ -434,12 +434,12 @@ export async function initiateLeadPayment(
 
 export async function checkLeadActivation(
   leadId: string
-): Promise<ActionResult<{ activated: boolean; userId: string | null }>> {
+): Promise<ActionResult<{ activated: boolean; userId: string | null; email: string | null }>> {
   try {
     const supabase = createServiceClient();
     const { data: lead, error } = await supabase
       .from("leads")
-      .select("vat100_user_id")
+      .select("vat100_user_id, email")
       .eq("id", leadId)
       .single();
 
@@ -449,7 +449,8 @@ export async function checkLeadActivation(
       error: null,
       data: {
         activated: !!lead.vat100_user_id,
-        userId: lead.vat100_user_id
+        userId: lead.vat100_user_id,
+        email: lead.email ?? null
       }
     };
   } catch (e) {

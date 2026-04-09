@@ -52,7 +52,10 @@ export default function RegisterCallbackPage() {
         setStatus("ready");
         // Wait a bit to show the "Ready" state before redirecting
         setTimeout(() => {
-          router.push(`/login?new_account=true&email=${encodeURIComponent(leadId)}`);
+          const emailParam = result.data?.email
+            ? `&email=${encodeURIComponent(result.data.email)}`
+            : "";
+          router.push(`/login?new_account=true${emailParam}`);
         }, 2000);
       } else {
         pollCount++;

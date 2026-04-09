@@ -43,8 +43,8 @@ export default function PrivacyPage() {
       <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.7 }}>
         <Section title="1. Wie zijn wij?">
           <p>
-            VAT100 is een fiscale administratietool voor creatieve zzp&apos;ers in Nederland. De dienst wordt
-            aangeboden door VAT100 (KvK: [invullen]), gevestigd te [vestigingsplaats invullen]. Voor vragen
+            VAT100 is een fiscale administratietool voor zelfstandigen en kleine ondernemers in Nederland. De dienst wordt
+            aangeboden door VAT100 (KvK: 63172313), gevestigd te Amsterdam. Voor vragen
             over privacy kun je contact opnemen via <strong>privacy@vat100.nl</strong>.
           </p>
         </Section>

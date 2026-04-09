@@ -230,7 +230,7 @@ export default function AbonnementSettingsPage() {
             Je hebt geen actief abonnement.
           </p>
           <a
-            href="/abonnement/kies"
+            href="/abonnement/kies?plan=studio"
             style={{
               display: "inline-block",
               marginTop: 16,

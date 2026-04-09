@@ -7,7 +7,7 @@ import type { Plan } from "@/lib/types";
 
 function PlanSelection() {
   const searchParams = useSearchParams();
-  const preselected = searchParams.get("plan") ?? "basis";
+  const preselected = searchParams.get("plan") ?? "studio";
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selected, setSelected] = useState<string>(preselected);
   const [pending, setPending] = useState(false);
@@ -66,16 +66,16 @@ function PlanSelection() {
           </h1>
           <p
             className="label"
-            style={{ marginTop: 16, opacity: 0.4 }}
+            style={{ marginTop: 16, opacity: 0.4, maxWidth: 520, lineHeight: 1.6 }}
           >
-            Selecteer het plan dat bij je past
+            Kies hoeveel gemak, inzicht en automatisering je nu nodig hebt. Je kunt later altijd wisselen.
           </p>
         </div>
 
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
             gap: 24,
           }}
         >
@@ -108,6 +108,14 @@ function PlanSelection() {
                 }}
               >
                 <div>
+                  {plan.id === "studio" && (
+                    <p
+                      className="label-strong"
+                      style={{ margin: "0 0 10px", fontSize: 10, opacity: isSelected ? 0.7 : 0.4 }}
+                    >
+                      AANBEVOLEN
+                    </p>
+                  )}
                   <p
                     className="label"
                     style={{
@@ -205,6 +213,12 @@ function PlanSelection() {
         >
           {pending ? "Even wachten..." : "Doorgaan naar betaling"}
         </button>
+        <p
+          className="label"
+          style={{ marginTop: 16, opacity: 0.35, maxWidth: 520 }}
+        >
+          Je ziet in VAT100 realtime wat je moet reserveren voor BTW en belasting, zodat je weet wat je vrij kunt besteden.
+        </p>
       </div>
     </div>
   );

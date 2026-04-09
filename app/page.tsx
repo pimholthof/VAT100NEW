@@ -68,15 +68,29 @@ export default function LandingPage() {
       features: [
         t.landing.unlimitedInvoices,
         t.landing.vatOverview,
-        t.landing.manualReceipts,
         t.landing.quotes,
         t.landing.clientManagement,
-        t.landing.paymentLinks,
-        t.landing.emailReminders,
         t.landing.csvExport,
       ],
       cta: t.landing.basisCta,
       highlighted: false,
+    },
+    {
+      id: "studio",
+      name: t.landing.studio,
+      price: "39",
+      period: t.landing.perMonth,
+      description: t.landing.studioDesc,
+      features: [
+        t.landing.allFromBasis,
+        t.landing.manualReceipts,
+        t.landing.paymentLinks,
+        t.landing.emailReminders,
+        t.landing.cashflowAnalysis,
+        t.landing.incomeTaxInsight,
+      ],
+      cta: t.landing.studioCta,
+      highlighted: true,
     },
     {
       id: "compleet",
@@ -85,7 +99,7 @@ export default function LandingPage() {
       period: t.landing.perMonth,
       description: t.landing.compleetDesc,
       features: [
-        t.landing.allFromBasis,
+        t.landing.allFromStudio,
         t.landing.aiReceipts,
         t.landing.aiChat,
         t.landing.bankConnection,
@@ -95,7 +109,7 @@ export default function LandingPage() {
         t.landing.prioritySupport,
       ],
       cta: t.landing.compleetCta,
-      highlighted: true,
+      highlighted: false,
     },
   ];
 
@@ -122,6 +136,8 @@ export default function LandingPage() {
       setPending(false);
     }
   }
+
+  const primaryPlanId = pricingPlans.find((plan) => plan.highlighted)?.id ?? pricingPlans[0]?.id ?? "basis";
 
   return (
     <div
@@ -287,8 +303,8 @@ export default function LandingPage() {
               {t.landing.heroSubtitleNew}
             </p>
             <div style={{ marginTop: 40, display: "flex", gap: 16, flexWrap: "wrap" }}>
-              <a
-                href="#wachtlijst"
+              <Link
+                href={`/register?plan=${primaryPlanId}`}
                 className="btn-primary"
                 style={{
                   padding: "18px 36px",
@@ -297,9 +313,9 @@ export default function LandingPage() {
                 }}
               >
                 {t.landing.heroCta}
-              </a>
+              </Link>
               <a
-                href="#product"
+                href="#prijzen"
                 className="btn-secondary"
                 style={{
                   padding: "18px 36px",
@@ -359,6 +375,12 @@ export default function LandingPage() {
             </span>
           ))}
         </div>
+        <p
+          className="label"
+          style={{ marginTop: 24, opacity: 0.35, maxWidth: 560 }}
+        >
+          {t.landing.ctaReassurance}
+        </p>
       </section>
 
       {divider}
@@ -646,6 +668,18 @@ export default function LandingPage() {
         >
           {t.landing.pricingTitle}
         </h2>
+        <p
+          style={{
+            fontSize: 15,
+            lineHeight: 1.8,
+            margin: 0,
+            marginBottom: "clamp(32px, 5vw, 56px)",
+            maxWidth: 620,
+            opacity: 0.55,
+          }}
+        >
+          {t.landing.pricingSubtitle}
+        </p>
 
         <div
           style={{
@@ -862,6 +896,17 @@ export default function LandingPage() {
               >
                 {t.landing.waitlistTitle}
               </h2>
+              <p
+                style={{
+                  fontSize: 15,
+                  lineHeight: 1.8,
+                  margin: 0,
+                  marginBottom: 32,
+                  opacity: 0.55,
+                }}
+              >
+                {t.landing.waitlistDescription}
+              </p>
 
               <form
                 onSubmit={handleSubmit}
@@ -958,7 +1003,7 @@ export default function LandingPage() {
             href="/privacy"
             className="label"
             style={{
-              opacity: 0.2,
+              opacity: 0.45,
               textDecoration: "none",
               color: "var(--color-black)",
             }}
@@ -969,7 +1014,7 @@ export default function LandingPage() {
             href="/voorwaarden"
             className="label"
             style={{
-              opacity: 0.2,
+              opacity: 0.45,
               textDecoration: "none",
               color: "var(--color-black)",
             }}
@@ -980,7 +1025,7 @@ export default function LandingPage() {
             href="/login"
             className="label"
             style={{
-              opacity: 0.2,
+              opacity: 0.45,
               textDecoration: "none",
               color: "var(--color-black)",
             }}
@@ -991,7 +1036,7 @@ export default function LandingPage() {
             href="/register"
             className="label"
             style={{
-              opacity: 0.2,
+              opacity: 0.45,
               textDecoration: "none",
               color: "var(--color-black)",
             }}

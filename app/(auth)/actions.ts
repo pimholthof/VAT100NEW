@@ -57,6 +57,7 @@ export async function completeOnboarding(
   formData: FormData
 ): Promise<AuthResult> {
   const supabase = await createClient();
+  const plan = formData.get("plan") as string | null;
 
   const {
     data: { user },
@@ -92,5 +93,6 @@ export async function completeOnboarding(
     return { error: error.message };
   }
 
-  redirect("/dashboard"); // TEMPORARILY CHANGED: was "/abonnement/kies"
+  const planParam = plan ? `?plan=${plan}` : "";
+  redirect(`/abonnement/kies${planParam}`);
 }

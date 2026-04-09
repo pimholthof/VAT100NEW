@@ -43,7 +43,7 @@ export default function VoorwaardenPage() {
       <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.7 }}>
         <Section title="1. Definities">
           <ul>
-            <li><strong>VAT100:</strong> de aanbieder van de SaaS-dienst, ingeschreven bij de KvK onder nummer [invullen].</li>
+            <li><strong>VAT100:</strong> de aanbieder van de SaaS-dienst, ingeschreven bij de KvK onder nummer 63172313.</li>
             <li><strong>Gebruiker:</strong> de natuurlijke of rechtspersoon die een account aanmaakt en de dienst afneemt.</li>
             <li><strong>Dienst:</strong> de online fiscale administratietool, beschikbaar via vat100.nl.</li>
             <li><strong>Abonnement:</strong> de overeenkomst tussen VAT100 en Gebruiker voor toegang tot de Dienst.</li>
@@ -69,8 +69,9 @@ export default function VoorwaardenPage() {
           <ul>
             <li>Abonnementen worden maandelijks gefactureerd via automatische incasso (Mollie/SEPA).</li>
             <li>Prijzen zijn exclusief BTW, tenzij anders aangegeven.</li>
-            <li><strong>Basis:</strong> €29/maand — kerninvoicing en BTW-overzicht.</li>
-            <li><strong>Compleet:</strong> €59/maand — alles van Basis plus AI-functies, bankkoppeling en jaarrekening.</li>
+            <li><strong>Start:</strong> €29/maand — facturen, BTW-overzicht en de kern van je administratie.</li>
+            <li><strong>Studio:</strong> €39/maand — alles van Start plus meer rust via bonnen, cashflow en belastinginzicht.</li>
+            <li><strong>Complete:</strong> €59/maand — alles van Studio plus AI-functies, bankkoppeling en jaarrekening.</li>
             <li>VAT100 mag tarieven aanpassen met 30 dagen vooraankondiging per e-mail.</li>
           </ul>
         </Section>

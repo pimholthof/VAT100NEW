@@ -58,8 +58,16 @@ type PlanResult =
   | { error: null; planId: string; status: 200; supabase: SupabaseServer; user: User }
   | { error: string; planId: null; status: 401 | 403 | 500; supabase: null; user: null };
 
+const planHierarchy = {
+  basis: 0,
+  studio: 1,
+  compleet: 2,
+} as const;
+
+type RequiredPlanId = keyof typeof planHierarchy;
+
 export async function requirePlan(
-  requiredPlanId: "basis" | "compleet",
+  requiredPlanId: RequiredPlanId,
 ): Promise<PlanResult> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error, planId: null, status: 401, supabase: null, user: null };
@@ -93,8 +101,20 @@ export async function requirePlan(
     return { error: "Geen actief abonnement.", planId: null, status: 403, supabase: null, user: null };
   }
 
-  if (requiredPlanId === "compleet" && subscription.plan_id !== "compleet") {
-    return { error: "Upgrade naar Compleet om deze functie te gebruiken.", planId: null, status: 403, supabase: null, user: null };
+  const requiredRank = planHierarchy[requiredPlanId];
+  const currentRank = planHierarchy[subscription.plan_id as RequiredPlanId];
+
+  if (currentRank === undefined) {
+    return { error: "Onbekend abonnement.", planId: null, status: 403, supabase: null, user: null };
+  }
+
+  if (currentRank < requiredRank) {
+    const upgradeLabel = requiredPlanId === "basis"
+      ? "Start"
+      : requiredPlanId === "studio"
+        ? "Studio"
+        : "Complete";
+    return { error: `Upgrade naar ${upgradeLabel} om deze functie te gebruiken.`, planId: null, status: 403, supabase: null, user: null };
   }
 
   return { error: null, planId: subscription.plan_id, status: 200, supabase: auth.supabase, user: auth.user };

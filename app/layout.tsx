@@ -26,10 +26,36 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vat100.nl";
+
 export const metadata: Metadata = {
-  title: "VAT100",
-  description: "VAT100 Invoice System",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "VAT100 | Boekhouding met realtime belastinginzicht",
+    template: "%s | VAT100",
+  },
+  description: "Verstuur facturen, zie realtime wat je moet reserveren en houd grip op je cashflow. VAT100 combineert gemak, inzicht en stijl in één rustig systeem.",
   manifest: "/manifest.json",
+  keywords: [
+    "boekhouding zzp",
+    "realtime belastinginzicht",
+    "facturen versturen",
+    "btw overzicht",
+    "boekhoudsoftware nederland",
+  ],
+  openGraph: {
+    title: "VAT100 | Gemak, inzicht en stijl voor je administratie",
+    description: "Een doordacht financieel systeem voor zelfstandigen en kleine ondernemers met realtime belastinginzicht.",
+    url: siteUrl,
+    siteName: "VAT100",
+    locale: "nl_NL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VAT100 | Boekhouding met realtime belastinginzicht",
+    description: "Gemak, inzicht en stijl voor zelfstandigen en kleine ondernemers.",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
