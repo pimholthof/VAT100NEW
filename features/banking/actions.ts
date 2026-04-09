@@ -1,8 +1,8 @@
 "use server";
 
 import { z } from "zod";
-import Anthropic from "@anthropic-ai/sdk";
 import * as Sentry from "@sentry/nextjs";
+import { runAgentSession } from "@/lib/services/managed-agent";
 import { requireAuth, requirePlan } from "@/lib/supabase/server";
 import { bankingClient, checkBankingRateLimit } from "@/lib/banking/tink";
 import { sanitizeSupabaseError } from "@/lib/errors";
@@ -548,14 +548,24 @@ export async function autoCategorizeTransactions(
     return { error: null, data: results };
   }
 
+  // Managed agent classificatie voor transacties die geen keyword-match hebben
+  const AI_CONFIDENCE_THRESHOLD = 0.8;
+  const categoryList = AI_CATEGORIES.join(", ");
+
   // Batch in groups of 20
   const batches: (typeof needsAI)[] = [];
   for (let i = 0; i < needsAI.length; i += 20) {
     batches.push(needsAI.slice(i, i + 20));
   }
 
-  const anthropic = new Anthropic();
-  const categoryList = AI_CATEGORIES.join(", ");
+  const aiCategorySchema = z.array(
+    z.object({
+      id: z.string(),
+      category: z.string(),
+      is_income: z.boolean(),
+      confidence: z.number().optional(),
+    })
+  );
 
   for (const batch of batches) {
     const input = batch.map((tx) => ({
@@ -566,42 +576,52 @@ export async function autoCategorizeTransactions(
     }));
 
     try {
-      const message = await anthropic.messages.create({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1024,
-        system: `Je categoriseert banktransacties voor een Nederlandse freelancer/ZZP'er.
+      const prompt = `Je categoriseert banktransacties voor een Nederlandse freelancer/ZZP'er.
 Categoriseer elke transactie in exact één van deze categorieën: ${categoryList}.
 Markeer ook of het inkomsten (is_income: true) of uitgaven (is_income: false) zijn.
-Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income}]`,
-        messages: [
-          {
-            role: "user",
-            content: JSON.stringify(input),
-          },
-        ],
-      });
+Geef per transactie een confidence score (0-1) aan.
+Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income, confidence}]
 
-      const text =
-        message.content[0].type === "text" ? message.content[0].text : "";
+${JSON.stringify(input)}`;
+
+      const text = await runAgentSession(prompt);
+      if (!text) continue;
+
       // Extract JSON from response (may be wrapped in markdown code block)
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) continue;
 
-      const aiCategorySchema = z.array(
-        z.object({
-          id: z.string(),
-          category: z.string(),
-          is_income: z.boolean(),
-        })
-      );
       const parseResult = aiCategorySchema.safeParse(JSON.parse(jsonMatch[0]));
       if (!parseResult.success) continue;
       const parsed = parseResult.data;
 
-      // Batch update AI-categorized transactions
       const validItems = parsed.filter((item) => AI_CATEGORIES.includes(item.category));
+
+      // Sla ai_confidence en ai_category_suggestion op voor alle items
       await Promise.all(
         validItems.map((item) =>
+          supabase
+            .from("bank_transactions")
+            .update({
+              ai_confidence: item.confidence ?? null,
+              ai_category_suggestion: item.category,
+            })
+            .eq("id", item.id)
+            .eq("user_id", user.id)
+        )
+      );
+
+      // Confidence routing: hoog → auto-boek, laag → action_feed
+      const highConfidence = validItems.filter(
+        (item) => (item.confidence ?? 1) >= AI_CONFIDENCE_THRESHOLD
+      );
+      const lowConfidence = validItems.filter(
+        (item) => (item.confidence ?? 1) < AI_CONFIDENCE_THRESHOLD
+      );
+
+      // Hoge confidence: direct categorie toewijzen
+      await Promise.all(
+        highConfidence.map((item) =>
           supabase
             .from("bank_transactions")
             .update({ category: item.category, is_income: item.is_income })
@@ -609,12 +629,32 @@ Retourneer ALLEEN een JSON array met objecten: [{id, category, is_income}]`,
             .eq("user_id", user.id)
         )
       );
-      for (const item of validItems) {
+      for (const item of highConfidence) {
         results[item.id] = item.category;
+      }
+
+      // Lage confidence: schrijf naar action_feed voor menselijke beoordeling
+      if (lowConfidence.length > 0) {
+        const txMap = new Map(batch.map((tx: { id: string; description: string | null; counterpart_name: string | null; amount: string | number | null }) => [tx.id, tx]));
+        const newActions = lowConfidence.map((item: { id: string; category: string; is_income: boolean; confidence?: number }) => {
+          const tx = txMap.get(item.id);
+          return {
+            user_id: user.id,
+            type: "uncategorized" as const,
+            title: tx?.counterpart_name ?? tx?.description ?? "Onbekende transactie",
+            description: `AI suggestie: ${item.category} (${Math.round((item.confidence ?? 0) * 100)}% zeker). Controleer en bevestig.`,
+            amount: tx?.amount ? Math.abs(Number(tx.amount)) : null,
+            related_transaction_id: item.id,
+            suggested_category: item.category,
+            ai_confidence: item.confidence ?? null,
+          };
+        });
+
+        await supabase.from("action_feed").insert(newActions);
       }
     } catch (err) {
       Sentry.captureException(err, {
-        tags: { area: "auto-categorize-ai" },
+        tags: { area: "auto-categorize-agent" },
         extra: { batchSize: batch.length, userId: user.id },
       });
       continue;
