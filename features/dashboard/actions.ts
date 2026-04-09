@@ -261,19 +261,43 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
   const outputVat = Number(rpc.outputVat) || 0;
   const inputVat = Number(rpc.inputVat) || 0;
 
-  // ── Safe-to-Spend ──
+  // ── Safe-to-Spend (gebruik recent snapshot als beschikbaar) ──
   const bankBalance = Number(rpc.bankBalance) || 0;
   const yearRevenueRecords = (rpc.yearRevenueRecords ?? []) as Array<{
     total_inc_vat: number;
     vat_amount: number;
   }>;
 
-  const safeToSpend = calculateSafeToSpend(
-    bankBalance,
-    yearRevenueRecords,
-    outputVat,
-    inputVat
-  );
+  let safeToSpend: SafeToSpendData;
+
+  // Check of er een recent reserve_snapshot is (<4 uur oud)
+  const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+  const { data: recentSnapshot } = await supabase
+    .from("reserve_snapshots")
+    .select("bank_balance, estimated_vat, estimated_income_tax, reserved_total, safe_to_spend")
+    .eq("user_id", user.id)
+    .gt("created_at", fourHoursAgo)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (recentSnapshot) {
+    safeToSpend = {
+      currentBalance: Number(recentSnapshot.bank_balance) || 0,
+      estimatedVat: Number(recentSnapshot.estimated_vat) || 0,
+      estimatedIncomeTax: Number(recentSnapshot.estimated_income_tax) || 0,
+      reservedTotal: Number(recentSnapshot.reserved_total) || 0,
+      safeToSpend: Number(recentSnapshot.safe_to_spend) || 0,
+      taxShieldPotential: 0, // Snapshot bevat geen KIA data, fallback naar 0
+    };
+  } else {
+    safeToSpend = calculateSafeToSpend(
+      bankBalance,
+      yearRevenueRecords,
+      outputVat,
+      inputVat
+    );
+  }
 
   // ── Cashflow Forecast (13 weken) ──
   const cashflowForecast = calculateCashflowForecast(
