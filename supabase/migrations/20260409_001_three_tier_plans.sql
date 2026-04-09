@@ -17,7 +17,7 @@ values
     'Studio',
     3900,
     1,
-    '["Alles van Start","Bonnen scannen (handmatig)","Betaallinks (Mollie)","E-mail herinneringen","Cashflow-analyse","Inzicht inkomstenbelasting"]'::jsonb,
+    '["Alles van Start","Bonnen scannen (handmatig)","Bankrekening koppeling","AI transactie-classificatie (met goedkeuring)","Betaallinks (Mollie)","E-mail herinneringen","Cashflow-analyse","Inzicht inkomstenbelasting"]'::jsonb,
     1
   ),
   (
@@ -25,7 +25,7 @@ values
     'Complete',
     5900,
     1,
-    '["Alles van Studio","Automatisch bonnen scannen","Slimme boekhouder chat","Bankrekening koppeling","Automatische reconciliatie","Jaarrekening PDF export","Cashflow-analyse","Prioriteit support"]'::jsonb,
+    '["Alles van Studio","Automatisch bonnen scannen","Slimme boekhouder chat","AI auto-boeking (zonder goedkeuring)","Automatische reconciliatie","Jaarrekening PDF export","Prioriteit support"]'::jsonb,
     2
   )
 on conflict (id) do update set

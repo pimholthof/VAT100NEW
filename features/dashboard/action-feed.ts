@@ -89,6 +89,11 @@ export async function resolveActionItem(
       .update({ category })
       .eq("id", item.related_transaction_id)
       .eq("user_id", user.id);
+
+    // Reserve herberekening na classificatie (fire-and-forget)
+    import("@/lib/services/reserve-recalculator").then((m) =>
+      m.recalculateReserves(user.id, "classification", item.related_transaction_id).catch(() => {})
+    );
   }
 
   if (error) return { error: error.message };

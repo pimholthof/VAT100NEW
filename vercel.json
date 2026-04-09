@@ -15,6 +15,10 @@
     {
       "path": "/api/agents/run-all",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/sync-bank",
+      "schedule": "0 7 * * *"
     }
   ]
 }
