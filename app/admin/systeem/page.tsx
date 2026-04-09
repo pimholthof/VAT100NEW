@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSystemStatus } from "@/features/admin/actions/system";
+import { getSystemStatus, getAutomationStats } from "@/features/admin/actions/system";
 import { getSystemSettings, updateSystemSetting } from "@/features/admin/actions/settings";
 import { getAuditLog } from "@/features/admin/actions/audit";
 import { PageHeader, ErrorMessage, TableWrapper, Th, Td, Select, ButtonSecondary, SkeletonTable } from "@/components/ui";
@@ -145,6 +145,11 @@ function StatusTab() {
     queryFn: getSystemStatus,
   });
 
+  const { data: autoResult } = useQuery({
+    queryKey: ["admin-automation-stats"],
+    queryFn: getAutomationStats,
+  });
+
   if (isLoading) return <div className="admin-table-shell"><div className="admin-empty-state">Laden...</div></div>;
 
   if (result?.error || !result?.data) {
@@ -152,6 +157,7 @@ function StatusTab() {
   }
 
   const { health, database, activity, crons, eventBacklog } = result.data;
+  const autoStats = autoResult?.data ?? null;
   const checks = health?.checks ?? {};
   const checkEntries = Object.entries(checks);
 
@@ -255,6 +261,110 @@ function StatusTab() {
             })}
           </div>
         </section>
+      </div>
+
+      {/* Automation Health */}
+      {autoStats && (
+        <>
+          {/* Success ratio cards */}
+          <div className="admin-stat-grid" style={{ marginTop: 24, marginBottom: 24 }}>
+            <StatCard label="Verwerkt (7d)" value={String(autoStats.period7d.totalProcessed)} numericValue={autoStats.period7d.totalProcessed} isCurrency={false} sub="Events succesvol verwerkt" compact />
+            <StatCard label="Gefaald (7d)" value={String(autoStats.period7d.totalFailed)} numericValue={autoStats.period7d.totalFailed} isCurrency={false} sub="Permanent gefaalde events" compact />
+            <StatCard label="In wachtrij" value={String(autoStats.period7d.totalPending)} numericValue={autoStats.period7d.totalPending} isCurrency={false} sub="Nog te verwerken" compact />
+            <StatCard label="Gem. pogingen" value={String(autoStats.period7d.avgAttempts)} numericValue={autoStats.period7d.avgAttempts} isCurrency={false} sub="Per verwerkt event" compact />
+          </div>
+
+          {/* Per event-type breakdown */}
+          {autoStats.byEventType.length > 0 && (
+            <section className="admin-panel" style={{ marginBottom: 24 }}>
+              <div className="admin-panel-header">
+                <div><p className="label">Event verwerking</p><h2 className="admin-panel-title">Per type (7d)</h2></div>
+              </div>
+              <TableWrapper>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr><Th>Event type</Th><Th>Verwerkt</Th><Th>Gefaald</Th><Th>In wachtrij</Th></tr>
+                  </thead>
+                  <tbody>
+                    {autoStats.byEventType.map((row) => (
+                      <tr key={row.eventType}>
+                        <Td style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-body-sm)" }}>{row.eventType}</Td>
+                        <Td><span className="mono-amount">{row.processed}</span></Td>
+                        <Td><span className="mono-amount" style={{ color: row.failed > 0 ? "#c00" : undefined }}>{row.failed}</span></Td>
+                        <Td><span className="mono-amount">{row.pending}</span></Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </TableWrapper>
+            </section>
+          )}
+
+          {/* Recent failures */}
+          {autoStats.recentFailures.length > 0 && (
+            <section className="admin-panel" style={{ marginBottom: 24 }}>
+              <div className="admin-panel-header">
+                <div><p className="label">Fouten</p><h2 className="admin-panel-title">Recent gefaalde events</h2></div>
+              </div>
+              <TableWrapper>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr><Th>Type</Th><Th>Foutmelding</Th><Th>Pogingen</Th><Th>Gefaald op</Th></tr>
+                  </thead>
+                  <tbody>
+                    {autoStats.recentFailures.map((f) => (
+                      <tr key={f.id}>
+                        <Td style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-body-sm)" }}>{f.eventType}</Td>
+                        <Td style={{ fontSize: "var(--text-body-sm)", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.lastError}</Td>
+                        <Td><span className="mono-amount">{f.attempts}</span></Td>
+                        <Td><span className="label">{formatDate(f.failedAt)}</span></Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </TableWrapper>
+            </section>
+          )}
+
+          {/* Last cron results */}
+          <section className="admin-panel" style={{ marginBottom: 24 }}>
+            <div className="admin-panel-header">
+              <div><p className="label">Laatste uitvoering</p><h2 className="admin-panel-title">Cron resultaten</h2></div>
+            </div>
+            <div style={{ display: "grid", gap: 16, padding: "16px 0" }}>
+              <CronPayloadRow label="Agents" payload={autoStats.lastCronPayloads.agents} />
+              <CronPayloadRow label="Terugkerend" payload={autoStats.lastCronPayloads.recurring} />
+              <CronPayloadRow label="Herinneringen" payload={autoStats.lastCronPayloads.overdue} />
+              <CronPayloadRow label="Event Processor" payload={autoStats.lastCronPayloads.events} />
+            </div>
+          </section>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CronPayloadRow({ label, payload }: { label: string; payload: Record<string, unknown> | null }) {
+  if (!payload) {
+    return (
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "0.5px solid rgba(0,0,0,0.05)" }}>
+        <span style={{ fontWeight: 600 }}>{label}</span>
+        <span className="label">Geen data</span>
+      </div>
+    );
+  }
+
+  const entries = Object.entries(payload).filter(([, v]) => typeof v === "number" || typeof v === "string" || typeof v === "boolean");
+
+  return (
+    <div style={{ padding: "8px 0", borderBottom: "0.5px solid rgba(0,0,0,0.05)" }}>
+      <span style={{ fontWeight: 600, display: "block", marginBottom: 4 }}>{label}</span>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        {entries.map(([key, value]) => (
+          <span key={key} className="label" style={{ fontSize: "var(--text-body-sm)" }}>
+            {key.replace(/_/g, " ")}: <span className="mono-amount">{String(value)}</span>
+          </span>
+        ))}
       </div>
     </div>
   );

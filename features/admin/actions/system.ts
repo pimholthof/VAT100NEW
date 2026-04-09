@@ -5,6 +5,35 @@ import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult } from "@/lib/types";
 import { sanitizeError } from "@/lib/errors";
 
+export interface AutomationStats {
+  period7d: {
+    totalProcessed: number;
+    totalFailed: number;
+    totalPending: number;
+    avgAttempts: number;
+  };
+  byEventType: Array<{
+    eventType: string;
+    processed: number;
+    failed: number;
+    pending: number;
+  }>;
+  recentFailures: Array<{
+    id: string;
+    eventType: string;
+    lastError: string;
+    attempts: number;
+    createdAt: string;
+    failedAt: string;
+  }>;
+  lastCronPayloads: {
+    agents: Record<string, unknown> | null;
+    recurring: Record<string, unknown> | null;
+    overdue: Record<string, unknown> | null;
+    events: Record<string, unknown> | null;
+  };
+}
+
 export interface SystemStatus {
   health: {
     status: string;
@@ -148,5 +177,127 @@ export async function getSystemStatus(): Promise<ActionResult<SystemStatus>> {
     };
   } catch (e) {
     return { error: sanitizeError(e, { action: "getSystemStatus" }) };
+  }
+}
+
+export async function getAutomationStats(): Promise<ActionResult<AutomationStats>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  try {
+    const supabase = createServiceClient();
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // 7-day aggregates
+    const [
+      { count: totalProcessed },
+      { count: totalFailed },
+      { count: totalPending },
+      { data: processedEvents },
+    ] = await Promise.all([
+      supabase
+        .from("system_events")
+        .select("*", { count: "exact", head: true })
+        .not("processed_at", "is", null)
+        .gte("created_at", sevenDaysAgo),
+      supabase
+        .from("system_events")
+        .select("*", { count: "exact", head: true })
+        .not("failed_at", "is", null)
+        .gte("created_at", sevenDaysAgo),
+      supabase
+        .from("system_events")
+        .select("*", { count: "exact", head: true })
+        .is("processed_at", null)
+        .is("failed_at", null),
+      supabase
+        .from("system_events")
+        .select("attempts")
+        .not("processed_at", "is", null)
+        .gte("created_at", sevenDaysAgo),
+    ]);
+
+    const avgAttempts =
+      processedEvents && processedEvents.length > 0
+        ? Math.round(
+            (processedEvents.reduce((sum, e) => sum + (e.attempts ?? 1), 0) /
+              processedEvents.length) *
+              100
+          ) / 100
+        : 0;
+
+    // Per event_type breakdown — fetch all events from 7d and aggregate in JS
+    const { data: allRecent } = await supabase
+      .from("system_events")
+      .select("event_type, processed_at, failed_at")
+      .gte("created_at", sevenDaysAgo);
+
+    const typeMap = new Map<string, { processed: number; failed: number; pending: number }>();
+    for (const evt of allRecent ?? []) {
+      const key = evt.event_type;
+      if (!typeMap.has(key)) typeMap.set(key, { processed: 0, failed: 0, pending: 0 });
+      const entry = typeMap.get(key)!;
+      if (evt.processed_at) entry.processed++;
+      else if (evt.failed_at) entry.failed++;
+      else entry.pending++;
+    }
+
+    const byEventType = Array.from(typeMap.entries())
+      .map(([eventType, counts]) => ({ eventType, ...counts }))
+      .sort((a, b) => b.failed - a.failed || b.pending - a.pending);
+
+    // Recent failures (top 10)
+    const { data: failures } = await supabase
+      .from("system_events")
+      .select("id, event_type, last_error, attempts, created_at, failed_at")
+      .not("failed_at", "is", null)
+      .order("failed_at", { ascending: false })
+      .limit(10);
+
+    const recentFailures = (failures ?? []).map((f) => ({
+      id: f.id,
+      eventType: f.event_type,
+      lastError: f.last_error ?? "Onbekende fout",
+      attempts: f.attempts ?? 0,
+      createdAt: f.created_at,
+      failedAt: f.failed_at!,
+    }));
+
+    // Last cron payloads
+    const cronTypes = ["cron.agents", "cron.recurring", "cron.overdue", "cron.events"] as const;
+    const cronResults = await Promise.all(
+      cronTypes.map((type) =>
+        supabase
+          .from("system_events")
+          .select("payload")
+          .eq("event_type", type)
+          .order("created_at", { ascending: false })
+          .limit(1)
+      )
+    );
+
+    const lastCronPayloads = {
+      agents: (cronResults[0].data?.[0]?.payload as Record<string, unknown>) ?? null,
+      recurring: (cronResults[1].data?.[0]?.payload as Record<string, unknown>) ?? null,
+      overdue: (cronResults[2].data?.[0]?.payload as Record<string, unknown>) ?? null,
+      events: (cronResults[3].data?.[0]?.payload as Record<string, unknown>) ?? null,
+    };
+
+    return {
+      error: null,
+      data: {
+        period7d: {
+          totalProcessed: totalProcessed ?? 0,
+          totalFailed: totalFailed ?? 0,
+          totalPending: totalPending ?? 0,
+          avgAttempts,
+        },
+        byEventType,
+        recentFailures,
+        lastCronPayloads,
+      },
+    };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "getAutomationStats" }) };
   }
 }

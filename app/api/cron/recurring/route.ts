@@ -24,6 +24,7 @@ function calculateNextRunDate(runDate: string, frequency: string): string {
 /**
  * Cron job: Process recurring invoices.
  * Runs daily, finds templates where next_run_date <= today, generates invoices.
+ * Uses a single transactional RPC for atomicity.
  */
 export async function GET(request: Request) {
   if (!verifyCronSecret(request)) {
@@ -50,26 +51,6 @@ export async function GET(request: Request) {
     try {
       const runDate = template.next_run_date;
       const nextRunDate = calculateNextRunDate(runDate, template.frequency);
-
-      const { data: existingInvoice } = await supabase
-        .from("invoices")
-        .select("id")
-        .eq("source_recurring_invoice_id", template.id)
-        .eq("source_run_date", runDate)
-        .maybeSingle();
-
-      if (existingInvoice?.id) {
-        await supabase
-          .from("recurring_invoices")
-          .update({
-            next_run_date: nextRunDate,
-            last_generated_at: new Date().toISOString(),
-          })
-          .eq("id", template.id);
-
-        results.push({ templateId: template.id, invoiceId: existingInvoice.id });
-        continue;
-      }
 
       // Generate invoice number
       const { data: invoiceNumber, error: rpcError } = await supabase.rpc(
@@ -99,85 +80,42 @@ export async function GET(request: Request) {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 30);
 
-      // Create invoice
-      const { data: invoice, error: insertError } = await supabase
-        .from("invoices")
-        .insert({
-          user_id: template.user_id,
-          client_id: template.client_id,
-          source_recurring_invoice_id: template.id,
-          source_run_date: runDate,
-          invoice_number: invoiceNumber as string,
-          status: template.auto_send ? "sent" : "draft",
-          issue_date: today,
-          due_date: dueDate.toISOString().split("T")[0],
-          vat_rate: template.vat_rate,
-          subtotal_ex_vat: subtotal,
-          vat_amount: vatAmount,
-          total_inc_vat: total,
-          notes: template.notes,
-        })
-        .select("id")
-        .single();
-
-      if (insertError || !invoice) {
-        if (insertError?.code === "23505") {
-          const { data: duplicateInvoice } = await supabase
-            .from("invoices")
-            .select("id")
-            .eq("source_recurring_invoice_id", template.id)
-            .eq("source_run_date", runDate)
-            .maybeSingle();
-
-          if (duplicateInvoice?.id) {
-            await supabase
-              .from("recurring_invoices")
-              .update({
-                next_run_date: nextRunDate,
-                last_generated_at: new Date().toISOString(),
-              })
-              .eq("id", template.id);
-
-            results.push({ templateId: template.id, invoiceId: duplicateInvoice.id });
-            continue;
-          }
+      // Atomic: create invoice + lines + update template in one transaction
+      const { data: invoiceId, error: createError } = await supabase.rpc(
+        "create_recurring_invoice",
+        {
+          p_user_id: template.user_id,
+          p_client_id: template.client_id,
+          p_template_id: template.id,
+          p_run_date: runDate,
+          p_invoice_number: invoiceNumber as string,
+          p_status: template.auto_send ? "sent" : "draft",
+          p_issue_date: today,
+          p_due_date: dueDate.toISOString().split("T")[0],
+          p_vat_rate: template.vat_rate,
+          p_notes: template.notes,
+          p_subtotal_ex_vat: subtotal,
+          p_vat_amount: vatAmount,
+          p_total_inc_vat: total,
+          p_next_run_date: nextRunDate,
+          p_lines: JSON.stringify(
+            lines.map((l) => ({
+              description: l.description,
+              quantity: l.quantity,
+              unit: l.unit,
+              rate: l.rate,
+              amount: l.amount,
+            }))
+          ),
         }
+      );
 
-        results.push({ templateId: template.id, error: insertError?.message ?? "Insert failed" });
+      if (createError) {
+        results.push({ templateId: template.id, error: createError.message });
         continue;
       }
 
-      // Copy lines
-      if (lines.length > 0) {
-        const { error: linesError } = await supabase.from("invoice_lines").insert(
-          lines.map((l, i) => ({
-            invoice_id: invoice.id,
-            description: l.description,
-            quantity: l.quantity,
-            unit: l.unit,
-            rate: l.rate,
-            amount: l.amount,
-            sort_order: i,
-          }))
-        );
-
-        if (linesError) {
-          // Rollback: verwijder de factuur als regels falen
-          await supabase.from("invoices").delete().eq("id", invoice.id);
-          results.push({ templateId: template.id, error: `Regels mislukt: ${linesError.message}` });
-          continue;
-        }
-      }
-
-      await supabase
-        .from("recurring_invoices")
-        .update({
-          next_run_date: nextRunDate,
-          last_generated_at: new Date().toISOString(),
-        })
-        .eq("id", template.id);
-
-      results.push({ templateId: template.id, invoiceId: invoice.id });
+      results.push({ templateId: template.id, invoiceId: invoiceId as string });
     } catch (e) {
       results.push({
         templateId: template.id,
