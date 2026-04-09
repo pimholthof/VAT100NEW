@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import * as Sentry from "@sentry/nextjs";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   AgentSession,
   PLAN_CONFIDENCE_THRESHOLDS,
@@ -450,21 +451,17 @@ const AI_CATEGORIES = [
   ...KOSTENSOORTEN.map((k) => k.label),
 ];
 
-export async function autoCategorizeTransactions(
-  transactionIds: string[]
-): Promise<ActionResult<Record<string, string>>> {
-  if (transactionIds.length === 0) {
-    return { error: null, data: {} };
-  }
-
-  if (!z.array(uuidSchema).safeParse(transactionIds).success) {
-    return { error: "Ongeldige transactie-ID(s)." };
-  }
-
-  // Agent classificatie vereist minimaal Studio plan
-  const planCheck = await requirePlan("studio");
-  if (planCheck.error !== null) return { error: planCheck.error };
-  const { supabase, user, planId } = planCheck;
+/**
+ * Interne variant van autoCategorizeTransactions die geen auth vereist.
+ * Wordt gebruikt door zowel de user-facing server action als de cron job.
+ */
+export async function autoCategorizeTransactionsInternal(
+  transactionIds: string[],
+  userId: string,
+  planId: string,
+  supabase: SupabaseClient
+): Promise<Record<string, string>> {
+  if (transactionIds.length === 0) return {};
 
   // Confidence threshold: Studio = conservatief, Complete = agressief
   const confidenceThreshold =
@@ -474,36 +471,16 @@ export async function autoCategorizeTransactions(
   const { data: transactions, error: fetchError } = await supabase
     .from("bank_transactions")
     .select("id, description, counterpart_name, amount")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .in("id", transactionIds);
 
-  if (fetchError) {
-    return {
-      error: sanitizeSupabaseError(fetchError, {
-        area: "autoCategorizeTransactions.fetchTransactions",
-        transactionIds,
-        userId: user.id,
-      }),
-    };
-  }
-  if (!transactions || transactions.length === 0) {
-    return { error: null, data: {} };
-  }
+  if (fetchError || !transactions || transactions.length === 0) return {};
 
   // Fetch existing categorization rules for this user
-  const { data: rules, error: rulesError } = await supabase
+  const { data: rules } = await supabase
     .from("categorization_rules")
     .select("counterpart_pattern, category, is_income")
-    .eq("user_id", user.id);
-
-  if (rulesError) {
-    return {
-      error: sanitizeSupabaseError(rulesError, {
-        area: "autoCategorizeTransactions.fetchRules",
-        userId: user.id,
-      }),
-    };
-  }
+    .eq("user_id", userId);
 
   type CatRule = { counterpart_pattern: string; category: string; is_income: boolean };
   const rulesMap = new Map<string, CatRule>(
@@ -549,13 +526,11 @@ export async function autoCategorizeTransactions(
         .from("bank_transactions")
         .update({ category: item.category, is_income: item.is_income })
         .eq("id", item.id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
     )
   );
 
-  if (needsAI.length === 0) {
-    return { error: null, data: results };
-  }
+  if (needsAI.length === 0) return results;
 
   // Managed agent classificatie voor transacties die geen keyword-match hebben
   const categoryList = AI_CATEGORIES.join(", ");
@@ -589,9 +564,9 @@ export async function autoCategorizeTransactions(
   } catch (err) {
     Sentry.captureException(err, {
       tags: { area: "auto-categorize-agent-init" },
-      extra: { userId: user.id },
+      extra: { userId },
     });
-    return { error: null, data: results };
+    return results;
   }
 
   for (const batch of batches) {
@@ -634,7 +609,7 @@ ${JSON.stringify(input)}`;
               ai_category_suggestion: item.category,
             })
             .eq("id", item.id)
-            .eq("user_id", user.id)
+            .eq("user_id", userId)
         )
       );
 
@@ -653,7 +628,7 @@ ${JSON.stringify(input)}`;
             .from("bank_transactions")
             .update({ category: item.category, is_income: item.is_income })
             .eq("id", item.id)
-            .eq("user_id", user.id)
+            .eq("user_id", userId)
         )
       );
       for (const item of highConfidence) {
@@ -663,30 +638,83 @@ ${JSON.stringify(input)}`;
       // Lage confidence: schrijf naar action_feed voor menselijke beoordeling
       if (lowConfidence.length > 0) {
         const txMap = new Map(batch.map((tx: { id: string; description: string | null; counterpart_name: string | null; amount: string | number | null }) => [tx.id, tx]));
-        const newActions = lowConfidence.map((item: { id: string; category: string; is_income: boolean; confidence?: number }) => {
-          const tx = txMap.get(item.id);
-          return {
-            user_id: user.id,
-            type: "uncategorized" as const,
-            title: tx?.counterpart_name ?? tx?.description ?? "Onbekende transactie",
-            description: `AI suggestie: ${item.category} (${Math.round((item.confidence ?? 0) * 100)}% zeker). Controleer en bevestig.`,
-            amount: tx?.amount ? Math.abs(Number(tx.amount)) : null,
-            related_transaction_id: item.id,
-            suggested_category: item.category,
-            ai_confidence: item.confidence ?? null,
-          };
-        });
+
+        // KvK verrijking voor lage-confidence items met tegenpartijnaam
+        const { lookupKvK } = await import("@/lib/services/kvk-lookup");
+
+        const newActions = await Promise.all(
+          lowConfidence.map(async (item: { id: string; category: string; is_income: boolean; confidence?: number }) => {
+            const tx = txMap.get(item.id);
+            let description = `AI suggestie: ${item.category} (${Math.round((item.confidence ?? 0) * 100)}% zeker). Controleer en bevestig.`;
+
+            // Verrijk met KvK data als tegenpartijnaam beschikbaar is
+            if (tx?.counterpart_name) {
+              try {
+                const kvkResults = await lookupKvK(tx.counterpart_name);
+                if (kvkResults.length > 0) {
+                  const kvk = kvkResults[0];
+                  description += ` KvK: ${kvk.handelsnaam} (${kvk.type}, ${kvk.vestigingsplaats})`;
+                }
+              } catch {
+                // Non-fatal
+              }
+            }
+
+            return {
+              user_id: userId,
+              type: "uncategorized" as const,
+              title: tx?.counterpart_name ?? tx?.description ?? "Onbekende transactie",
+              description,
+              amount: tx?.amount ? Math.abs(Number(tx.amount)) : null,
+              related_transaction_id: item.id,
+              suggested_category: item.category,
+              ai_confidence: item.confidence ?? null,
+            };
+          })
+        );
 
         await supabase.from("action_feed").insert(newActions);
+      }
+
+      // Reserve herberekening na hoge-confidence auto-boekingen
+      if (highConfidence.length > 0) {
+        const { recalculateReserves } = await import("@/lib/services/reserve-recalculator");
+        recalculateReserves(userId, "classification").catch(() => {});
       }
     } catch (err) {
       Sentry.captureException(err, {
         tags: { area: "auto-categorize-agent" },
-        extra: { batchSize: batch.length, userId: user.id },
+        extra: { batchSize: batch.length, userId },
       });
       continue;
     }
   }
+
+  return results;
+}
+
+export async function autoCategorizeTransactions(
+  transactionIds: string[]
+): Promise<ActionResult<Record<string, string>>> {
+  if (transactionIds.length === 0) {
+    return { error: null, data: {} };
+  }
+
+  if (!z.array(uuidSchema).safeParse(transactionIds).success) {
+    return { error: "Ongeldige transactie-ID(s)." };
+  }
+
+  // Agent classificatie vereist minimaal Studio plan
+  const planCheck = await requirePlan("studio");
+  if (planCheck.error !== null) return { error: planCheck.error };
+  const { supabase, user, planId } = planCheck;
+
+  const results = await autoCategorizeTransactionsInternal(
+    transactionIds,
+    user.id,
+    planId,
+    supabase
+  );
 
   return { error: null, data: results };
 }
