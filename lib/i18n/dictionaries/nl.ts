@@ -241,6 +241,10 @@ const nl = {
     bic: "BIC",
     saveAndContinue: "Opslaan en doorgaan",
     eightDigits: "8 cijfers",
+    // KVK auto-lookup
+    kvkLookupLoading: "Bedrijfsgegevens ophalen...",
+    kvkLookupFound: "Gevonden",
+    kvkLookupNotFound: "Geen bedrijf gevonden bij dit KVK-nummer",
     // Fiscal profile step
     fiscalProfile: "Fiscaal profiel",
     vatFrequency: "BTW-aangifte frequentie",
@@ -252,6 +256,18 @@ const nl = {
     bookkeepingStartCurrent: "Begin huidig boekjaar",
     bookkeepingStartToday: "Vanaf vandaag",
     bookkeepingStartCustom: "Aangepaste datum",
+    // Predictive Calm fields
+    estimatedIncome: "Geschat jaarinkomen",
+    estimatedIncomePlaceholder: "bijv. 45000",
+    estimatedIncomeHint: "Dit helpt bij het berekenen van je belastingreservering",
+    usesKor: "Gebruik je de KOR?",
+    usesKorHint: "Kleineondernemersregeling — vrijgesteld van BTW bij omzet onder €20.000",
+    meetsUrencriterium: "Voldoe je aan het urencriterium?",
+    meetsUrencriteriumHint: "Minimaal 1.225 uur per jaar als ondernemer",
+    // Bank connection step
+    connectBank: "Koppel je bank",
+    connectBankDesc: "Verbind je bankrekening voor automatisch inzicht in je cashflow",
+    skipBank: "Later koppelen",
   },
 
   // ─── Onboarding Checklist ───
@@ -263,6 +279,7 @@ const nl = {
     stepClient: "Eerste klant toegevoegd",
     stepInvoice: "Eerste factuur verstuurd",
     stepBank: "Bank gekoppeld",
+    stepFiscal: "Fiscaal profiel ingevuld",
     stepReceipt: "Eerste bon geüpload",
     nextAction: "Volgende stap",
     complete: "Setup voltooid",
@@ -853,6 +870,11 @@ const nl = {
     iban: "IBAN",
     bic: "BIC",
     language: "Taal",
+    // Fiscal settings
+    fiscal: "Fiscaal profiel",
+    estimatedIncome: "Geschat jaarinkomen",
+    usesKor: "KOR (Kleineondernemersregeling)",
+    meetsUrencriterium: "Urencriterium",
   },
 
   // ─── Command Menu ───

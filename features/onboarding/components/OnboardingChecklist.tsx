@@ -15,6 +15,7 @@ export interface OnboardingStep {
 
 interface OnboardingChecklistProps {
   hasProfile: boolean;
+  hasFiscalProfile: boolean;
   hasClient: boolean;
   hasInvoice: boolean;
   hasReceipt: boolean;
@@ -23,6 +24,7 @@ interface OnboardingChecklistProps {
 
 export function OnboardingChecklist({
   hasProfile,
+  hasFiscalProfile,
   hasClient,
   hasInvoice,
   hasReceipt,
@@ -36,6 +38,12 @@ export function OnboardingChecklist({
       key: "profile",
       done: hasProfile,
       label: t.onboarding.stepProfile,
+      href: "/dashboard/settings",
+    },
+    {
+      key: "fiscal",
+      done: hasFiscalProfile,
+      label: t.onboarding.stepFiscal,
       href: "/dashboard/settings",
     },
     {

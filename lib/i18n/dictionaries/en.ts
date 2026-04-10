@@ -241,6 +241,10 @@ const en = {
     bic: "BIC",
     saveAndContinue: "Save and continue",
     eightDigits: "8 digits",
+    // KVK auto-lookup
+    kvkLookupLoading: "Fetching company details...",
+    kvkLookupFound: "Found",
+    kvkLookupNotFound: "No company found for this CoC number",
     // Fiscal profile step
     fiscalProfile: "Fiscal profile",
     vatFrequency: "VAT filing frequency",
@@ -252,6 +256,18 @@ const en = {
     bookkeepingStartCurrent: "Start of current fiscal year",
     bookkeepingStartToday: "From today",
     bookkeepingStartCustom: "Custom date",
+    // Predictive Calm fields
+    estimatedIncome: "Estimated annual income",
+    estimatedIncomePlaceholder: "e.g. 45000",
+    estimatedIncomeHint: "This helps calculate your tax reserve",
+    usesKor: "Do you use the KOR?",
+    usesKorHint: "Small business scheme — VAT exempt if revenue is below €20,000",
+    meetsUrencriterium: "Do you meet the hours criterion?",
+    meetsUrencriteriumHint: "At least 1,225 hours per year as an entrepreneur",
+    // Bank connection step
+    connectBank: "Connect your bank",
+    connectBankDesc: "Link your bank account for automatic cashflow insights",
+    skipBank: "Connect later",
   },
 
   // ─── Onboarding Checklist ───
@@ -263,6 +279,7 @@ const en = {
     stepClient: "First client added",
     stepInvoice: "First invoice sent",
     stepBank: "Bank connected",
+    stepFiscal: "Fiscal profile completed",
     stepReceipt: "First receipt uploaded",
     nextAction: "Next step",
     complete: "Setup complete",
@@ -853,6 +870,11 @@ const en = {
     iban: "IBAN",
     bic: "BIC",
     language: "Language",
+    // Fiscal settings
+    fiscal: "Fiscal profile",
+    estimatedIncome: "Estimated annual income",
+    usesKor: "KOR (Small business scheme)",
+    meetsUrencriterium: "Hours criterion",
   },
 
   // ─── Command Menu ───

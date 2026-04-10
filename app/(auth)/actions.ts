@@ -84,6 +84,9 @@ export async function completeOnboarding(
     return { error: "Niet ingelogd." };
   }
 
+  const estimatedIncomeRaw = formData.get("estimated_annual_income") as string;
+  const estimatedIncome = estimatedIncomeRaw ? parseFloat(estimatedIncomeRaw) : null;
+
   const { error } = await supabase.from("profiles").upsert({
     id: user.id,
     full_name:
@@ -103,6 +106,9 @@ export async function completeOnboarding(
     postal_code: formData.get("postal_code") as string,
     vat_frequency: (formData.get("vat_frequency") as string) || "quarterly",
     bookkeeping_start_date: (formData.get("bookkeeping_start_date") as string) || null,
+    uses_kor: formData.get("uses_kor") === "true",
+    estimated_annual_income: estimatedIncome && !isNaN(estimatedIncome) ? estimatedIncome : null,
+    meets_urencriterium: formData.get("meets_urencriterium") !== "false",
     onboarding_completed_at: new Date().toISOString(),
   });
 

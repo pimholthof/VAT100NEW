@@ -42,6 +42,13 @@ export async function updateProfile(
       postal_code: input.postal_code?.trim() || null,
       iban: input.iban?.trim() || null,
       bic: input.bic?.trim() || null,
+      ...(input.uses_kor !== undefined && { uses_kor: input.uses_kor }),
+      ...(input.estimated_annual_income !== undefined && {
+        estimated_annual_income: input.estimated_annual_income,
+      }),
+      ...(input.meets_urencriterium !== undefined && {
+        meets_urencriterium: input.meets_urencriterium,
+      }),
     })
     .eq("id", user.id)
     .select()

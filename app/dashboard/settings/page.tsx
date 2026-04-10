@@ -55,12 +55,18 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
   const [city, setCity] = useState(profile?.city ?? "");
   const [iban, setIban] = useState(profile?.iban ?? "");
   const [bic, setBic] = useState(profile?.bic ?? "");
+  const [estimatedIncome, setEstimatedIncome] = useState(
+    profile?.estimated_annual_income != null ? String(profile.estimated_annual_income) : ""
+  );
+  const [usesKor, setUsesKor] = useState(profile?.uses_kor ?? false);
+  const [meetsUrencriterium, setMeetsUrencriterium] = useState(profile?.meets_urencriterium ?? true);
 
   const [success, setSuccess] = useState(false);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      updateProfile({
+    mutationFn: () => {
+      const parsedIncome = estimatedIncome ? parseFloat(estimatedIncome) : null;
+      return updateProfile({
         full_name: fullName,
         studio_name: studioName,
         kvk_number: kvkNumber,
@@ -70,7 +76,11 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         city,
         iban,
         bic,
-      }),
+        uses_kor: usesKor,
+        estimated_annual_income: parsedIncome && !isNaN(parsedIncome) ? parsedIncome : null,
+        meets_urencriterium: meetsUrencriterium,
+      });
+    },
     onSuccess: (res) => {
       if (!res.error) {
         setSuccess(true);
@@ -216,6 +226,53 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               />
             </FieldGroup>
           </div>
+        </div>
+
+        {/* Fiscaal profiel */}
+        <div style={{ marginBottom: "var(--space-block)" }}>
+          <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 16, borderTop: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
+            {t.settings.fiscal}
+          </p>
+
+          <FieldGroup label={t.settings.estimatedIncome}>
+            <input
+              type="number"
+              value={estimatedIncome}
+              onChange={(e) => setEstimatedIncome(e.target.value)}
+              placeholder="45000"
+              min="0"
+              step="1000"
+              className="form-input"
+            />
+          </FieldGroup>
+
+          <FieldGroup label={t.settings.usesKor}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={usesKor}
+                onChange={(e) => setUsesKor(e.target.checked)}
+                style={{ accentColor: "var(--foreground)" }}
+              />
+              <span style={{ fontSize: "var(--text-body-md)" }}>
+                {usesKor ? t.common.yes : t.common.no}
+              </span>
+            </label>
+          </FieldGroup>
+
+          <FieldGroup label={t.settings.meetsUrencriterium}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={meetsUrencriterium}
+                onChange={(e) => setMeetsUrencriterium(e.target.checked)}
+                style={{ accentColor: "var(--foreground)" }}
+              />
+              <span style={{ fontSize: "var(--text-body-md)" }}>
+                {meetsUrencriterium ? t.common.yes : t.common.no}
+              </span>
+            </label>
+          </FieldGroup>
         </div>
 
         {/* Save */}
