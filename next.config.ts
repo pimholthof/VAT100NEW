@@ -19,11 +19,11 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.mollie.com",
+      "script-src 'self' 'unsafe-inline' https://js.mollie.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' blob: data: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co https://api.molic.com https://api.resend.com https://*.sentry.io https://api.tink.com",
+      "connect-src 'self' https://*.supabase.co https://api.mollie.com https://api.resend.com https://*.sentry.io https://api.tink.com",
       "frame-src 'self' https://js.mollie.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",

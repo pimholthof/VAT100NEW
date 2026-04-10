@@ -2,12 +2,24 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 export interface AuthResult {
   error: string | null;
 }
 
+async function getClientIp(): Promise<string> {
+  const h = await headers();
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+}
+
 export async function login(formData: FormData): Promise<AuthResult> {
+  const ip = await getClientIp();
+  if (await isRateLimited(`auth-login:${ip}`, 10, 60_000)) {
+    return { error: "Te veel pogingen. Probeer het over een minuut opnieuw." };
+  }
+
   const supabase = await createClient();
 
   const email = formData.get("email") as string;
@@ -26,6 +38,11 @@ export async function login(formData: FormData): Promise<AuthResult> {
 }
 
 export async function register(formData: FormData): Promise<AuthResult> {
+  const ip = await getClientIp();
+  if (await isRateLimited(`auth-register:${ip}`, 5, 60_000)) {
+    return { error: "Te veel pogingen. Probeer het over een minuut opnieuw." };
+  }
+
   const supabase = await createClient();
 
   const email = formData.get("email") as string;
