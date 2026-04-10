@@ -101,6 +101,9 @@ async function processBatch(users: { id: string }[], supabase: ReturnType<typeof
   return results;
 }
 
+const BATCH_SIZE = 10;
+const MAX_EXECUTION_MS = 8000;
+
 /**
  * Cron: Run all AI agents for all active users (daily 03:00)
  * 
