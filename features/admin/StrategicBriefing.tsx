@@ -22,64 +22,49 @@ export default async function StrategicBriefing() {
 
   if (!briefing) {
     return (
-      <div className="brutalist-panel brutalist-panel-padded">
-        <p className="label">Nog geen strategische scan uitgevoerd. Wacht op de wekelijkse briefing.</p>
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <h3 className="label">Strategische scan</h3>
+        </div>
+        <p className="admin-empty-state">Nog geen scan uitgevoerd</p>
       </div>
     );
   }
 
   return (
-    <div className="brutalist-panel">
-      <div className="brutalist-panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+    <div className="admin-panel">
+      <div className="admin-panel-header">
+        <h3 className="label">Strategische scan</h3>
+        <span className="admin-panel-date">{formatDateLong(briefing.created_at)}</span>
+      </div>
+
+      <div className="admin-briefing-metrics">
         <div>
-          <span className="label" style={{ display: "block", marginBottom: 4 }}>Laatste strategische scan</span>
-          <span style={{ fontSize: "var(--text-body-sm)", opacity: 0.35 }}>
-            {formatDateLong(briefing.created_at)}
-          </span>
+          <span className="label">MRR</span>
+          <p className="admin-briefing-metric-value">{formatCurrency(briefing.mrr_cents / 100)}</p>
+        </div>
+        <div>
+          <span className="label">Churn risico</span>
+          <p className="admin-briefing-metric-value" style={{ color: "var(--color-accent)" }}>
+            {formatCurrency(briefing.churn_mrr_cents / 100)}
+          </p>
+        </div>
+        <div>
+          <span className="label">Pipeline</span>
+          <p className="admin-briefing-metric-value">{formatCurrency(briefing.pipeline_value_cents / 100)}</p>
         </div>
       </div>
 
-      <div className="brutalist-panel-padded">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 32, marginBottom: 32 }}>
-          <div>
-            <span className="label" style={{ display: "block", marginBottom: 8 }}>Maandelijkse omzet</span>
-            <span className="mono-amount-lg" style={{ fontSize: "1.75rem", fontWeight: 400 }}>
-              {formatCurrency(briefing.mrr_cents / 100)}
-            </span>
-          </div>
+      <div>
+        <span className="label">Strategisch inzicht</span>
+        <p className="admin-briefing-text">{briefing.briefing_text}</p>
+      </div>
 
-          <div>
-            <span className="label" style={{ display: "block", marginBottom: 8 }}>Omzet risico (verloop)</span>
-            <span className="mono-amount-lg" style={{ fontSize: "1.75rem", fontWeight: 400, color: "var(--color-accent)" }}>
-              {formatCurrency(briefing.churn_mrr_cents / 100)}
-            </span>
-          </div>
-
-          <div>
-            <span className="label" style={{ display: "block", marginBottom: 8 }}>Pijplijnwaarde</span>
-            <span className="mono-amount-lg" style={{ fontSize: "1.75rem", fontWeight: 400 }}>
-              {formatCurrency(briefing.pipeline_value_cents / 100)}
-            </span>
-          </div>
-        </div>
-
-        <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.08)", paddingTop: 24 }}>
-          <span className="label" style={{ display: "block", marginBottom: 12 }}>Strategisch inzicht</span>
-          <p style={{ fontSize: "var(--text-body-md)", lineHeight: 1.6, maxWidth: 640, margin: 0, fontWeight: 400 }}>
-            {briefing.briefing_text}
-          </p>
-        </div>
-
-        <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
-          <span className="score-badge">
-            {briefing.active_users} actieve gebruikers
-          </span>
-          {briefing.at_risk_leads > 0 && (
-            <span className="score-badge high">
-              {briefing.at_risk_leads} risico&apos;s
-            </span>
-          )}
-        </div>
+      <div className="admin-briefing-tags">
+        <span className="score-badge">{briefing.active_users} actieve gebruikers</span>
+        {briefing.at_risk_leads > 0 && (
+          <span className="score-badge high">{briefing.at_risk_leads} risico&apos;s</span>
+        )}
       </div>
     </div>
   );

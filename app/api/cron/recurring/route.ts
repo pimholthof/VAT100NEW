@@ -26,7 +26,7 @@ function calculateNextRunDate(runDate: string, frequency: string): string {
 /**
  * Cron job: Process recurring invoices.
  * Runs daily, finds templates where next_run_date <= today, generates invoices.
- * Uses a single transactional RPC for atomicity.
+ * Uses a single transactional RPC for atomicity and idempotency.
  */
 export async function GET(request: Request) {
   if (!verifyCronSecret(request)) {
@@ -67,59 +67,28 @@ export async function GET(request: Request) {
         continue;
       }
 
-      // Calculate totals
-      const lines = (template.lines ?? []) as Array<{
-        description: string;
-        quantity: number;
-        unit: string;
-        rate: number;
-        amount: number;
-        sort_order: number;
-      }>;
-
-      const subtotal = lines.reduce((sum, l) => sum + Number(l.amount), 0);
-      const vatAmount = Math.round(subtotal * (Number(template.vat_rate) / 100) * 100) / 100;
-      const total = Math.round((subtotal + vatAmount) * 100) / 100;
-
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 30);
 
-      // Atomic: create invoice + lines + update template in one transaction
-      const { data: invoiceId, error: createError } = await supabase.rpc(
-        "create_recurring_invoice",
+      // Atomic RPC call: handles idempotency, invoice creation, line copying, and template update
+      const { data: invoiceId, error: genError } = await supabase.rpc(
+        "generate_recurring_invoice",
         {
-          p_user_id: template.user_id,
-          p_client_id: template.client_id,
           p_template_id: template.id,
           p_run_date: runDate,
-          p_invoice_number: invoiceNumber as string,
-          p_status: template.auto_send ? "sent" : "draft",
-          p_issue_date: today,
-          p_due_date: dueDate.toISOString().split("T")[0],
-          p_vat_rate: template.vat_rate,
-          p_notes: template.notes,
-          p_subtotal_ex_vat: subtotal,
-          p_vat_amount: vatAmount,
-          p_total_inc_vat: total,
           p_next_run_date: nextRunDate,
-          p_lines: JSON.stringify(
-            lines.map((l) => ({
-              description: l.description,
-              quantity: l.quantity,
-              unit: l.unit,
-              rate: l.rate,
-              amount: l.amount,
-            }))
-          ),
+          p_invoice_number: invoiceNumber,
+          p_today: today,
+          p_due_date: dueDate.toISOString().split("T")[0],
         }
       );
 
-      if (createError) {
-        results.push({ templateId: template.id, error: createError.message });
+      if (genError) {
+        results.push({ templateId: template.id, error: genError.message });
         continue;
       }
 
-      results.push({ templateId: template.id, invoiceId: invoiceId as string });
+      results.push({ templateId: template.id, invoiceId });
     } catch (e) {
       results.push({
         templateId: template.id,

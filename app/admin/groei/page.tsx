@@ -61,7 +61,7 @@ export default async function GroeiPage() {
       {/* ─── Tabs: Metrics | Prognoses ─── */}
       <GroeiTabs>
         {/* Tab 1: Metrics */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-section, 32px)" }}>
+        <div className="admin-tab-content">
           {/* MRR Trend */}
           <section className="admin-panel">
             <div className="admin-panel-header">
@@ -227,7 +227,7 @@ export default async function GroeiPage() {
         </div>
 
         {/* Tab 2: Prognoses */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-section, 32px)" }}>
+        <div className="admin-tab-content">
           {!forecast ? (
             <div className="admin-panel"><div className="admin-empty-state">Prognosedata kon niet worden geladen.</div></div>
           ) : (
@@ -280,8 +280,8 @@ export default async function GroeiPage() {
                   <div className="admin-growth-stats">
                     <div className="admin-growth-stat-row"><span className="label">Huidige klanten</span><span className="mono-amount">{forecast.currentTotalCustomers}</span></div>
                     <div className="admin-growth-stat-row"><span className="label">Gem. nieuwe klanten/maand</span><span className="mono-amount">{forecast.monthlyGrowthRate}</span></div>
-                    <div className="admin-growth-stat-row"><span className="label">Verwacht nieuw (3 mnd)</span><span className="mono-amount" style={{ fontWeight: 600 }}>+{forecast.projectedNewCustomersNext3Months}</span></div>
-                    <div className="admin-growth-stat-row"><span className="label">Verwacht eind jaar</span><span className="mono-amount" style={{ fontWeight: 600 }}>{forecast.projectedTotalCustomersEoy}</span></div>
+                    <div className="admin-growth-stat-row"><span className="label">Verwacht nieuw (3 mnd)</span><span className="mono-amount admin-value-strong">+{forecast.projectedNewCustomersNext3Months}</span></div>
+                    <div className="admin-growth-stat-row"><span className="label">Verwacht eind jaar</span><span className="mono-amount admin-value-strong">{forecast.projectedTotalCustomersEoy}</span></div>
                   </div>
                 </section>
 
@@ -309,10 +309,12 @@ export default async function GroeiPage() {
 
               {/* Scenario Snapshot */}
               <section>
-                <div style={{ marginBottom: 24 }}>
-                  <p className="label">Scenario-analyse</p>
-                  <h2 className="admin-panel-title" style={{ margin: 0 }}>Waar staan we over 6 maanden?</h2>
-                  <p className="admin-panel-description">Drie scenario&apos;s op basis van huidige groei- en churntrends</p>
+                <div className="admin-panel-header">
+                  <div>
+                    <p className="label">Scenario-analyse</p>
+                    <h2 className="admin-panel-title">Waar staan we over 6 maanden?</h2>
+                    <p className="admin-panel-description">Drie scenario&apos;s op basis van huidige groei- en churntrends</p>
+                  </div>
                 </div>
                 <div className="admin-scenario-grid">
                   {forecast.scenarios.map((scenario) => (

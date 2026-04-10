@@ -4,7 +4,7 @@ import { z } from "zod";
 import { sanitizeSupabaseError } from "@/lib/errors";
 import { requireAuth } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import type { ActionResult, Receipt, ReceiptInput } from "@/lib/types";
+import type { ActionResult, Receipt, ReceiptInput, VatRate } from "@/lib/types";
 import { receiptSchema, uuidSchema, validate } from "@/lib/validation";
 import { calculateVat } from "@/lib/format";
 
@@ -99,7 +99,7 @@ export async function createReceipt(
     const v = validate(receiptSchema, input);
     if (v.error) return { error: v.error };
 
-    const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
+    const vat = calculateVat(input.amount_ex_vat ?? 0, (input.vat_rate ?? 21) as VatRate);
     const amountExVat = vat.subtotalExVat;
     const vatRate = input.vat_rate ?? 21;
     let vatAmount = vat.vatAmount;
@@ -179,7 +179,7 @@ export async function updateReceipt(
     const v = validate(receiptSchema, input);
     if (v.error) return { error: v.error };
 
-    const vat = calculateVat(input.amount_ex_vat ?? 0, input.vat_rate ?? 21);
+    const vat = calculateVat(input.amount_ex_vat ?? 0, (input.vat_rate ?? 21) as VatRate);
     const amountExVat = vat.subtotalExVat;
     const vatRate = input.vat_rate ?? 21;
     const category = input.category || "Overig";

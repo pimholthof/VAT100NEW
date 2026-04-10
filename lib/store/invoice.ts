@@ -6,16 +6,7 @@ import type {
   VatScheme,
 } from "@/lib/types";
 import { calculateInvoiceTotals } from "@/lib/logic/invoice-calculations";
-
-function createEmptyLine(): InvoiceLineInput {
-  return {
-    id: crypto.randomUUID(),
-    description: "",
-    quantity: 1,
-    unit: "uren",
-    rate: 0,
-  };
-}
+import { createEmptyLine, today, in30Days } from "./shared";
 
 interface InvoiceTotals {
   subtotal: number;
@@ -80,12 +71,6 @@ interface InvoiceFormState {
   toInput: (status: "draft" | "sent") => InvoiceInput;
 }
 
-const today = () => new Date().toISOString().split("T")[0];
-const in30Days = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 30);
-  return d.toISOString().split("T")[0];
-};
 
 export const useInvoiceStore = create<InvoiceFormState>((set, get) => ({
   clientId: "",

@@ -5,35 +5,6 @@ import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult } from "@/lib/types";
 import { sanitizeError } from "@/lib/errors";
 
-export interface AutomationStats {
-  period7d: {
-    totalProcessed: number;
-    totalFailed: number;
-    totalPending: number;
-    avgAttempts: number;
-  };
-  byEventType: Array<{
-    eventType: string;
-    processed: number;
-    failed: number;
-    pending: number;
-  }>;
-  recentFailures: Array<{
-    id: string;
-    eventType: string;
-    lastError: string;
-    attempts: number;
-    createdAt: string;
-    failedAt: string;
-  }>;
-  lastCronPayloads: {
-    agents: Record<string, unknown> | null;
-    recurring: Record<string, unknown> | null;
-    overdue: Record<string, unknown> | null;
-    events: Record<string, unknown> | null;
-  };
-}
-
 export interface SystemStatus {
   health: {
     status: string;
@@ -61,6 +32,26 @@ export interface SystemStatus {
     lastEventProcessorRun: string | null;
   };
   eventBacklog: number;
+}
+
+interface EventTypeStats {
+  eventType: string;
+  processed: number;
+  failed: number;
+  pending: number;
+  avgAttempts: number;
+}
+
+interface PeriodStats {
+  totalProcessed: number;
+  totalFailed: number;
+  totalPending: number;
+  avgAttempts: number;
+}
+
+export interface AutomationStats {
+  period7d: PeriodStats;
+  byEventType: EventTypeStats[];
 }
 
 export async function getSystemStatus(): Promise<ActionResult<SystemStatus>> {
@@ -188,113 +179,74 @@ export async function getAutomationStats(): Promise<ActionResult<AutomationStats
     const supabase = createServiceClient();
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    // 7-day aggregates
-    const [
-      { count: totalProcessed },
-      { count: totalFailed },
-      { count: totalPending },
-      { data: processedEvents },
-    ] = await Promise.all([
-      supabase
-        .from("system_events")
-        .select("*", { count: "exact", head: true })
-        .not("processed_at", "is", null)
-        .gte("created_at", sevenDaysAgo),
-      supabase
-        .from("system_events")
-        .select("*", { count: "exact", head: true })
-        .not("failed_at", "is", null)
-        .gte("created_at", sevenDaysAgo),
-      supabase
-        .from("system_events")
-        .select("*", { count: "exact", head: true })
-        .is("processed_at", null)
-        .is("failed_at", null),
-      supabase
-        .from("system_events")
-        .select("attempts")
-        .not("processed_at", "is", null)
-        .gte("created_at", sevenDaysAgo),
-    ]);
-
-    const avgAttempts =
-      processedEvents && processedEvents.length > 0
-        ? Math.round(
-            (processedEvents.reduce((sum, e) => sum + (e.attempts ?? 1), 0) /
-              processedEvents.length) *
-              100
-          ) / 100
-        : 0;
-
-    // Per event_type breakdown — fetch all events from 7d and aggregate in JS
-    const { data: allRecent } = await supabase
+    // Overall stats for 7d period
+    const { data: processedEvents } = await supabase
       .from("system_events")
-      .select("event_type, processed_at, failed_at")
-      .gte("created_at", sevenDaysAgo);
+      .select("event_type, attempts")
+      .gte("created_at", sevenDaysAgo)
+      .not("processed_at", "is", null);
 
-    const typeMap = new Map<string, { processed: number; failed: number; pending: number }>();
-    for (const evt of allRecent ?? []) {
-      const key = evt.event_type;
-      if (!typeMap.has(key)) typeMap.set(key, { processed: 0, failed: 0, pending: 0 });
-      const entry = typeMap.get(key)!;
-      if (evt.processed_at) entry.processed++;
-      else if (evt.failed_at) entry.failed++;
-      else entry.pending++;
+    const { data: failedEvents } = await supabase
+      .from("system_events")
+      .select("event_type")
+      .gte("created_at", sevenDaysAgo)
+      .not("failed_at", "is", null);
+
+    const { data: pendingEvents } = await supabase
+      .from("system_events")
+      .select("event_type")
+      .gte("created_at", sevenDaysAgo)
+      .is("processed_at", null)
+      .is("failed_at", null);
+
+    // Calculate per-event-type stats
+    const statsByType = new Map<string, { processed: number; failed: number; pending: number; totalAttempts: number }>();
+
+    for (const event of processedEvents ?? []) {
+      const type = event.event_type ?? "unknown";
+      const s = statsByType.get(type) ?? { processed: 0, failed: 0, pending: 0, totalAttempts: 0 };
+      s.processed++;
+      s.totalAttempts += event.attempts ?? 1;
+      statsByType.set(type, s);
     }
 
-    const byEventType = Array.from(typeMap.entries())
-      .map(([eventType, counts]) => ({ eventType, ...counts }))
-      .sort((a, b) => b.failed - a.failed || b.pending - a.pending);
+    for (const event of failedEvents ?? []) {
+      const type = event.event_type ?? "unknown";
+      const s = statsByType.get(type) ?? { processed: 0, failed: 0, pending: 0, totalAttempts: 0 };
+      s.failed++;
+      statsByType.set(type, s);
+    }
 
-    // Recent failures (top 10)
-    const { data: failures } = await supabase
-      .from("system_events")
-      .select("id, event_type, last_error, attempts, created_at, failed_at")
-      .not("failed_at", "is", null)
-      .order("failed_at", { ascending: false })
-      .limit(10);
+    for (const event of pendingEvents ?? []) {
+      const type = event.event_type ?? "unknown";
+      const s = statsByType.get(type) ?? { processed: 0, failed: 0, pending: 0, totalAttempts: 0 };
+      s.pending++;
+      statsByType.set(type, s);
+    }
 
-    const recentFailures = (failures ?? []).map((f) => ({
-      id: f.id,
-      eventType: f.event_type,
-      lastError: f.last_error ?? "Onbekende fout",
-      attempts: f.attempts ?? 0,
-      createdAt: f.created_at,
-      failedAt: f.failed_at!,
+    const totalProcessed = processedEvents?.length ?? 0;
+    const totalFailed = failedEvents?.length ?? 0;
+    const totalPending = pendingEvents?.length ?? 0;
+    const totalAttempts = (processedEvents ?? []).reduce((sum, e) => sum + (e.attempts ?? 1), 0);
+
+    const byEventType: EventTypeStats[] = Array.from(statsByType.entries()).map(([eventType, stats]) => ({
+      eventType,
+      processed: stats.processed,
+      failed: stats.failed,
+      pending: stats.pending,
+      avgAttempts: stats.processed > 0 ? Math.round((stats.totalAttempts / stats.processed) * 10) / 10 : 0,
     }));
-
-    // Last cron payloads
-    const cronTypes = ["cron.agents", "cron.recurring", "cron.overdue", "cron.events"] as const;
-    const cronResults = await Promise.all(
-      cronTypes.map((type) =>
-        supabase
-          .from("system_events")
-          .select("payload")
-          .eq("event_type", type)
-          .order("created_at", { ascending: false })
-          .limit(1)
-      )
-    );
-
-    const lastCronPayloads = {
-      agents: (cronResults[0].data?.[0]?.payload as Record<string, unknown>) ?? null,
-      recurring: (cronResults[1].data?.[0]?.payload as Record<string, unknown>) ?? null,
-      overdue: (cronResults[2].data?.[0]?.payload as Record<string, unknown>) ?? null,
-      events: (cronResults[3].data?.[0]?.payload as Record<string, unknown>) ?? null,
-    };
 
     return {
       error: null,
       data: {
         period7d: {
-          totalProcessed: totalProcessed ?? 0,
-          totalFailed: totalFailed ?? 0,
-          totalPending: totalPending ?? 0,
-          avgAttempts,
+          totalProcessed,
+          totalFailed,
+          totalPending,
+          avgAttempts: totalProcessed > 0 ? Math.round((totalAttempts / totalProcessed) * 10) / 10 : 0,
         },
-        byEventType,
-        recentFailures,
-        lastCronPayloads,
+        byEventType: byEventType.sort((a, b) => b.processed - a.processed),
       },
     };
   } catch (e) {

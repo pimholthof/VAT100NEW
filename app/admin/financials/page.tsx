@@ -159,48 +159,21 @@ export default function AdminFinancialsPage() {
                 <h2 className="admin-panel-title">Omzet vs Kosten</h2>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, padding: "0 16px 16px", alignItems: "flex-end", height: 120 }}>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <div
-                  style={{
-                    width: "100%",
-                    maxWidth: 80,
-                    height: `${totalRevenue > 0 ? 100 : 4}%`,
-                    background: "var(--color-success, #1a7a3a)",
-                    borderRadius: "4px 4px 0 0",
-                    opacity: 0.7,
-                  }}
-                />
-                <span className="label" style={{ fontSize: 9 }}>Omzet</span>
-                <span className="mono-amount" style={{ fontSize: 11 }}>{formatCurrency(totalRevenue)}</span>
+            <div className="admin-margin-chart">
+              <div className="admin-margin-chart-col">
+                <div className="admin-margin-chart-bar" style={{ height: `${totalRevenue > 0 ? 100 : 4}%`, background: "var(--color-success)" }} />
+                <span className="label">Omzet</span>
+                <span className="mono-amount">{formatCurrency(totalRevenue)}</span>
               </div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <div
-                  style={{
-                    width: "100%",
-                    maxWidth: 80,
-                    height: `${totalRevenue > 0 ? Math.max((totalExpenses / totalRevenue) * 100, 4) : 4}%`,
-                    background: "var(--color-accent, #a51c30)",
-                    borderRadius: "4px 4px 0 0",
-                    opacity: 0.7,
-                  }}
-                />
-                <span className="label" style={{ fontSize: 9 }}>Kosten</span>
-                <span className="mono-amount" style={{ fontSize: 11 }}>{formatCurrency(totalExpenses)}</span>
+              <div className="admin-margin-chart-col">
+                <div className="admin-margin-chart-bar" style={{ height: `${totalRevenue > 0 ? Math.max((totalExpenses / totalRevenue) * 100, 4) : 4}%`, background: "var(--color-accent)" }} />
+                <span className="label">Kosten</span>
+                <span className="mono-amount">{formatCurrency(totalExpenses)}</span>
               </div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <div
-                  style={{
-                    width: "100%",
-                    maxWidth: 80,
-                    height: `${totalRevenue > 0 ? Math.max((margin / totalRevenue) * 100, 4) : 4}%`,
-                    background: margin >= 0 ? "var(--color-black, #000)" : "var(--color-accent, #a51c30)",
-                    borderRadius: "4px 4px 0 0",
-                    opacity: 0.8,
-                  }}
-                />
-                <span className="label" style={{ fontSize: 9 }}>Marge</span>
-                <span className="mono-amount" style={{ fontSize: 11, fontWeight: 600 }}>{formatCurrency(margin)}</span>
+              <div className="admin-margin-chart-col">
+                <div className="admin-margin-chart-bar" style={{ height: `${totalRevenue > 0 ? Math.max((margin / totalRevenue) * 100, 4) : 4}%`, background: margin >= 0 ? "var(--color-black)" : "var(--color-accent)" }} />
+                <span className="label">Marge</span>
+                <span className="mono-amount admin-value-strong">{formatCurrency(margin)}</span>
               </div>
             </div>
           </div>
@@ -219,7 +192,7 @@ export default function AdminFinancialsPage() {
 
             {/* Sub KPI's */}
             {subPayStats && (
-              <div className="admin-stat-grid" style={{ padding: "0 16px 16px" }}>
+              <div className="admin-stat-grid admin-panel-inner-pad">
                 <StatCard
                   label="Totaal ontvangen"
                   value={formatCurrency(subPayStats.totalRevenueCents / 100)}
@@ -251,11 +224,11 @@ export default function AdminFinancialsPage() {
               <div className="admin-empty-state">Nog geen abonnementsbetalingen ontvangen</div>
             ) : (
               <>
-                <div className="admin-summary-row" style={{ padding: "0 16px" }}>
+                <div className="admin-summary-row admin-panel-inner-pad">
                   <p className="label">{subPayTotal} betaling{subPayTotal !== 1 ? "en" : ""}</p>
                   <p className="label">Pagina {subPage}{subPayTotalPages > 0 ? ` van ${subPayTotalPages}` : ""}</p>
                 </div>
-                <div className="admin-table-shell" style={{ margin: "0 16px 16px" }}>
+                <div className="admin-table-shell admin-panel-inner-pad">
                   <div className="admin-table-wrap">
                     <table className="admin-table">
                       <thead>
@@ -312,7 +285,7 @@ export default function AdminFinancialsPage() {
                 </div>
 
                 {subPayTotalPages > 1 && (
-                  <div className="admin-pagination" style={{ padding: "0 16px 16px" }}>
+                  <div className="admin-pagination admin-panel-inner-pad">
                     <button onClick={() => setSubPage((p) => Math.max(1, p - 1))} disabled={subPage === 1} className="admin-page-button">Vorige</button>
                     <span className="admin-page-button label">{subPage} / {subPayTotalPages}</span>
                     <button onClick={() => setSubPage((p) => Math.min(subPayTotalPages, p + 1))} disabled={subPage === subPayTotalPages} className="admin-page-button">Volgende</button>

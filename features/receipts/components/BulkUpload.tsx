@@ -15,7 +15,7 @@ import {
   ErrorMessage,
 } from "@/components/ui";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
-import type { ReceiptInput } from "@/lib/types";
+import type { ReceiptInput, VatRate } from "@/lib/types";
 import { BulkReceiptCard, type BulkReceiptResult } from "./BulkReceiptCard";
 import { calculateVat } from "@/lib/format";
 
@@ -244,7 +244,7 @@ export function BulkUpload() {
           // User made edits — save them
           const vat = calculateVat(
             editData.amount_ex_vat ?? 0,
-            editData.vat_rate ?? 21
+            (editData.vat_rate ?? 21) as VatRate
           );
           await updateReceipt(result.receiptId, {
             vendor_name: editData.vendor_name ?? null,

@@ -1,3 +1,32 @@
+// ─── Re-exports from canonical calculation module ───
+export {
+  type InvoiceTotals as VatTotals,
+  calculateInvoiceTotals as calculateLineTotals,
+  calculateInvoiceVatAmount,
+  roundMoney,
+} from "./logic/invoice-calculations";
+
+import {
+  calculateInvoiceVatAmount,
+  roundMoney,
+  type InvoiceTotals,
+} from "./logic/invoice-calculations";
+import type { VatRate } from "./types";
+
+/**
+ * Calculates VAT totals from a subtotal (ex VAT) and a rate.
+ * Used by receipts. Wraps the canonical invoice calculation.
+ */
+export function calculateVat(subtotalExVat: number, vatRate: VatRate): InvoiceTotals {
+  const rounded = roundMoney(subtotalExVat);
+  const vatAmount = calculateInvoiceVatAmount(rounded, vatRate);
+  return {
+    subtotalExVat: rounded,
+    vatAmount,
+    totalIncVat: roundMoney(rounded + vatAmount),
+  };
+}
+
 // ─── Shared formatting utilities ───
 
 /**
@@ -10,42 +39,6 @@ export function escapeHtml(str: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-// ─── VAT calculation ───
-
-export interface VatTotals {
-  subtotalExVat: number;
-  vatAmount: number;
-  totalIncVat: number;
-}
-
-/**
- * Calculates VAT totals from a subtotal (ex VAT) and a rate.
- * Used by invoices (from line items) and receipts.
- */
-export function calculateVat(subtotalExVat: number, vatRate: number): VatTotals {
-  const rounded = Math.round(subtotalExVat * 100) / 100;
-  const vatAmount = Math.round(rounded * (vatRate / 100) * 100) / 100;
-  return {
-    subtotalExVat: rounded,
-    vatAmount,
-    totalIncVat: Math.round((rounded + vatAmount) * 100) / 100,
-  };
-}
-
-/**
- * Calculates VAT totals from invoice line items.
- */
-export function calculateLineTotals(
-  lines: { quantity: number; rate: number }[],
-  vatRate: number
-): VatTotals {
-  const subtotal = lines.reduce(
-    (sum, line) => sum + line.quantity * line.rate,
-    0
-  );
-  return calculateVat(subtotal, vatRate);
 }
 
 // ─── Formatting ───

@@ -6,16 +6,7 @@ import type {
   QuoteStatus,
 } from "@/lib/types";
 import { calculateLineTotals } from "@/lib/format";
-
-function createEmptyLine(): InvoiceLineInput {
-  return {
-    id: crypto.randomUUID(),
-    description: "",
-    quantity: 1,
-    unit: "uren",
-    rate: 0,
-  };
-}
+import { createEmptyLine, today, in30Days } from "./shared";
 
 interface QuoteTotals {
   subtotal: number;
@@ -32,12 +23,6 @@ function calcTotals(lines: InvoiceLineInput[], vatRate: VatRate): QuoteTotals {
   };
 }
 
-const today = () => new Date().toISOString().split("T")[0];
-const in30Days = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 30);
-  return d.toISOString().split("T")[0];
-};
 
 interface QuoteFormState {
   clientId: string;
