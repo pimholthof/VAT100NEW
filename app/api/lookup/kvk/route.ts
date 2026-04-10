@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/supabase/server";
 import { isRateLimited } from "@/lib/rate-limit";
-import { lookupKvK } from "@/lib/services/kvk-lookup";
+import { lookupKvK, lookupKvKByNumber } from "@/lib/services/kvk-lookup";
 
 /**
  * GET /api/lookup/kvk?q=J.+de+Vries+Fotografie
+ * GET /api/lookup/kvk?nummer=12345678
  *
- * Zoekt bedrijven op naam via het KvK Handelsregister.
+ * Zoekt bedrijven op naam of KvK-nummer via het KvK Handelsregister.
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAuth();
@@ -23,15 +24,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const nummer = request.nextUrl.searchParams.get("nummer");
   const q = request.nextUrl.searchParams.get("q");
-  if (!q || !q.trim()) {
+
+  if (!nummer && (!q || !q.trim())) {
     return NextResponse.json(
-      { error: "Zoekterm (q) is verplicht.", results: [] },
+      { error: "Zoekterm (q) of KvK-nummer (nummer) is verplicht.", results: [] },
       { status: 400 }
     );
   }
-
-  const results = await lookupKvK(q);
 
   if (!process.env.KVK_API_KEY) {
     return NextResponse.json({
@@ -39,6 +40,10 @@ export async function GET(request: NextRequest) {
       results: [],
     });
   }
+
+  const results = nummer
+    ? await lookupKvKByNumber(nummer)
+    : await lookupKvK(q!);
 
   return NextResponse.json({ error: null, results });
 }

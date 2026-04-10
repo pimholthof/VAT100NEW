@@ -134,6 +134,28 @@ export async function GET(request: NextRequest) {
 
         totalSynced += newTransactions.length;
 
+        // "Magic Moment": Bij eerste sync, maak een proactieve suggestie
+        if (!connection.last_synced_at && newTransactions.length > 0) {
+          const firstTransaction = newTransactions[0];
+          const absAmount = Math.abs(firstTransaction.amount);
+          const counterpart = firstTransaction.counterpart_name || "onbekend";
+
+          try {
+            await supabase.from("action_feed").insert({
+              user_id: connection.user_id,
+              type: "match_suggestion",
+              title: "Je eerste transactie is binnen!",
+              description: `Ik zie een betaling van €${absAmount.toFixed(2)} van ${counterpart}. Zal ik deze aan een factuur koppelen?`,
+              amount: absAmount,
+              ai_confidence: 0.95,
+              status: "pending",
+              related_transaction_id: null,
+            });
+          } catch {
+            // Non-fatal: magic moment is best-effort
+          }
+        }
+
         // Update last_synced_at
         await supabase
           .from("bank_connections")

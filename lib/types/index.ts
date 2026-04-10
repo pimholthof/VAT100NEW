@@ -22,6 +22,9 @@ export interface Profile {
   vat_frequency: VatFrequency | null;
   bookkeeping_start_date: string | null;
   onboarding_completed_at: string | null;
+  uses_kor: boolean;
+  estimated_annual_income: number | null;
+  meets_urencriterium: boolean;
   created_at: string;
 }
 

@@ -118,6 +118,7 @@ export default function DashboardClient({
       {!isLoading && onboardingResult && !onboardingResult.onboardingCompleted && (
         <OnboardingChecklist
           hasProfile={onboardingResult.hasProfile}
+          hasFiscalProfile={onboardingResult.hasFiscalProfile}
           hasClient={onboardingResult.hasClient}
           hasInvoice={onboardingResult.hasInvoice}
           hasReceipt={onboardingResult.hasReceipt}
@@ -210,15 +211,17 @@ export default function DashboardClient({
       )}
 
 
-      {/* ── FINANCIAL HEALTH ── */}
-      {data?.financialHealth && !isLoading && (
+      {/* ── FINANCIAL HEALTH (progressive disclosure: alleen tonen bij voldoende data) ── */}
+      {data?.financialHealth && !isLoading &&
+        ((stats?.openInvoiceCount ?? 0) > 0 || (stats?.revenueThisMonth ?? 0) > 0) && (
         <motion.div variants={itemVariants}>
           <HealthScore health={data.financialHealth} />
         </motion.div>
       )}
 
-      {/* ── CASHFLOW FORECAST ── */}
-      {data?.cashflowForecast && !isLoading && (
+      {/* ── CASHFLOW FORECAST (progressive disclosure: alleen tonen bij bankdata) ── */}
+      {data?.cashflowForecast && !isLoading &&
+        ((safeToSpend?.currentBalance ?? 0) !== 0 || (stats?.receiptsThisMonth ?? 0) > 0) && (
         <motion.div variants={itemVariants}>
           <CashflowForecast
             weeks={data.cashflowForecast}
