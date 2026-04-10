@@ -148,6 +148,7 @@ export function QuickReceiptUpload() {
         ref={fileRef}
         type="file"
         accept="image/*,.pdf"
+        capture="environment"
         style={{ display: "none" }}
         onChange={(e) => {
           const file = e.target.files?.[0];

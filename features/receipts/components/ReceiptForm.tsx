@@ -31,7 +31,10 @@ import { ReceiptUpload } from "./ReceiptUpload";
 import { ReceiptProcessing } from "./ReceiptProcessing";
 import { useLocale } from "@/lib/i18n/context";
 
-type Step = "upload" | "processing" | "form";
+type Step = "upload" | "processing" | "form" | "done";
+
+/** Confidence drempel voor auto-save (geen handmatige review nodig) */
+const AUTO_SAVE_CONFIDENCE = 0.85;
 
 interface ReceiptFormProps {
   receipt?: Receipt;
@@ -208,7 +211,11 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
       if (result.error) {
         setScanError(result.error);
-      } else if (result.data) {
+        setStep("form");
+        return;
+      }
+
+      if (result.data) {
         if (result.data.vendor_name) setVendorName(result.data.vendor_name);
         if (result.data.receipt_date) setReceiptDate(result.data.receipt_date);
         if (result.data.amount_ex_vat != null)
@@ -219,6 +226,28 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
           setCostCode(result.data.cost_code);
         if (result.data.confidence != null)
           setConfidence(result.data.confidence);
+
+        // Auto-save bij hoge confidence — skip het formulier
+        const conf = result.data.confidence ?? 0;
+        if (conf >= AUTO_SAVE_CONFIDENCE && result.data.amount_ex_vat != null && result.data.vendor_name) {
+          const aiCategory = result.data.cost_code
+            ? KOSTENSOORTEN.find((k) => k.code === result.data!.cost_code)?.label ?? "Overig"
+            : "Overig";
+
+          await updateReceipt(receiptId, {
+            vendor_name: result.data.vendor_name,
+            amount_ex_vat: result.data.amount_ex_vat,
+            vat_rate: result.data.vat_rate ?? 21,
+            category: aiCategory,
+            cost_code: result.data.cost_code ?? null,
+            receipt_date: result.data.receipt_date ?? today,
+          });
+          await markReceiptAiProcessed(receiptId);
+          await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+
+          setStep("done");
+          return;
+        }
       }
     } catch {
       setScanError(t.receipts.aiFailed);
@@ -289,6 +318,98 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
   if (step === "processing") {
     const isPdfProcessing = !filePreview && !imageUrl;
     return <ReceiptProcessing imageUrl={imageUrl} filePreview={filePreview} isPdf={isPdfProcessing} />;
+  }
+
+  // ─── STEP 2b: DONE (auto-saved) ───
+  if (step === "done") {
+    const parsedAmt = parseFloat(amountExVat) || 0;
+    const parsedVat = parseFloat(vatRate) || 0;
+    const incVat = Math.round(parsedAmt * (1 + parsedVat / 100) * 100) / 100;
+    return (
+      <div style={{ maxWidth: 500 }}>
+        <div
+          style={{
+            padding: "24px 0",
+            borderBottom: "0.5px solid rgba(13,13,11,0.1)",
+            marginBottom: 24,
+          }}
+        >
+          <p
+            style={{
+              fontSize: "var(--text-label)",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase" as const,
+              opacity: 0.4,
+              margin: "0 0 8px",
+            }}
+          >
+            {t.receipts.autoSaved ?? "Automatisch opgeslagen"}
+          </p>
+          <p
+            style={{
+              fontSize: "var(--text-body-lg, 18px)",
+              fontWeight: 400,
+              margin: 0,
+            }}
+          >
+            {vendorName || "—"}
+          </p>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+          <span style={{ fontSize: "var(--text-body-sm)", opacity: 0.5 }}>{t.receipts.dateRequired}</span>
+          <span style={{ fontSize: "var(--text-mono-md)" }}>{receiptDate}</span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+          <span style={{ fontSize: "var(--text-body-sm)", opacity: 0.5 }}>{t.receipts.amountExVat}</span>
+          <span style={{ fontSize: "var(--text-mono-md)" }}>{formatCurrency(parsedAmt)}</span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+          <span style={{ fontSize: "var(--text-body-sm)", opacity: 0.5 }}>{t.receipts.incVatLabel}</span>
+          <span style={{ fontSize: "var(--text-mono-md)" }}>{formatCurrency(incVat)}</span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+          <span style={{ fontSize: "var(--text-body-sm)", opacity: 0.5 }}>{t.receipts.vatRateLabel}</span>
+          <span style={{ fontSize: "var(--text-mono-md)" }}>{vatRate}%</span>
+        </div>
+
+        {costCode && (
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
+            <span style={{ fontSize: "var(--text-body-sm)", opacity: 0.5 }}>{t.receipts.costTypeLabel}</span>
+            <span style={{ fontSize: "var(--text-mono-md)" }}>{category}</span>
+          </div>
+        )}
+
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            marginTop: 32,
+            paddingTop: 24,
+            borderTop: "0.5px solid rgba(13,13,11,0.15)",
+          }}
+        >
+          <ButtonSecondary onClick={() => setStep("form")}>
+            {t.receipts.editReceipt ?? "Bewerken"}
+          </ButtonSecondary>
+          <ButtonPrimary
+            onClick={() => {
+              if (onSaved) {
+                onSaved();
+              } else {
+                router.push("/dashboard/receipts");
+              }
+            }}
+          >
+            {t.common.done ?? "Klaar"}
+          </ButtonPrimary>
+        </div>
+      </div>
+    );
   }
 
   // ─── STEP 3: FORM ───

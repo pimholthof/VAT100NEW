@@ -408,14 +408,14 @@ export async function getReceiptImageUrl(
 
 export async function scanReceiptWithAI(
   receiptId: string
-): Promise<ActionResult<Partial<ReceiptInput & { cost_code: number | null; confidence: number }>>> {
+): Promise<ActionResult<Partial<ReceiptInput & { cost_code: number | null; confidence: number; amount_inc_vat: number | null }>>> {
   try {
     const idCheck = uuidSchema.safeParse(receiptId);
     if (!idCheck.success) return { error: "Ongeldig bon-ID." };
 
-    // Feature-gate: AI scan is Compleet-only
+    // Feature-gate: AI scan beschikbaar vanaf Studio (net als bankkoppeling)
     const { requirePlan } = await import("@/lib/supabase/server");
-    const planCheck = await requirePlan("compleet");
+    const planCheck = await requirePlan("studio");
     if (planCheck.error !== null) return { error: planCheck.error };
     const { supabase, user } = planCheck;
 
@@ -449,16 +449,33 @@ export async function scanReceiptWithAI(
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen in het administratiesysteem VAT100. Analyseer het document en extraheer alle informatie. Retourneer UITSLUITEND valide JSON zonder expliciete markdown backticks rondom de JSON.
-Velden in het JSON object:
-- vendor_name (string): naam van de winkel/leverancier
-- receipt_date (string): datum in YYYY-MM-DD format
-- amount_ex_vat (number): bedrag exclusief BTW. Reken terug indien enkel het totaalbedrag en BTW-bedrag/percentage vermeld staan.
-- vat_rate (number): BTW-tarief als integer (21, 9, of 0). Leid correct af uit de bon.
-- cost_code (number): de meest passende kostensoort code uit deze lijst:
-  4100=Huur, 4105=Energie, 4195=Overige huisvesting, 4230=Kleine investering, 4300=Kantoorkosten, 4330=Computer & software, 4340=Telefoon, 4341=Webhosting & internet, 4350=Porto, 4360=Vakliteratuur, 4400=Verzekeringen, 4500=Vervoer (OV/auto), 4510=Reiskosten, 4520=Parkeren, 4600=Reclame & marketing, 4610=Representatie, 4620=Website & SEO, 4700=Accountant & advies, 4710=Boekhouding, 4720=Juridisch, 4750=Bankkosten, 4800=Abonnementen & licenties, 4900=Eten & drinken zakelijk, 4910=Gereedschap & materiaal, 4999=Overig
-- confidence (number 0-1): hoe zeker je bent van je extractie (bijv. 0.95)
-Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
+    const systemPrompt = `Je bent een OCR-specialist voor Nederlandse bonnen en facturen.
+Retourneer UITSLUITEND valide JSON — geen markdown, geen toelichting.
+
+STAP 1 — AFLEZEN
+Lees letterlijk van de bon af:
+- Winkelnaam/leverancier (bovenaan of onderaan, vaak vetgedrukt)
+- Datum (elk formaat: DD-MM-YYYY, DD/MM/YY, etc.)
+- Totaalbedrag inclusief BTW ("Totaal", "Te betalen", "Total", het laatste/grootste bedrag)
+- BTW-bedrag en/of BTW-percentage (als vermeld)
+- Bedrag exclusief BTW (als apart vermeld)
+
+STAP 2 — BEREKENEN
+- Als alleen totaal (inc BTW) zichtbaar: amount_ex_vat = amount_inc_vat / (1 + vat_rate/100)
+- Als alleen ex BTW zichtbaar: amount_inc_vat = amount_ex_vat * (1 + vat_rate/100)
+- Bij meerdere BTW-tarieven op één bon: gebruik het tarief van de grootste post
+- NL BTW-tarieven: 21% (standaard), 9% (voedsel, boeken, medicijnen, horeca), 0% (vrijgesteld)
+- Let op: Nederlandse bonnen gebruiken komma als decimaalteken (€ 12,50 = 12.50)
+- Rond af op 2 decimalen. Controleer: amount_ex_vat + BTW = amount_inc_vat
+
+STAP 3 — CLASSIFICEREN
+Kies de best passende kostensoort:
+4100=Huur, 4105=Energie, 4195=Overige huisvesting, 4230=Kleine investering (<€450), 4300=Kantoorkosten, 4330=Computer & software, 4340=Telefoon, 4341=Webhosting & internet, 4350=Porto, 4360=Vakliteratuur, 4400=Verzekeringen, 4500=Vervoer (OV/auto), 4510=Reiskosten, 4520=Parkeren, 4600=Reclame & marketing, 4610=Representatie (zakelijk dineren met klant), 4620=Website & SEO, 4700=Accountant & advies, 4710=Boekhouding, 4720=Juridisch, 4750=Bankkosten, 4800=Abonnementen & licenties, 4900=Eten & drinken zakelijk, 4910=Gereedschap & materiaal, 4999=Overig
+
+JSON-formaat:
+{"vendor_name":"string|null","receipt_date":"YYYY-MM-DD|null","amount_inc_vat":number|null,"amount_ex_vat":number|null,"vat_rate":21|9|0,"cost_code":number,"confidence":0.0-1.0}
+
+confidence: hoe zeker je bent van de totale extractie. Gebruik null als een veld echt niet leesbaar is.`;
 
     const documentContent = isPdfFile
       ? {
@@ -501,12 +518,14 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
       return { error: "Geen parsable tekst gevonden in de uitslag van Claude Vision." };
     }
 
-    // Strip potential markdown JSON codeblocks returned by Claude
-    const cleanedText = textContent.text.replace(/```json\n|\n```/g, '');
+    // Strip markdown codeblock wrappers (handles ```json, ```, with/without newlines)
+    let cleanedText = textContent.text.trim();
+    cleanedText = cleanedText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
     const raw = JSON.parse(cleanedText);
     const aiReceiptSchema = z.object({
       vendor_name: z.string().nullable().optional(),
       receipt_date: z.string().nullable().optional(),
+      amount_inc_vat: z.number().nullable().optional(),
       amount_ex_vat: z.number().nullable().optional(),
       vat_rate: z.number().nullable().optional(),
       cost_code: z.number().nullable().optional(),
@@ -516,7 +535,26 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
     if (!validated.success) {
       return { error: "AI-antwoord heeft een onverwacht formaat." };
     }
-    return { error: null, data: validated.data };
+
+    const data = validated.data;
+
+    // Fallback: als amount_ex_vat ontbreekt maar amount_inc_vat wel bekend is, bereken terug
+    if (data.amount_ex_vat == null && data.amount_inc_vat != null) {
+      const rate = data.vat_rate ?? 21;
+      data.amount_ex_vat = Math.round((data.amount_inc_vat / (1 + rate / 100)) * 100) / 100;
+    }
+
+    // Cross-verificatie: als beide bedragen aanwezig zijn, controleer consistentie
+    if (data.amount_ex_vat != null && data.amount_inc_vat != null && data.vat_rate != null) {
+      const expectedIncVat = Math.round(data.amount_ex_vat * (1 + data.vat_rate / 100) * 100) / 100;
+      const diff = Math.abs(expectedIncVat - data.amount_inc_vat);
+      // Als verschil > €0.05 dan is amount_inc_vat betrouwbaarder (direct van bon gelezen)
+      if (diff > 0.05) {
+        data.amount_ex_vat = Math.round((data.amount_inc_vat / (1 + data.vat_rate / 100)) * 100) / 100;
+      }
+    }
+
+    return { error: null, data };
   } catch (e) {
     return { error: getErrorMessage(e) };
   }
