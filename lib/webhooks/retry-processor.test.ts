@@ -137,7 +137,7 @@ describe("retry-processor", () => {
           insert: mockInsert,
           update: mockUpdate,
         })),
-      } as any);
+      } as unknown as ReturnType<typeof createServiceClient>);
 
       const { processWebhookRetries } = await import("./retry-processor");
       const result = await processWebhookRetries();
@@ -198,13 +198,13 @@ describe("retry-processor", () => {
             update: mockUpdateChain,
           };
         }),
-      } as any);
+      } as unknown as ReturnType<typeof createServiceClient>);
 
       const { getMolliePayment } = await import("@/lib/payments/mollie");
       vi.mocked(getMolliePayment).mockResolvedValue({
         data: { status: "paid", method: "ideal" },
         error: null,
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof getMolliePayment>>);
 
       const { processWebhookRetries } = await import("./retry-processor");
       const result = await processWebhookRetries();
@@ -246,13 +246,13 @@ describe("retry-processor", () => {
           })),
           update: mockUpdateChain,
         })),
-      } as any);
+      } as unknown as ReturnType<typeof createServiceClient>);
 
       const { getMolliePayment } = await import("@/lib/payments/mollie");
       vi.mocked(getMolliePayment).mockResolvedValue({
         data: null,
         error: "Mollie API timeout",
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof getMolliePayment>>);
 
       const Sentry = await import("@sentry/nextjs");
 
@@ -299,13 +299,13 @@ describe("retry-processor", () => {
           })),
           update: mockUpdateChain,
         })),
-      } as any);
+      } as unknown as ReturnType<typeof createServiceClient>);
 
       const { getMolliePayment } = await import("@/lib/payments/mollie");
       vi.mocked(getMolliePayment).mockResolvedValue({
         data: null,
         error: "Temporary failure",
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof getMolliePayment>>);
 
       const { processWebhookRetries } = await import("./retry-processor");
       const result = await processWebhookRetries();
