@@ -118,6 +118,31 @@ export default async function LandingPage() {
 
   const primaryPlanId = pricingPlans.find((plan) => plan.highlighted)?.id ?? pricingPlans[0]?.id ?? "basis";
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "VAT100",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    description: locale === "en"
+      ? "Intelligent bookkeeping for Dutch freelancers with real-time tax insight."
+      : "Slimme boekhouding voor Nederlandse freelancers met realtime belastinginzicht.",
+    offers: pricingPlans.map((plan) => ({
+      "@type": "Offer",
+      name: plan.name,
+      price: plan.price,
+      priceCurrency: "EUR",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: plan.price,
+        priceCurrency: "EUR",
+        billingDuration: "P1M",
+      },
+    })),
+    url: "https://vat100.nl",
+    aggregateRating: undefined,
+  };
+
   return (
     <div
       style={{
@@ -127,6 +152,10 @@ export default async function LandingPage() {
         background: "var(--background)",
       }}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Background watermark */}
       <div
         aria-hidden="true"

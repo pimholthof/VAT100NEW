@@ -29,3 +29,47 @@ test.describe('Dashboard secties (ongeauthenticeerd)', () => {
     });
   }
 });
+
+test.describe('Juridische paginas', () => {
+  test('privacy pagina laadt met correcte titel', async ({ page }) => {
+    await page.goto('/privacy');
+
+    await expect(page).toHaveTitle(/Privacybeleid/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Privacybeleid' })).toBeVisible();
+  });
+
+  test('privacy pagina toont "Laatst bijgewerkt" datum', async ({ page }) => {
+    await page.goto('/privacy');
+
+    await expect(page.getByText(/Laatst bijgewerkt/)).toBeVisible();
+  });
+
+  test('privacy pagina heeft een "Terug" link naar /', async ({ page }) => {
+    await page.goto('/privacy');
+
+    const terugLink = page.getByRole('link', { name: /Terug/ });
+    await expect(terugLink).toBeVisible();
+    await expect(terugLink).toHaveAttribute('href', '/');
+  });
+
+  test('voorwaarden pagina laadt met correcte titel', async ({ page }) => {
+    await page.goto('/voorwaarden');
+
+    await expect(page).toHaveTitle(/Algemene Voorwaarden/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Algemene Voorwaarden' })).toBeVisible();
+  });
+
+  test('voorwaarden pagina toont "Laatst bijgewerkt" datum', async ({ page }) => {
+    await page.goto('/voorwaarden');
+
+    await expect(page.getByText(/Laatst bijgewerkt/)).toBeVisible();
+  });
+
+  test('voorwaarden pagina heeft een "Terug" link naar /', async ({ page }) => {
+    await page.goto('/voorwaarden');
+
+    const terugLink = page.getByRole('link', { name: /Terug/ });
+    await expect(terugLink).toBeVisible();
+    await expect(terugLink).toHaveAttribute('href', '/');
+  });
+});

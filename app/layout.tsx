@@ -50,11 +50,20 @@ export const metadata: Metadata = {
     siteName: "VAT100",
     locale: "nl_NL",
     type: "website",
+    images: [
+      {
+        url: "/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "VAT100 — Boekhouding met realtime belastinginzicht",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "VAT100 | Boekhouding met realtime belastinginzicht",
     description: "Gemak, inzicht en stijl voor zelfstandigen en kleine ondernemers.",
+    images: ["/images/og-image.png"],
   },
   appleWebApp: {
     capable: true,

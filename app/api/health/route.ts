@@ -86,6 +86,61 @@ async function checkResend(): Promise<HealthCheck> {
   }
 }
 
+async function checkTink(): Promise<HealthCheck> {
+  const start = Date.now();
+  const clientId = process.env.TINK_CLIENT_ID;
+  const clientSecret = process.env.TINK_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    return { name: "tink", status: "degraded", latency_ms: 0, error: "Credentials not configured" };
+  }
+  try {
+    const res = await fetch("https://api.tink.com/api/v1/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: "client_credentials",
+        scope: "authorization:read",
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    return {
+      name: "tink",
+      status: res.ok ? "healthy" : "degraded",
+      latency_ms: Date.now() - start,
+      ...(!res.ok && { error: `HTTP ${res.status}` }),
+    };
+  } catch (e) {
+    return { name: "tink", status: "down", latency_ms: Date.now() - start, error: String(e) };
+  }
+}
+
+async function checkAnthropic(): Promise<HealthCheck> {
+  const start = Date.now();
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return { name: "anthropic", status: "degraded", latency_ms: 0, error: "API key not configured" };
+  }
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/models", {
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      signal: AbortSignal.timeout(5000),
+    });
+    return {
+      name: "anthropic",
+      status: res.ok ? "healthy" : "degraded",
+      latency_ms: Date.now() - start,
+      ...(!res.ok && { error: `HTTP ${res.status}` }),
+    };
+  } catch (e) {
+    return { name: "anthropic", status: "down", latency_ms: Date.now() - start, error: String(e) };
+  }
+}
+
 export async function GET(request: Request) {
   // Require CRON_SECRET or admin auth for detailed health info
   const cronSecret = process.env.CRON_SECRET;
@@ -102,6 +157,8 @@ export async function GET(request: Request) {
     checkAuth(),
     checkMollie(),
     checkResend(),
+    checkTink(),
+    checkAnthropic(),
   ]);
 
   const hasDown = checks.some((c) => c.status === "down");
