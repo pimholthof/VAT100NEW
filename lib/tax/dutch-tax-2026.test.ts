@@ -338,3 +338,93 @@ describe("calculateZZPTaxProjection", () => {
     expect(result.brutoWinst).toBe(53_000); // 60000 - 5000 - 0 - 2000
   });
 });
+
+// ─── Belastingdienst Rekenvoorbeelden 2026 ───
+
+describe("Belastingdienst rekenvoorbeelden 2026 — consistentiecheck", () => {
+  it("Box1 + heffingskortingen zijn consistent bij €35.000", () => {
+    const inkomen = 35_000;
+    const ib = calculateBox1Tax(inkomen);
+    const ahk = calculateAlgemeneHeffingskorting(inkomen);
+    const ak = calculateArbeidskorting(inkomen);
+    const netto = Math.max(0, round2(ib - ahk - ak));
+
+    // IB moet in eerste schijf vallen
+    expect(ib).toBe(round2(35_000 * 0.3575));
+    // AHK is boven afbouwgrens (29739), dus afgebouwd
+    expect(ahk).toBeLessThan(TAX_CONSTANTS.ahkMax);
+    expect(ahk).toBeGreaterThan(0);
+    // Netto < bruto IB
+    expect(netto).toBeLessThan(ib);
+    expect(netto).toBeGreaterThan(0);
+  });
+
+  it("Box1 schijfovergangen zijn exact", () => {
+    // Exact op de grens van schijf 1 → 2
+    const grens1 = calculateBox1Tax(38_883);
+    expect(grens1).toBe(round2(38_883 * 0.3575));
+
+    // €1 boven de grens
+    const grens1plus1 = calculateBox1Tax(38_884);
+    const expected = round2(38_883 * 0.3575 + 1 * 0.3756);
+    expect(grens1plus1).toBe(expected);
+
+    // Exact op de grens van schijf 2 → 3
+    const grens2 = calculateBox1Tax(78_426);
+    const expectedGrenz2 = round2(38_883 * 0.3575 + (78_426 - 38_883) * 0.3756);
+    expect(grens2).toBe(expectedGrenz2);
+  });
+
+  it("KIA-schijfovergangen zijn exact", () => {
+    // Net onder minimum
+    expect(calculateKIA(2_900)).toBe(0);
+    // Exact op minimum
+    expect(calculateKIA(2_901)).toBe(round2(2_901 * 0.28));
+    // Bovengrens tier 1 → tier 2
+    expect(calculateKIA(71_683)).toBe(round2(71_683 * 0.28));
+    expect(calculateKIA(71_684)).toBe(20_072);
+    // Bovengrens tier 2 → tier 3
+    expect(calculateKIA(132_746)).toBe(20_072);
+    // Boven bovengrens
+    expect(calculateKIA(398_237)).toBe(0);
+  });
+
+  it("volledig ZZP-scenario: €75k omzet, €8k kosten, €10k investering", () => {
+    const result = calculateZZPTaxProjection({
+      jaarOmzetExBtw: 75_000,
+      jaarKostenExBtw: 8_000,
+      investeringen: [
+        {
+          id: "1",
+          omschrijving: "MacBook Pro",
+          aanschafprijs: 3_500,
+          aanschafDatum: "2026-02-15",
+          levensduur: 5,
+          restwaarde: 0,
+        },
+        {
+          id: "2",
+          omschrijving: "Camera systeem",
+          aanschafprijs: 6_500,
+          aanschafDatum: "2026-06-01",
+          levensduur: 5,
+          restwaarde: 500,
+        },
+      ],
+      maandenVerstreken: 12,
+      huidigJaar: 2026,
+    });
+
+    // KIA: totaal investeringen = 3500 + 6500 = 10000, beide >= 450
+    expect(result.totalInvestments).toBe(10_000);
+    expect(result.kia).toBe(round2(10_000 * 0.28));
+    // Zelfstandigenaftrek = 1200
+    expect(result.zelfstandigenaftrek).toBe(1_200);
+    // Brutowinst > 0 (75000 - 8000 - afschrijvingen)
+    expect(result.brutoWinst).toBeGreaterThan(0);
+    // Afschrijving details: 2 items
+    expect(result.afschrijvingDetails).toHaveLength(2);
+    // Netto IB > 0
+    expect(result.nettoIB).toBeGreaterThan(0);
+  });
+});
