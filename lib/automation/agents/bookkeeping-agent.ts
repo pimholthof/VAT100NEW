@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { autoBookInvoice, autoBookReceipt } from "@/features/ledger/actions";
 import { Agent, SystemEventRow } from "../types";
 
 /**
@@ -389,6 +390,46 @@ async function linkTransactionToInvoice(transactionId: string, invoiceId: string
       status: "paid"
     })
     .eq("id", invoiceId);
+
+  // Auto-ledger posting bij hoge confidence
+  if (confidence >= 0.9) {
+    try {
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("id, user_id, invoice_number, subtotal_ex_vat, vat_amount, vat_scheme")
+        .eq("id", invoiceId)
+        .single();
+
+      const { data: transaction } = await supabase
+        .from("bank_transactions")
+        .select("booking_date, description")
+        .eq("id", transactionId)
+        .single();
+
+      if (invoice && transaction) {
+        // Check of er al een ledger entry bestaat voor deze factuur
+        const { count } = await supabase
+          .from("ledger_entries")
+          .select("id", { count: "exact", head: true })
+          .eq("source_invoice_id", invoiceId);
+
+        if (!count || count === 0) {
+          await autoBookInvoice({
+            invoiceId: invoice.id,
+            userId: invoice.user_id,
+            entryDate: transaction.booking_date ?? new Date().toISOString().split("T")[0],
+            description: `Factuur betaling: ${invoice.invoice_number}`,
+            subtotalExVat: invoice.subtotal_ex_vat,
+            vatAmount: invoice.vat_amount ?? 0,
+            vatScheme: invoice.vat_scheme ?? undefined,
+            supabase: supabase as Parameters<typeof autoBookInvoice>[0]["supabase"],
+          });
+        }
+      }
+    } catch (err) {
+      console.error(`[Bookkeeping Agent] Auto-ledger invoice fout:`, err);
+    }
+  }
 }
 
 async function linkTransactionToReceipt(transactionId: string, receiptId: string, confidence: number) {
@@ -408,6 +449,48 @@ async function linkTransactionToReceipt(transactionId: string, receiptId: string
       linked_transaction_id: transactionId
     })
     .eq("id", receiptId);
+
+  // Auto-ledger posting bij hoge confidence
+  if (confidence >= 0.9) {
+    try {
+      const { data: receipt } = await supabase
+        .from("receipts")
+        .select("id, user_id, vendor_name, amount_ex_vat, vat_amount, cost_code, business_percentage, category")
+        .eq("id", receiptId)
+        .single();
+
+      const { data: transaction } = await supabase
+        .from("bank_transactions")
+        .select("booking_date")
+        .eq("id", transactionId)
+        .single();
+
+      if (receipt && transaction) {
+        // Check of er al een ledger entry bestaat voor deze bon
+        const { count } = await supabase
+          .from("ledger_entries")
+          .select("id", { count: "exact", head: true })
+          .eq("source_receipt_id", receiptId);
+
+        if (!count || count === 0) {
+          await autoBookReceipt({
+            receiptId: receipt.id,
+            userId: receipt.user_id,
+            entryDate: transaction.booking_date ?? new Date().toISOString().split("T")[0],
+            description: receipt.vendor_name ?? "Onbekende leverancier",
+            costCode: receipt.cost_code ?? 4999,
+            amountExVat: receipt.amount_ex_vat ?? 0,
+            vatAmount: receipt.vat_amount ?? 0,
+            businessPercentage: receipt.business_percentage ?? 100,
+            category: receipt.category ?? null,
+            supabase: supabase as Parameters<typeof autoBookReceipt>[0]["supabase"],
+          });
+        }
+      }
+    } catch (err) {
+      console.error(`[Bookkeeping Agent] Auto-ledger receipt fout:`, err);
+    }
+  }
 }
 
 async function storeCategorySuggestion(transactionId: string, category: string, userId: string) {

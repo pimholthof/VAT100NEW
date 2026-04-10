@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { processReceiptWebhook } from "@/features/receipts/actions";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { getErrorMessage } from "@/lib/utils/errors";
 
 /**
  * Agent 1: Receipt Catcher (Webhook Endpoint)
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result.data);
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
+      { error: getErrorMessage(err) },
       { status: 500 }
     );
   }

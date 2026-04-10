@@ -178,6 +178,37 @@ export async function getClientStats(
   };
 }
 
+export async function checkDuplicateClients(params: {
+  name: string;
+  email?: string;
+  kvkNumber?: string;
+  excludeId?: string;
+}): Promise<ActionResult<Array<{ id: string; name: string; email: string | null }>>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { name, email, kvkNumber, excludeId } = params;
+  const nameTerm = `%${name.trim().replace(/%/g, "")}%`;
+
+  let query = supabase
+    .from("clients")
+    .select("id, name, email")
+    .eq("user_id", user.id);
+
+  if (excludeId) query = query.neq("id", excludeId);
+
+  const orParts: string[] = [`name.ilike.${nameTerm}`];
+  if (email && email.trim()) orParts.push(`email.eq.${email.trim()}`);
+  if (kvkNumber && kvkNumber.trim()) orParts.push(`kvk_number.eq.${kvkNumber.trim()}`);
+
+  query = query.or(orParts.join(","));
+
+  const { data, error } = await query.limit(5);
+  if (error) return { error: error.message };
+  return { error: null, data: data ?? [] };
+}
+
 export async function getClientInvoices(
   clientId: string
 ): Promise<ActionResult<Array<{

@@ -8,6 +8,8 @@ import {
   createQuote,
   updateQuote,
   generateQuoteNumber,
+  sendQuoteEmail,
+  getClientPricingHistory,
 } from "@/features/quotes/actions";
 import { getClients } from "@/features/clients/actions";
 import { InvoiceLineRow } from "@/features/invoices/components/InvoiceLineRow";
@@ -29,8 +31,10 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
   const { t } = useLocale();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showNewClient, setShowNewClient] = useState(false);
+  const [pricingHistory, setPricingHistory] = useState<Array<{ description: string; rate: number; unit: string }>>([]);
 
   const clientId = useQuoteStore((s) => s.clientId);
   const setClientId = useQuoteStore((s) => s.setClientId);
@@ -105,6 +109,16 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
     return unsub;
   }, []);
 
+  useEffect(() => {
+    if (clientId) {
+      getClientPricingHistory(clientId).then((res) => {
+        setPricingHistory(res.data ?? []);
+      });
+    } else {
+      setPricingHistory([]);
+    }
+  }, [clientId]);
+
   const { data: clientsResult, isLoading: clientsLoading, isError: clientsError } = useQuery({
     queryKey: ["clients"],
     queryFn: () => getClients(),
@@ -124,6 +138,23 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
       });
     }
   }, [quoteId, quoteNumber, setQuoteNumber]);
+
+  const handleSendEmail = async () => {
+    if (!quoteId) {
+      setError("Sla de offerte eerst op als concept voordat je hem verstuurt.");
+      return;
+    }
+    setSending(true);
+    setError(null);
+    const result = await sendQuoteEmail(quoteId);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      playSound("glass-ping");
+      router.push(`/dashboard/quotes/${quoteId}`);
+    }
+    setSending(false);
+  };
 
   const handleSave = async (status: QuoteStatus) => {
     if (!clientId) {
@@ -243,6 +274,31 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
       {/* Lines */}
       <div style={{ marginBottom: 80 }}>
         <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>{t.quotes.lines}</p>
+        {pricingHistory.length > 0 && (
+          <div style={{ marginBottom: 16, padding: "10px 14px", background: "rgba(0,0,0,0.03)", borderRadius: 6, fontSize: 12 }}>
+            <span style={{ opacity: 0.4, fontWeight: 600, letterSpacing: "0.08em", fontSize: 10, textTransform: "uppercase" }}>Eerder gefactureerd aan deze klant — </span>
+            {pricingHistory.map((item, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => {
+                  addLine();
+                  const newLines = useQuoteStore.getState().lines;
+                  const last = newLines[newLines.length - 1];
+                  if (last) {
+                    updateLine(last.id, "description", item.description);
+                    updateLine(last.id, "rate", item.rate);
+                    updateLine(last.id, "unit", item.unit);
+                  }
+                  playSound("tink");
+                }}
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "inherit", opacity: 0.6, textDecoration: "underline", marginRight: 12, padding: 0 }}
+              >
+                {item.description} (€{item.rate}/{item.unit})
+              </button>
+            ))}
+          </div>
+        )}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {lines.map((line, index) => (
             <InvoiceLineRow
@@ -316,11 +372,8 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
           {saving ? "..." : t.quotes.saveDraft}
         </button>
         <button
-          onClick={() => {
-            handleSave("sent");
-            playSound("glass-ping");
-          }}
-          disabled={saving}
+          onClick={handleSendEmail}
+          disabled={saving || sending}
           style={{
             flex: 2,
             padding: "24px",
@@ -335,7 +388,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
           }}
         >
-          {saving ? "..." : t.quotes.sendQuote}
+          {sending ? "Versturen..." : t.quotes.sendQuote}
         </button>
       </div>
 

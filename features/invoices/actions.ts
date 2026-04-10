@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/supabase/server";
 import { sendInvoiceEmail } from "@/lib/email/send-invoice";
 import { sendReminderEmail } from "@/lib/email/send-reminder";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
+import { getErrorMessage } from "@/lib/utils/errors";
 import type {
   ActionResult,
   InvoiceInput,
@@ -38,7 +39,7 @@ export async function generateInvoiceNumber(): Promise<ActionResult<string>> {
     const invoiceNumber = await generateInvoiceNumberInService(supabase, user.id);
     return { error: null, data: invoiceNumber };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -65,7 +66,7 @@ export async function createInvoice(
     trackUserEvent(user.id, "invoice_created", { invoiceId, vatScheme: input.vat_scheme });
     return { error: null, data: invoiceId };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -107,12 +108,12 @@ export async function updateInvoice(
     await updateInvoiceInService(supabase, user.id, id, input);
     return { error: null };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
 // Toegestane status transities — voorkomt dat verzonden facturen terug naar draft gaan
-const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+const ALLOWED_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
   draft: ["sent"],
   sent: ["paid", "overdue"],
   overdue: ["paid"],
@@ -140,7 +141,7 @@ export async function updateInvoiceStatus(
 
   if (!current) return { error: "Factuur niet gevonden." };
 
-  const allowed = ALLOWED_TRANSITIONS[current.status] ?? [];
+  const allowed = ALLOWED_TRANSITIONS[current.status as InvoiceStatus] ?? [];
   if (!allowed.includes(status)) {
     return { error: `Status kan niet worden gewijzigd van "${current.status}" naar "${status}".` };
   }
@@ -149,7 +150,7 @@ export async function updateInvoiceStatus(
     await updateInvoiceStatusInService(supabase, user.id, id, status);
     return { error: null };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -165,7 +166,7 @@ export async function deleteInvoice(id: string): Promise<ActionResult> {
     await deleteDraftInvoiceInService(supabase, user.id, id);
     return { error: null };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -183,7 +184,7 @@ export async function getInvoices(filters?: {
     const invoices = await getInvoicesInService(supabase, user.id, filters);
     return { error: null, data: invoices };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -201,7 +202,7 @@ export async function getInvoice(
     const invoice = await getInvoiceInService(supabase, user.id, id);
     return { error: null, data: invoice };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -219,7 +220,7 @@ export async function generateShareToken(
     const token = await generateShareTokenInService(supabase, user.id, invoiceId);
     return { error: null, data: token };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -253,7 +254,7 @@ export async function sendReminder(invoiceId: string, customMessage?: string): P
     // Email is not a DB interaction; keeping in action layer.
     return sendReminderEmail(result.data, customMessage);
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -321,7 +322,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
     trackUserEvent(user.id, "invoice_sent", { invoiceId: id });
     return sendInvoiceEmail(id);
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -341,7 +342,7 @@ export async function processOverdueInvoices(userId?: string): Promise<ActionRes
     const data = await processOverdueInvoicesInService(userId);
     return { error: null, data };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -380,7 +381,7 @@ export async function duplicateInvoice(
     });
     return { error: null, data: newId };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -416,7 +417,7 @@ export async function createCreditNote(
     trackUserEvent(user.id, "credit_note_created", { creditNoteId, originalInvoiceId: invoiceId });
     return { error: null, data: creditNoteId };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -479,7 +480,7 @@ export async function validateInvoiceRequirements(
     const checks = validateDutchInvoiceRequirements(result.data);
     return { error: null, data: checks };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 

@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { bankingClient } from "@/lib/banking/tink";
 import { autoCategorizeTransactionsInternal } from "@/features/banking/actions";
 import { recalculateReserves } from "@/lib/services/reserve-recalculator";
 import { autoReconcilePayments } from "@/lib/services/payment-reconciliation";
 import { autoMatchReceipts } from "@/lib/services/receipt-matcher";
+import { autoBookInvoice, autoBookReceipt } from "@/features/ledger/actions";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
 import { withCronLock } from "@/lib/cron/lock";
 
@@ -198,8 +200,9 @@ export async function GET(request: NextRequest) {
         }
 
         // Automatische betalingsreconciliatie
+        let reconcileResult: Awaited<ReturnType<typeof autoReconcilePayments>> = { matched: 0, matches: [] };
         try {
-          const reconcileResult = await autoReconcilePayments(
+          reconcileResult = await autoReconcilePayments(
             connection.user_id,
             supabase
           );
@@ -209,18 +212,94 @@ export async function GET(request: NextRequest) {
         }
 
         // Automatische bonnetjes-matching
+        let matchResult = { matched: 0, suggestions: [] as Array<{ receiptId: string; confidence: number }> };
         try {
-          const matchResult = await autoMatchReceipts(connection.user_id, supabase);
+          matchResult = await autoMatchReceipts(connection.user_id, supabase);
           totalReceiptsMatched += matchResult.matched;
         } catch {
           // Non-fatal
         }
 
+        // Stap 3b: Auto-ledger posting voor hoog-confidence reconciled facturen
+        try {
+          for (const match of reconcileResult.matches) {
+            const { data: invoice } = await supabase
+              .from("invoices")
+              .select("id, user_id, invoice_number, subtotal_ex_vat, vat_amount, vat_scheme")
+              .eq("id", match.invoiceId)
+              .single();
+
+            const { data: transaction } = await supabase
+              .from("bank_transactions")
+              .select("booking_date")
+              .eq("id", match.transactionId)
+              .single();
+
+            if (invoice && transaction) {
+              const { count } = await supabase
+                .from("ledger_entries")
+                .select("id", { count: "exact", head: true })
+                .eq("source_invoice_id", invoice.id);
+
+              if (!count || count === 0) {
+                await autoBookInvoice({
+                  invoiceId: invoice.id,
+                  userId: invoice.user_id,
+                  entryDate: transaction.booking_date ?? new Date().toISOString().split("T")[0],
+                  description: `Factuur betaling: ${invoice.invoice_number}`,
+                  subtotalExVat: invoice.subtotal_ex_vat,
+                  vatAmount: invoice.vat_amount ?? 0,
+                  vatScheme: invoice.vat_scheme ?? undefined,
+                  supabase: supabase as Parameters<typeof autoBookInvoice>[0]["supabase"],
+                });
+              }
+            }
+          }
+        } catch (err) {
+          // Non-fatal: ledger posting mag sync niet blokkeren
+          Sentry.captureException(err, { tags: { area: "cron.bank_sync.auto_ledger" } });
+        }
+
+        // Stap 3b: Auto-ledger posting voor hoog-confidence receipt matches
+        try {
+          for (const match of matchResult.suggestions.filter((m) => m.confidence >= 0.9)) {
+            const { data: receipt } = await supabase
+              .from("receipts")
+              .select("id, user_id, vendor_name, amount_ex_vat, vat_amount, cost_code, business_percentage, category")
+              .eq("id", match.receiptId)
+              .single();
+
+            if (receipt) {
+              const { count } = await supabase
+                .from("ledger_entries")
+                .select("id", { count: "exact", head: true })
+                .eq("source_receipt_id", receipt.id);
+
+              if (!count || count === 0) {
+                await autoBookReceipt({
+                  receiptId: receipt.id,
+                  userId: receipt.user_id,
+                  entryDate: new Date().toISOString().split("T")[0],
+                  description: receipt.vendor_name ?? "Onbekende leverancier",
+                  costCode: receipt.cost_code ?? 4999,
+                  amountExVat: receipt.amount_ex_vat ?? 0,
+                  vatAmount: receipt.vat_amount ?? 0,
+                  businessPercentage: receipt.business_percentage ?? 100,
+                  category: receipt.category ?? null,
+                  supabase: supabase as Parameters<typeof autoBookReceipt>[0]["supabase"],
+                });
+              }
+            }
+          }
+        } catch (err) {
+          // Non-fatal
+          Sentry.captureException(err, { tags: { area: "cron.bank_sync.auto_ledger_receipts" } });
+        }
+
         // Reserve herberekening (fire-and-forget)
         recalculateReserves(connection.user_id, "sync").catch(() => {});
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        errors.push({ connectionId: connection.id, error: message });
+        errors.push({ connectionId: connection.id, error: getErrorMessage(err) });
         Sentry.captureException(err, {
           tags: { area: "cron.bank_sync", connectionId: connection.id },
           extra: { userId: connection.user_id },
@@ -249,9 +328,8 @@ export async function GET(request: NextRequest) {
       errors,
     });
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
     await alertCronFailure("sync-bank", e, { totalSynced, totalCategorized, totalReconciled });
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(e) }, { status: 500 });
   }
   }, 15); // 15 min TTL
 

@@ -6,6 +6,8 @@
  * Bron: Besluit wettelijke rente.
  */
 
+import { MS_PER_DAY } from "@/lib/constants/time";
+
 const WETTELIJKE_HANDELSRENTE_JAARLIJKS = 0.105; // 10.5% per jaar
 
 /**
@@ -23,10 +25,7 @@ export function calculateLegalInterest(
 } {
   const due = new Date(dueDate);
   const calc = new Date(calculationDate);
-  const daysOverdue = Math.max(
-    0,
-    Math.floor((calc.getTime() - due.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  const daysOverdue = Math.max(0, Math.floor((calc.getTime() - due.getTime()) / MS_PER_DAY));
 
   const dailyRate = WETTELIJKE_HANDELSRENTE_JAARLIJKS / 365;
   const interestAmount =

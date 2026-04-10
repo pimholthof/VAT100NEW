@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { getErrorMessage } from "@/lib/utils/errors";
 import {
   runReconciliationAgent,
   runAnticipationAgent,
@@ -17,7 +18,7 @@ import { generateAnnualReportNotifications, isAnnualReportDay } from "@/lib/use-
 /**
  * Configuration for batch processing
  */
-const BATCH_SIZE = 50; // Users per batch
+const BATCH_SIZE = 10; // Users per batch
 const CONCURRENCY = 5; // Parallel user processing
 const MAX_EXECUTION_TIME_MS = 55000; // Vercel cron limit is 60s, stay under
 
@@ -41,32 +42,32 @@ async function processUser(userId: string, supabase: ReturnType<typeof createSer
   const [recRes, payRes, antRes, invRes, missingReceiptRes, btwDeadlineRes] = await Promise.all([
     runReconciliationAgent(userId, supabase).catch((e) => {
       Sentry.captureException(e, { tags: { agent: "reconciliation", userId } });
-      errors.push(`reconciliation: ${e instanceof Error ? e.message : String(e)}`);
+      errors.push(`reconciliation: ${getErrorMessage(e)}`);
       return { error: "failed", data: { created: 0 } };
     }),
     runPaymentDetectionAgent(userId, supabase).catch((e) => {
       Sentry.captureException(e, { tags: { agent: "payment-detection", userId } });
-      errors.push(`payment: ${e instanceof Error ? e.message : String(e)}`);
+      errors.push(`payment: ${getErrorMessage(e)}`);
       return { error: "failed", data: { created: 0 } };
     }),
     runAnticipationAgent(userId, supabase).catch((e) => {
       Sentry.captureException(e, { tags: { agent: "anticipation", userId } });
-      errors.push(`anticipation: ${e instanceof Error ? e.message : String(e)}`);
+      errors.push(`anticipation: ${getErrorMessage(e)}`);
       return { error: "failed", data: { created: 0 } };
     }),
     runInvestmentAgent(userId, supabase).catch((e) => {
       Sentry.captureException(e, { tags: { agent: "investment", userId } });
-      errors.push(`investment: ${e instanceof Error ? e.message : String(e)}`);
+      errors.push(`investment: ${getErrorMessage(e)}`);
       return { error: "failed", data: { created: 0 } };
     }),
     runMissingReceiptDetection(userId, supabase).catch((e) => {
       Sentry.captureException(e, { tags: { agent: "missing-receipt", userId } });
-      errors.push(`missing_receipt: ${e instanceof Error ? e.message : String(e)}`);
+      errors.push(`missing_receipt: ${getErrorMessage(e)}`);
       return { error: "failed", data: { created: 0 } };
     }),
     runBtwDeadlineAlert(userId, supabase).catch((e) => {
       Sentry.captureException(e, { tags: { agent: "btw-deadline", userId } });
-      errors.push(`btw_deadline: ${e instanceof Error ? e.message : String(e)}`);
+      errors.push(`btw_deadline: ${getErrorMessage(e)}`);
       return { error: "failed", data: { created: false } };
     }),
   ]);
@@ -100,9 +101,6 @@ async function processBatch(users: { id: string }[], supabase: ReturnType<typeof
   
   return results;
 }
-
-const BATCH_SIZE = 10;
-const MAX_EXECUTION_MS = 8000;
 
 /**
  * Cron: Run all AI agents for all active users (daily 03:00)

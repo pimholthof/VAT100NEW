@@ -5,6 +5,8 @@
  * Docs: https://docs.mollie.com/reference/v2/payments-api
  */
 
+import { getErrorMessage } from "@/lib/utils/errors";
+
 const MOLLIE_API_BASE = "https://api.mollie.com/v2";
 
 function getMollieKey(): string | null {
@@ -37,7 +39,7 @@ export async function mollieRequest<T>(
     const data = await response.json();
     return { data };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Onbekende Mollie fout." };
+    return { error: getErrorMessage(e) };
   }
 }
 

@@ -7,6 +7,7 @@
  */
 
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { formatCurrency } from "@/lib/format";
 
 interface VatPrepResult {
@@ -203,7 +204,7 @@ export async function prepareVatReturns(): Promise<VatPrepResult> {
       }
     } catch (e) {
       result.errors.push(
-        `User ${user.id}: ${e instanceof Error ? e.message : String(e)}`
+        `User ${user.id}: ${getErrorMessage(e)}`
       );
     }
   }

@@ -1,7 +1,8 @@
 import { randomUUID } from "crypto";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { ProcessingResult } from "./types";
-import { agents } from "./agents"; // We'll create this registry next
+import { agents } from "./agents";
 
 /**
  * The core engine of the VAT100 Automation Ecosystem.
@@ -9,11 +10,6 @@ import { agents } from "./agents"; // We'll create this registry next
  */
 const MAX_EVENT_ATTEMPTS = 3;
 const STALE_CLAIM_MINUTES = 15;
-
-function serializeError(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  return String(error);
-}
 
 export async function processSystemEvents(batchSize = 25): Promise<ProcessingResult> {
   const supabase = createServiceClient();
@@ -108,7 +104,7 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
         );
 
         const agentErrors = agentResults.flatMap((agentResult) => {
-          if (agentResult.status === "rejected") return [serializeError(agentResult.reason)];
+          if (agentResult.status === "rejected") return [getErrorMessage(agentResult.reason)];
           if (agentResult.value === false) return ["Agent returned false"];
           return [];
         });
@@ -161,7 +157,7 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
         .update({
           processing_started_at: null,
           processing_token: null,
-          last_error: serializeError(e),
+          last_error: getErrorMessage(e),
           failed_at: exhausted ? new Date().toISOString() : null,
         })
         .eq("id", claimedEvent.id)

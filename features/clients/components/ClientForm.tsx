@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createNewClient, updateClient } from "@/features/clients/actions";
+import { createNewClient, updateClient, checkDuplicateClients } from "@/features/clients/actions";
 import type { Client, ClientInput } from "@/lib/types";
 import {
   FieldGroup,
@@ -38,12 +38,81 @@ export function ClientForm({ client }: ClientFormProps) {
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
 
+  const [kvkLoading, setKvkLoading] = useState(false);
+  const [kvkFilled, setKvkFilled] = useState(false);
+  const [viesStatus, setViesStatus] = useState<"valid" | "invalid" | "loading" | null>(null);
+  const [viesName, setViesName] = useState<string | null>(null);
+  const [duplicates, setDuplicates] = useState<Array<{ id: string; name: string; email: string | null }>>([]);
+  const dupCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   function validateField(field: string, value: string) {
     let err: string | null = null;
     if (field === "email" && value) err = validateEmail(value);
     if (field === "kvk" && value) err = validateKvk(value);
     if (field === "btw" && value) err = validateBtw(value);
     setFieldErrors((prev) => ({ ...prev, [field]: err }));
+  }
+
+  async function handleKvkBlur() {
+    validateField("kvk", kvkNumber);
+    const cleaned = kvkNumber.trim();
+    if (!/^[0-9]{8}$/.test(cleaned)) return;
+    setKvkLoading(true);
+    setKvkFilled(false);
+    try {
+      const res = await fetch(`/api/lookup/kvk?nummer=${encodeURIComponent(cleaned)}`);
+      const json = await res.json();
+      const first = json.results?.[0];
+      if (first) {
+        if (!name) setName(first.handelsnaam);
+        if (!city) setCity(first.vestigingsplaats);
+        setKvkFilled(true);
+        toast("Gegevens aangevuld via KvK");
+      }
+    } catch {
+      // Non-fatal
+    } finally {
+      setKvkLoading(false);
+    }
+  }
+
+  async function handleBtwBlur() {
+    validateField("btw", btwNumber);
+    const cleaned = btwNumber.trim();
+    if (!cleaned || cleaned.length < 8) return;
+    setViesStatus("loading");
+    setViesName(null);
+    try {
+      const res = await fetch(`/api/lookup/vies?vatNumber=${encodeURIComponent(cleaned)}`);
+      const json = await res.json();
+      if (json.valid === true) {
+        setViesStatus("valid");
+        if (json.name && json.name !== "---") {
+          setViesName(json.name);
+          if (!name) setName(json.name);
+        }
+      } else if (json.valid === false) {
+        setViesStatus("invalid");
+      } else {
+        setViesStatus(null);
+      }
+    } catch {
+      setViesStatus(null);
+    }
+  }
+
+  function triggerDuplicateCheck(currentName: string) {
+    if (dupCheckTimeout.current) clearTimeout(dupCheckTimeout.current);
+    if (currentName.trim().length < 3) { setDuplicates([]); return; }
+    dupCheckTimeout.current = setTimeout(async () => {
+      const result = await checkDuplicateClients({
+        name: currentName,
+        email: email || undefined,
+        kvkNumber: kvkNumber || undefined,
+        excludeId: client?.id,
+      });
+      setDuplicates(result.data ?? []);
+    }, 600);
   }
 
   const handleSubmit = async () => {
@@ -103,10 +172,21 @@ export function ClientForm({ client }: ClientFormProps) {
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => { setName(e.target.value); triggerDuplicateCheck(e.target.value); }}
           placeholder={t.clients.companyName}
           className="form-input"
         />
+        {duplicates.length > 0 && (
+          <div style={{ marginTop: 6, padding: "8px 12px", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 6, fontSize: 12 }}>
+            <span style={{ fontWeight: 700, color: "#b45309" }}>Mogelijk bestaande klant: </span>
+            {duplicates.map((d, i) => (
+              <span key={d.id}>
+                <a href={`/dashboard/clients/${d.id}`} style={{ color: "#b45309", textDecoration: "underline" }}>{d.name}</a>
+                {i < duplicates.length - 1 ? ", " : ""}
+              </span>
+            ))}
+          </div>
+        )}
       </FieldGroup>
 
       <FieldGroup label={t.clients.contactPerson}>
@@ -231,29 +311,61 @@ export function ClientForm({ client }: ClientFormProps) {
         }}
       >
         <FieldGroup label={t.clients.kvkNumber}>
-          <input
-            type="text"
-            value={kvkNumber}
-            onChange={(e) => setKvkNumber(e.target.value)}
-            onBlur={() => validateField("kvk", kvkNumber)}
-            placeholder="12345678"
-            className="form-input"
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              type="text"
+              value={kvkNumber}
+              onChange={(e) => setKvkNumber(e.target.value)}
+              onBlur={handleKvkBlur}
+              placeholder="12345678"
+              className="form-input"
+              style={{ paddingRight: 32 }}
+            />
+            {kvkLoading && (
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#888" }}>...</span>
+            )}
+            {kvkFilled && !kvkLoading && (
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#16a34a" }}>✓</span>
+            )}
+          </div>
           {fieldErrors.kvk && (
             <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.kvk}</span>
           )}
+          {kvkFilled && (
+            <span style={{ fontSize: 11, color: "#16a34a", marginTop: 4, display: "block" }}>Gegevens aangevuld via KvK</span>
+          )}
         </FieldGroup>
         <FieldGroup label={t.clients.vatNumber}>
-          <input
-            type="text"
-            value={btwNumber}
-            onChange={(e) => setBtwNumber(e.target.value)}
-            onBlur={() => validateField("btw", btwNumber)}
-            placeholder="NL123456789B01"
-            className="form-input"
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              type="text"
+              value={btwNumber}
+              onChange={(e) => setBtwNumber(e.target.value)}
+              onBlur={handleBtwBlur}
+              placeholder="NL123456789B01"
+              className="form-input"
+              style={{ paddingRight: 32 }}
+            />
+            {viesStatus === "loading" && (
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#888" }}>...</span>
+            )}
+            {viesStatus === "valid" && (
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#16a34a" }}>✓</span>
+            )}
+            {viesStatus === "invalid" && (
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#dc2626" }}>✗</span>
+            )}
+          </div>
           {fieldErrors.btw && (
             <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.btw}</span>
+          )}
+          {viesStatus === "valid" && (
+            <span style={{ fontSize: 11, color: "#16a34a", marginTop: 4, display: "block" }}>
+              BTW-nummer geldig via VIES{viesName ? ` — ${viesName}` : ""}
+            </span>
+          )}
+          {viesStatus === "invalid" && (
+            <span style={{ fontSize: 11, color: "#dc2626", marginTop: 4, display: "block" }}>BTW-nummer niet gevonden in VIES</span>
           )}
         </FieldGroup>
       </div>

@@ -1,4 +1,5 @@
 import type { InvoiceLineInput, VatRate } from "@/lib/types";
+import { MS_PER_DAY } from "@/lib/constants/time";
 
 export type MoneyAmount = number;
 
@@ -53,6 +54,5 @@ export function calculatePaymentDays(params: {
 
   if (Number.isNaN(issue) || Number.isNaN(due)) return defaultDays;
 
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.max(0, Math.ceil((due - issue) / msPerDay));
+  return Math.max(0, Math.ceil((due - issue) / MS_PER_DAY));
 }

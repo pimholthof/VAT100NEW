@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/nextjs";
 import { processSystemEvents } from "@/lib/automation/event-processor";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
 import { processWebhookRetries } from "@/lib/webhooks/retry-processor";
 
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
   } catch (err) {
     await alertCronFailure("agents-run-all", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
+      { error: getErrorMessage(err) },
       { status: 500 }
     );
   }

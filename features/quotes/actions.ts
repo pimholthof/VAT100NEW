@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAuth } from "@/lib/supabase/server";
+import { getErrorMessage } from "@/lib/utils/errors";
 import type {
   ActionResult,
   Quote,
@@ -47,7 +48,7 @@ export async function generateQuoteNumber(): Promise<ActionResult<string>> {
     const number = await queryNextQuoteNumber(supabase, user.id);
     return { error: null, data: number };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Kon offertenummer niet genereren." };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -365,6 +366,111 @@ export async function convertQuoteToInvoice(
     .eq("user_id", user.id);
 
   return { error: null, data: invoiceResult.data };
+}
+
+export async function sendQuoteEmail(
+  quoteId: string
+): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(quoteId);
+  if (!idCheck.success) return { error: "Ongeldig offerte-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { data: quote, error: fetchError } = await supabase
+    .from("quotes")
+    .select("*, client:clients(name, email), profile:profiles(full_name, studio_name)")
+    .eq("id", quoteId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError || !quote) return { error: "Offerte niet gevonden." };
+
+  const client = quote.client as { name: string; email: string | null } | null;
+  if (!client?.email) return { error: "Klant heeft geen e-mailadres." };
+
+  const profile = quote.profile as { full_name: string | null; studio_name: string | null } | null;
+  const senderName = profile?.studio_name || profile?.full_name || "VAT100";
+
+  let shareToken: string | null = quote.share_token ?? null;
+  if (!shareToken) {
+    const tokenResult = await generateQuoteShareToken(quoteId);
+    shareToken = tokenResult.data ?? null;
+  }
+
+  const { sendQuoteEmail: sendEmail } = await import("@/lib/email/send-quote");
+  const emailResult = await sendEmail({
+    quoteNumber: quote.quote_number,
+    quoteId,
+    clientEmail: client.email,
+    clientName: client.name,
+    senderName,
+    totalIncVat: quote.total_inc_vat,
+    validUntil: quote.valid_until,
+    notes: quote.notes ?? null,
+    shareToken,
+  });
+
+  if (emailResult.error) return { error: emailResult.error };
+
+  await supabase
+    .from("quotes")
+    .update({ status: "sent", sent_at: new Date().toISOString() })
+    .eq("id", quoteId)
+    .eq("user_id", user.id);
+
+  return { error: null };
+}
+
+export async function getClientPricingHistory(
+  clientId: string
+): Promise<ActionResult<Array<{ description: string; rate: number; unit: string }>>> {
+  const idCheck = uuidSchema.safeParse(clientId);
+  if (!idCheck.success) return { error: "Ongeldig klant-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const [invoiceLinesRes, quoteLinesRes] = await Promise.all([
+    supabase
+      .from("invoice_lines")
+      .select("description, rate, unit, invoices!inner(client_id, user_id, issue_date)")
+      .eq("invoices.client_id", clientId)
+      .eq("invoices.user_id", user.id)
+      .gte("invoices.issue_date", sixMonthsAgo.toISOString().split("T")[0])
+      .limit(50),
+    supabase
+      .from("quote_lines")
+      .select("description, rate, unit, quotes!inner(client_id, user_id, issue_date)")
+      .eq("quotes.client_id", clientId)
+      .eq("quotes.user_id", user.id)
+      .gte("quotes.issue_date", sixMonthsAgo.toISOString().split("T")[0])
+      .limit(50),
+  ]);
+
+  const allLines = [
+    ...(invoiceLinesRes.data ?? []),
+    ...(quoteLinesRes.data ?? []),
+  ];
+
+  const seen = new Map<string, { description: string; rate: number; unit: string }>();
+  for (const line of allLines) {
+    const key = `${line.description?.toLowerCase()}:${line.rate}`;
+    if (line.description && line.rate > 0 && !seen.has(key)) {
+      seen.set(key, {
+        description: line.description,
+        rate: line.rate,
+        unit: line.unit || "stuks",
+      });
+    }
+  }
+
+  return { error: null, data: Array.from(seen.values()).slice(0, 10) };
 }
 
 export async function duplicateQuote(

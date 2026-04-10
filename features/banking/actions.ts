@@ -11,6 +11,7 @@ import {
 import { requireAuth, requirePlan } from "@/lib/supabase/server";
 import { bankingClient, checkBankingRateLimit } from "@/lib/banking/tink";
 import { sanitizeSupabaseError } from "@/lib/errors";
+import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
@@ -212,7 +213,7 @@ export async function initiateBankConnection(
       data: { redirectUrl: requisition.link },
     };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -263,7 +264,7 @@ export async function completeBankConnection(
 
     return { error: null };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -422,7 +423,7 @@ export async function syncTransactions(
 
     return { error: null, data: newTransactions.length };
   } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
+    return { error: getErrorMessage(e) };
   }
 }
 

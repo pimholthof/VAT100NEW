@@ -16,6 +16,7 @@ import {
   toHumanReviewDescription,
   getMissingReceiptConfidence,
 } from "@/lib/tax/fiscal-claim-validator";
+import { getErrorMessage } from "@/lib/utils/errors";
 import * as Sentry from "@sentry/nextjs";
 
 /**
@@ -303,7 +304,7 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
     return { error: null, data: { created: newActions.length } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "reconciliation", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in reconciliation agent" };
+    return { error: getErrorMessage(err) };
   }
 }
 
@@ -464,7 +465,7 @@ export async function runPaymentDetectionAgent(userId: string, externalSupabase?
     return { error: null, data: { created: newActions.length } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "payment_detection", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in payment detection agent" };
+    return { error: getErrorMessage(err) };
   }
 }
 
@@ -557,7 +558,7 @@ export async function runAnticipationAgent(userId: string, externalSupabase?: Aw
     return { error: null, data: { created: newActions.length } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "anticipation", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in anticipation agent" };
+    return { error: getErrorMessage(err) };
   }
 }
 
@@ -713,7 +714,7 @@ export async function runInvestmentAgent(userId: string, externalSupabase?: Awai
     return { error: null, data: { created } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "investment", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in investment agent" };
+    return { error: getErrorMessage(err) };
   }
 }
 
@@ -806,7 +807,7 @@ export async function runMissingReceiptDetection(
     return { error: null, data: { created: newActions.length } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "missing_receipt_detection", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in missing receipt detection" };
+    return { error: getErrorMessage(err) };
   }
 }
 
@@ -906,7 +907,7 @@ export async function runBtwDeadlineAlert(
     return { error: null, data: { created: true } };
   } catch (err) {
     Sentry.captureException(err, { tags: { agent: "btw_deadline_alert", userId } });
-    return { error: err instanceof Error ? err.message : "Unknown error in BTW deadline alert" };
+    return { error: getErrorMessage(err) };
   }
 }
 

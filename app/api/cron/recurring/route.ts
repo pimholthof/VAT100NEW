@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
 import { withCronLock } from "@/lib/cron/lock";
 
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
     } catch (e) {
       results.push({
         templateId: template.id,
-        error: e instanceof Error ? e.message : "Unknown error",
+        error: getErrorMessage(e),
       });
     }
   }
@@ -112,9 +113,8 @@ export async function GET(request: Request) {
     results,
   });
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
     await alertCronFailure("recurring", e);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(e) }, { status: 500 });
   }
   });
 

@@ -36,9 +36,8 @@ export async function sendInvoiceEmail(
 
   // Generate PDF buffer
   const element = createElement(InvoicePDF, { data });
-  const pdfBuffer = await renderToBuffer(
-    element as unknown as Parameters<typeof renderToBuffer>[0]
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pdfBuffer = await renderToBuffer(element as any);
 
   const senderName = escapeHtml(profile.studio_name || profile.full_name);
   const invoiceNum = escapeHtml(invoice.invoice_number);
@@ -68,7 +67,7 @@ export async function sendInvoiceEmail(
     attachments: [
       {
         filename,
-        content: Buffer.from(pdfBuffer),
+        content: pdfBuffer,
       },
     ],
   });

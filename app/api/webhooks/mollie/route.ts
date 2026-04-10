@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { getMolliePayment } from "@/lib/payments/mollie";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { activateSubscriptionAfterPayment } from "@/features/subscriptions/actions";
 import { autoProvisionAccount } from "@/features/admin/actions";
 import { isRateLimited } from "@/lib/rate-limit";
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     // Invoice payment (existing logic)
     return handleInvoicePayment(payment, paymentId);
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Onbekende fout";
+    const message = getErrorMessage(e);
     // Bij verwerkinsfout: opslaan in retry queue
     if (paymentId) {
       await queueWebhookRetry("mollie", { paymentId }, message);
@@ -182,7 +183,7 @@ async function handleSubscriptionPayment(
 
           if (subDetail) {
             const userId = subDetail.user_id;
-            const planName = (subDetail.plan as unknown as { name: string })?.name ?? "VAT100";
+            const planName = (subDetail.plan as { name?: string } | null)?.name ?? "VAT100";
 
             const [{ data: profile }, { data: authUser }, unsubscribeToken] = await Promise.all([
               supabase.from("profiles").select("full_name").eq("id", userId).single(),

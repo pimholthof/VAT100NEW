@@ -4,6 +4,7 @@ import { z } from "zod";
 import { sanitizeSupabaseError } from "@/lib/errors";
 import { requireAuth } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, Receipt, ReceiptInput, VatRate } from "@/lib/types";
 import { receiptSchema, uuidSchema, validate } from "@/lib/validation";
 import { calculateVat } from "@/lib/format";
@@ -160,7 +161,7 @@ export async function createReceipt(
 
     return { error: null, data };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Fout bij aanmaken bon." };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -246,7 +247,7 @@ export async function updateReceipt(
 
     return { error: null, data };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Fout bij bijwerken bon." };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -379,7 +380,7 @@ export async function uploadReceiptImage(
 
     return { error: null, data: storagePath };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Fout bij uploaden bestand." };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -517,8 +518,7 @@ Als een veld echt niet leesbaar is, gebruik dan expliciet null.`;
     }
     return { error: null, data: validated.data };
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Onbekende fout bij AI-analyse.";
-    return { error: message };
+    return { error: getErrorMessage(e) };
   }
 }
 
@@ -550,7 +550,7 @@ export async function markReceiptAiProcessed(
     }
     return { error: null };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Fout bij markeren als verwerkt." };
+    return { error: getErrorMessage(e) };
   }
 }
 

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processOverdueInvoices } from "@/lib/use-cases/process-overdue-invoices";
 import { processSubscriptionReminders } from "@/lib/use-cases/process-subscription-reminders";
+import { processExpiredQuotes } from "@/lib/use-cases/process-expired-quotes";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
 import { withCronLock } from "@/lib/cron/lock";
 
@@ -19,9 +21,10 @@ export async function GET(request: NextRequest) {
 
   const locked = await withCronLock("overdue", async () => {
   try {
-    const [overdueData, subscriptionData] = await Promise.all([
+    const [overdueData, subscriptionData, expiredQuotesData] = await Promise.all([
       processOverdueInvoices(),
       processSubscriptionReminders(),
+      processExpiredQuotes(),
     ]);
 
     // Log cron run
@@ -32,6 +35,8 @@ export async function GET(request: NextRequest) {
         overdue_updated: overdueData.updated,
         subscription_reminders_processed: subscriptionData.processed,
         subscription_emails_sent: subscriptionData.results.filter((r) => r.emailSent).length,
+        expired_quotes_processed: expiredQuotesData.processed,
+        expired_quotes_actions_created: expiredQuotesData.actionsCreated,
       },
       processed_at: new Date().toISOString(),
     });
@@ -39,11 +44,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       overdue: overdueData,
       subscriptionReminders: subscriptionData,
+      expiredQuotes: expiredQuotesData,
     });
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
     await alertCronFailure("overdue", e);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(e) }, { status: 500 });
   }
   });
 

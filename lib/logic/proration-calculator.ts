@@ -5,6 +5,8 @@
  * Ongebruikte dagen van het huidige plan worden verrekend met het nieuwe plan.
  */
 
+import { MS_PER_DAY } from "@/lib/constants/time";
+
 interface ProrationResult {
   remainingDays: number;
   totalDaysInPeriod: number;
@@ -34,15 +36,9 @@ export function calculateProration(
   const end = new Date(periodEnd);
   const change = new Date(changeDate);
 
-  const totalDaysInPeriod = Math.max(
-    1,
-    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  const totalDaysInPeriod = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / MS_PER_DAY));
 
-  const remainingDays = Math.max(
-    0,
-    Math.ceil((end.getTime() - change.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  const remainingDays = Math.max(0, Math.ceil((end.getTime() - change.getTime()) / MS_PER_DAY));
 
   const dailyRateCurrent = currentPriceCents / totalDaysInPeriod;
   const dailyRateNew = newPriceCents / totalDaysInPeriod;

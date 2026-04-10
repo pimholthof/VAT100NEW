@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { runReconciliationAgent } from "@/features/dashboard/action-feed";
 
 /**
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
+      { error: getErrorMessage(err) },
       { status: 500 }
     );
   }

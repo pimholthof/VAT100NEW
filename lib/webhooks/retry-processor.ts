@@ -7,6 +7,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { getMolliePayment } from "@/lib/payments/mollie";
 
 interface RetryResult {
@@ -103,7 +104,7 @@ export async function processWebhookRetries(): Promise<RetryResult> {
 
       result.succeeded++;
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : String(e);
+      const errorMessage = getErrorMessage(e);
       const exhausted = newAttempt >= (event.max_attempts ?? 5);
 
       await supabase
