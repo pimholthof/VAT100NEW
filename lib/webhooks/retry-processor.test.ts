@@ -157,35 +157,47 @@ describe("retry-processor", () => {
 
       const { createServiceClient } = await import("@/lib/supabase/service");
       vi.mocked(createServiceClient).mockReturnValue({
-        from: vi.fn((table: string) => ({
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              lte: vi.fn(() => ({
-                order: vi.fn(() => ({
-                  limit: vi.fn().mockResolvedValue({
-                    data: [
-                      {
-                        id: "evt-1",
-                        source: "mollie",
-                        payload: { paymentId: "tr_ok" },
-                        attempts: 1,
-                        max_attempts: 5,
-                        status: "pending",
-                      },
-                    ],
-                    error: null,
-                  }),
+        from: vi.fn((table: string) => {
+          if (table === "webhook_events") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn(() => ({
+                  lte: vi.fn(() => ({
+                    order: vi.fn(() => ({
+                      limit: vi.fn().mockResolvedValue({
+                        data: [
+                          {
+                            id: "evt-1",
+                            source: "mollie",
+                            payload: { paymentId: "tr_ok" },
+                            attempts: 1,
+                            max_attempts: 5,
+                            status: "pending",
+                          },
+                        ],
+                        error: null,
+                      }),
+                    })),
+                  })),
                 })),
               })),
+              update: mockUpdateChain,
+              insert: mockInsert,
+            };
+          }
+          // invoices table
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: "inv-1", status: "sent" },
+                  error: null,
+                }),
+              })),
             })),
-            maybeSingle: vi.fn().mockResolvedValue({
-              data: { id: "inv-1", status: "sent" },
-              error: null,
-            }),
-          })),
-          update: mockUpdateChain,
-          insert: mockInsert,
-        })),
+            update: mockUpdateChain,
+          };
+        }),
       } as any);
 
       const { getMolliePayment } = await import("@/lib/payments/mollie");
