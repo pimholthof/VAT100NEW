@@ -9,20 +9,6 @@ import InvoiceMockup from "@/components/landing/InvoiceMockup";
 import VatMockup from "@/components/landing/VatMockup";
 import PosterMockup from "@/components/landing/PosterMockup";
 
-/* ─── Inline style helpers ─── */
-const inputStyle: React.CSSProperties = {
-  fontSize: "13px",
-  fontWeight: 400,
-  padding: "14px 0",
-  border: "none",
-  borderBottom: "0.5px solid rgba(0,0,0,0.1)",
-  background: "transparent",
-  color: "var(--color-black)",
-  outline: "none",
-  width: "100%",
-  transition: "border-color 0.2s ease",
-};
-
 const sectionPadding: React.CSSProperties = {
   padding: "clamp(60px, 8vw, 120px) clamp(24px, 4vw, 64px)",
   maxWidth: 960,
@@ -42,9 +28,10 @@ const divider = (
 );
 
 export default function LandingPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [position, setPosition] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [waitlistError, setWaitlistError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const { locale, t, setLocale } = useLocale();
 
@@ -115,21 +102,29 @@ export default function LandingPage() {
   ];
 
   const personas = [
-    { type: t.landing.persona1Type, quote: t.landing.persona1Quote },
-    { type: t.landing.persona2Type, quote: t.landing.persona2Quote },
-    { type: t.landing.persona3Type, quote: t.landing.persona3Quote },
+    { name: t.landing.persona1Name, type: t.landing.persona1Type, quote: t.landing.persona1Quote },
+    { name: t.landing.persona2Name, type: t.landing.persona2Type, quote: t.landing.persona2Quote },
+    { name: t.landing.persona3Name, type: t.landing.persona3Type, quote: t.landing.persona3Quote },
   ];
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const faqs = [
+    { q: t.landing.faq1Q, a: t.landing.faq1A },
+    { q: t.landing.faq2Q, a: t.landing.faq2A },
+    { q: t.landing.faq3Q, a: t.landing.faq3A },
+    { q: t.landing.faq4Q, a: t.landing.faq4A },
+    { q: t.landing.faq5Q, a: t.landing.faq5A },
+  ];
+
+  async function handleWaitlistSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
+    setWaitlistError(null);
     setPending(true);
 
     const formData = new FormData(e.currentTarget);
     const result = await joinWaitlist(formData);
 
     if (result.error) {
-      setError(result.error);
+      setWaitlistError(result.error);
       setPending(false);
     } else {
       setPosition(result.data?.position ?? null);
@@ -250,6 +245,17 @@ export default function LandingPage() {
           >
             {t.landing.login}
           </Link>
+          <Link
+            href={`/register?plan=${primaryPlanId}`}
+            className="btn-primary label-strong"
+            style={{
+              textDecoration: "none",
+              padding: "10px 20px",
+              fontSize: 11,
+            }}
+          >
+            {t.landing.headerCta}
+          </Link>
         </nav>
       </header>
 
@@ -316,7 +322,7 @@ export default function LandingPage() {
                 {t.landing.heroCta}
               </Link>
               <a
-                href="#prijzen"
+                href="#product"
                 className="btn-secondary"
                 style={{
                   padding: "18px 36px",
@@ -327,6 +333,16 @@ export default function LandingPage() {
                 {t.landing.heroCtaSecondary}
               </a>
             </div>
+            <p
+              style={{
+                marginTop: 20,
+                fontSize: 12,
+                opacity: 0.4,
+                letterSpacing: "0.02em",
+              }}
+            >
+              {t.landing.heroSocialProof}
+            </p>
           </div>
 
           {/* Product mockup */}
@@ -336,52 +352,116 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Trust Bar ─── */}
+      {/* ─── Social Proof Bar ─── */}
       <section
         style={{
-          padding: "24px clamp(24px, 4vw, 64px)",
+          padding: "clamp(40px, 6vw, 80px) clamp(24px, 4vw, 64px)",
           maxWidth: 960,
           margin: "0 auto",
         }}
       >
         <div
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 24,
-            flexWrap: "wrap",
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "clamp(24px, 4vw, 48px)",
+            textAlign: "center",
           }}
         >
           {[
-            t.landing.trustBuiltFor,
-            t.landing.trustTaxReady,
-            t.landing.trustSecure,
-            t.landing.trustNoKnowledge,
-          ].map((signal, i) => (
-            <span
-              key={i}
-              className="label"
-              style={{
-                opacity: 0.35,
-                display: "flex",
-                alignItems: "center",
-                gap: 24,
-              }}
-            >
-              {i > 0 && (
-                <span style={{ opacity: 0.4, marginRight: 0 }}>·</span>
-              )}
-              {signal}
-            </span>
+            { value: t.landing.proofSpeed, label: t.landing.proofSpeedLabel },
+            { value: t.landing.proofVat, label: t.landing.proofVatLabel },
+            { value: t.landing.proofSteps, label: t.landing.proofStepsLabel },
+            { value: t.landing.proofEncrypted, label: t.landing.proofEncryptedLabel },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <p
+                style={{
+                  fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.03em",
+                  margin: 0,
+                  color: "var(--color-black)",
+                }}
+              >
+                {stat.value}
+              </p>
+              <p className="label" style={{ marginTop: 6, opacity: 0.4 }}>
+                {stat.label}
+              </p>
+            </div>
           ))}
         </div>
-        <p
-          className="label"
-          style={{ marginTop: 24, opacity: 0.35, maxWidth: 560 }}
+      </section>
+
+      {divider}
+
+      {/* ─── Pain Points ─── */}
+      <section style={sectionPadding}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.4fr)",
+            gap: "clamp(32px, 4vw, 64px)",
+            alignItems: "start",
+          }}
         >
-          {t.landing.ctaReassurance}
-        </p>
+          <div>
+            <p className="label-strong" style={{ marginBottom: 16, fontSize: 11 }}>
+              {t.landing.painLabel}
+            </p>
+            <h2
+              style={{
+                fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.1,
+                margin: 0,
+                whiteSpace: "pre-line",
+              }}
+            >
+              {t.landing.painHeadline}
+            </h2>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gap: 1,
+            }}
+          >
+            {[
+              { title: t.landing.pain1Title, desc: t.landing.pain1Desc },
+              { title: t.landing.pain2Title, desc: t.landing.pain2Desc },
+              { title: t.landing.pain3Title, desc: t.landing.pain3Desc },
+            ].map((pain) => (
+              <div
+                key={pain.title}
+                style={{
+                  padding: "28px 24px",
+                  border: "0.5px solid rgba(0,0,0,0.06)",
+                  borderRadius: "var(--radius)",
+                }}
+              >
+                <p
+                  className="label-strong"
+                  style={{ marginBottom: 8, fontSize: 11 }}
+                >
+                  {pain.title}
+                </p>
+                <p
+                  style={{
+                    fontSize: 14,
+                    lineHeight: 1.7,
+                    margin: 0,
+                    opacity: 0.55,
+                  }}
+                >
+                  {pain.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {divider}
@@ -730,6 +810,19 @@ export default function LandingPage() {
                 {plan.name}
               </p>
 
+              <p
+                style={{
+                  fontSize: 11,
+                  fontWeight: 500,
+                  margin: 0,
+                  marginBottom: 8,
+                  color: "var(--color-success)",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {t.landing.trialText}
+              </p>
+
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 8 }}>
                 <span
                   style={{
@@ -792,8 +885,19 @@ export default function LandingPage() {
                   display: "block",
                 }}
               >
-                {plan.highlighted ? t.landing.getStarted : t.landing.choose + plan.name}
+                {plan.highlighted ? t.landing.getStarted : t.landing.choose + plan.name + " gratis"}
               </a>
+              <p
+                className="label"
+                style={{
+                  marginTop: 12,
+                  textAlign: "center",
+                  opacity: 0.35,
+                  fontSize: 10,
+                }}
+              >
+                {t.landing.noCreditCard}
+              </p>
             </div>
           ))}
         </div>
@@ -801,7 +905,7 @@ export default function LandingPage() {
 
       {divider}
 
-      {/* ─── Persona Quotes ─── */}
+      {/* ─── Built for ─── */}
       <section style={sectionPadding}>
         <p className="label" style={{ marginBottom: 16 }}>
           {t.landing.personaTitle}
@@ -815,13 +919,21 @@ export default function LandingPage() {
         >
           {personas.map((p) => (
             <div
-              key={p.type}
+              key={p.name}
               style={{
                 padding: "32px 28px",
                 border: "0.5px solid rgba(0,0,0,0.06)",
                 borderRadius: "var(--radius)",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
+              <p
+                className="label-strong"
+                style={{ marginBottom: 4, fontSize: 13 }}
+              >
+                {p.name}
+              </p>
               <p
                 className="label"
                 style={{ marginBottom: 16, opacity: 0.35 }}
@@ -830,16 +942,13 @@ export default function LandingPage() {
               </p>
               <p
                 style={{
-                  fontSize: "clamp(1.1rem, 2vw, 1.35rem)",
-                  fontWeight: 300,
-                  lineHeight: 1.5,
+                  fontSize: 14,
+                  lineHeight: 1.7,
                   margin: 0,
-                  fontFamily: "var(--font-serif)",
-                  fontStyle: "italic",
-                  opacity: 0.7,
+                  opacity: 0.55,
                 }}
               >
-                &ldquo;{p.quote}&rdquo;
+                {p.quote}
               </p>
             </div>
           ))}
@@ -848,11 +957,160 @@ export default function LandingPage() {
 
       {divider}
 
-      {/* ─── Waitlist ─── */}
+      {/* ─── FAQ ─── */}
+      <section style={sectionPadding}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 0.8fr) minmax(0, 1.2fr)",
+            gap: "clamp(32px, 4vw, 64px)",
+            alignItems: "start",
+          }}
+        >
+          <div>
+            <p className="label-strong" style={{ marginBottom: 16, fontSize: 11 }}>
+              {t.landing.faqLabel}
+            </p>
+            <h2
+              style={{
+                fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.1,
+                margin: 0,
+              }}
+            >
+              {t.landing.faqTitle}
+            </h2>
+          </div>
+          <div>
+            {faqs.map((faq, i) => (
+              <div
+                key={i}
+                style={{
+                  borderBottom: "0.5px solid rgba(0,0,0,0.06)",
+                }}
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  style={{
+                    width: "100%",
+                    padding: "20px 0",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 16,
+                    textAlign: "left",
+                    fontSize: 15,
+                    fontWeight: 500,
+                    color: "var(--color-black)",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {faq.q}
+                  <span
+                    style={{
+                      fontSize: 18,
+                      opacity: 0.3,
+                      transition: "transform 0.2s ease",
+                      transform: openFaq === i ? "rotate(45deg)" : "rotate(0deg)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    +
+                  </span>
+                </button>
+                <div
+                  style={{
+                    maxHeight: openFaq === i ? 200 : 0,
+                    overflow: "hidden",
+                    transition: "max-height 0.3s ease",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: 14,
+                      lineHeight: 1.7,
+                      margin: 0,
+                      paddingBottom: 20,
+                      opacity: 0.55,
+                    }}
+                  >
+                    {faq.a}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {divider}
+
+      {/* ─── Closing CTA ─── */}
       <section
-        id="wachtlijst"
-        style={sectionPadding}
+        style={{
+          ...sectionPadding,
+          textAlign: "center",
+        }}
       >
+        <h2
+          style={{
+            fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
+            lineHeight: 1.1,
+            margin: "0 auto",
+            maxWidth: 560,
+            whiteSpace: "pre-line",
+          }}
+        >
+          {t.landing.closingHeadline}
+        </h2>
+        <p
+          style={{
+            fontSize: 15,
+            lineHeight: 1.8,
+            margin: "24px auto 0",
+            maxWidth: 480,
+            opacity: 0.55,
+          }}
+        >
+          {t.landing.closingSubtitle}
+        </p>
+        <div style={{ marginTop: 40 }}>
+          <Link
+            href={`/register?plan=${primaryPlanId}`}
+            className="btn-primary"
+            style={{
+              padding: "18px 48px",
+              textDecoration: "none",
+              display: "inline-block",
+              fontSize: 15,
+            }}
+          >
+            {t.landing.closingCta}
+          </Link>
+          <p
+            className="label"
+            style={{
+              marginTop: 16,
+              opacity: 0.35,
+              fontSize: 10,
+            }}
+          >
+            {t.landing.closingReassurance}
+          </p>
+        </div>
+      </section>
+
+      {divider}
+
+      {/* ─── Waitlist ─── */}
+      <section style={sectionPadding}>
         <div style={{ maxWidth: 560 }}>
           {submitted ? (
             <div
@@ -866,7 +1124,7 @@ export default function LandingPage() {
                 className="label-strong"
                 style={{ marginBottom: 8, fontSize: 13 }}
               >
-                {t.landing.onWaitlist}
+                {t.landing.waitlistSuccess}
               </p>
               <p
                 style={{
@@ -882,8 +1140,8 @@ export default function LandingPage() {
             </div>
           ) : (
             <div>
-              <p className="label" style={{ marginBottom: 16 }}>
-                {t.landing.earlyAccess}
+              <p className="label-strong" style={{ marginBottom: 16, fontSize: 11 }}>
+                {t.landing.waitlistLabel}
               </p>
               <h2
                 style={{
@@ -892,7 +1150,7 @@ export default function LandingPage() {
                   letterSpacing: "-0.03em",
                   lineHeight: 1.1,
                   margin: 0,
-                  marginBottom: 32,
+                  marginBottom: 16,
                 }}
               >
                 {t.landing.waitlistTitle}
@@ -910,7 +1168,7 @@ export default function LandingPage() {
               </p>
 
               <form
-                onSubmit={handleSubmit}
+                onSubmit={handleWaitlistSubmit}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -920,41 +1178,63 @@ export default function LandingPage() {
                 <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 180 }}>
                     <label
-                      htmlFor="name"
+                      htmlFor="waitlist-name"
                       className="label"
                       style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
                     >
-                      {t.landing.name}
+                      {t.landing.waitlistName}
                     </label>
                     <input
-                      id="name"
+                      id="waitlist-name"
                       name="name"
                       type="text"
                       required
-                      placeholder={t.landing.namePlaceholder}
-                      style={inputStyle}
+                      placeholder={t.landing.waitlistNamePlaceholder}
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 400,
+                        padding: "14px 0",
+                        border: "none",
+                        borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+                        background: "transparent",
+                        color: "var(--color-black)",
+                        outline: "none",
+                        width: "100%",
+                        transition: "border-color 0.2s ease",
+                      }}
                     />
                   </div>
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <label
-                      htmlFor="email"
+                      htmlFor="waitlist-email"
                       className="label"
                       style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
                     >
-                      {t.landing.email}
+                      {t.landing.waitlistEmail}
                     </label>
                     <input
-                      id="email"
+                      id="waitlist-email"
                       name="email"
                       type="email"
                       required
-                      placeholder={t.landing.emailPlaceholder}
-                      style={inputStyle}
+                      placeholder={t.landing.waitlistEmailPlaceholder}
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 400,
+                        padding: "14px 0",
+                        border: "none",
+                        borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+                        background: "transparent",
+                        color: "var(--color-black)",
+                        outline: "none",
+                        width: "100%",
+                        transition: "border-color 0.2s ease",
+                      }}
                     />
                   </div>
                 </div>
 
-                {error && (
+                {waitlistError && (
                   <div
                     role="alert"
                     style={{
@@ -964,7 +1244,7 @@ export default function LandingPage() {
                       fontSize: "12px",
                     }}
                   >
-                    {error}
+                    {waitlistError}
                   </div>
                 )}
 
