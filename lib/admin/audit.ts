@@ -15,7 +15,12 @@ export type AuditAction =
   | "lead.payment_initiated"
   | "settings.update"
   | "impersonation.start"
-  | "data.export";
+  | "data.export"
+  | "agent.classification"
+  | "agent.tax_alert"
+  | "agent.match_suggestion"
+  | "agent.autonomous_action"
+  | "agent.audit_completed";
 
 export type AuditTargetType =
   | "user"
@@ -25,7 +30,9 @@ export type AuditTargetType =
   | "invoice"
   | "lead"
   | "setting"
-  | "system";
+  | "system"
+  | "agent_action"
+  | "action_feed";
 
 export async function logAdminAction(
   adminId: string,

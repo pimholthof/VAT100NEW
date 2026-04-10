@@ -124,6 +124,8 @@ function ActionCard({
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(action.draft_content || "");
 
+  const isQuestion = action.ai_confidence !== null && action.ai_confidence < 0.95;
+
   const typeLabel: Record<string, string> = {
     missing_receipt: t.dashboard.typeReceipt,
     match_suggestion: t.dashboard.typeCheck,
@@ -134,9 +136,9 @@ function ActionCard({
 
   const actionLabel: Record<string, string> = {
     missing_receipt: t.dashboard.actionAdd,
-    match_suggestion: t.dashboard.actionCorrect,
+    match_suggestion: isQuestion ? t.dashboard.confirm : t.dashboard.actionCorrect,
     tax_alert: t.dashboard.actionCheck,
-    uncategorized: t.dashboard.actionCategorize,
+    uncategorized: isQuestion ? t.dashboard.confirm : t.dashboard.actionCategorize,
     reminder_suggestion: t.dashboard.actionSend,
   };
 
@@ -146,9 +148,9 @@ function ActionCard({
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
-      transition={{ 
-        duration: 0.3, 
-        delay: index * 0.05, 
+      transition={{
+        duration: 0.3,
+        delay: index * 0.05,
         ease: "anticipate",
         layout: { duration: 0.3 }
       }}
@@ -160,14 +162,15 @@ function ActionCard({
         borderRadius: 0,
         opacity: isPending ? 0.5 : 1,
         border: "var(--border-light)",
-        background: "rgba(0,0,0,0.02)",
+        borderLeft: isQuestion ? "3px solid rgba(200, 150, 0, 0.4)" : "var(--border-light)",
+        background: isQuestion ? "rgba(200, 150, 0, 0.03)" : "rgba(0,0,0,0.02)",
         marginBottom: 16
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
           <p className="label" style={{ opacity: 0.5, margin: "0 0 8px", fontSize: 10 }}>
-            {typeLabel[action.type] ?? action.type}
+            {isQuestion ? `${t.dashboard.question} · ` : ""}{typeLabel[action.type] ?? action.type}
             {action.ai_confidence != null && (
               <span style={{ color: "var(--color-accent)", opacity: 0.8, marginLeft: 12 }}>
                 {Math.round(action.ai_confidence * 100)}% {t.dashboard.certain}
@@ -277,7 +280,7 @@ function ActionCard({
             transition: "all 0.2s ease"
           }}
         >
-          {t.dashboard.ignore}
+          {isQuestion ? t.dashboard.incorrect : t.dashboard.ignore}
         </button>
         <button
           onClick={() => onResolve(isEditing ? draft : undefined)}
