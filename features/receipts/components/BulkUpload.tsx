@@ -318,6 +318,7 @@ export function BulkUpload() {
             ref={fileInputRef}
             type="file"
             accept="image/*,.pdf,application/pdf"
+            capture="environment"
             multiple
             style={{ display: "none" }}
             onChange={(e) => {
