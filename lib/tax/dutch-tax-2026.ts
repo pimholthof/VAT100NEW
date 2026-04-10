@@ -499,7 +499,7 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function getMarginalRate(belastbaarInkomen: number): number {
+export function getMarginalRate(belastbaarInkomen: number): number {
   if (belastbaarInkomen <= 0) return BOX1_BRACKETS[0].rate;
   for (let i = BOX1_BRACKETS.length - 1; i >= 0; i--) {
     if (belastbaarInkomen > BOX1_BRACKETS[i].min) return BOX1_BRACKETS[i].rate;

@@ -5,6 +5,10 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { bankingClient } from "@/lib/banking/tink";
 import { autoCategorizeTransactionsInternal } from "@/features/banking/actions";
 import { recalculateReserves } from "@/lib/services/reserve-recalculator";
+import { autoReconcilePayments } from "@/lib/services/payment-reconciliation";
+import { autoMatchReceipts } from "@/lib/services/receipt-matcher";
+import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
+import { withCronLock } from "@/lib/cron/lock";
 
 /**
  * Cron: Bank Sync (dagelijks 07:00 UTC)
@@ -17,10 +21,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const locked = await withCronLock("sync-bank", async () => {
   const supabase = createServiceClient();
   const errors: { connectionId: string; error: string }[] = [];
   let totalSynced = 0;
   let totalCategorized = 0;
+  let totalReconciled = 0;
+  let totalReceiptsMatched = 0;
 
   try {
     // 1. Haal alle actieve bankverbindingen op
@@ -127,6 +134,28 @@ export async function GET(request: NextRequest) {
 
         totalSynced += newTransactions.length;
 
+        // "Magic Moment": Bij eerste sync, maak een proactieve suggestie
+        if (!connection.last_synced_at && newTransactions.length > 0) {
+          const firstTransaction = newTransactions[0];
+          const absAmount = Math.abs(firstTransaction.amount);
+          const counterpart = firstTransaction.counterpart_name || "onbekend";
+
+          try {
+            await supabase.from("action_feed").insert({
+              user_id: connection.user_id,
+              type: "match_suggestion",
+              title: "Je eerste transactie is binnen!",
+              description: `Ik zie een betaling van €${absAmount.toFixed(2)} van ${counterpart}. Zal ik deze aan een factuur koppelen?`,
+              amount: absAmount,
+              ai_confidence: 0.95,
+              status: "pending",
+              related_transaction_id: null,
+            });
+          } catch {
+            // Non-fatal: magic moment is best-effort
+          }
+        }
+
         // Update last_synced_at
         await supabase
           .from("bank_connections")
@@ -168,6 +197,25 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // Automatische betalingsreconciliatie
+        try {
+          const reconcileResult = await autoReconcilePayments(
+            connection.user_id,
+            supabase
+          );
+          totalReconciled += reconcileResult.matched;
+        } catch {
+          // Non-fatal: reconciliatie mag de sync niet blokkeren
+        }
+
+        // Automatische bonnetjes-matching
+        try {
+          const matchResult = await autoMatchReceipts(connection.user_id, supabase);
+          totalReceiptsMatched += matchResult.matched;
+        } catch {
+          // Non-fatal
+        }
+
         // Reserve herberekening (fire-and-forget)
         recalculateReserves(connection.user_id, "sync").catch(() => {});
       } catch (err) {
@@ -187,6 +235,8 @@ export async function GET(request: NextRequest) {
         connections_processed: connections.length,
         transactions_synced: totalSynced,
         transactions_categorized: totalCategorized,
+        invoices_reconciled: totalReconciled,
+        receipts_matched: totalReceiptsMatched,
         errors: errors.length,
       },
     });
@@ -194,12 +244,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       synced: totalSynced,
       categorized: totalCategorized,
+      reconciled: totalReconciled,
       connections: connections.length,
       errors,
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
-    Sentry.captureException(e, { tags: { area: "cron.bank_sync" } });
+    await alertCronFailure("sync-bank", e, { totalSynced, totalCategorized, totalReconciled });
     return NextResponse.json({ error: message }, { status: 500 });
   }
+  }, 15); // 15 min TTL
+
+  if (locked === null) {
+    return NextResponse.json({ status: "skipped", reason: "Job is al actief" });
+  }
+  return locked;
 }

@@ -11,6 +11,7 @@ import type {
   InvoiceWithDetails,
 } from "@/lib/types";
 import { invoiceSchema, uuidSchema, validate } from "@/lib/validation";
+import { trackUserEvent } from "@/lib/analytics/tracking";
 import {
   createInvoice as createInvoiceInService,
   createCreditNote as createCreditNoteInService,
@@ -61,6 +62,7 @@ export async function createInvoice(
 
   try {
     const invoiceId = await createInvoiceInService(supabase, user.id, input);
+    trackUserEvent(user.id, "invoice_created", { invoiceId, vatScheme: input.vat_scheme });
     return { error: null, data: invoiceId };
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };
@@ -316,6 +318,7 @@ export async function sendInvoice(id: string): Promise<ActionResult> {
       }).catch(() => {}); // Non-fatal
     }
 
+    trackUserEvent(user.id, "invoice_sent", { invoiceId: id });
     return sendInvoiceEmail(id);
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };
@@ -410,6 +413,7 @@ export async function createCreditNote(
 
   try {
     const creditNoteId = await createCreditNoteInService(supabase, user.id, invoiceId);
+    trackUserEvent(user.id, "credit_note_created", { creditNoteId, originalInvoiceId: invoiceId });
     return { error: null, data: creditNoteId };
   } catch (e: unknown) {
     return { error: e instanceof Error ? e.message : String(e) };

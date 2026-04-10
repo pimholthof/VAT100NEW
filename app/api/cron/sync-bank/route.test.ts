@@ -29,6 +29,22 @@ vi.mock("@/lib/services/reserve-recalculator", () => ({
   recalculateReserves: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("@/lib/services/payment-reconciliation", () => ({
+  autoReconcilePayments: vi.fn().mockResolvedValue({ matched: 0, matches: [] }),
+}));
+
+vi.mock("@/lib/services/receipt-matcher", () => ({
+  autoMatchReceipts: vi.fn().mockResolvedValue({ matched: 0, suggestions: [] }),
+}));
+
+vi.mock("@/lib/monitoring/cron-alerts", () => ({
+  alertCronFailure: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@/lib/cron/lock", () => ({
+  withCronLock: vi.fn((_name: string, handler: () => Promise<unknown>) => handler()),
+}));
+
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),
 }));

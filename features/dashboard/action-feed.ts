@@ -5,6 +5,17 @@ import type { ActionResult, ActionFeedItem } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { sendReminder } from "@/features/invoices/actions";
 import { formatCurrency } from "@/lib/format";
+import { calculateZZPTaxProjection, type Investment } from "@/lib/tax/dutch-tax-2026";
+import {
+  CONFIDENCE_THRESHOLDS,
+  calculateInvestmentTaxSaving,
+  calculateKIAThresholdGap,
+  generateKIAThresholdDescription,
+  generateInvestmentSuggestionDescription,
+  toHumanReviewTitle,
+  toHumanReviewDescription,
+  getMissingReceiptConfidence,
+} from "@/lib/tax/fiscal-claim-validator";
 import * as Sentry from "@sentry/nextjs";
 
 /**
@@ -216,7 +227,7 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
 
         if (tx.counterpart_name && knownCounterparts.has(tx.counterpart_name)) confidence += 0.05;
 
-        if (confidence >= 0.98) {
+        if (confidence >= CONFIDENCE_THRESHOLDS.AUTO_EXECUTE) {
           // Autonomous match
           await supabase
             .from("bank_transactions")
@@ -225,7 +236,7 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
               linked_receipt_id: matchingReceipt.id,
             })
             .eq("id", tx.id);
-          
+
           newActions.push({
             user_id: userId,
             type: "autonomous_match",
@@ -239,11 +250,13 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
             status: "resolved",
           });
         } else {
+          const matchTitle = `Match: ${tx.counterpart_name ?? tx.description ?? "Onbekend"}`;
+          const matchDesc = `Transactie van ${new Date(tx.booking_date).toLocaleDateString("nl-NL")} lijkt te passen bij bon van ${matchingReceipt.vendor_name ?? "onbekend"}.`;
           newActions.push({
             user_id: userId,
             type: "match_suggestion",
-            title: `Match: ${tx.counterpart_name ?? tx.description ?? "Onbekend"}`,
-            description: `Transactie van ${new Date(tx.booking_date).toLocaleDateString("nl-NL")} lijkt te passen bij bon van ${matchingReceipt.vendor_name ?? "onbekend"}.`,
+            title: toHumanReviewTitle(matchTitle, confidence),
+            description: toHumanReviewDescription(matchDesc, confidence),
             amount: txAmount,
             related_transaction_id: tx.id,
             related_receipt_id: matchingReceipt.id,
@@ -252,14 +265,16 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
           });
         }
       } else {
+        const uncatTitle = tx.counterpart_name ?? tx.description ?? "Onbekende transactie";
+        const uncatDesc = `Afschrijving op ${new Date(tx.booking_date).toLocaleDateString("nl-NL")}. Categoriseer of negeer.`;
         newActions.push({
           user_id: userId,
           type: "uncategorized",
-          title: tx.counterpart_name ?? tx.description ?? "Onbekende transactie",
-          description: `Afschrijving op ${new Date(tx.booking_date).toLocaleDateString("nl-NL")}. Categoriseer of negeer.`,
+          title: toHumanReviewTitle(uncatTitle, 0),
+          description: toHumanReviewDescription(uncatDesc, 0),
           amount: txAmount,
           related_transaction_id: tx.id,
-          ai_confidence: null,
+          ai_confidence: 0,
         });
       }
     }
@@ -267,6 +282,22 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
     if (newActions.length > 0) {
       const { error: insertError } = await supabase.from("action_feed").insert(newActions);
       if (insertError) return { error: insertError.message };
+
+      // Audit trail: log elke agent-beslissing (fire-and-forget)
+      for (const action of newActions) {
+        const isAuto = action.status === "resolved";
+        import("@/lib/audit/agent-audit").then((m) =>
+          m.logAgentDecision({
+            agentName: "ReconciliationAgent",
+            actionType: isAuto ? "autonomous_action" : action.type === "match_suggestion" ? "match_suggestion" : "classification",
+            userId,
+            confidence: action.ai_confidence ?? 0,
+            inputSummary: { transactionId: action.related_transaction_id, amount: action.amount },
+            outputSummary: { type: action.type, category: action.suggested_category },
+            wasAutoExecuted: isAuto,
+          }).catch(() => {})
+        );
+      }
     }
 
     return { error: null, data: { created: newActions.length } };
@@ -362,7 +393,7 @@ export async function runPaymentDetectionAgent(userId: string, externalSupabase?
 
       if (!bestMatch) continue;
 
-      if (bestMatch.confidence >= 0.95) {
+      if (bestMatch.confidence >= CONFIDENCE_THRESHOLDS.AUTO_EXECUTE) {
         // High confidence: auto-mark as paid
         await supabase
           .from("invoices")
@@ -393,11 +424,13 @@ export async function runPaymentDetectionAgent(userId: string, externalSupabase?
         if (idx > -1) openInvoices.splice(idx, 1);
       } else if (bestMatch.confidence >= 0.70) {
         // Medium confidence: suggest to user
+        const payTitle = `Mogelijke betaling: ${bestMatch.invoice.invoice_number}`;
+        const payDesc = `Inkomende transactie van ${new Date(tx.booking_date).toLocaleDateString("nl-NL")} (${formatCurrency(txAmount)}) lijkt een betaling voor factuur ${bestMatch.invoice.invoice_number}.`;
         newActions.push({
           user_id: userId,
           type: "match_suggestion",
-          title: `Mogelijke betaling: ${bestMatch.invoice.invoice_number}`,
-          description: `Inkomende transactie van ${new Date(tx.booking_date).toLocaleDateString("nl-NL")} (${formatCurrency(txAmount)}) lijkt een betaling voor factuur ${bestMatch.invoice.invoice_number}.`,
+          title: toHumanReviewTitle(payTitle, bestMatch.confidence),
+          description: toHumanReviewDescription(payDesc, bestMatch.confidence),
           amount: txAmount,
           related_transaction_id: tx.id,
           related_invoice_id: bestMatch.invoice.id,
@@ -410,6 +443,22 @@ export async function runPaymentDetectionAgent(userId: string, externalSupabase?
     if (newActions.length > 0) {
       const { error: insertError } = await supabase.from("action_feed").insert(newActions);
       if (insertError) return { error: insertError.message };
+
+      // Audit trail
+      for (const action of newActions) {
+        const isAuto = action.status === "resolved";
+        import("@/lib/audit/agent-audit").then((m) =>
+          m.logAgentDecision({
+            agentName: "PaymentDetectionAgent",
+            actionType: isAuto ? "autonomous_action" : "match_suggestion",
+            userId,
+            confidence: action.ai_confidence ?? 0,
+            inputSummary: { transactionId: action.related_transaction_id, invoiceId: action.related_invoice_id, amount: action.amount },
+            outputSummary: { type: action.type },
+            wasAutoExecuted: isAuto,
+          }).catch(() => {})
+        );
+      }
     }
 
     return { error: null, data: { created: newActions.length } };
@@ -488,6 +537,21 @@ export async function runAnticipationAgent(userId: string, externalSupabase?: Aw
     if (newActions.length > 0) {
       const { error: insertError } = await supabase.from("action_feed").insert(newActions);
       if (insertError) return { error: insertError.message };
+
+      // Audit trail
+      for (const action of newActions) {
+        import("@/lib/audit/agent-audit").then((m) =>
+          m.logAgentDecision({
+            agentName: "AnticipationAgent",
+            actionType: "tax_alert",
+            userId,
+            confidence: action.ai_confidence ?? 0.98,
+            inputSummary: { invoiceId: action.related_invoice_id, amount: action.amount },
+            outputSummary: { type: action.type },
+            wasAutoExecuted: false,
+          }).catch(() => {})
+        );
+      }
     }
 
     return { error: null, data: { created: newActions.length } };
@@ -548,30 +612,101 @@ export async function runInvestmentAgent(userId: string, externalSupabase?: Awai
 
     let created = 0;
 
-    // Alert 1: KIA threshold proximity (>€2500 but <€2901)
-    if (totalInvestments > 2500 && totalInvestments < 2901) {
-      const nodig = 2901 - totalInvestments;
+    // Alert 1: KIA threshold proximity — deterministic berekening
+    const kiaGap = calculateKIAThresholdGap(totalInvestments);
+    if (kiaGap && totalInvestments > 2500) {
+      const confidence = 0.95;
+      const title = toHumanReviewTitle("KIA-drempel bijna bereikt!", confidence);
+      const description = toHumanReviewDescription(
+        generateKIAThresholdDescription(totalInvestments, kiaGap),
+        confidence,
+      );
       await supabase.from("action_feed").insert({
         user_id: userId,
         type: "tax_alert",
-        title: "KIA-drempel bijna bereikt!",
-        description: `Je totale investeringen zijn ${formatCurrency(totalInvestments)}. Investeer nog ${formatCurrency(nodig)} om de KIA-drempel van €2.901 te bereiken en 28% extra aftrek te krijgen.`,
-        ai_confidence: 0.95,
+        title,
+        description,
+        ai_confidence: confidence,
         status: "pending",
       });
+      // Audit trail
+      import("@/lib/audit/agent-audit").then((m) =>
+        m.logAgentDecision({
+          agentName: "InvestmentAgent",
+          actionType: "tax_alert",
+          userId,
+          confidence,
+          inputSummary: { totalInvestments, kiaGapNodig: kiaGap.nodig },
+          outputSummary: { type: "kia_threshold", potentialKIA: kiaGap.potentialKIA },
+          wasAutoExecuted: false,
+        }).catch(() => {})
+      );
       created++;
     }
 
-    // Alert 2: General investment suggestion for high revenue
+    // Alert 2: Investering-suggestie — bereken echte belastingbesparing
     if (totalRevenueExVat > 10000 && totalInvestments < 2901) {
+      // Haal kosten op voor belastbaar inkomen berekening
+      const { data: costsData } = await supabase
+        .from("receipts")
+        .select("amount_ex_vat")
+        .eq("user_id", userId)
+        .gte("receipt_date", yearStart)
+        .lte("receipt_date", yearEnd);
+
+      const jaarKostenExBtw = (costsData ?? []).reduce(
+        (sum, rec) => sum + (Number(rec.amount_ex_vat) || 0), 0
+      );
+
+      const maandenVerstreken = now.getMonth() + 1;
+      const projection = calculateZZPTaxProjection({
+        jaarOmzetExBtw: totalRevenueExVat,
+        jaarKostenExBtw,
+        investeringen: (kiaAssets ?? []).map((a, i) => ({
+          id: String(i),
+          omschrijving: "Bestaande investering",
+          aanschafprijs: Number(a.aanschaf_prijs) || 0,
+          aanschafDatum: yearStart,
+          levensduur: 5,
+          restwaarde: 0,
+        })) as Investment[],
+        maandenVerstreken,
+        huidigJaar: currentYear,
+      });
+
+      const proposedInvestment = 1000;
+      const saving = calculateInvestmentTaxSaving({
+        currentTotalInvestments: totalInvestments,
+        proposedAdditionalInvestment: proposedInvestment,
+        currentBelastbaarInkomen: projection.belastbaarInkomen,
+      });
+
+      const confidence = 0.9;
+      const title = toHumanReviewTitle("Fiscale Optimalisatie: Investering", confidence);
+      const description = toHumanReviewDescription(
+        generateInvestmentSuggestionDescription(totalRevenueExVat, proposedInvestment, saving),
+        confidence,
+      );
       await supabase.from("action_feed").insert({
         user_id: userId,
         type: "tax_alert",
-        title: "Fiscale Optimalisatie: Investering",
-        description: `Je hebt dit jaar al ${formatCurrency(totalRevenueExVat)} omgezet. Een investering van €1.000 in gear verlaagt je belastbare winst en bespaart ca. €370 aan inkomstenbelasting via de KIA.`,
-        ai_confidence: 0.9,
+        title,
+        description,
+        ai_confidence: confidence,
         status: "pending",
       });
+      // Audit trail
+      import("@/lib/audit/agent-audit").then((m) =>
+        m.logAgentDecision({
+          agentName: "InvestmentAgent",
+          actionType: "tax_alert",
+          userId,
+          confidence,
+          inputSummary: { totalRevenueExVat, totalInvestments, proposedInvestment },
+          outputSummary: { type: "investment_suggestion", kiaDelta: saving.kiaDelta, taxSaving: saving.taxSaving },
+          wasAutoExecuted: false,
+        }).catch(() => {})
+      );
       created++;
     }
 
@@ -633,21 +768,39 @@ export async function runMissingReceiptDetection(
       const amount = Math.abs(Number(tx.amount));
       const vendor = tx.counterpart_name || tx.description || "Onbekend";
       const date = new Date(tx.booking_date).toLocaleDateString("nl-NL");
+      const confidence = getMissingReceiptConfidence(amount);
+      const mrTitle = `Bon ontbreekt: ${vendor}`;
+      const mrDesc = `Uitgave van ${formatCurrency(amount)} op ${date}. Voeg een bon toe voor je administratie.`;
 
       newActions.push({
         user_id: userId,
         type: "missing_receipt",
-        title: `Bon ontbreekt: ${vendor}`,
-        description: `Uitgave van ${formatCurrency(amount)} op ${date}. Voeg een bon toe voor je administratie.`,
+        title: toHumanReviewTitle(mrTitle, confidence),
+        description: toHumanReviewDescription(mrDesc, confidence),
         amount,
         related_transaction_id: tx.id,
-        ai_confidence: 0.90,
+        ai_confidence: confidence,
         status: "pending",
       });
     }
 
     if (newActions.length > 0) {
       await supabase.from("action_feed").insert(newActions);
+
+      // Audit trail
+      for (const action of newActions) {
+        import("@/lib/audit/agent-audit").then((m) =>
+          m.logAgentDecision({
+            agentName: "MissingReceiptDetection",
+            actionType: "classification",
+            userId,
+            confidence: action.ai_confidence ?? 0,
+            inputSummary: { transactionId: action.related_transaction_id, amount: action.amount },
+            outputSummary: { type: "missing_receipt" },
+            wasAutoExecuted: false,
+          }).catch(() => {})
+        );
+      }
     }
 
     return { error: null, data: { created: newActions.length } };
@@ -736,6 +889,19 @@ export async function runBtwDeadlineAlert(
       ai_confidence: 1.0,
       status: "pending",
     });
+
+    // Audit trail
+    import("@/lib/audit/agent-audit").then((m) =>
+      m.logAgentDecision({
+        agentName: "BtwDeadlineAlert",
+        actionType: "tax_alert",
+        userId,
+        confidence: 1.0,
+        inputSummary: { quarter: nextDeadline.quarter, year: nextDeadline.year, daysUntil },
+        outputSummary: { hasDraft, isLocked },
+        wasAutoExecuted: false,
+      }).catch(() => {})
+    );
 
     return { error: null, data: { created: true } };
   } catch (err) {

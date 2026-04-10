@@ -2,12 +2,24 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 export interface AuthResult {
   error: string | null;
 }
 
+async function getClientIp(): Promise<string> {
+  const h = await headers();
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+}
+
 export async function login(formData: FormData): Promise<AuthResult> {
+  const ip = await getClientIp();
+  if (await isRateLimited(`auth-login:${ip}`, 10, 60_000)) {
+    return { error: "Te veel pogingen. Probeer het over een minuut opnieuw." };
+  }
+
   const supabase = await createClient();
 
   const email = formData.get("email") as string;
@@ -26,6 +38,11 @@ export async function login(formData: FormData): Promise<AuthResult> {
 }
 
 export async function register(formData: FormData): Promise<AuthResult> {
+  const ip = await getClientIp();
+  if (await isRateLimited(`auth-register:${ip}`, 5, 60_000)) {
+    return { error: "Te veel pogingen. Probeer het over een minuut opnieuw." };
+  }
+
   const supabase = await createClient();
 
   const email = formData.get("email") as string;
@@ -67,6 +84,9 @@ export async function completeOnboarding(
     return { error: "Niet ingelogd." };
   }
 
+  const estimatedIncomeRaw = formData.get("estimated_annual_income") as string;
+  const estimatedIncome = estimatedIncomeRaw ? parseFloat(estimatedIncomeRaw) : null;
+
   const { error } = await supabase.from("profiles").upsert({
     id: user.id,
     full_name:
@@ -86,6 +106,9 @@ export async function completeOnboarding(
     postal_code: formData.get("postal_code") as string,
     vat_frequency: (formData.get("vat_frequency") as string) || "quarterly",
     bookkeeping_start_date: (formData.get("bookkeeping_start_date") as string) || null,
+    uses_kor: formData.get("uses_kor") === "true",
+    estimated_annual_income: estimatedIncome && !isNaN(estimatedIncome) ? estimatedIncome : null,
+    meets_urencriterium: formData.get("meets_urencriterium") !== "false",
     onboarding_completed_at: new Date().toISOString(),
   });
 

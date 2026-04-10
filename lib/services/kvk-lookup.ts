@@ -82,6 +82,69 @@ export async function lookupKvK(query: string): Promise<KvKResult[]> {
   }
 }
 
+/**
+ * Zoek bedrijf op KvK-nummer (8 cijfers).
+ * Retourneert een lege array als KVK_API_KEY niet geconfigureerd is (niet-fataal).
+ */
+export async function lookupKvKByNumber(kvkNummer: string): Promise<KvKResult[]> {
+  if (!kvkNummer.trim() || !/^[0-9]{8}$/.test(kvkNummer.trim())) return [];
+
+  const cacheKey = `nr:${kvkNummer.trim()}`;
+
+  // 1. Check cache
+  const cached = await getCachedResults(cacheKey);
+  if (cached) return cached;
+
+  // 2. Check API key
+  const apiKey = process.env.KVK_API_KEY;
+  if (!apiKey) return [];
+
+  // 3. Call KvK API
+  try {
+    const params = new URLSearchParams({
+      kvkNummer: kvkNummer.trim(),
+      pagina: "1",
+      resultatPerPagina: "1",
+    });
+
+    const response = await fetch(
+      `https://api.kvk.nl/api/v2/zoeken?${params.toString()}`,
+      {
+        headers: { apikey: apiKey },
+        signal: AbortSignal.timeout(10_000),
+      }
+    );
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const resultaten = data.resultaten ?? [];
+
+    const results: KvKResult[] = resultaten.map(
+      (r: {
+        kvkNummer?: string;
+        handelsnaam?: string;
+        type?: string;
+        actief?: string;
+        adres?: { binnenlandsAdres?: { plaats?: string } };
+      }) => ({
+        kvkNummer: r.kvkNummer ?? "",
+        handelsnaam: r.handelsnaam ?? "",
+        type: r.type ?? "",
+        actief: r.actief !== "Nee",
+        vestigingsplaats: r.adres?.binnenlandsAdres?.plaats ?? "",
+      })
+    );
+
+    // 4. Cache results
+    await cacheResults(cacheKey, results);
+
+    return results;
+  } catch {
+    return [];
+  }
+}
+
 async function getCachedResults(cacheKey: string): Promise<KvKResult[] | null> {
   try {
     const supabase = createServiceClient();

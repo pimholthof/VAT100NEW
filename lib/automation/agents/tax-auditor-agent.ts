@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { Agent, SystemEventRow } from "../types";
 import { sendAuditReport } from "../../email/send-audit";
+import { calculateAuditScore } from "@/lib/tax/fiscal-claim-validator";
 
 /**
  * Agent 5: The Tax Auditor
@@ -80,12 +81,13 @@ export const taxAuditorAgent: Agent = {
         });
       }
 
-      // 4. Calculate Score
-      let score = 100;
-      score -= (missingReceipts || []).length * 5;
-      score -= (unlinkedInvoices || []).length * 2;
-      if (totalHours < targetHours * 0.8) score -= 15;
-      score = Math.max(0, score);
+      // 4. Calculate Score — deterministic via fiscal-claim-validator
+      const { score, status } = calculateAuditScore({
+        missingReceiptsCount: (missingReceipts || []).length,
+        unlinkedInvoicesCount: (unlinkedInvoices || []).length,
+        hoursLogged: totalHours,
+        targetHours,
+      });
 
       // 5. Store results
       const { error: recordError } = await supabase
@@ -101,10 +103,28 @@ export const taxAuditorAgent: Agent = {
             hours_gap: Math.max(0, targetHours - totalHours),
             anomalies: []
           },
-          status: score > 90 ? "Gedaan" : score > 70 ? "Aandacht Vereist" : "Kritiek"
+          status,
         });
 
       if (recordError) throw recordError;
+
+      // 5b. Audit trail
+      import("@/lib/audit/agent-audit").then((m) =>
+        m.logAgentDecision({
+          agentName: "TaxAuditor",
+          actionType: "audit_completed",
+          userId,
+          confidence: 1.0,
+          inputSummary: {
+            missingReceiptsCount: (missingReceipts || []).length,
+            unlinkedInvoicesCount: (unlinkedInvoices || []).length,
+            hoursLogged: totalHours,
+            targetHours,
+          },
+          outputSummary: { score, status, quarter: currentQuarter, year: currentYear },
+          wasAutoExecuted: false,
+        }).catch(() => {})
+      );
 
       // 6. Send Email
       const { data: profile } = await supabase

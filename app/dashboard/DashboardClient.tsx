@@ -19,6 +19,10 @@ import { HealthScore } from "@/features/dashboard/components/HealthScore";
 import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
 import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
+import { useState } from "react";
+import TaxAgentChat from "@/components/ai/TaxAgentChat";
+import { Button } from "@/components/ui/Button";
+import { Bot } from "lucide-react";
 
 
 
@@ -30,6 +34,7 @@ export default function DashboardClient({
   initialOnboarding?: OnboardingProgress | null;
 }) {
   const { locale, t } = useLocale();
+  const [showAIChat, setShowAIChat] = useState(false);
   const { data: dashboardResult, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
@@ -118,6 +123,7 @@ export default function DashboardClient({
       {!isLoading && onboardingResult && !onboardingResult.onboardingCompleted && (
         <OnboardingChecklist
           hasProfile={onboardingResult.hasProfile}
+          hasFiscalProfile={onboardingResult.hasFiscalProfile}
           hasClient={onboardingResult.hasClient}
           hasInvoice={onboardingResult.hasInvoice}
           hasReceipt={onboardingResult.hasReceipt}
@@ -210,15 +216,17 @@ export default function DashboardClient({
       )}
 
 
-      {/* ── FINANCIAL HEALTH ── */}
-      {data?.financialHealth && !isLoading && (
+      {/* ── FINANCIAL HEALTH (progressive disclosure: alleen tonen bij voldoende data) ── */}
+      {data?.financialHealth && !isLoading &&
+        ((stats?.openInvoiceCount ?? 0) > 0 || (stats?.revenueThisMonth ?? 0) > 0) && (
         <motion.div variants={itemVariants}>
           <HealthScore health={data.financialHealth} />
         </motion.div>
       )}
 
-      {/* ── CASHFLOW FORECAST ── */}
-      {data?.cashflowForecast && !isLoading && (
+      {/* ── CASHFLOW FORECAST (progressive disclosure: alleen tonen bij bankdata) ── */}
+      {data?.cashflowForecast && !isLoading &&
+        ((safeToSpend?.currentBalance ?? 0) !== 0 || (stats?.receiptsThisMonth ?? 0) > 0) && (
         <motion.div variants={itemVariants}>
           <CashflowForecast
             weeks={data.cashflowForecast}
@@ -226,6 +234,30 @@ export default function DashboardClient({
           />
         </motion.div>
       )}
+
+      {/* ── AI TAX ASSISTANT ── */}
+      <motion.div variants={itemVariants}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="brutalist-section-title">
+            <span>AI Fiscale Assistent</span>
+            <span className="brutalist-rule" />
+          </h2>
+          <Button
+            onClick={() => setShowAIChat(!showAIChat)}
+            variant={showAIChat ? "secondary" : "primary"}
+            className="flex items-center gap-2"
+          >
+            <Bot className="w-4 h-4" />
+            {showAIChat ? "Verberg" : "Toon"} AI Assistent
+          </Button>
+        </div>
+        
+        {showAIChat && (
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <TaxAgentChat />
+          </div>
+        )}
+      </motion.div>
 
       {/* ── OPEN INVOICES ── */}
       <motion.div variants={itemVariants}>

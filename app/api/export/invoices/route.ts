@@ -2,12 +2,17 @@ import { requireAuth } from "@/lib/supabase/server";
 import { sanitizeSupabaseError } from "@/lib/errors";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
 import { formatDate } from "@/lib/format";
+import { isRateLimited } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   const auth = await requireAuth();
   if (auth.error !== null) return NextResponse.json({ error: auth.error }, { status: 401 });
   const { supabase, user } = auth;
+
+  if (await isRateLimited(`export:${user.id}`, 20, 60_000)) {
+    return NextResponse.json({ error: "Te veel exports. Probeer het later opnieuw." }, { status: 429 });
+  }
 
   const { data, error } = await supabase
     .from("invoices")

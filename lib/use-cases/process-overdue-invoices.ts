@@ -3,6 +3,8 @@ import { sendReminderEmail } from "@/lib/email/send-reminder";
 import { formatCurrency } from "@/lib/format";
 import * as Sentry from "@sentry/nextjs";
 import type { InvoiceData } from "@/lib/types";
+import { sendDefaultNotice } from "@/lib/email/send-default-notice";
+import { calculateLegalInterest } from "@/lib/logic/interest-calculator";
 
 export async function processOverdueInvoices(userId?: string): Promise<{
   updated: number;
@@ -90,7 +92,7 @@ export async function processOverdueInvoices(userId?: string): Promise<{
 
         const nextStep = daysSinceLastReminder >= 7 ? Math.min(lastStep + 1, 3) : 0;
 
-        if (nextStep > 0) {
+        if (nextStep > 0 && nextStep <= 3) {
           const emailResult = await sendReminderEmail(invoiceData, undefined, nextStep);
           emailSent = !emailResult.error;
 
@@ -101,6 +103,43 @@ export async function processOverdueInvoices(userId?: string): Promise<{
               step: nextStep,
               sent_at: new Date().toISOString(),
             }); // Non-fatal if fails
+          }
+        }
+
+        // Na stap 3: ingebrekestelling (stap 4)
+        if (lastStep >= 3 && daysSinceLastReminder >= 14) {
+          const { data: hasDefaultNotice } = await supabase
+            .from("invoice_reminders")
+            .select("id")
+            .eq("invoice_id", inv.id)
+            .eq("step", 4)
+            .maybeSingle();
+
+          if (!hasDefaultNotice) {
+            const defaultResult = await sendDefaultNotice(invoiceData);
+            if (!defaultResult.error) {
+              emailSent = true;
+              await supabase.from("invoice_reminders").insert({
+                invoice_id: inv.id,
+                step: 4,
+                sent_at: new Date().toISOString(),
+              });
+
+              // Action feed: incasso suggestie
+              const interest = calculateLegalInterest(
+                Number(inv.total_inc_vat) || 0,
+                inv.due_date
+              );
+              await supabase.from("action_feed").insert({
+                user_id: inv.user_id,
+                type: "tax_alert",
+                title: `Ingebrekestelling verstuurd: ${inv.invoice_number}`,
+                description: `Formele ingebrekestelling verstuurd voor factuur ${inv.invoice_number}. Totaal verschuldigd incl. rente: ${formatCurrency(interest.totalOwed)}. Overweeg een incassobureau als betaling uitblijft.`,
+                amount: interest.totalOwed,
+                related_invoice_id: inv.id,
+                ai_confidence: 1.0,
+              });
+            }
           }
         }
       }

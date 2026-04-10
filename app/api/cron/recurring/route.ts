@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
+import { withCronLock } from "@/lib/cron/lock";
 
 function calculateNextRunDate(runDate: string, frequency: string): string {
   const nextDate = new Date(runDate);
@@ -31,6 +33,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const locked = await withCronLock("recurring", async () => {
+  try {
   const supabase = createServiceClient();
   const today = new Date().toISOString().split("T")[0];
 
@@ -138,4 +142,15 @@ export async function GET(request: Request) {
     processed: results.length,
     results,
   });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    await alertCronFailure("recurring", e);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+  });
+
+  if (locked === null) {
+    return NextResponse.json({ status: "skipped", reason: "Job is al actief" });
+  }
+  return locked;
 }
