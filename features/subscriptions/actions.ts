@@ -13,6 +13,7 @@ import type { Plan, SubscriptionWithPlan, ActionResult } from "@/lib/types";
 import { headers } from "next/headers";
 import { sanitizeSupabaseError } from "@/lib/errors";
 import { uuidSchema } from "@/lib/validation";
+import { calculateProration } from "@/lib/logic/proration-calculator";
 
 async function getBaseUrl(): Promise<string> {
   const headersList = await headers();
@@ -368,4 +369,70 @@ export async function changeSubscription(
 
   // Start new subscription
   return startSubscription(newPlanId);
+}
+
+/**
+ * Bereken wat een plan-wijziging zou kosten (pro-rata).
+ */
+export async function getUpgradePreview(
+  newPlanId: string,
+): Promise<ActionResult<{
+  currentPlan: string;
+  newPlan: string;
+  prorationAmountCents: number;
+  remainingDays: number;
+  isUpgrade: boolean;
+}>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+
+  const supabase = createServiceClient();
+
+  // Haal huidige subscription op
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("*, plan:plans(*)")
+    .eq("user_id", auth.user.id)
+    .in("status", ["active", "past_due"])
+    .single();
+
+  if (!subscription) {
+    return { error: "Geen actief abonnement gevonden." };
+  }
+
+  // Haal nieuw plan op
+  const { data: newPlan } = await supabase
+    .from("plans")
+    .select("*")
+    .eq("id", newPlanId)
+    .eq("is_active", true)
+    .single();
+
+  if (!newPlan) {
+    return { error: "Ongeldig plan." };
+  }
+
+  const currentPlan = subscription.plan as unknown as { name: string; price_cents: number };
+
+  if (!subscription.current_period_start || !subscription.current_period_end) {
+    return { error: "Abonnementsperiode niet gevonden." };
+  }
+
+  const proration = calculateProration(
+    currentPlan.price_cents,
+    newPlan.price_cents,
+    subscription.current_period_start,
+    subscription.current_period_end,
+  );
+
+  return {
+    error: null,
+    data: {
+      currentPlan: currentPlan.name,
+      newPlan: newPlan.name,
+      prorationAmountCents: proration.prorationAmount,
+      remainingDays: proration.remainingDays,
+      isUpgrade: proration.isUpgrade,
+    },
+  };
 }

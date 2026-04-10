@@ -2,14 +2,37 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockInsert = vi.fn().mockResolvedValue({ error: null });
 const mockRpc = vi.fn();
+const mockSelect = vi.fn();
 
 // Mock createServiceClient
 vi.mock("@/lib/supabase/service", () => ({
   createServiceClient: vi.fn(() => ({
     rpc: mockRpc,
-    from: vi.fn(() => ({
-      insert: mockInsert,
-    })),
+    from: vi.fn((table: string) => {
+      if (table === "reserve_snapshots") {
+        return { insert: mockInsert };
+      }
+      // receipts table queries
+      return {
+        select: mockSelect.mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            gte: vi.fn().mockReturnValue({
+              lte: vi.fn().mockReturnValue({
+                or: vi.fn().mockResolvedValue({ data: [], error: null }),
+              }),
+            }),
+            eq: vi.fn().mockReturnValue({
+              not: vi.fn().mockReturnValue({
+                not: vi.fn().mockResolvedValue({ data: [], error: null }),
+              }),
+            }),
+            not: vi.fn().mockReturnValue({
+              not: vi.fn().mockResolvedValue({ data: [], error: null }),
+            }),
+          }),
+        }),
+      };
+    }),
   })),
 }));
 

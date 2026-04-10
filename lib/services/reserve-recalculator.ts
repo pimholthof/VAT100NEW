@@ -7,7 +7,7 @@
  */
 
 import { createServiceClient } from "@/lib/supabase/service";
-import { calculateZZPTaxProjection } from "@/lib/tax/dutch-tax-2026";
+import { calculateZZPTaxProjection, type Investment } from "@/lib/tax/dutch-tax-2026";
 
 /**
  * Herbereken reserves en schrijf een snapshot.
@@ -36,7 +36,7 @@ export async function recalculateReserves(
       Math.round((outputVat - inputVat) * 100) / 100
     );
 
-    // 3. IB-schatting via jaaromzet
+    // 3. IB-schatting via jaaromzet + werkelijke kosten
     const yearRevenueRecords = (balanceData?.yearRevenueRecords ?? []) as Array<{
       total_inc_vat: number;
       vat_amount: number;
@@ -48,11 +48,49 @@ export async function recalculateReserves(
     );
 
     const now = new Date();
+    const huidigJaar = now.getFullYear();
+    const yearStart = `${huidigJaar}-01-01`;
+    const yearEnd = `${huidigJaar}-12-31`;
     const maandenVerstreken = now.getMonth() + 1;
+
+    // Haal werkelijke kosten en investeringen op (parallel)
+    const [regularReceiptsRes, investmentReceiptsRes] = await Promise.all([
+      supabase
+        .from("receipts")
+        .select("amount_ex_vat")
+        .eq("user_id", userId)
+        .gte("receipt_date", yearStart)
+        .lte("receipt_date", yearEnd)
+        .or("cost_code.is.null,cost_code.neq.4230"),
+      supabase
+        .from("receipts")
+        .select("id, vendor_name, amount_ex_vat, receipt_date")
+        .eq("user_id", userId)
+        .eq("cost_code", 4230)
+        .not("amount_ex_vat", "is", null)
+        .not("receipt_date", "is", null),
+    ]);
+
+    const jaarKostenExBtw = (regularReceiptsRes.data ?? []).reduce(
+      (sum, rec) => sum + (Number(rec.amount_ex_vat) || 0),
+      0
+    );
+
+    const investeringen: Investment[] = (investmentReceiptsRes.data ?? []).map(
+      (rec) => ({
+        id: rec.id,
+        omschrijving: rec.vendor_name ?? "Investering",
+        aanschafprijs: Number(rec.amount_ex_vat) || 0,
+        aanschafDatum: rec.receipt_date!,
+        levensduur: 5,
+        restwaarde: 0,
+      })
+    );
+
     const projection = calculateZZPTaxProjection({
       jaarOmzetExBtw: totalRevenueExVat,
-      jaarKostenExBtw: 0,
-      investeringen: [],
+      jaarKostenExBtw,
+      investeringen,
       maandenVerstreken,
     });
 
