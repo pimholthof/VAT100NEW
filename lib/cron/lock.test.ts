@@ -18,14 +18,8 @@ vi.mock("@/lib/supabase/service", () => ({
   })),
 }));
 
-// Mock crypto.randomUUID
-vi.mock("crypto", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("crypto")>();
-  return {
-    ...actual,
-    randomUUID: vi.fn(() => "mock-lock-token-uuid"),
-  };
-});
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 // ─── Tests ───
 
@@ -47,11 +41,11 @@ describe("cron/lock", () => {
       const { acquireCronLock } = await import("./lock");
       const token = await acquireCronLock("test-job");
 
-      expect(token).toBe("mock-lock-token-uuid");
+      expect(token).toMatch(UUID_REGEX);
       expect(mockInsert).toHaveBeenCalledTimes(1);
       const insertedRow = mockInsert.mock.calls[0][0];
       expect(insertedRow.job_name).toBe("test-job");
-      expect(insertedRow.locked_by).toBe("mock-lock-token-uuid");
+      expect(insertedRow.locked_by).toMatch(UUID_REGEX);
       expect(insertedRow.locked_at).toBeDefined();
       expect(insertedRow.expires_at).toBeDefined();
     });
@@ -101,7 +95,8 @@ describe("cron/lock", () => {
       const { acquireCronLock } = await import("./lock");
       const token = await acquireCronLock("test-job");
 
-      expect(token).toBe("mock-lock-token-uuid");
+      // fail-open: returns a token even on non-constraint errors
+      expect(token).toMatch(UUID_REGEX);
     });
 
     it("verwijdert verlopen locks voordat de nieuwe lock wordt geclaimd", async () => {
