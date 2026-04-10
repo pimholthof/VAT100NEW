@@ -1,13 +1,14 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { joinWaitlist } from "@/features/waitlist/actions";
-import { useLocale } from "@/lib/i18n/context";
+import { cookies } from "next/headers";
+import { getDictionary, getLocaleFromCookie } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/types";
 import DashboardMockup from "@/components/landing/DashboardMockup";
 import InvoiceMockup from "@/components/landing/InvoiceMockup";
 import VatMockup from "@/components/landing/VatMockup";
 import PosterMockup from "@/components/landing/PosterMockup";
+import LocaleSwitcher from "@/components/landing/LocaleSwitcher";
+import FaqAccordion from "@/components/landing/FaqAccordion";
+import WaitlistForm from "@/components/landing/WaitlistForm";
 
 const sectionPadding: React.CSSProperties = {
   padding: "clamp(60px, 8vw, 120px) clamp(24px, 4vw, 64px)",
@@ -15,25 +16,25 @@ const sectionPadding: React.CSSProperties = {
   margin: "0 auto",
 };
 
-const divider = (
-  <div
-    style={{
-      maxWidth: 960,
-      margin: "0 auto",
-      padding: "0 clamp(24px, 4vw, 64px)",
-    }}
-  >
-    <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.06)" }} />
-  </div>
-);
+function Divider() {
+  return (
+    <div
+      style={{
+        maxWidth: 960,
+        margin: "0 auto",
+        padding: "0 clamp(24px, 4vw, 64px)",
+      }}
+    >
+      <div style={{ borderTop: "0.5px solid rgba(0,0,0,0.06)" }} />
+    </div>
+  );
+}
 
-export default function LandingPage() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [submitted, setSubmitted] = useState(false);
-  const [position, setPosition] = useState<number | null>(null);
-  const [waitlistError, setWaitlistError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const { locale, t, setLocale } = useLocale();
+export default async function LandingPage() {
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get("locale")?.value;
+  const locale: Locale = localeCookie === "en" ? "en" : "nl";
+  const t = getDictionary(locale);
 
   const features = [
     { title: t.landing.featureInvoices, description: t.landing.featureInvoicesDesc },
@@ -115,24 +116,6 @@ export default function LandingPage() {
     { q: t.landing.faq5Q, a: t.landing.faq5A },
   ];
 
-  async function handleWaitlistSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setWaitlistError(null);
-    setPending(true);
-
-    const formData = new FormData(e.currentTarget);
-    const result = await joinWaitlist(formData);
-
-    if (result.error) {
-      setWaitlistError(result.error);
-      setPending(false);
-    } else {
-      setPosition(result.data?.position ?? null);
-      setSubmitted(true);
-      setPending(false);
-    }
-  }
-
   const primaryPlanId = pricingPlans.find((plan) => plan.highlighted)?.id ?? pricingPlans[0]?.id ?? "basis";
 
   return (
@@ -213,24 +196,7 @@ export default function LandingPage() {
           >
             {t.landing.pricing}
           </a>
-          <button
-            onClick={() => setLocale(locale === "nl" ? "en" : "nl")}
-            className="label-strong"
-            style={{
-              textDecoration: "none",
-              color: "var(--color-black)",
-              padding: "6px 10px",
-              border: "0.5px solid rgba(0,0,0,0.12)",
-              borderRadius: "var(--radius-sm)",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: "11px",
-              letterSpacing: "0.1em",
-              opacity: 0.5,
-            }}
-          >
-            {locale === "nl" ? "EN" : "NL"}
-          </button>
+          <LocaleSwitcher />
           <Link
             href="/login"
             className="label-strong"
@@ -394,7 +360,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── Pain Points ─── */}
       <section style={sectionPadding}>
@@ -464,7 +430,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── Product Showcase ─── */}
       <section
@@ -589,7 +555,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── Concept ─── */}
       <section style={sectionPadding}>
@@ -665,7 +631,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── Features ─── */}
       <section
@@ -727,7 +693,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── Pricing ─── */}
       <section
@@ -903,7 +869,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── Built for ─── */}
       <section style={sectionPadding}>
@@ -955,7 +921,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── FAQ ─── */}
       <section style={sectionPadding}>
@@ -983,72 +949,11 @@ export default function LandingPage() {
               {t.landing.faqTitle}
             </h2>
           </div>
-          <div>
-            {faqs.map((faq, i) => (
-              <div
-                key={i}
-                style={{
-                  borderBottom: "0.5px solid rgba(0,0,0,0.06)",
-                }}
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  style={{
-                    width: "100%",
-                    padding: "20px 0",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 16,
-                    textAlign: "left",
-                    fontSize: 15,
-                    fontWeight: 500,
-                    color: "var(--color-black)",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {faq.q}
-                  <span
-                    style={{
-                      fontSize: 18,
-                      opacity: 0.3,
-                      transition: "transform 0.2s ease",
-                      transform: openFaq === i ? "rotate(45deg)" : "rotate(0deg)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    +
-                  </span>
-                </button>
-                <div
-                  style={{
-                    maxHeight: openFaq === i ? 200 : 0,
-                    overflow: "hidden",
-                    transition: "max-height 0.3s ease",
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: 14,
-                      lineHeight: 1.7,
-                      margin: 0,
-                      paddingBottom: 20,
-                      opacity: 0.55,
-                    }}
-                  >
-                    {faq.a}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <FaqAccordion faqs={faqs} />
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── Closing CTA ─── */}
       <section
@@ -1107,161 +1012,27 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {divider}
+      <Divider />
 
       {/* ─── Waitlist ─── */}
       <section style={sectionPadding}>
         <div style={{ maxWidth: 560 }}>
-          {submitted ? (
-            <div
-              style={{
-                padding: "32px",
-                border: "0.5px solid rgba(0,0,0,0.08)",
-                borderRadius: "var(--radius)",
-              }}
-            >
-              <p
-                className="label-strong"
-                style={{ marginBottom: 8, fontSize: 13 }}
-              >
-                {t.landing.waitlistSuccess}
-              </p>
-              <p
-                style={{
-                  fontSize: 14,
-                  opacity: 0.5,
-                  margin: 0,
-                  lineHeight: 1.6,
-                }}
-              >
-                {position ? t.landing.waitlistPosition.replace("{position}", String(position)) : ""}
-                {t.landing.waitlistConfirm}
-              </p>
-            </div>
-          ) : (
-            <div>
-              <p className="label-strong" style={{ marginBottom: 16, fontSize: 11 }}>
-                {t.landing.waitlistLabel}
-              </p>
-              <h2
-                style={{
-                  fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
-                  fontWeight: 700,
-                  letterSpacing: "-0.03em",
-                  lineHeight: 1.1,
-                  margin: 0,
-                  marginBottom: 16,
-                }}
-              >
-                {t.landing.waitlistTitle}
-              </h2>
-              <p
-                style={{
-                  fontSize: 15,
-                  lineHeight: 1.8,
-                  margin: 0,
-                  marginBottom: 32,
-                  opacity: 0.55,
-                }}
-              >
-                {t.landing.waitlistDescription}
-              </p>
-
-              <form
-                onSubmit={handleWaitlistSubmit}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 24,
-                }}
-              >
-                <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-                  <div style={{ flex: 1, minWidth: 180 }}>
-                    <label
-                      htmlFor="waitlist-name"
-                      className="label"
-                      style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
-                    >
-                      {t.landing.waitlistName}
-                    </label>
-                    <input
-                      id="waitlist-name"
-                      name="name"
-                      type="text"
-                      required
-                      placeholder={t.landing.waitlistNamePlaceholder}
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: 400,
-                        padding: "14px 0",
-                        border: "none",
-                        borderBottom: "0.5px solid rgba(0,0,0,0.1)",
-                        background: "transparent",
-                        color: "var(--color-black)",
-                        outline: "none",
-                        width: "100%",
-                        transition: "border-color 0.2s ease",
-                      }}
-                    />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    <label
-                      htmlFor="waitlist-email"
-                      className="label"
-                      style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
-                    >
-                      {t.landing.waitlistEmail}
-                    </label>
-                    <input
-                      id="waitlist-email"
-                      name="email"
-                      type="email"
-                      required
-                      placeholder={t.landing.waitlistEmailPlaceholder}
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: 400,
-                        padding: "14px 0",
-                        border: "none",
-                        borderBottom: "0.5px solid rgba(0,0,0,0.1)",
-                        background: "transparent",
-                        color: "var(--color-black)",
-                        outline: "none",
-                        width: "100%",
-                        transition: "border-color 0.2s ease",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {waitlistError && (
-                  <div
-                    role="alert"
-                    style={{
-                      padding: "12px 16px",
-                      background: "rgba(165, 28, 48, 0.04)",
-                      borderLeft: "2px solid var(--color-accent)",
-                      fontSize: "12px",
-                    }}
-                  >
-                    {waitlistError}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={pending}
-                  className="btn-primary"
-                  style={{
-                    padding: "18px 32px",
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  {pending ? t.common.waiting : t.landing.waitlistButton}
-                </button>
-              </form>
-            </div>
-          )}
+          <WaitlistForm
+            labels={{
+              waitlistLabel: t.landing.waitlistLabel,
+              waitlistTitle: t.landing.waitlistTitle,
+              waitlistDescription: t.landing.waitlistDescription,
+              waitlistName: t.landing.waitlistName,
+              waitlistNamePlaceholder: t.landing.waitlistNamePlaceholder,
+              waitlistEmail: t.landing.waitlistEmail,
+              waitlistEmailPlaceholder: t.landing.waitlistEmailPlaceholder,
+              waitlistButton: t.landing.waitlistButton,
+              waitlistSuccess: t.landing.waitlistSuccess,
+              waitlistPosition: t.landing.waitlistPosition,
+              waitlistConfirm: t.landing.waitlistConfirm,
+              waiting: t.common.waiting,
+            }}
+          />
         </div>
       </section>
 

@@ -1,8 +1,10 @@
 "use server";
 
-import { requireAuth } from "@/lib/supabase/server";
+import { requireAuth, createClient } from "@/lib/supabase/server";
 import type { ActionResult, LedgerEntry, LedgerEntryInput, LedgerAccount, VatScheme } from "@/lib/types";
 import { getRevenueAccountCode } from "@/lib/tax/chart-of-accounts";
+
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
 
 // ─── Ledger Account Constants ───
 
@@ -160,8 +162,7 @@ export async function autoBookReceipt(params: {
   vatAmount: number;
   businessPercentage: number;
   category: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any;
+  supabase: SupabaseServer;
 }): Promise<void> {
   const {
     receiptId, userId, entryDate, description,
@@ -269,8 +270,7 @@ export async function autoBookInvoice(params: {
   subtotalExVat: number;
   vatAmount: number;
   vatScheme?: VatScheme;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any;
+  supabase: SupabaseServer;
 }): Promise<void> {
   const { invoiceId, userId, entryDate, description, subtotalExVat, vatAmount, vatScheme, supabase } = params;
   const round2 = (v: number) => Math.round(v * 100) / 100;
