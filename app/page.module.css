@@ -1,0 +1,691 @@
+/* ==========================================================================
+   VAT100 Landing Page Styles
+   ========================================================================== */
+
+/* ─── Variables ─── */
+:root {
+  --lp-padding-x: clamp(24px, 4vw, 64px);
+  --lp-section-padding-y: clamp(60px, 8vw, 120px);
+  --lp-max-width: 960px;
+  --lp-gap-sm: 1px;
+  --lp-gap-md: 16px;
+  --lp-gap-lg: 24px;
+  --lp-gap-xl: clamp(32px, 5vw, 64px);
+  --lp-radius: var(--radius);
+  --lp-radius-sm: var(--radius-sm);
+}
+
+/* ─── Page Container ─── */
+.page {
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: var(--background);
+}
+
+/* ─── Background Watermark ─── */
+.watermark {
+  position: fixed;
+  bottom: -80px;
+  right: -60px;
+  font-size: min(28rem, 45vw);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.85;
+  color: var(--color-black);
+  opacity: 0.015;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  z-index: 0;
+}
+
+/* ─── Header ─── */
+.header {
+  padding: 32px var(--lp-padding-x);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(250, 249, 246, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.logo {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--color-black);
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.navLink {
+  text-decoration: none;
+  color: var(--color-black);
+  opacity: 0.5;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: opacity 0.2s ease;
+}
+
+.navLink:hover {
+  opacity: 0.8;
+}
+
+.langButton {
+  text-decoration: none;
+  color: var(--color-black);
+  padding: 6px 10px;
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--lp-radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.langButton:hover {
+  opacity: 0.8;
+}
+
+.loginButton {
+  text-decoration: none;
+  color: var(--color-black);
+  padding: 10px 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.15);
+  border-radius: var(--lp-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: border-color 0.15s ease;
+}
+
+.loginButton:hover {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Section Base ─── */
+.section {
+  padding: var(--lp-section-padding-y) var(--lp-padding-x);
+  max-width: var(--lp-max-width);
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.sectionHero {
+  padding: clamp(60px, 10vw, 140px) var(--lp-padding-x) clamp(40px, 6vw, 80px);
+}
+
+.sectionCompact {
+  padding: 24px var(--lp-padding-x);
+}
+
+/* ─── Hero Section ─── */
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--lp-gap-xl);
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.heroLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.heroTitle {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin: 0;
+  color: var(--color-black);
+  white-space: pre-line;
+}
+
+.heroSubtitle {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 300;
+  line-height: 1.6;
+  margin-top: 24px;
+  max-width: 440px;
+  color: var(--color-black);
+  opacity: 0.55;
+}
+
+.heroActions {
+  margin-top: 40px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ─── Buttons ─── */
+.btnPrimary {
+  display: inline-block;
+  background: var(--color-black);
+  color: var(--background);
+  padding: 18px 36px;
+  border-radius: var(--lp-radius-sm);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: opacity 0.2s ease;
+}
+
+.btnPrimary:hover {
+  opacity: 0.9;
+}
+
+.btnSecondary {
+  display: inline-block;
+  background: transparent;
+  color: var(--color-black);
+  padding: 18px 36px;
+  border: 0.5px solid rgba(0, 0, 0, 0.15);
+  border-radius: var(--lp-radius-sm);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: border-color 0.15s ease;
+}
+
+.btnSecondary:hover {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Trust Bar ─── */
+.trustBar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.trustItem {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.trustDivider {
+  opacity: 0.4;
+}
+
+.trustReassurance {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.35;
+}
+
+/* ─── Section Divider ─── */
+.divider {
+  max-width: var(--lp-max-width);
+  margin: 0 auto;
+  padding: 0 var(--lp-padding-x);
+}
+
+.dividerLine {
+  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Product Showcase ─── */
+.showcaseGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--lp-gap-xl);
+  align-items: center;
+  margin-bottom: clamp(60px, 8vw, 100px);
+}
+
+.showcaseGridReverse {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+@media (max-width: 768px) {
+  .showcaseGrid,
+  .showcaseGridReverse {
+    grid-template-columns: 1fr;
+  }
+}
+
+.showcaseTitle {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 16px;
+  white-space: pre-line;
+}
+
+.showcaseDescription {
+  font-size: 15px;
+  line-height: 1.8;
+  margin: 0;
+  opacity: 0.55;
+}
+
+/* ─── Section Header ─── */
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.sectionTitle {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0 0 clamp(40px, 6vw, 80px);
+}
+
+.sectionSubtitle {
+  font-size: 15px;
+  line-height: 1.8;
+  margin: 0 0 clamp(32px, 5vw, 56px);
+  max-width: 620px;
+  opacity: 0.55;
+}
+
+/* ─── Concept Grid ─── */
+.conceptGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: var(--lp-gap-xl);
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .conceptGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.conceptDescription {
+  font-size: 15px;
+  line-height: 1.8;
+  margin: 0;
+  opacity: 0.6;
+}
+
+/* ─── Stats Grid ─── */
+.statsGrid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.statValue {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.statLabel {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  opacity: 0.6;
+}
+
+/* ─── Features Grid ─── */
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--lp-gap-sm);
+}
+
+.featureCard {
+  padding: 32px 28px;
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--lp-radius);
+  background: var(--background);
+}
+
+.featureTitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.featureDescription {
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+  opacity: 0.5;
+}
+
+/* ─── Pricing Grid ─── */
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--lp-gap-sm);
+}
+
+.pricingCard {
+  padding: 36px 28px;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--lp-radius);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.pricingCardHighlighted {
+  border: 1px solid var(--color-black);
+}
+
+.pricingBadge {
+  position: absolute;
+  top: -1px;
+  left: 28px;
+  right: 28px;
+  text-align: center;
+  background: var(--color-black);
+  color: var(--background);
+  padding: 6px 12px;
+  border-radius: 0 0 var(--lp-radius-sm) var(--lp-radius-sm);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.pricingName {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.pricingPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.pricingAmount {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.pricingPeriod {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.pricingDescription {
+  font-size: 13px;
+  opacity: 0.5;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.pricingFeatures {
+  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+  padding-top: 20px;
+  flex: 1;
+}
+
+.pricingFeature {
+  font-size: 13px;
+  margin: 0;
+  padding: 6px 0;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pricingCheck {
+  opacity: 0.3;
+  font-size: 10px;
+}
+
+.pricingCta {
+  margin-top: 28px;
+  padding: 14px 24px;
+  text-align: center;
+  display: block;
+  text-decoration: none;
+  border-radius: var(--lp-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pricingCtaPrimary {
+  background: var(--color-black);
+  color: var(--background);
+}
+
+.pricingCtaSecondary {
+  background: transparent;
+  color: var(--color-black);
+  border: 0.5px solid rgba(0, 0, 0, 0.15);
+}
+
+.pricingCtaSecondary:hover {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Personas Grid ─── */
+.personasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--lp-gap-sm);
+}
+
+.personaCard {
+  padding: 32px 28px;
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--lp-radius);
+}
+
+.personaType {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0.35;
+}
+
+.personaQuote {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 300;
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* ─── Waitlist Section ─── */
+.waitlistContainer {
+  max-width: 560px;
+}
+
+.waitlistSuccess {
+  padding: 32px;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--lp-radius);
+}
+
+.waitlistSuccessTitle {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.waitlistSuccessText {
+  font-size: 14px;
+  opacity: 0.5;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.waitlistForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formRow {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.formGroup {
+  flex: 1;
+  min-width: 180px;
+}
+
+.formGroupLarge {
+  min-width: 200px;
+}
+
+.formLabel {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.formInput {
+  font-size: 13px;
+  font-weight: 400;
+  padding: 14px 0;
+  border: none;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
+  color: var(--color-black);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.formInput:focus {
+  border-color: var(--color-black);
+}
+
+.formInput::placeholder {
+  opacity: 0.4;
+}
+
+.formError {
+  padding: 12px 16px;
+  background: rgba(165, 28, 48, 0.04);
+  border-left: 2px solid var(--color-accent);
+  font-size: 12px;
+}
+
+.formSubmit {
+  align-self: flex-start;
+}
+
+/* ─── Footer ─── */
+.footer {
+  padding: 32px var(--lp-padding-x);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 600px) {
+  .footer {
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+  }
+}
+
+.footerCopyright {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.2;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 24px;
+}
+
+.footerLink {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-black);
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
+.footerLink:hover {
+  opacity: 0.8;
+}

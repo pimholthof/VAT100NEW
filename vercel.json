@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/agents/run-all",
-      "schedule": "0 4 * * *"
+      "schedule": "*/15 * * * *"
     },
     {
       "path": "/api/cron/sync-bank",
