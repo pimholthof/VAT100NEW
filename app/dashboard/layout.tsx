@@ -4,6 +4,8 @@ import { DashboardNav } from "@/components/layout/DashboardNav";
 import { DashboardTransition } from "@/components/layout/DashboardTransition";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { FeedbackWidget } from "@/features/feedback/FeedbackWidget";
+import { NpsSurvey } from "@/features/feedback/NpsSurvey";
 import { getUnreadCount } from "@/features/chat/actions";
 
 export default async function DashboardLayout({
@@ -42,6 +44,8 @@ export default async function DashboardLayout({
         </main>
       </DashboardTransition>
       <MobileBottomNav />
+      <FeedbackWidget />
+      <NpsSurvey />
     </div>
   );
 }
