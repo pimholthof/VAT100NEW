@@ -3,6 +3,8 @@ import { processOverdueInvoices } from "@/lib/use-cases/process-overdue-invoices
 import { processSubscriptionReminders } from "@/lib/use-cases/process-subscription-reminders";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { createServiceClient } from "@/lib/supabase/service";
+import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
+import { withCronLock } from "@/lib/cron/lock";
 
 /**
  * Cron: Overdue Invoice Handler + Subscription Reminders (daily 06:00)
@@ -15,6 +17,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const locked = await withCronLock("overdue", async () => {
   try {
     const [overdueData, subscriptionData] = await Promise.all([
       processOverdueInvoices(),
@@ -39,6 +42,13 @@ export async function GET(request: NextRequest) {
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
+    await alertCronFailure("overdue", e);
     return NextResponse.json({ error: message }, { status: 500 });
   }
+  });
+
+  if (locked === null) {
+    return NextResponse.json({ status: "skipped", reason: "Job is al actief" });
+  }
+  return locked;
 }

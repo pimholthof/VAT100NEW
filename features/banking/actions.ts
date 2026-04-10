@@ -394,7 +394,12 @@ export async function syncTransactions(
     // 6. Onzichtbare assistent: automatische verwerking na sync
     try {
       const { runPaymentDetectionAgent, runMissingReceiptDetection } = await import("@/features/dashboard/action-feed");
-      // Match betalingen aan openstaande facturen
+      const { autoReconcilePayments } = await import("@/lib/services/payment-reconciliation");
+      const { recalculateReserves } = await import("@/lib/services/reserve-recalculator");
+
+      // Deterministische betalingsreconciliatie (snel, geen AI)
+      await autoReconcilePayments(user.id, supabase).catch(() => {});
+      // Match betalingen aan openstaande facturen via AI
       await runPaymentDetectionAgent(user.id, supabase);
       // Categoriseer nieuwe, ongecategoriseerde transacties automatisch
       const { data: uncategorized } = await supabase
@@ -409,6 +414,8 @@ export async function syncTransactions(
       }
       // Detecteer uitgaven zonder bon
       await runMissingReceiptDetection(user.id, supabase).catch(() => {});
+      // Herbereken reserves na alle verwerking
+      await recalculateReserves(user.id, "sync").catch(() => {});
     } catch {
       // Non-fatal: automatisering mag niet de sync blokkeren
     }

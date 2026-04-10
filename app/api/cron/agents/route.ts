@@ -10,6 +10,9 @@ import {
   runBtwDeadlineAlert,
 } from "@/features/dashboard/action-feed";
 import * as Sentry from "@sentry/nextjs";
+import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
+import { prepareVatReturns, isQuarterStart } from "@/lib/use-cases/prepare-vat-returns";
+import { generateAnnualReportNotifications, isAnnualReportDay } from "@/lib/use-cases/generate-annual-reports";
 
 /**
  * Cron: Run all AI agents for all active users (daily 03:00)
@@ -27,6 +30,7 @@ export async function GET(request: NextRequest) {
     .select("id");
 
   if (usersError) {
+    await alertCronFailure("agents", usersError);
     return NextResponse.json({ error: usersError.message }, { status: 500 });
   }
 
@@ -102,6 +106,26 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  // Automatische BTW-aangifte voorbereiding (op de 1e van elk kwartaal)
+  let vatPrepResult = null;
+  if (isQuarterStart()) {
+    try {
+      vatPrepResult = await prepareVatReturns();
+    } catch (e) {
+      Sentry.captureException(e, { tags: { agent: "vat-preparation" } });
+    }
+  }
+
+  // Automatische jaarrekening notificaties (op 2 januari, alleen Compleet)
+  let annualReportResult = null;
+  if (isAnnualReportDay()) {
+    try {
+      annualReportResult = await generateAnnualReportNotifications();
+    } catch (e) {
+      Sentry.captureException(e, { tags: { agent: "annual-report" } });
+    }
+  }
+
   await supabase.from("system_events").insert({
     event_type: "cron.agents",
     payload: {
@@ -113,6 +137,8 @@ export async function GET(request: NextRequest) {
       missing_receipt_created: results.reduce((sum, result) => sum + result.missingReceipt, 0),
       btw_deadline_alerts_created: results.filter((result) => result.btwDeadlineAlert).length,
       users_with_errors: results.filter((result) => result.errors.length > 0).length,
+      vat_prep: vatPrepResult,
+      annual_report: annualReportResult,
     },
     processed_at: new Date().toISOString(),
   });
@@ -120,5 +146,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     usersProcessed: results.length,
     results,
+    vatPrep: vatPrepResult,
+    annualReport: annualReportResult,
   });
 }

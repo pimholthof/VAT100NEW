@@ -3,6 +3,8 @@ import * as Sentry from "@sentry/nextjs";
 import { processSystemEvents } from "@/lib/automation/event-processor";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { createServiceClient } from "@/lib/supabase/service";
+import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
+import { processWebhookRetries } from "@/lib/webhooks/retry-processor";
 
 /**
  * Agent Fleet Orchestrator (Master Cron Endpoint)
@@ -24,9 +26,16 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 2. Run the processor
-    // It will fetch 25 events per batch by default
+    // 1. Process system events
     const result = await processSystemEvents(50);
+
+    // 2. Process webhook retries (gefaalde Mollie webhooks opnieuw proberen)
+    let webhookRetries = null;
+    try {
+      webhookRetries = await processWebhookRetries();
+    } catch (e) {
+      Sentry.captureException(e, { tags: { area: "webhook-retries" } });
+    }
 
     const supabase = createServiceClient();
     await supabase.from("system_events").insert({
@@ -36,6 +45,7 @@ export async function GET(request: Request) {
         successes: result.successes,
         failures: result.failures,
         errors: result.errors.length,
+        webhook_retries: webhookRetries,
       },
       processed_at: new Date().toISOString(),
     });
@@ -43,9 +53,10 @@ export async function GET(request: Request) {
     return NextResponse.json({
       status: "success",
       ...result,
+      webhookRetries,
     });
   } catch (err) {
-    Sentry.captureException(err, { tags: { area: "agent-orchestrator" } });
+    await alertCronFailure("agents-run-all", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Unknown error" },
       { status: 500 }

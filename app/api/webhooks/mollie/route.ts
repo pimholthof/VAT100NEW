@@ -7,6 +7,7 @@ import { autoProvisionAccount } from "@/features/admin/actions";
 import { isRateLimited } from "@/lib/rate-limit";
 import { sendSubscriptionReceipt } from "@/lib/email/send-subscription";
 import { getOrCreateUnsubscribeToken } from "@/lib/email/preferences";
+import { queueWebhookRetry } from "@/lib/webhooks/retry-processor";
 
 /**
  * Mollie webhook: wordt aangeroepen wanneer een betaalstatus wijzigt.
@@ -17,6 +18,7 @@ import { getOrCreateUnsubscribeToken } from "@/lib/email/preferences";
  * regardless of who sent the webhook request.
  */
 export async function POST(request: NextRequest) {
+  let paymentId: string | null = null;
   try {
     // Rate limit webhook calls (100 per minute per IP)
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Te veel verzoeken" }, { status: 429 });
     }
     const formData = await request.formData();
-    const paymentId = formData.get("id") as string | null;
+    paymentId = formData.get("id") as string | null;
 
     if (!paymentId || typeof paymentId !== "string") {
       return NextResponse.json({ error: "Geen payment ID" }, { status: 400 });
@@ -60,6 +62,10 @@ export async function POST(request: NextRequest) {
     return handleInvoicePayment(payment, paymentId);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Onbekende fout";
+    // Bij verwerkinsfout: opslaan in retry queue
+    if (paymentId) {
+      await queueWebhookRetry("mollie", { paymentId }, message);
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
