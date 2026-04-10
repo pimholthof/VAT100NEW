@@ -212,7 +212,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Automatische bonnetjes-matching
-        let matchResult = { matched: 0, suggestions: [] as Array<{ receiptId: string; confidence: number }> };
+        let matchResult = { matched: 0, suggestions: [] as Array<{ transactionId: string; receiptId: string; confidence: number }> };
         try {
           matchResult = await autoMatchReceipts(connection.user_id, supabase);
           totalReceiptsMatched += matchResult.matched;
@@ -269,6 +269,12 @@ export async function GET(request: NextRequest) {
               .eq("id", match.receiptId)
               .single();
 
+            const { data: matchedTx } = await supabase
+              .from("bank_transactions")
+              .select("booking_date")
+              .eq("id", match.transactionId)
+              .single();
+
             if (receipt) {
               const { count } = await supabase
                 .from("ledger_entries")
@@ -279,7 +285,7 @@ export async function GET(request: NextRequest) {
                 await autoBookReceipt({
                   receiptId: receipt.id,
                   userId: receipt.user_id,
-                  entryDate: new Date().toISOString().split("T")[0],
+                  entryDate: matchedTx?.booking_date ?? new Date().toISOString().split("T")[0],
                   description: receipt.vendor_name ?? "Onbekende leverancier",
                   costCode: receipt.cost_code ?? 4999,
                   amountExVat: receipt.amount_ex_vat ?? 0,

@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { buildBaseEmailHtml } from "./template";
 import { formatCurrency, escapeHtml } from "@/lib/format";
+import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult } from "@/lib/types";
 
 let _resend: Resend | null = null;
@@ -66,7 +67,7 @@ export async function sendQuoteEmail(options: SendQuoteEmailOptions): Promise<Ac
     const { error: sendError } = await getResend().emails.send({
       from: process.env.EMAIL_FROM!,
       to: clientEmail,
-      subject: `Offerte ${escapeHtml(quoteNumber)} — ${escapeHtml(senderName)}`,
+      subject: `Offerte ${quoteNumber} — ${senderName}`,
       html: buildBaseEmailHtml({
         title: "Offerte",
         contentHtml,
@@ -78,6 +79,6 @@ export async function sendQuoteEmail(options: SendQuoteEmailOptions): Promise<Ac
     if (sendError) return { error: sendError.message };
     return { error: null };
   } catch (err: unknown) {
-    return { error: (err as Error).message };
+    return { error: getErrorMessage(err) };
   }
 }

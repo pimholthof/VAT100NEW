@@ -236,7 +236,7 @@ export interface ActionFeedItem {
 
 // ─── Quote types ───
 
-export type QuoteStatus = "draft" | "sent" | "accepted" | "invoiced" | "rejected";
+export type QuoteStatus = "draft" | "sent" | "accepted" | "invoiced" | "rejected" | "expired";
 
 export interface Quote {
   id: string;
@@ -253,6 +253,7 @@ export interface Quote {
   notes: string | null;
   share_token: string | null;
   converted_invoice_id: string | null;
+  sent_at: string | null;
   created_at: string;
 }
 

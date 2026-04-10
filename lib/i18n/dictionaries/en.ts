@@ -209,6 +209,17 @@ const en = {
     closingSubtitle: "Try free, no credit card and no obligations.",
     closingCta: "Try 14 days free",
     closingReassurance: "No credit card · Cancel anytime · Your data is yours",
+    // Trust bar
+    trustBuiltFor: "Built for freelancers",
+    trustTaxReady: "VAT return ready",
+    trustSecure: "Secure & encrypted",
+    trustNoKnowledge: "No accounting knowledge needed",
+    // Waitlist form aliases (used by page.tsx)
+    onWaitlist: "You're on the waitlist!",
+    name: "Name",
+    namePlaceholder: "Your full name",
+    email: "Email",
+    emailPlaceholder: "you@name.com",
     // CTA reassurance (kept for backwards compatibility)
     ctaReassurance: "Real-time insight into what you need to reserve.",
   },

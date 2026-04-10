@@ -49,9 +49,24 @@ interface PeriodStats {
   avgAttempts: number;
 }
 
+export interface RecentFailure {
+  id: string;
+  eventType: string;
+  lastError: string;
+  attempts: number;
+  failedAt: string;
+}
+
 export interface AutomationStats {
   period7d: PeriodStats;
   byEventType: EventTypeStats[];
+  recentFailures: RecentFailure[];
+  lastCronPayloads: {
+    agents: Record<string, unknown> | null;
+    recurring: Record<string, unknown> | null;
+    overdue: Record<string, unknown> | null;
+    events: Record<string, unknown> | null;
+  };
 }
 
 export async function getSystemStatus(): Promise<ActionResult<SystemStatus>> {
@@ -237,6 +252,42 @@ export async function getAutomationStats(): Promise<ActionResult<AutomationStats
       avgAttempts: stats.processed > 0 ? Math.round((stats.totalAttempts / stats.processed) * 10) / 10 : 0,
     }));
 
+    // Recent failures (last 10)
+    const { data: failures } = await supabase
+      .from("system_events")
+      .select("id, event_type, last_error, attempts, failed_at")
+      .not("failed_at", "is", null)
+      .order("failed_at", { ascending: false })
+      .limit(10);
+
+    const recentFailures: RecentFailure[] = (failures ?? []).map((f) => ({
+      id: f.id,
+      eventType: f.event_type ?? "unknown",
+      lastError: f.last_error ?? "",
+      attempts: f.attempts ?? 0,
+      failedAt: f.failed_at ?? "",
+    }));
+
+    // Last cron payloads
+    const cronTypes = ["cron.agents", "cron.recurring", "cron.overdue", "cron.event_processor"] as const;
+    const cronKeys = ["agents", "recurring", "overdue", "events"] as const;
+    const lastCronPayloads: AutomationStats["lastCronPayloads"] = {
+      agents: null, recurring: null, overdue: null, events: null,
+    };
+
+    for (let i = 0; i < cronTypes.length; i++) {
+      const { data: cronEvent } = await supabase
+        .from("system_events")
+        .select("payload")
+        .eq("event_type", cronTypes[i])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      if (cronEvent?.payload) {
+        lastCronPayloads[cronKeys[i]] = cronEvent.payload as Record<string, unknown>;
+      }
+    }
+
     return {
       error: null,
       data: {
@@ -247,6 +298,8 @@ export async function getAutomationStats(): Promise<ActionResult<AutomationStats
           avgAttempts: totalProcessed > 0 ? Math.round((totalAttempts / totalProcessed) * 10) / 10 : 0,
         },
         byEventType: byEventType.sort((a, b) => b.processed - a.processed),
+        recentFailures,
+        lastCronPayloads,
       },
     };
   } catch (e) {

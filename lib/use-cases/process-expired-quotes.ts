@@ -53,10 +53,15 @@ export async function processExpiredQuotes(): Promise<ExpiredQuotesResult> {
         continue;
       }
 
-      await supabase
+      const { error: updateError } = await supabase
         .from("quotes")
         .update({ status: "expired" })
         .eq("id", quote.id);
+
+      if (updateError) {
+        result.errors.push(`Quote ${quote.id} status update: ${updateError.message}`);
+        continue;
+      }
 
       result.actionsCreated++;
     } catch (e) {
