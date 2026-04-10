@@ -369,10 +369,10 @@ export default function LandingPage() {
           }}
         >
           {[
-            { value: t.landing.proofUsers, label: t.landing.proofUsersLabel },
-            { value: t.landing.proofInvoiced, label: t.landing.proofInvoicedLabel },
             { value: t.landing.proofSpeed, label: t.landing.proofSpeedLabel },
-            { value: t.landing.proofRating, label: t.landing.proofRatingLabel },
+            { value: t.landing.proofVat, label: t.landing.proofVatLabel },
+            { value: t.landing.proofSteps, label: t.landing.proofStepsLabel },
+            { value: t.landing.proofEncrypted, label: t.landing.proofEncryptedLabel },
           ].map((stat) => (
             <div key={stat.label}>
               <p
@@ -905,7 +905,7 @@ export default function LandingPage() {
 
       {divider}
 
-      {/* ─── Testimonials ─── */}
+      {/* ─── Built for ─── */}
       <section style={sectionPadding}>
         <p className="label" style={{ marginBottom: 16 }}>
           {t.landing.personaTitle}
@@ -929,37 +929,27 @@ export default function LandingPage() {
               }}
             >
               <p
+                className="label-strong"
+                style={{ marginBottom: 4, fontSize: 13 }}
+              >
+                {p.name}
+              </p>
+              <p
+                className="label"
+                style={{ marginBottom: 16, opacity: 0.35 }}
+              >
+                {p.type}
+              </p>
+              <p
                 style={{
-                  fontSize: "clamp(1.1rem, 2vw, 1.35rem)",
-                  fontWeight: 300,
-                  lineHeight: 1.5,
+                  fontSize: 14,
+                  lineHeight: 1.7,
                   margin: 0,
-                  fontFamily: "var(--font-serif)",
-                  fontStyle: "italic",
-                  opacity: 0.7,
-                  flex: 1,
+                  opacity: 0.55,
                 }}
               >
-                &ldquo;{p.quote}&rdquo;
+                {p.quote}
               </p>
-              <div style={{ marginTop: 24 }}>
-                <p
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    margin: 0,
-                    opacity: 0.8,
-                  }}
-                >
-                  {p.name}
-                </p>
-                <p
-                  className="label"
-                  style={{ marginTop: 2, opacity: 0.35 }}
-                >
-                  {p.type}
-                </p>
-              </div>
             </div>
           ))}
         </div>
