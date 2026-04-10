@@ -191,6 +191,18 @@ const en = {
     faq4A: "You can easily import your existing clients and invoices. Most users switch within an hour.",
     faq5Q: "Can I cancel monthly?",
     faq5A: "Yes, always. No long contracts, no cancellation fees. You pay monthly and can stop at any time.",
+    // Waitlist
+    waitlistLabel: "NOT READY YET?",
+    waitlistTitle: "Stay in the loop",
+    waitlistDescription: "Not ready to switch yet? Leave your details and we'll keep you posted on new features and updates.",
+    waitlistName: "Name",
+    waitlistEmail: "Email",
+    waitlistNamePlaceholder: "Your full name",
+    waitlistEmailPlaceholder: "you@name.com",
+    waitlistButton: "Keep me posted",
+    waitlistSuccess: "You're on the list",
+    waitlistPosition: "You are number {position}. ",
+    waitlistConfirm: "We'll keep you posted and email you when we have new features or updates.",
     // Closing CTA
     closingHeadline: "Ready to make your\nadmin calmer?",
     closingSubtitle: "Start free today. No credit card required. Send your first invoice in 2 minutes.",

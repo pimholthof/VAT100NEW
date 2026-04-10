@@ -191,6 +191,18 @@ const nl = {
     faq4A: "Je kunt je bestaande klanten en facturen eenvoudig importeren. De meeste gebruikers zijn binnen een uur overgestapt.",
     faq5Q: "Kan ik maandelijks opzeggen?",
     faq5A: "Ja, altijd. Geen lange contracten, geen opzegboetes. Je betaalt per maand en kunt elk moment stoppen.",
+    // Waitlist
+    waitlistLabel: "NOG NIET KLAAR?",
+    waitlistTitle: "Blijf op de hoogte",
+    waitlistDescription: "Nog niet klaar om over te stappen? Laat je gegevens achter en we houden je op de hoogte van nieuwe functies en updates.",
+    waitlistName: "Naam",
+    waitlistEmail: "E-mail",
+    waitlistNamePlaceholder: "Je volledige naam",
+    waitlistEmailPlaceholder: "je@naam.nl",
+    waitlistButton: "Houd me op de hoogte",
+    waitlistSuccess: "Je staat op de lijst",
+    waitlistPosition: "Je bent nummer {position}. ",
+    waitlistConfirm: "We houden je op de hoogte en sturen je een bericht zodra we nieuwe functies of updates hebben.",
     // Closing CTA
     closingHeadline: "Klaar om je administratie\nrustiger te maken?",
     closingSubtitle: "Start vandaag gratis. Geen creditcard nodig. In 2 minuten je eerste factuur versturen.",

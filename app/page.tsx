@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { joinWaitlist } from "@/features/waitlist/actions";
 import { useLocale } from "@/lib/i18n/context";
 import DashboardMockup from "@/components/landing/DashboardMockup";
 import InvoiceMockup from "@/components/landing/InvoiceMockup";
@@ -28,6 +29,10 @@ const divider = (
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [position, setPosition] = useState<number | null>(null);
+  const [waitlistError, setWaitlistError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
   const { locale, t, setLocale } = useLocale();
 
   const features = [
@@ -109,6 +114,24 @@ export default function LandingPage() {
     { q: t.landing.faq4Q, a: t.landing.faq4A },
     { q: t.landing.faq5Q, a: t.landing.faq5A },
   ];
+
+  async function handleWaitlistSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setWaitlistError(null);
+    setPending(true);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await joinWaitlist(formData);
+
+    if (result.error) {
+      setWaitlistError(result.error);
+      setPending(false);
+    } else {
+      setPosition(result.data?.position ?? null);
+      setSubmitted(true);
+      setPending(false);
+    }
+  }
 
   const primaryPlanId = pricingPlans.find((plan) => plan.highlighted)?.id ?? pricingPlans[0]?.id ?? "basis";
 
@@ -1091,6 +1114,164 @@ export default function LandingPage() {
           >
             {t.landing.closingReassurance}
           </p>
+        </div>
+      </section>
+
+      {divider}
+
+      {/* ─── Waitlist ─── */}
+      <section style={sectionPadding}>
+        <div style={{ maxWidth: 560 }}>
+          {submitted ? (
+            <div
+              style={{
+                padding: "32px",
+                border: "0.5px solid rgba(0,0,0,0.08)",
+                borderRadius: "var(--radius)",
+              }}
+            >
+              <p
+                className="label-strong"
+                style={{ marginBottom: 8, fontSize: 13 }}
+              >
+                {t.landing.waitlistSuccess}
+              </p>
+              <p
+                style={{
+                  fontSize: 14,
+                  opacity: 0.5,
+                  margin: 0,
+                  lineHeight: 1.6,
+                }}
+              >
+                {position ? t.landing.waitlistPosition.replace("{position}", String(position)) : ""}
+                {t.landing.waitlistConfirm}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p className="label-strong" style={{ marginBottom: 16, fontSize: 11 }}>
+                {t.landing.waitlistLabel}
+              </p>
+              <h2
+                style={{
+                  fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1.1,
+                  margin: 0,
+                  marginBottom: 16,
+                }}
+              >
+                {t.landing.waitlistTitle}
+              </h2>
+              <p
+                style={{
+                  fontSize: 15,
+                  lineHeight: 1.8,
+                  margin: 0,
+                  marginBottom: 32,
+                  opacity: 0.55,
+                }}
+              >
+                {t.landing.waitlistDescription}
+              </p>
+
+              <form
+                onSubmit={handleWaitlistSubmit}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 24,
+                }}
+              >
+                <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 180 }}>
+                    <label
+                      htmlFor="waitlist-name"
+                      className="label"
+                      style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
+                    >
+                      {t.landing.waitlistName}
+                    </label>
+                    <input
+                      id="waitlist-name"
+                      name="name"
+                      type="text"
+                      required
+                      placeholder={t.landing.waitlistNamePlaceholder}
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 400,
+                        padding: "14px 0",
+                        border: "none",
+                        borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+                        background: "transparent",
+                        color: "var(--color-black)",
+                        outline: "none",
+                        width: "100%",
+                        transition: "border-color 0.2s ease",
+                      }}
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <label
+                      htmlFor="waitlist-email"
+                      className="label"
+                      style={{ opacity: 0.35, display: "block", marginBottom: 4 }}
+                    >
+                      {t.landing.waitlistEmail}
+                    </label>
+                    <input
+                      id="waitlist-email"
+                      name="email"
+                      type="email"
+                      required
+                      placeholder={t.landing.waitlistEmailPlaceholder}
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 400,
+                        padding: "14px 0",
+                        border: "none",
+                        borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+                        background: "transparent",
+                        color: "var(--color-black)",
+                        outline: "none",
+                        width: "100%",
+                        transition: "border-color 0.2s ease",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {waitlistError && (
+                  <div
+                    role="alert"
+                    style={{
+                      padding: "12px 16px",
+                      background: "rgba(165, 28, 48, 0.04)",
+                      borderLeft: "2px solid var(--color-accent)",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {waitlistError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="btn-primary"
+                  style={{
+                    padding: "18px 32px",
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  {pending ? t.common.waiting : t.landing.waitlistButton}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </section>
 
