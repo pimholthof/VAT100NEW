@@ -19,9 +19,10 @@ import {
 } from "./dutch-tax-2026";
 import { formatCurrency } from "@/lib/format";
 
-// ─── Confidence Drempels (re-export vanuit centrale config) ───
+// ─── Confidence Drempels (vanuit centrale config) ───
 
-export { CONFIDENCE_THRESHOLDS } from "@/lib/config/automation";
+import { CONFIDENCE_THRESHOLDS } from "@/lib/config/automation";
+export { CONFIDENCE_THRESHOLDS };
 
 // ─── KIA & Investering Berekeningen ───
 
