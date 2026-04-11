@@ -77,10 +77,9 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     setDueDate(due.toISOString().split("T")[0]);
   }, [setVatScheme, setVatRate, setDueDate]);
 
-  const handleClientChange = useCallback((cId: string | null) => {
-    setClientId(cId);
-    applyClientVatScheme(cId, clients);
-  }, [setClientId, clients, applyClientVatScheme]);
+  useEffect(() => {
+    Promise.resolve().then(() => applyClientVatScheme(clientId, clients));
+  }, [clientId, clients, applyClientVatScheme]);
 
   // Generate invoice number for new invoices
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useQuoteStore } from "@/lib/store/quote";
@@ -109,19 +109,13 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
     return unsub;
   }, []);
 
-  const prevClientIdRef = useRef(clientId);
-  if (prevClientIdRef.current !== clientId) {
-    prevClientIdRef.current = clientId;
-    if (!clientId) {
-      setPricingHistory([]);
-    }
-  }
-
   useEffect(() => {
     if (clientId) {
       getClientPricingHistory(clientId).then((res) => {
         setPricingHistory(res.data ?? []);
       });
+    } else {
+      Promise.resolve().then(() => setPricingHistory([]));
     }
   }, [clientId]);
 
