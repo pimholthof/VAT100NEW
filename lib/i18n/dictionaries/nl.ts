@@ -209,6 +209,17 @@ const nl = {
     closingSubtitle: "Gratis uitproberen, zonder creditcard en zonder verplichtingen.",
     closingCta: "Probeer 14 dagen gratis",
     closingReassurance: "Geen creditcard · Altijd opzegbaar · Je data is van jou",
+    // Trust bar signals
+    trustBuiltFor: "Gebouwd voor Nederlandse zzp'ers",
+    trustTaxReady: "Altijd BTW-klaar",
+    trustSecure: "Veilig & versleuteld",
+    trustNoKnowledge: "Geen boekhoudkennis nodig",
+    // Form field labels (waitlist)
+    name: "Naam",
+    namePlaceholder: "Je volledige naam",
+    email: "E-mail",
+    emailPlaceholder: "je@naam.nl",
+    onWaitlist: "Je staat op de lijst",
     // CTA reassurance (kept for backwards compatibility)
     ctaReassurance: "Realtime inzicht in wat je moet reserveren.",
   },

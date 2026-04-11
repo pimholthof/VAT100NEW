@@ -11,6 +11,25 @@ interface VatFinding {
   confidence: number;
 }
 
+interface InvoiceForAnalysis {
+  id: string;
+  invoice_number: string;
+  subtotal_ex_vat: number | null;
+  vat_amount: number | null;
+  vat_rate: number | null;
+  client: { name: string; country: string | null; btw_number: string | null }[] | null;
+  invoice_lines: { description: string; amount: number; vat_rate: number | null }[];
+}
+
+interface ReceiptForAnalysis {
+  id: string;
+  vendor_name: string | null;
+  amount_ex_vat: number | null;
+  vat_amount: number | null;
+  vat_rate: number | null;
+  cost_code: number | null;
+}
+
 /**
  * Agent 6: BTW-tarief Detector
  *
@@ -73,7 +92,7 @@ async function analyzeInvoice(supabase: SupabaseServiceClient, invoiceId: string
 
   const currentRate = invoice.vat_rate ?? 21;
   const suggestedRate = suggestVatRateForInvoice(invoice);
-  
+
   if (suggestedRate !== currentRate && suggestedRate !== null) {
     findings.push({
       type: "invoice",
@@ -97,7 +116,7 @@ async function analyzeReceipt(supabase: SupabaseServiceClient, receiptId: string
 
   const currentRate = receipt.vat_rate ?? 21;
   const suggestedRate = suggestVatRateForReceipt(receipt);
-  
+
   if (suggestedRate !== currentRate && suggestedRate !== null) {
     findings.push({
       type: "receipt",
@@ -127,7 +146,7 @@ async function analyzeAllRecent(supabase: SupabaseServiceClient, userId: string,
   for (const invoice of invoices || []) {
     const suggestedRate = suggestVatRateForInvoice(invoice);
     const currentRate = invoice.vat_rate ?? 21;
-    
+
     if (suggestedRate !== currentRate && suggestedRate !== null) {
       findings.push({
         type: "invoice",
@@ -142,25 +161,25 @@ async function analyzeAllRecent(supabase: SupabaseServiceClient, userId: string,
 
 // ─── BTW-tarief suggestie logica ───
 
-function suggestVatRateForInvoice(invoice: any): number | null {
-  const client = invoice.client;
-  
+function suggestVatRateForInvoice(invoice: InvoiceForAnalysis): number | null {
+  const client = invoice.client?.[0] ?? null;
+
   // B2B binnen EU: reverse charge (0% BTW)
   if (client?.btw_number && client?.country !== "NL") {
     return 0; // Reverse charge
   }
-  
+
   // Export buiten EU: 0% BTW
   if (client?.country && !["NL", "BE", "DE", "FR", "LU", "AT", "IT", "ES", "PT", "IE", "FI", "GR", "CY", "MT", "SI", "SK", "CZ", "HU", "PL", "HR", "RO", "BG", "DK", "SE", "EE", "LV", "LT"].includes(client.country)) {
     return 0;
   }
-  
+
   // Analyseer diensttype op basis van beschrijving
   const descriptions = [
     invoice.invoice_number,
-    ...(invoice.invoice_lines || []).map((line: any) => line.description)
+    ...(invoice.invoice_lines || []).map((line: { description: string }) => line.description)
   ].join(" ").toLowerCase();
-  
+
   // 9% tarief voor specifieke diensten
   const lowVatKeywords = [
     "horeca", "restaurant", "cafe", "hotel", "logies", "kamerverhuur",
@@ -168,60 +187,60 @@ function suggestVatRateForInvoice(invoice: any): number | null {
     "landbouw", "tuinbouw", "visserij", "voedsel", "landbouwproducten",
     "kunst", "kunstenaar", "verzamelaar", "antiek", "kunstvoorwerp"
   ];
-  
+
   if (lowVatKeywords.some(keyword => descriptions.includes(keyword))) {
     return 9;
   }
-  
+
   // 21% tarief voor overige diensten
   return 21;
 }
 
-function suggestVatRateForReceipt(receipt: any): number | null {
+function suggestVatRateForReceipt(receipt: ReceiptForAnalysis): number | null {
   const vendor = receipt.vendor_name?.toLowerCase() || "";
   const costCode = receipt.cost_code;
-  
+
   // Specifieke cost codes die vaak 9% BTW hebben
   const lowVatCostCodes = [4100, 4200]; // Voorbeeld codes
-  
+
   if (costCode && lowVatCostCodes.includes(costCode)) {
     return 9;
   }
-  
+
   // Analyseer vendor type
   const lowVatVendors = [
     "restaurant", "cafe", "hotel", "boekhandel", "krantenwinkel",
     "horeca", "catering", "bakker", "slager"
   ];
-  
+
   if (lowVatVendors.some(v => vendor.includes(v))) {
     return 9;
   }
-  
+
   // 0% voor buitenlandse diensten
   const foreignVendors = ["amazon", "google", "microsoft", "adobe"];
   if (foreignVendors.some(v => vendor.includes(v))) {
     return 0;
   }
-  
+
   return 21; // Standaard tarief
 }
 
-function calculateConfidence(invoice: any, suggestedRate: number): number {
+function calculateConfidence(invoice: InvoiceForAnalysis, suggestedRate: number): number {
   let confidence = 0.5;
-  
-  const client = invoice.client;
-  
+
+  const client = invoice.client?.[0] ?? null;
+
   // Hoge confidence voor EU reverse charge
   if (suggestedRate === 0 && client?.btw_number && client?.country !== "NL") {
     confidence = 0.95;
   }
-  
+
   // Hoge confidence voor export
   if (suggestedRate === 0 && client?.country && !["NL", "BE", "DE", "FR", "LU", "AT", "IT", "ES", "PT", "IE", "FI", "GR", "CY", "MT", "SI", "SK", "CZ", "HU", "PL", "HR", "RO", "BG", "DK", "SE", "EE", "LV", "LT"].includes(client.country)) {
     confidence = 0.9;
   }
-  
+
   return confidence;
 }
 

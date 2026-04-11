@@ -21,6 +21,12 @@ export function AdminGlobalSearch() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const router = useRouter();
 
+  const close = useCallback(() => {
+    setOpen(false);
+    setQuery("");
+    setResults([]);
+  }, []);
+
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -28,19 +34,16 @@ export function AdminGlobalSearch() {
         setOpen((prev) => !prev);
       }
       if (e.key === "Escape") {
-        setOpen(false);
+        close();
       }
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [close]);
 
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50);
-    } else {
-      setQuery("");
-      setResults([]);
     }
   }, [open]);
 
@@ -60,7 +63,7 @@ export function AdminGlobalSearch() {
   }, []);
 
   function handleSelect(href: string) {
-    setOpen(false);
+    close();
     router.push(href);
   }
 
@@ -74,7 +77,7 @@ export function AdminGlobalSearch() {
   }, {});
 
   return (
-    <div className="admin-search-overlay" onClick={() => setOpen(false)}>
+    <div className="admin-search-overlay" onClick={close}>
       <div className="admin-search-modal" onClick={(e) => e.stopPropagation()}>
         <input
           ref={inputRef}

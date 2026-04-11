@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { InvoiceData, InvoiceTemplate } from "@/lib/types";
 import { InvoiceHTML } from "./InvoiceHTML";
 import { TemplatePicker } from "./TemplatePicker";
@@ -10,14 +10,14 @@ const STORAGE_KEY = "vat100-invoice-template";
 
 export function InvoicePreviewClient({ data }: { data: InvoiceData }) {
   const { locale } = useLocale();
-  const [template, setTemplate] = useState<InvoiceTemplate>("poster");
-
-  useEffect(() => {
+  const [template, setTemplate] = useState<InvoiceTemplate>(() => {
+    if (typeof window === "undefined") return "poster";
     const saved = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
     if (saved && ["minimaal", "klassiek", "strak", "poster"].includes(saved)) {
-      setTemplate(saved);
+      return saved;
     }
-  }, []);
+    return "poster";
+  });
 
   function handleChange(t: InvoiceTemplate) {
     setTemplate(t);

@@ -4,6 +4,27 @@ import { Agent, SystemEventRow } from "../types";
 
 type SupabaseServiceClient = ReturnType<typeof createServiceClient>;
 
+interface BankTransaction {
+  id: string;
+  amount: number;
+  description: string | null;
+  date: string;
+}
+
+interface InvoiceMatch {
+  id: string;
+  invoice_number: string;
+  total_inc_vat: number;
+  client: { name: string }[] | null;
+}
+
+interface ReceiptMatch {
+  id: string;
+  vendor_name: string | null;
+  amount_inc_vat: number;
+  receipt_date: string;
+}
+
 /**
  * Agent 7: Automatische Boekhoudregels
  *
@@ -104,7 +125,7 @@ async function matchInvoicePayment(supabase: SupabaseServiceClient, invoiceId: s
     .eq("user_id", userId)
     .is("linked_invoice_id", null)
     .gte("date", sevenDaysAgo.toISOString())
-    .lte("amount", invoice.total_inc_vat * 1.01) // Binnen 1% van factuurbedrag
+    .lte("amount", invoice.total_inc_vat * 1.01)
     .gte("amount", invoice.total_inc_vat * 0.99);
 
   if (!transactions || transactions.length === 0) return 0;
@@ -114,7 +135,7 @@ async function matchInvoicePayment(supabase: SupabaseServiceClient, invoiceId: s
     const currentScore = calculateMatchScore(current, invoice);
     const bestScore = best ? calculateMatchScore(best, invoice) : 0;
     return currentScore > bestScore ? current : best;
-  }, null as any);
+  }, null as BankTransaction | null);
 
   if (bestMatch && calculateMatchScore(bestMatch, invoice) > 0.8) {
     await linkTransactionToInvoice(supabase, bestMatch.id, invoice.id, 0.9);
@@ -157,7 +178,7 @@ async function matchReceiptPayment(supabase: SupabaseServiceClient, receiptId: s
     const currentScore = calculateReceiptMatchScore(current, receipt);
     const bestScore = best ? calculateReceiptMatchScore(best, receipt) : 0;
     return currentScore > bestScore ? current : best;
-  }, null as any);
+  }, null as BankTransaction | null);
 
   if (bestMatch && calculateReceiptMatchScore(bestMatch, receipt) > 0.7) {
     await linkTransactionToReceipt(supabase, bestMatch.id, receipt.id, 0.8);
@@ -243,11 +264,10 @@ async function performDailyReconciliation(supabase: SupabaseServiceClient, userI
 // ─── In-memory matching voor batch-reconciliatie ───
 
 function matchTransactionToInvoicesInMemory(
-  transaction: any,
-  invoices: any[],
+  transaction: BankTransaction,
+  invoices: InvoiceMatch[],
   excludeIds: Set<string>
 ): { invoiceId: string; confidence: number } | null {
-  // Filter op bedrag (±1%) in-memory
   const candidates = invoices.filter(inv =>
     !excludeIds.has(inv.id) &&
     Math.abs(transaction.amount - inv.total_inc_vat) / inv.total_inc_vat <= 0.01
@@ -264,11 +284,10 @@ function matchTransactionToInvoicesInMemory(
 }
 
 function matchTransactionToReceiptsInMemory(
-  transaction: any,
-  receipts: any[],
+  transaction: BankTransaction,
+  receipts: ReceiptMatch[],
   excludeIds: Set<string>
 ): { receiptId: string; confidence: number } | null {
-  // Filter op bedrag (±1%) en datum (±3 dagen) in-memory
   const transactionDate = new Date(transaction.date).getTime();
   const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
 
@@ -292,7 +311,7 @@ function matchTransactionToReceiptsInMemory(
 
 // ─── Single-transaction matching (voor event-driven calls) ───
 
-async function matchSingleWithInvoices(supabase: SupabaseServiceClient, transaction: any, userId: string): Promise<{ invoiceId: string; confidence: number } | null> {
+async function matchSingleWithInvoices(supabase: SupabaseServiceClient, transaction: BankTransaction, userId: string): Promise<{ invoiceId: string; confidence: number } | null> {
   // Zoek facturen met vergelijkbaar bedrag
   const { data: invoices } = await supabase
     .from("invoices")
@@ -315,7 +334,7 @@ async function matchSingleWithInvoices(supabase: SupabaseServiceClient, transact
   return null;
 }
 
-async function matchSingleWithReceipts(supabase: SupabaseServiceClient, transaction: any, userId: string): Promise<{ receiptId: string; confidence: number } | null> {
+async function matchSingleWithReceipts(supabase: SupabaseServiceClient, transaction: BankTransaction, userId: string): Promise<{ receiptId: string; confidence: number } | null> {
   // Zoek bonnen binnen 3 dagen met vergelijkbaar bedrag
   const threeDaysAgo = new Date(transaction.date);
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
@@ -346,7 +365,7 @@ async function matchSingleWithReceipts(supabase: SupabaseServiceClient, transact
 
 // ─── Matching algoritmes ───
 
-function calculateMatchScore(transaction: any, invoice: any): number {
+function calculateMatchScore(transaction: BankTransaction, invoice: InvoiceMatch): number {
   let score = 0;
 
   // Bedrag overeenkomst (max 0.6)
@@ -357,13 +376,13 @@ function calculateMatchScore(transaction: any, invoice: any): number {
   const description = (transaction.description || "").toLowerCase();
   if (description.includes(invoice.invoice_number.toLowerCase())) {
     score += 0.3;
-  } else if (invoice.client?.name && description.includes(invoice.client.name.toLowerCase())) {
+  } else if (invoice.client?.[0]?.name && description.includes(invoice.client[0].name.toLowerCase())) {
     score += 0.2;
   }
 
   // Tijdsdichtheid (max 0.1)
   const transactionDate = new Date(transaction.date);
-  const expectedDate = new Date(); // Vandaag of recente datum
+  const expectedDate = new Date();
   const daysDiff = Math.abs((transactionDate.getTime() - expectedDate.getTime()) / (1000 * 60 * 60 * 24));
   if (daysDiff <= 7) {
     score += 0.1 * (1 - daysDiff / 7);
@@ -372,7 +391,7 @@ function calculateMatchScore(transaction: any, invoice: any): number {
   return Math.min(1, score);
 }
 
-function calculateReceiptMatchScore(transaction: any, receipt: any): number {
+function calculateReceiptMatchScore(transaction: BankTransaction, receipt: ReceiptMatch): number {
   let score = 0;
 
   // Bedrag overeenkomst (max 0.5)
@@ -399,7 +418,7 @@ function calculateReceiptMatchScore(transaction: any, receipt: any): number {
 
 // ─── Categorisatie ───
 
-function suggestCategory(transaction: any): string | null {
+function suggestCategory(transaction: BankTransaction): string | null {
   const description = (transaction.description || "").toLowerCase();
   const amount = Math.abs(transaction.amount);
 
@@ -477,7 +496,6 @@ async function linkTransactionToInvoice(supabase: SupabaseServiceClient, transac
         .single();
 
       if (invoice && transaction) {
-        // Check of er al een ledger entry bestaat voor deze factuur
         const { count } = await supabase
           .from("ledger_entries")
           .select("id", { count: "exact", head: true })
@@ -534,7 +552,6 @@ async function linkTransactionToReceipt(supabase: SupabaseServiceClient, transac
         .single();
 
       if (receipt && transaction) {
-        // Check of er al een ledger entry bestaat voor deze bon
         const { count } = await supabase
           .from("ledger_entries")
           .select("id", { count: "exact", head: true })
