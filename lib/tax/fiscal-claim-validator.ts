@@ -19,18 +19,9 @@ import {
 } from "./dutch-tax-2026";
 import { formatCurrency } from "@/lib/format";
 
-// ─── Confidence Drempels ───
+// ─── Confidence Drempels (re-export vanuit centrale config) ───
 
-export const CONFIDENCE_THRESHOLDS = {
-  /** Onder deze grens → presenteer als vraag, nooit auto-uitvoeren */
-  HUMAN_REVIEW: 0.95,
-  /** Boven deze grens → automatische uitvoering toegestaan */
-  AUTO_EXECUTE: 0.98,
-  /** Deterministische berekeningen (datumlogica, pure functies) */
-  DETERMINISTIC: 1.0,
-  /** Trefwoord-classificatie basiswaarde */
-  KEYWORD_MATCH: 0.85,
-} as const;
+export { CONFIDENCE_THRESHOLDS } from "@/lib/config/automation";
 
 // ─── KIA & Investering Berekeningen ───
 

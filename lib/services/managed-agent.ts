@@ -7,14 +7,12 @@ const ENVIRONMENT_ID =
   process.env.ANTHROPIC_ENVIRONMENT_ID ?? "env_01SDn56dorZBkAUnxoVdkSR5";
 
 /**
- * Confidence thresholds per plan-tier.
- * Studio = conservatief (alles naar action_feed), Complete = agressief auto-boeken.
+ * Confidence thresholds per plan-tier (re-export vanuit centrale config).
  */
-export const PLAN_CONFIDENCE_THRESHOLDS: Record<string, number> = {
-  studio: 0.9,
-  compleet: 0.7,
-};
-export const DEFAULT_CONFIDENCE_THRESHOLD = 0.8;
+export {
+  PLAN_CONFIDENCE_THRESHOLDS,
+  DEFAULT_CONFIDENCE_THRESHOLD,
+} from "@/lib/config/automation";
 
 /**
  * Herbruikbare agent sessie. Eén sessie per sync-run, meerdere berichten.

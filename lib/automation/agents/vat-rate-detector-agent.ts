@@ -1,9 +1,19 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { Agent, SystemEventRow } from "../types";
 
+type SupabaseServiceClient = ReturnType<typeof createServiceClient>;
+
+interface VatFinding {
+  type: "invoice" | "receipt";
+  id: string;
+  issue: string;
+  suggestedRate: number;
+  confidence: number;
+}
+
 /**
  * Agent 6: BTW-tarief Detector
- * 
+ *
  * Analyseert automatisch of facturen en bonnen het juiste BTW-tarief hebben.
  * Detecteer patroonafwijkingen en stuur correctievoorstellen.
  */
@@ -18,23 +28,17 @@ export const vatRateDetectorAgent: Agent = {
     if (!userId) return false;
 
     try {
-      const findings: {
-        type: "invoice" | "receipt";
-        id: string;
-        issue: string;
-        suggestedRate: number;
-        confidence: number;
-      }[] = [];
+      const findings: VatFinding[] = [];
 
       // Verwerk verschillende event types
       if (event.event_type === "invoice.created") {
         const invoiceId = typeof event.payload?.invoiceId === 'string' ? event.payload.invoiceId : null;
-        if (invoiceId) await analyzeInvoice(invoiceId, userId, findings);
+        if (invoiceId) await analyzeInvoice(supabase, invoiceId, userId, findings);
       } else if (event.event_type === "receipt.uploaded") {
         const receiptId = typeof event.payload?.receiptId === 'string' ? event.payload.receiptId : null;
-        if (receiptId) await analyzeReceipt(receiptId, userId, findings);
+        if (receiptId) await analyzeReceipt(supabase, receiptId, userId, findings);
       } else if (event.event_type === "system.monthly_vat_audit") {
-        await analyzeAllRecent(userId, findings);
+        await analyzeAllRecent(supabase, userId, findings);
       }
 
       if (findings.length === 0) return true; // Geen issues gevonden
@@ -53,9 +57,7 @@ export const vatRateDetectorAgent: Agent = {
 
 // ─── Analyse functies ───
 
-async function analyzeInvoice(invoiceId: string, userId: string, findings: any[]) {
-  const supabase = createServiceClient();
-  
+async function analyzeInvoice(supabase: SupabaseServiceClient, invoiceId: string, userId: string, findings: VatFinding[]) {
   const { data: invoice, error } = await supabase
     .from("invoices")
     .select(`
@@ -83,9 +85,7 @@ async function analyzeInvoice(invoiceId: string, userId: string, findings: any[]
   }
 }
 
-async function analyzeReceipt(receiptId: string, userId: string, findings: any[]) {
-  const supabase = createServiceClient();
-  
+async function analyzeReceipt(supabase: SupabaseServiceClient, receiptId: string, userId: string, findings: VatFinding[]) {
   const { data: receipt, error } = await supabase
     .from("receipts")
     .select("id, vendor_name, amount_ex_vat, vat_amount, vat_rate, cost_code")
@@ -109,8 +109,7 @@ async function analyzeReceipt(receiptId: string, userId: string, findings: any[]
   }
 }
 
-async function analyzeAllRecent(userId: string, findings: any[]) {
-  const supabase = createServiceClient();
+async function analyzeAllRecent(supabase: SupabaseServiceClient, userId: string, findings: VatFinding[]) {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
@@ -228,7 +227,7 @@ function calculateConfidence(invoice: any, suggestedRate: number): number {
 
 // ─── Opslag en notificaties ───
 
-async function storeFindings(supabase: any, userId: string, findings: any[]) {
+async function storeFindings(supabase: SupabaseServiceClient, userId: string, findings: VatFinding[]) {
   for (const finding of findings) {
     await supabase.from("vat_suggestions").insert({
       user_id: userId,
@@ -243,7 +242,7 @@ async function storeFindings(supabase: any, userId: string, findings: any[]) {
   }
 }
 
-async function sendNotifications(supabase: any, userId: string, findings: any[]) {
+async function sendNotifications(supabase: SupabaseServiceClient, userId: string, findings: VatFinding[]) {
   // Action feed item
   await supabase.from("action_feed").insert({
     user_id: userId,
