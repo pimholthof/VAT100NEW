@@ -8,7 +8,7 @@ export default function AIAssistantPage() {
           AI Fiscale Assistent
         </h1>
         <p className="text-gray-600">
-          Jouw persoonlijke belastingadviseur powered by VAT100's autonome fiscale logica
+          Jouw persoonlijke belastingadviseur powered by VAT100&apos;s autonome fiscale logica
         </p>
       </div>
       

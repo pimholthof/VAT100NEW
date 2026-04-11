@@ -92,25 +92,22 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
   const [autoRuleMessage, setAutoRuleMessage] = useState<string | null>(null);
 
-  // Auto-apply fiscale regels bij kostsoort wijziging
-  useEffect(() => {
-    if (!costCode) {
+  const applyCostCodeRules = (code: number | null) => {
+    setCostCode(code);
+    if (!code) {
       setAutoRuleMessage(null);
       return;
     }
 
-    // Stel automatisch het juiste BTW-tarief in op basis van kostsoort
-    const suggestedVat = getDefaultVatRateForCostCode(costCode);
+    const suggestedVat = getDefaultVatRateForCostCode(code);
     setVatRate(String(suggestedVat));
 
-    // Stel zakelijk percentage in op basis van kostsoort
-    const suggestedBp = getDefaultBusinessPercentage(costCode);
+    const suggestedBp = getDefaultBusinessPercentage(code);
     setBusinessPercentage(suggestedBp);
 
-    // Toon uitleg bij speciale regels
-    if (isRepresentatie(costCode)) {
+    if (isRepresentatie(code)) {
       setAutoRuleMessage("Representatiekosten: automatisch 80% zakelijk, 20% privé (fiscale regel)");
-    } else if (HORECA_CODES.has(costCode)) {
+    } else if (HORECA_CODES.has(code)) {
       setAutoRuleMessage("Horeca: BTW is niet aftrekbaar (Nederlandse wetgeving)");
     } else if (suggestedVat === 9) {
       setAutoRuleMessage(`Standaard BTW-tarief: ${suggestedVat}% (verlaagd tarief)`);
@@ -119,7 +116,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     } else {
       setAutoRuleMessage(null);
     }
-  }, [costCode]);
+  };
 
   useEffect(() => {
     if (receipt?.storage_path && !imageUrl) {
@@ -223,7 +220,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
         if (result.data.vat_rate != null)
           setVatRate(String(result.data.vat_rate));
         if (result.data.cost_code != null)
-          setCostCode(result.data.cost_code);
+          applyCostCodeRules(result.data.cost_code);
         if (result.data.confidence != null)
           setConfidence(result.data.confidence);
 
@@ -526,7 +523,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             <select
               value={costCode ?? ""}
               onChange={(e) =>
-                setCostCode(e.target.value ? Number(e.target.value) : null)
+                applyCostCodeRules(e.target.value ? Number(e.target.value) : null)
               }
               className="form-input"
               style={{ flex: 1 }}
