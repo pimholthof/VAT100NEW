@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/supabase/server';
+import { requireAuth, createClient } from '@/lib/supabase/server';
+
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +23,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function getComplianceStatus(supabase: any, userId: string) {
+async function getComplianceStatus(supabase: SupabaseServer, userId: string) {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentQuarter = Math.floor((now.getMonth() + 3) / 3);
@@ -92,7 +94,7 @@ async function getComplianceStatus(supabase: any, userId: string) {
   const categorySuggestions = categorySuggestionsResult.data || [];
 
   // Uren berekening
-  const totalMinutes = hours.reduce((sum: number, h: any) => sum + (h.duration_minutes || 0), 0);
+  const totalMinutes = hours.reduce((sum: number, h: { duration_minutes: number }) => sum + (h.duration_minutes || 0), 0);
   const totalHours = totalMinutes / 60;
   const targetHours = 1225;
   const hoursProgress = (totalHours / targetHours) * 100;
