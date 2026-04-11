@@ -2,8 +2,8 @@
    VAT100 Landing Page Styles
    ========================================================================== */
 
-/* ─── Variables ─── */
-:root {
+/* ─── Page Container ─── */
+.page {
   --lp-padding-x: clamp(24px, 4vw, 64px);
   --lp-section-padding-y: clamp(60px, 8vw, 120px);
   --lp-max-width: 960px;
@@ -13,10 +13,6 @@
   --lp-gap-xl: clamp(32px, 5vw, 64px);
   --lp-radius: var(--radius);
   --lp-radius-sm: var(--radius-sm);
-}
-
-/* ─── Page Container ─── */
-.page {
   min-height: 100dvh;
   position: relative;
   overflow: hidden;

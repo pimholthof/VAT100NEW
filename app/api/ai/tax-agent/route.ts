@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     const btwData = btwOverview.error ? null : btwOverview.data;
 
     // Formatteer advies
-    const formattedAdvice = formatTaxAdvice(projection, compliance, btwData, profileRes.data);
+    const formattedAdvice = formatTaxAdvice(projection, compliance, btwData ?? null, profileRes.data);
 
     return NextResponse.json({
       response: formattedAdvice,
@@ -145,9 +145,9 @@ function extractTaxInput(message: string, context: Record<string, unknown> | und
     return {
       jaarOmzetExBtw: omzet,
       jaarKostenExBtw: kosten,
-      investeringen: context?.investeringen || [],
-      maandenVerstreken: context?.maandenVerstreken || 12,
-      kilometerAftrek: context?.kilometerAftrek || 0
+      investeringen: (Array.isArray(context?.investeringen) ? context.investeringen : []) as Investment[],
+      maandenVerstreken: typeof context?.maandenVerstreken === 'number' ? context.maandenVerstreken : 12,
+      kilometerAftrek: typeof context?.kilometerAftrek === 'number' ? context.kilometerAftrek : 0
     };
   }
 
@@ -282,8 +282,7 @@ function formatTaxAdvice(projection: TaxProjection, compliance: ComplianceStatus
   if (btwData && btwData.length > 0) {
     const latestQuarter = btwData[0];
     advice += `🧾 **BTW Overzicht**\n`;
-    advice += `- Laatste kwartaal (${latestQuarter.quarter}): €${latestQuarter.netVat.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${latestQuarter.netVat >= 0 ? 'af te dragen' : 'terug te ontvangen'}\n`;
-    advice += `- Status: ${latestQuarter.status === 'submitted' ? 'Ingediend' : 'Concept'}\n\n`;
+    advice += `- Laatste kwartaal (${latestQuarter.quarter}): €${latestQuarter.netVat.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${latestQuarter.netVat >= 0 ? 'af te dragen' : 'terug te ontvangen'}\n\n`;
   }
 
   // Voeg compliance info toe
@@ -312,11 +311,11 @@ Op basis van jouw situatie:
     advice += `- 💡 Overweeg te investeren in bedrijfsmiddelen. Met €${(2400 - projection.totalInvestments).toLocaleString('nl-NL')} extra investering bereik je de optimale KIA-regeling.\n`;
   }
 
-  if (compliance?.hoursProgress?.percentage < 80) {
+  if (compliance?.hoursProgress && compliance.hoursProgress.percentage < 80) {
     advice += `- ⚠️ Let op je urencriterium. Je hebt nog ${compliance.hoursProgress.target - compliance.hoursProgress.current} uur nodig om de 1.225-uursnorm te halen.\n`;
   }
 
-  if (compliance?.issues.length > 0) {
+  if (compliance && compliance.issues && compliance.issues.length > 0) {
     advice += `- 📋 Los de compliance issues op: ${compliance.issues.join(', ')}.\n`;
   }
 
