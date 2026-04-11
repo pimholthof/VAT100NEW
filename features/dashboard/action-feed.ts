@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAuth, createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, ActionFeedItem } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { sendReminder } from "@/features/invoices/actions";
