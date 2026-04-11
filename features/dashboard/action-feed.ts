@@ -5,16 +5,6 @@ import type { ActionResult, ActionFeedItem } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { sendReminder } from "@/features/invoices/actions";
 
-// Re-export agents for backward compatibility
-export {
-  runReconciliationAgent,
-  runPaymentDetectionAgent,
-  runAnticipationAgent,
-  runInvestmentAgent,
-  runMissingReceiptDetection,
-  runBtwDeadlineAlert,
-} from "./agents";
-
 /**
  * Fetch all pending action items for the current user (the "Inbox").
  */
