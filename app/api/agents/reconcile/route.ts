@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
-import { runReconciliationAgent } from "@/features/dashboard/action-feed";
+import { runReconciliationAgent } from "@/features/dashboard/agents";
 
 /**
  * Agent 2: Reconciliation Engine (Cron Endpoint)
