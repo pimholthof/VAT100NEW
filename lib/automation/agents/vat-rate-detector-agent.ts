@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { Agent, SystemEventRow } from "../types";
-import type { SupabaseClient } from "@supabase/supabase-js";
+
+type SupabaseServiceClient = ReturnType<typeof createServiceClient>;
 
 interface VatFinding {
   type: "invoice" | "receipt";
@@ -31,7 +32,7 @@ interface ReceiptForAnalysis {
 
 /**
  * Agent 6: BTW-tarief Detector
- * 
+ *
  * Analyseert automatisch of facturen en bonnen het juiste BTW-tarief hebben.
  * Detecteer patroonafwijkingen en stuur correctievoorstellen.
  */
@@ -46,23 +47,17 @@ export const vatRateDetectorAgent: Agent = {
     if (!userId) return false;
 
     try {
-      const findings: {
-        type: "invoice" | "receipt";
-        id: string;
-        issue: string;
-        suggestedRate: number;
-        confidence: number;
-      }[] = [];
+      const findings: VatFinding[] = [];
 
       // Verwerk verschillende event types
       if (event.event_type === "invoice.created") {
         const invoiceId = typeof event.payload?.invoiceId === 'string' ? event.payload.invoiceId : null;
-        if (invoiceId) await analyzeInvoice(invoiceId, userId, findings);
+        if (invoiceId) await analyzeInvoice(supabase, invoiceId, userId, findings);
       } else if (event.event_type === "receipt.uploaded") {
         const receiptId = typeof event.payload?.receiptId === 'string' ? event.payload.receiptId : null;
-        if (receiptId) await analyzeReceipt(receiptId, userId, findings);
+        if (receiptId) await analyzeReceipt(supabase, receiptId, userId, findings);
       } else if (event.event_type === "system.monthly_vat_audit") {
-        await analyzeAllRecent(userId, findings);
+        await analyzeAllRecent(supabase, userId, findings);
       }
 
       if (findings.length === 0) return true; // Geen issues gevonden
@@ -81,9 +76,7 @@ export const vatRateDetectorAgent: Agent = {
 
 // ─── Analyse functies ───
 
-async function analyzeInvoice(invoiceId: string, userId: string, findings: VatFinding[]) {
-  const supabase = createServiceClient();
-  
+async function analyzeInvoice(supabase: SupabaseServiceClient, invoiceId: string, userId: string, findings: VatFinding[]) {
   const { data: invoice, error } = await supabase
     .from("invoices")
     .select(`
@@ -99,7 +92,7 @@ async function analyzeInvoice(invoiceId: string, userId: string, findings: VatFi
 
   const currentRate = invoice.vat_rate ?? 21;
   const suggestedRate = suggestVatRateForInvoice(invoice);
-  
+
   if (suggestedRate !== currentRate && suggestedRate !== null) {
     findings.push({
       type: "invoice",
@@ -111,9 +104,7 @@ async function analyzeInvoice(invoiceId: string, userId: string, findings: VatFi
   }
 }
 
-async function analyzeReceipt(receiptId: string, userId: string, findings: VatFinding[]) {
-  const supabase = createServiceClient();
-  
+async function analyzeReceipt(supabase: SupabaseServiceClient, receiptId: string, userId: string, findings: VatFinding[]) {
   const { data: receipt, error } = await supabase
     .from("receipts")
     .select("id, vendor_name, amount_ex_vat, vat_amount, vat_rate, cost_code")
@@ -125,7 +116,7 @@ async function analyzeReceipt(receiptId: string, userId: string, findings: VatFi
 
   const currentRate = receipt.vat_rate ?? 21;
   const suggestedRate = suggestVatRateForReceipt(receipt);
-  
+
   if (suggestedRate !== currentRate && suggestedRate !== null) {
     findings.push({
       type: "receipt",
@@ -137,8 +128,7 @@ async function analyzeReceipt(receiptId: string, userId: string, findings: VatFi
   }
 }
 
-async function analyzeAllRecent(userId: string, findings: VatFinding[]) {
-  const supabase = createServiceClient();
+async function analyzeAllRecent(supabase: SupabaseServiceClient, userId: string, findings: VatFinding[]) {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
@@ -156,7 +146,7 @@ async function analyzeAllRecent(userId: string, findings: VatFinding[]) {
   for (const invoice of invoices || []) {
     const suggestedRate = suggestVatRateForInvoice(invoice);
     const currentRate = invoice.vat_rate ?? 21;
-    
+
     if (suggestedRate !== currentRate && suggestedRate !== null) {
       findings.push({
         type: "invoice",
@@ -183,13 +173,13 @@ function suggestVatRateForInvoice(invoice: InvoiceForAnalysis): number | null {
   if (client?.country && !["NL", "BE", "DE", "FR", "LU", "AT", "IT", "ES", "PT", "IE", "FI", "GR", "CY", "MT", "SI", "SK", "CZ", "HU", "PL", "HR", "RO", "BG", "DK", "SE", "EE", "LV", "LT"].includes(client.country)) {
     return 0;
   }
-  
+
   // Analyseer diensttype op basis van beschrijving
   const descriptions = [
     invoice.invoice_number,
     ...(invoice.invoice_lines || []).map((line: { description: string }) => line.description)
   ].join(" ").toLowerCase();
-  
+
   // 9% tarief voor specifieke diensten
   const lowVatKeywords = [
     "horeca", "restaurant", "cafe", "hotel", "logies", "kamerverhuur",
@@ -197,11 +187,11 @@ function suggestVatRateForInvoice(invoice: InvoiceForAnalysis): number | null {
     "landbouw", "tuinbouw", "visserij", "voedsel", "landbouwproducten",
     "kunst", "kunstenaar", "verzamelaar", "antiek", "kunstvoorwerp"
   ];
-  
+
   if (lowVatKeywords.some(keyword => descriptions.includes(keyword))) {
     return 9;
   }
-  
+
   // 21% tarief voor overige diensten
   return 21;
 }
@@ -209,30 +199,30 @@ function suggestVatRateForInvoice(invoice: InvoiceForAnalysis): number | null {
 function suggestVatRateForReceipt(receipt: ReceiptForAnalysis): number | null {
   const vendor = receipt.vendor_name?.toLowerCase() || "";
   const costCode = receipt.cost_code;
-  
+
   // Specifieke cost codes die vaak 9% BTW hebben
   const lowVatCostCodes = [4100, 4200]; // Voorbeeld codes
-  
+
   if (costCode && lowVatCostCodes.includes(costCode)) {
     return 9;
   }
-  
+
   // Analyseer vendor type
   const lowVatVendors = [
     "restaurant", "cafe", "hotel", "boekhandel", "krantenwinkel",
     "horeca", "catering", "bakker", "slager"
   ];
-  
+
   if (lowVatVendors.some(v => vendor.includes(v))) {
     return 9;
   }
-  
+
   // 0% voor buitenlandse diensten
   const foreignVendors = ["amazon", "google", "microsoft", "adobe"];
   if (foreignVendors.some(v => vendor.includes(v))) {
     return 0;
   }
-  
+
   return 21; // Standaard tarief
 }
 
@@ -240,23 +230,23 @@ function calculateConfidence(invoice: InvoiceForAnalysis, suggestedRate: number)
   let confidence = 0.5;
 
   const client = invoice.client?.[0] ?? null;
-  
+
   // Hoge confidence voor EU reverse charge
   if (suggestedRate === 0 && client?.btw_number && client?.country !== "NL") {
     confidence = 0.95;
   }
-  
+
   // Hoge confidence voor export
   if (suggestedRate === 0 && client?.country && !["NL", "BE", "DE", "FR", "LU", "AT", "IT", "ES", "PT", "IE", "FI", "GR", "CY", "MT", "SI", "SK", "CZ", "HU", "PL", "HR", "RO", "BG", "DK", "SE", "EE", "LV", "LT"].includes(client.country)) {
     confidence = 0.9;
   }
-  
+
   return confidence;
 }
 
 // ─── Opslag en notificaties ───
 
-async function storeFindings(supabase: SupabaseClient, userId: string, findings: VatFinding[]) {
+async function storeFindings(supabase: SupabaseServiceClient, userId: string, findings: VatFinding[]) {
   for (const finding of findings) {
     await supabase.from("vat_suggestions").insert({
       user_id: userId,
@@ -271,7 +261,7 @@ async function storeFindings(supabase: SupabaseClient, userId: string, findings:
   }
 }
 
-async function sendNotifications(supabase: SupabaseClient, userId: string, findings: VatFinding[]) {
+async function sendNotifications(supabase: SupabaseServiceClient, userId: string, findings: VatFinding[]) {
   // Action feed item
   await supabase.from("action_feed").insert({
     user_id: userId,
