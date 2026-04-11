@@ -209,6 +209,17 @@ const en = {
     closingSubtitle: "Try free, no credit card and no obligations.",
     closingCta: "Try 14 days free",
     closingReassurance: "No credit card · Cancel anytime · Your data is yours",
+    // Trust bar signals
+    trustBuiltFor: "Built for Dutch freelancers",
+    trustTaxReady: "Always VAT-ready",
+    trustSecure: "Secure & encrypted",
+    trustNoKnowledge: "No accounting knowledge needed",
+    // Form field labels (waitlist)
+    name: "Name",
+    namePlaceholder: "Your full name",
+    email: "Email",
+    emailPlaceholder: "you@name.com",
+    onWaitlist: "You're on the list",
     // CTA reassurance (kept for backwards compatibility)
     ctaReassurance: "Real-time insight into what you need to reserve.",
   },

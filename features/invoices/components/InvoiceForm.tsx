@@ -57,12 +57,12 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const clientErrorMessage = clientsResult?.error || t.errors.generic;
 
   // Auto-detect VAT scheme when client changes
-  useEffect(() => {
-    if (!clientId) {
+  const applyClientVatScheme = useCallback((cId: string | null, clientList: typeof clients) => {
+    if (!cId) {
       setVatReason(null);
       return;
     }
-    const client = clients.find((c) => c.id === clientId);
+    const client = clientList.find((c) => c.id === cId);
     if (!client) return;
 
     const detection = detectVatScheme(client);
@@ -75,7 +75,11 @@ export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     const due = new Date();
     due.setDate(due.getDate() + termDays);
     setDueDate(due.toISOString().split("T")[0]);
-  }, [clientId, clients, setVatScheme, setVatRate, setDueDate]);
+  }, [setVatScheme, setVatRate, setDueDate]);
+
+  useEffect(() => {
+    applyClientVatScheme(clientId, clients);
+  }, [clientId, clients, applyClientVatScheme]);
 
   // Generate invoice number for new invoices
   useEffect(() => {

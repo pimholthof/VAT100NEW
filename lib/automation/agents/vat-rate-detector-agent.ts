@@ -1,5 +1,33 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { Agent, SystemEventRow } from "../types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+interface VatFinding {
+  type: "invoice" | "receipt";
+  id: string;
+  issue: string;
+  suggestedRate: number;
+  confidence: number;
+}
+
+interface InvoiceForAnalysis {
+  id: string;
+  invoice_number: string;
+  subtotal_ex_vat: number | null;
+  vat_amount: number | null;
+  vat_rate: number | null;
+  client: { name: string; country: string | null; btw_number: string | null }[] | null;
+  invoice_lines: { description: string; amount: number; vat_rate: number | null }[];
+}
+
+interface ReceiptForAnalysis {
+  id: string;
+  vendor_name: string | null;
+  amount_ex_vat: number | null;
+  vat_amount: number | null;
+  vat_rate: number | null;
+  cost_code: number | null;
+}
 
 /**
  * Agent 6: BTW-tarief Detector
@@ -53,7 +81,7 @@ export const vatRateDetectorAgent: Agent = {
 
 // ─── Analyse functies ───
 
-async function analyzeInvoice(invoiceId: string, userId: string, findings: any[]) {
+async function analyzeInvoice(invoiceId: string, userId: string, findings: VatFinding[]) {
   const supabase = createServiceClient();
   
   const { data: invoice, error } = await supabase
@@ -83,7 +111,7 @@ async function analyzeInvoice(invoiceId: string, userId: string, findings: any[]
   }
 }
 
-async function analyzeReceipt(receiptId: string, userId: string, findings: any[]) {
+async function analyzeReceipt(receiptId: string, userId: string, findings: VatFinding[]) {
   const supabase = createServiceClient();
   
   const { data: receipt, error } = await supabase
@@ -109,7 +137,7 @@ async function analyzeReceipt(receiptId: string, userId: string, findings: any[]
   }
 }
 
-async function analyzeAllRecent(userId: string, findings: any[]) {
+async function analyzeAllRecent(userId: string, findings: VatFinding[]) {
   const supabase = createServiceClient();
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
@@ -143,14 +171,14 @@ async function analyzeAllRecent(userId: string, findings: any[]) {
 
 // ─── BTW-tarief suggestie logica ───
 
-function suggestVatRateForInvoice(invoice: any): number | null {
-  const client = invoice.client;
-  
+function suggestVatRateForInvoice(invoice: InvoiceForAnalysis): number | null {
+  const client = invoice.client?.[0] ?? null;
+
   // B2B binnen EU: reverse charge (0% BTW)
   if (client?.btw_number && client?.country !== "NL") {
     return 0; // Reverse charge
   }
-  
+
   // Export buiten EU: 0% BTW
   if (client?.country && !["NL", "BE", "DE", "FR", "LU", "AT", "IT", "ES", "PT", "IE", "FI", "GR", "CY", "MT", "SI", "SK", "CZ", "HU", "PL", "HR", "RO", "BG", "DK", "SE", "EE", "LV", "LT"].includes(client.country)) {
     return 0;
@@ -159,7 +187,7 @@ function suggestVatRateForInvoice(invoice: any): number | null {
   // Analyseer diensttype op basis van beschrijving
   const descriptions = [
     invoice.invoice_number,
-    ...(invoice.invoice_lines || []).map((line: any) => line.description)
+    ...(invoice.invoice_lines || []).map((line: { description: string }) => line.description)
   ].join(" ").toLowerCase();
   
   // 9% tarief voor specifieke diensten
@@ -178,7 +206,7 @@ function suggestVatRateForInvoice(invoice: any): number | null {
   return 21;
 }
 
-function suggestVatRateForReceipt(receipt: any): number | null {
+function suggestVatRateForReceipt(receipt: ReceiptForAnalysis): number | null {
   const vendor = receipt.vendor_name?.toLowerCase() || "";
   const costCode = receipt.cost_code;
   
@@ -208,10 +236,10 @@ function suggestVatRateForReceipt(receipt: any): number | null {
   return 21; // Standaard tarief
 }
 
-function calculateConfidence(invoice: any, suggestedRate: number): number {
+function calculateConfidence(invoice: InvoiceForAnalysis, suggestedRate: number): number {
   let confidence = 0.5;
-  
-  const client = invoice.client;
+
+  const client = invoice.client?.[0] ?? null;
   
   // Hoge confidence voor EU reverse charge
   if (suggestedRate === 0 && client?.btw_number && client?.country !== "NL") {
@@ -228,7 +256,7 @@ function calculateConfidence(invoice: any, suggestedRate: number): number {
 
 // ─── Opslag en notificaties ───
 
-async function storeFindings(supabase: any, userId: string, findings: any[]) {
+async function storeFindings(supabase: SupabaseClient, userId: string, findings: VatFinding[]) {
   for (const finding of findings) {
     await supabase.from("vat_suggestions").insert({
       user_id: userId,
@@ -243,7 +271,7 @@ async function storeFindings(supabase: any, userId: string, findings: any[]) {
   }
 }
 
-async function sendNotifications(supabase: any, userId: string, findings: any[]) {
+async function sendNotifications(supabase: SupabaseClient, userId: string, findings: VatFinding[]) {
   // Action feed item
   await supabase.from("action_feed").insert({
     user_id: userId,

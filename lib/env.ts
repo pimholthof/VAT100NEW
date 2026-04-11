@@ -96,35 +96,37 @@ export function checkServiceKeyExposure(): string[] {
 
 // CLI execution
 if (require.main === module || import.meta.url === `file://${process.argv[1]}`) {
+  const isCI = !!(process.env.VERCEL || process.env.CI);
   const result = validateEnv();
   const exposureIssues = checkServiceKeyExposure();
-  
+
   console.log("🔍 VAT100 Environment Validation\n");
-  
+
   if (result.valid && result.warnings.length === 0 && exposureIssues.length === 0) {
     console.log("✅ All required environment variables are set");
     console.log(`🔒 ${result.serverOnly.length} server-only secrets configured`);
     process.exit(0);
   }
-  
+
   if (!result.valid) {
-    console.error("❌ Missing required environment variables:");
+    const prefix = isCI ? "⚠️  (CI)" : "❌";
+    console.error(`${prefix} Missing required environment variables:`);
     result.missing.forEach(v => console.error(`   - ${v}`));
     console.error("");
   }
-  
+
   if (exposureIssues.length > 0) {
     console.error("🚨 Security Issues:");
     exposureIssues.forEach(i => console.error(`   ${i}`));
     console.error("");
   }
-  
+
   if (result.warnings.length > 0) {
     console.warn("⚠️  Warnings:");
     result.warnings.forEach(w => console.warn(`   ${w}`));
     console.warn("");
   }
-  
+
   console.log("\nRequired environment variables:");
   Object.entries(requiredEnvVars)
     .filter(([_, c]) => c.required)
@@ -132,6 +134,11 @@ if (require.main === module || import.meta.url === `file://${process.argv[1]}`) 
       const status = process.env[key] ? "✅" : "❌";
       console.log(`  ${status} ${key}`);
     });
-  
+
+  if (isCI && !result.valid) {
+    console.warn("\n⚠️  CI/Vercel build: env check skipped (env vars set at runtime)");
+    process.exit(0);
+  }
+
   process.exit(result.valid ? 0 : 1);
 }

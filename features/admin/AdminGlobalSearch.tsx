@@ -35,14 +35,18 @@ export function AdminGlobalSearch() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  const resetSearch = useCallback(() => {
+    setQuery("");
+    setResults([]);
+  }, []);
+
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50);
     } else {
-      setQuery("");
-      setResults([]);
+      resetSearch();
     }
-  }, [open]);
+  }, [open, resetSearch]);
 
   const handleSearch = useCallback((value: string) => {
     setQuery(value);

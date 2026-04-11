@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/supabase/server';
-import { getTaxProjection } from '@/features/tax/actions';
+import { requireAuth, createClient } from '@/lib/supabase/server';
 import { getBtwOverview } from '@/features/tax/actions';
-import { calculateZZPTaxProjection, type Investment } from '@/lib/tax/dutch-tax-2026';
+import type { QuarterStats } from '@/features/tax/actions';
+import { calculateZZPTaxProjection, type Investment, type TaxProjection, type Bespaartip } from '@/lib/tax/dutch-tax-2026';
+
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
 
 export async function POST(request: NextRequest) {
   try {
@@ -130,7 +132,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function extractTaxInput(message: string, context: any) {
+function extractTaxInput(message: string, context: Record<string, unknown> | undefined) {
   const omzetMatch = message.match(/€?\s*([\d,.]+)\s*(?:euro|omzet|turnover)/i);
   const kostenMatch = message.match(/€?\s*([\d,.]+)\s*(?:euro|kosten|costs)/i);
 
@@ -152,7 +154,7 @@ function extractTaxInput(message: string, context: any) {
   return null;
 }
 
-async function getComplianceStatus(supabase: any, userId: string) {
+async function getComplianceStatus(supabase: SupabaseServer, userId: string) {
   try {
     // Check missende bonnen
     const { data: missingReceipts } = await supabase
@@ -180,7 +182,7 @@ async function getComplianceStatus(supabase: any, userId: string) {
       .eq("user_id", userId)
       .gte("date", `${now.getFullYear()}-01-01`);
 
-    const totalMinutes = (hours || []).reduce((sum: number, h: any) => sum + (h.duration_minutes || 0), 0);
+    const totalMinutes = (hours || []).reduce((sum: number, h: { duration_minutes: number }) => sum + (h.duration_minutes || 0), 0);
     const totalHours = totalMinutes / 60;
     const targetHours = 1225;
     const hoursProgress = (totalHours / targetHours) * 100;
@@ -231,7 +233,15 @@ function getVatDeadline(quarter: number, year: number) {
   return deadlineDate.toISOString().split('T')[0];
 }
 
-function formatTaxAdvice(projection: any, compliance: any, btwData: any, profile: any) {
+interface ComplianceStatus {
+  score: number;
+  issues: string[];
+  lastChecked?: string;
+  vatDeadline?: string;
+  hoursProgress?: { current: number; target: number; percentage: number };
+}
+
+function formatTaxAdvice(projection: TaxProjection, compliance: ComplianceStatus | null, btwData: QuarterStats[] | null, _profile: Record<string, unknown> | null) {
   let advice = `📊 **Jouw Belastingberekening ${new Date().getFullYear()}**
 
 💰 **Omzet & Winst**
@@ -262,7 +272,7 @@ function formatTaxAdvice(projection: any, compliance: any, btwData: any, profile
   // Voeg bespaartips toe
   if (projection.bespaartips && projection.bespaartips.length > 0) {
     advice += '\n💡 **Bespaartips**\n';
-    projection.bespaartips.forEach((tip: any) => {
+    projection.bespaartips.forEach((tip: Bespaartip) => {
       advice += `- ${tip.titel}: ${tip.beschrijving}\n`;
     });
     advice += '\n';
