@@ -3,6 +3,8 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { ProcessingResult } from "./types";
 import { agents } from "./agents";
+import { moveToDeadLetterQueue } from "./dead-letter-queue";
+import { withMetrics } from "./agent-metrics";
 
 /**
  * The core engine of the VAT100 Automation Ecosystem.
@@ -98,9 +100,17 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
       if (matchingAgents.length === 0) {
         // No matching agents for this event type
       } else {
-        // Execute all matching agents in parallel
+        // Execute all matching agents in parallel (with metrics tracking)
         const agentResults = await Promise.allSettled(
-          matchingAgents.map((agent) => agent.run(claimedEvent))
+          matchingAgents.map((agent) =>
+            withMetrics(
+              agent.name,
+              claimedEvent.id,
+              claimedEvent.event_type,
+              claimedEvent.user_id,
+              () => agent.run(claimedEvent)
+            )
+          )
         );
 
         const agentErrors = agentResults.flatMap((agentResult) => {
@@ -125,6 +135,18 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
           })
           .eq("id", claimedEvent.id)
           .eq("processing_token", token);
+
+        // Verplaats definitief gefaalde events naar de Dead Letter Queue
+        if (exhausted) {
+          await moveToDeadLetterQueue({
+            id: claimedEvent.id,
+            event_type: claimedEvent.event_type,
+            payload: claimedEvent.payload,
+            user_id: claimedEvent.user_id,
+            attempts: claimedEvent.attempts,
+            last_error: lastError,
+          }).catch(() => {}); // DLQ insert mag event processing niet breken
+        }
 
         result.failures++;
         if (lastError) {
@@ -162,6 +184,17 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
         })
         .eq("id", claimedEvent.id)
         .eq("processing_token", token);
+
+      if (exhausted) {
+        await moveToDeadLetterQueue({
+          id: claimedEvent.id,
+          event_type: claimedEvent.event_type,
+          payload: claimedEvent.payload,
+          user_id: claimedEvent.user_id,
+          attempts: claimedEvent.attempts,
+          last_error: getErrorMessage(e),
+        }).catch(() => {});
+      }
     }
   }
 
