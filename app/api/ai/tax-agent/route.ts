@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/supabase/server';
-import { getTaxProjection } from '@/features/tax/actions';
+import { requireAuth, createClient } from '@/lib/supabase/server';
 import { getBtwOverview } from '@/features/tax/actions';
-import { calculateZZPTaxProjection, type Investment } from '@/lib/tax/dutch-tax-2026';
+import type { QuarterStats } from '@/features/tax/actions';
+import { calculateZZPTaxProjection, type Investment, type TaxProjection, type Bespaartip } from '@/lib/tax/dutch-tax-2026';
+
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
 
 export async function POST(request: NextRequest) {
   try {
@@ -111,7 +113,7 @@ export async function POST(request: NextRequest) {
     const btwData = btwOverview.error ? null : btwOverview.data;
 
     // Formatteer advies
-    const formattedAdvice = formatTaxAdvice(projection, compliance, btwData, profileRes.data);
+    const formattedAdvice = formatTaxAdvice(projection, compliance, btwData ?? null, profileRes.data);
 
     return NextResponse.json({
       response: formattedAdvice,
@@ -130,7 +132,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function extractTaxInput(message: string, context: any) {
+function extractTaxInput(message: string, context: Record<string, unknown> | undefined) {
   const omzetMatch = message.match(/€?\s*([\d,.]+)\s*(?:euro|omzet|turnover)/i);
   const kostenMatch = message.match(/€?\s*([\d,.]+)\s*(?:euro|kosten|costs)/i);
 
@@ -143,16 +145,16 @@ function extractTaxInput(message: string, context: any) {
     return {
       jaarOmzetExBtw: omzet,
       jaarKostenExBtw: kosten,
-      investeringen: context?.investeringen || [],
-      maandenVerstreken: context?.maandenVerstreken || 12,
-      kilometerAftrek: context?.kilometerAftrek || 0
+      investeringen: (Array.isArray(context?.investeringen) ? context.investeringen : []) as Investment[],
+      maandenVerstreken: typeof context?.maandenVerstreken === 'number' ? context.maandenVerstreken : 12,
+      kilometerAftrek: typeof context?.kilometerAftrek === 'number' ? context.kilometerAftrek : 0
     };
   }
 
   return null;
 }
 
-async function getComplianceStatus(supabase: any, userId: string) {
+async function getComplianceStatus(supabase: SupabaseServer, userId: string) {
   try {
     // Check missende bonnen
     const { data: missingReceipts } = await supabase
@@ -180,7 +182,7 @@ async function getComplianceStatus(supabase: any, userId: string) {
       .eq("user_id", userId)
       .gte("date", `${now.getFullYear()}-01-01`);
 
-    const totalMinutes = (hours || []).reduce((sum: number, h: any) => sum + (h.duration_minutes || 0), 0);
+    const totalMinutes = (hours || []).reduce((sum: number, h: { duration_minutes: number }) => sum + (h.duration_minutes || 0), 0);
     const totalHours = totalMinutes / 60;
     const targetHours = 1225;
     const hoursProgress = (totalHours / targetHours) * 100;
@@ -231,7 +233,15 @@ function getVatDeadline(quarter: number, year: number) {
   return deadlineDate.toISOString().split('T')[0];
 }
 
-function formatTaxAdvice(projection: any, compliance: any, btwData: any, profile: any) {
+interface ComplianceStatus {
+  score: number;
+  issues: string[];
+  lastChecked?: string;
+  vatDeadline?: string;
+  hoursProgress?: { current: number; target: number; percentage: number };
+}
+
+function formatTaxAdvice(projection: TaxProjection, compliance: ComplianceStatus | null, btwData: QuarterStats[] | null, _profile: Record<string, unknown> | null) {
   let advice = `📊 **Jouw Belastingberekening ${new Date().getFullYear()}**
 
 💰 **Omzet & Winst**
@@ -262,7 +272,7 @@ function formatTaxAdvice(projection: any, compliance: any, btwData: any, profile
   // Voeg bespaartips toe
   if (projection.bespaartips && projection.bespaartips.length > 0) {
     advice += '\n💡 **Bespaartips**\n';
-    projection.bespaartips.forEach((tip: any) => {
+    projection.bespaartips.forEach((tip: Bespaartip) => {
       advice += `- ${tip.titel}: ${tip.beschrijving}\n`;
     });
     advice += '\n';
@@ -272,8 +282,7 @@ function formatTaxAdvice(projection: any, compliance: any, btwData: any, profile
   if (btwData && btwData.length > 0) {
     const latestQuarter = btwData[0];
     advice += `🧾 **BTW Overzicht**\n`;
-    advice += `- Laatste kwartaal (${latestQuarter.quarter}): €${latestQuarter.netVat.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${latestQuarter.netVat >= 0 ? 'af te dragen' : 'terug te ontvangen'}\n`;
-    advice += `- Status: ${latestQuarter.status === 'submitted' ? 'Ingediend' : 'Concept'}\n\n`;
+    advice += `- Laatste kwartaal (${latestQuarter.quarter}): €${latestQuarter.netVat.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${latestQuarter.netVat >= 0 ? 'af te dragen' : 'terug te ontvangen'}\n\n`;
   }
 
   // Voeg compliance info toe
@@ -302,11 +311,11 @@ Op basis van jouw situatie:
     advice += `- 💡 Overweeg te investeren in bedrijfsmiddelen. Met €${(2400 - projection.totalInvestments).toLocaleString('nl-NL')} extra investering bereik je de optimale KIA-regeling.\n`;
   }
 
-  if (compliance?.hoursProgress?.percentage < 80) {
+  if (compliance?.hoursProgress && compliance.hoursProgress.percentage < 80) {
     advice += `- ⚠️ Let op je urencriterium. Je hebt nog ${compliance.hoursProgress.target - compliance.hoursProgress.current} uur nodig om de 1.225-uursnorm te halen.\n`;
   }
 
-  if (compliance?.issues.length > 0) {
+  if (compliance && compliance.issues && compliance.issues.length > 0) {
     advice += `- 📋 Los de compliance issues op: ${compliance.issues.join(', ')}.\n`;
   }
 

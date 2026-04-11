@@ -18,9 +18,8 @@ export async function manualNudgeLead(leadId: string): Promise<ActionResult> {
   if (leadError || !lead) return { error: "Lead niet gevonden." };
 
   // 2. Send Nudge
-  // @ts-ignore - Handle Supabase join structure variations
   const planObj = Array.isArray(lead.plans) ? lead.plans[0] : lead.plans;
-  const planName = planObj?.name || "Premium Plan";
+  const planName = (planObj as { name?: string })?.name || "Premium Plan";
 
   const emailResult = await sendPaymentNudge({
     email: lead.email,
@@ -60,9 +59,8 @@ export async function manualBillingAlert(userId: string): Promise<ActionResult> 
   if (!profile?.email || !sub) return { error: "Geen profiel of abonnement gevonden voor deze gebruiker." };
 
   // 2. Send Alert
-  // @ts-ignore
   const planObj = Array.isArray(sub.plan) ? sub.plan[0] : sub.plan;
-  const planPrice = planObj?.price_cents || 0;
+  const planPrice = (planObj as { price_cents?: number })?.price_cents || 0;
   const amountStr = `€${(planPrice / 100).toFixed(2)}`;
 
   const emailResult = await sendBillingAlert({

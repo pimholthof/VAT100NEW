@@ -49,9 +49,24 @@ interface PeriodStats {
   avgAttempts: number;
 }
 
+interface RecentFailure {
+  id: string;
+  eventType: string;
+  lastError: string;
+  attempts: number;
+  failedAt: string;
+}
+
 export interface AutomationStats {
   period7d: PeriodStats;
   byEventType: EventTypeStats[];
+  recentFailures: RecentFailure[];
+  lastCronPayloads: {
+    agents: Record<string, unknown> | null;
+    recurring: Record<string, unknown> | null;
+    overdue: Record<string, unknown> | null;
+    events: Record<string, unknown> | null;
+  };
 }
 
 export async function getSystemStatus(): Promise<ActionResult<SystemStatus>> {
@@ -237,6 +252,41 @@ export async function getAutomationStats(): Promise<ActionResult<AutomationStats
       avgAttempts: stats.processed > 0 ? Math.round((stats.totalAttempts / stats.processed) * 10) / 10 : 0,
     }));
 
+    // Recent failures (last 10)
+    const { data: recentFailedEvents } = await supabase
+      .from("system_events")
+      .select("id, event_type, last_error, attempts, failed_at")
+      .not("failed_at", "is", null)
+      .order("failed_at", { ascending: false })
+      .limit(10);
+
+    const recentFailures: RecentFailure[] = (recentFailedEvents ?? []).map((e) => ({
+      id: e.id,
+      eventType: e.event_type ?? "unknown",
+      lastError: e.last_error ?? "Onbekende fout",
+      attempts: e.attempts ?? 1,
+      failedAt: e.failed_at ?? "",
+    }));
+
+    // Last cron payloads
+    const cronTypes = ["cron.agents", "cron.recurring", "cron.overdue", "cron.events"] as const;
+    const cronResults = await Promise.all(
+      cronTypes.map((type) =>
+        supabase
+          .from("system_events")
+          .select("created_at, payload")
+          .eq("event_type", type)
+          .order("created_at", { ascending: false })
+          .limit(1)
+      )
+    );
+
+    const toCronPayload = (res: typeof cronResults[number]): Record<string, unknown> | null => {
+      const row = res.data?.[0];
+      if (!row) return null;
+      return (row.payload as Record<string, unknown>) ?? null;
+    };
+
     return {
       error: null,
       data: {
@@ -247,6 +297,13 @@ export async function getAutomationStats(): Promise<ActionResult<AutomationStats
           avgAttempts: totalProcessed > 0 ? Math.round((totalAttempts / totalProcessed) * 10) / 10 : 0,
         },
         byEventType: byEventType.sort((a, b) => b.processed - a.processed),
+        recentFailures,
+        lastCronPayloads: {
+          agents: toCronPayload(cronResults[0]),
+          recurring: toCronPayload(cronResults[1]),
+          overdue: toCronPayload(cronResults[2]),
+          events: toCronPayload(cronResults[3]),
+        },
       },
     };
   } catch (e) {

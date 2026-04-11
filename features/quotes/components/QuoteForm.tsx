@@ -115,7 +115,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
         setPricingHistory(res.data ?? []);
       });
     } else {
-      setPricingHistory([]);
+      Promise.resolve().then(() => setPricingHistory([]));
     }
   }, [clientId]);
 

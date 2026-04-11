@@ -9,8 +9,8 @@ interface Message {
   type: "user" | "assistant";
   content: string;
   timestamp: Date;
-  taxData?: any;
-  compliance?: any;
+  taxData?: { nettoIB: number; effectiefTarief: number; [key: string]: unknown };
+  compliance?: { score: number; issues: string[]; [key: string]: unknown };
 }
 
 interface TaxAgentChatProps {
@@ -22,7 +22,7 @@ export default function TaxAgentChat({ userId, initialMessage }: TaxAgentChatPro
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [compliance, setCompliance] = useState<any>(null);
+  const [compliance, setCompliance] = useState<{ score: number; issues: string[]; [key: string]: unknown } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
