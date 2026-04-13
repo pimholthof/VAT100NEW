@@ -8,6 +8,7 @@ import DashboardMockup from "@/components/landing/DashboardMockup";
 import InvoiceMockup from "@/components/landing/InvoiceMockup";
 import VatMockup from "@/components/landing/VatMockup";
 import PosterMockup from "@/components/landing/PosterMockup";
+import FaqAccordion from "@/components/landing/FaqAccordion";
 import styles from "./page.module.css";
 
 export default function LandingPage() {
@@ -21,10 +22,7 @@ export default function LandingPage() {
     { title: t.landing.featureInvoices, description: t.landing.featureInvoicesDesc },
     { title: t.landing.featureVat, description: t.landing.featureVatDesc },
     { title: t.landing.featureReceipts, description: t.landing.featureReceiptsDesc },
-    { title: t.landing.featureClients, description: t.landing.featureClientsDesc },
     { title: t.landing.featureCashflow, description: t.landing.featureCashflowDesc },
-    { title: t.landing.featureQuotes, description: t.landing.featureQuotesDesc },
-    { title: t.landing.featureIncomeTax, description: t.landing.featureIncomeTaxDesc },
   ];
 
   const pricingPlans = [
@@ -41,7 +39,6 @@ export default function LandingPage() {
         t.landing.clientManagement,
         t.landing.csvExport,
       ],
-      cta: t.landing.basisCta,
       highlighted: false,
     },
     {
@@ -60,7 +57,6 @@ export default function LandingPage() {
         t.landing.cashflowAnalysis,
         t.landing.incomeTaxInsight,
       ],
-      cta: t.landing.studioCta,
       highlighted: true,
     },
     {
@@ -78,16 +74,19 @@ export default function LandingPage() {
         t.landing.annualReport,
         t.landing.prioritySupport,
       ],
-      cta: t.landing.compleetCta,
       highlighted: false,
     },
   ];
 
-  const personas = [
-    { type: t.landing.persona1Type, quote: t.landing.persona1Quote },
-    { type: t.landing.persona2Type, quote: t.landing.persona2Quote },
-    { type: t.landing.persona3Type, quote: t.landing.persona3Quote },
+  const faqs = [
+    { q: t.landing.faq1Q, a: t.landing.faq1A },
+    { q: t.landing.faq2Q, a: t.landing.faq2A },
+    { q: t.landing.faq3Q, a: t.landing.faq3A },
+    { q: t.landing.faq4Q, a: t.landing.faq4A },
+    { q: t.landing.faq5Q, a: t.landing.faq5A },
   ];
+
+  const primaryPlanId = pricingPlans.find((plan) => plan.highlighted)?.id ?? pricingPlans[0]?.id ?? "basis";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -107,11 +106,8 @@ export default function LandingPage() {
     }
   }
 
-  const primaryPlanId = pricingPlans.find((plan) => plan.highlighted)?.id ?? pricingPlans[0]?.id ?? "basis";
-
   return (
     <div className={styles.page}>
-      {/* Background watermark */}
       <div aria-hidden="true" className={styles.watermark}>
         VAT100
       </div>
@@ -141,73 +137,35 @@ export default function LandingPage() {
       {/* ─── Hero ─── */}
       <section className={`${styles.section} ${styles.sectionHero}`}>
         <div className={styles.heroGrid}>
-          {/* Copy */}
           <div>
-            <p className={styles.heroLabel}>{t.landing.heroLabel}</p>
             <h1 className={styles.heroTitle}>{t.landing.heroHeadline}</h1>
-            <p className={styles.heroSubtitle}>{t.landing.heroSubtitleNew}
-            </p>
+            <p className={styles.heroSubtitle}>{t.landing.heroSubtitleNew}</p>
             <div className={styles.heroActions}>
               <Link
                 href={`/register?plan=${primaryPlanId}`}
-                className="btn-primary"
-                style={{
-                  padding: "18px 36px",
-                  textDecoration: "none",
-                  display: "inline-block",
-                }}
+                className={`btn-primary ${styles.btnPrimary}`}
               >
                 {t.landing.heroCta}
               </Link>
               <a
                 href="#prijzen"
-                className="btn-secondary"
-                style={{
-                  padding: "18px 36px",
-                  textDecoration: "none",
-                  display: "inline-block",
-                }}
+                className={`btn-secondary ${styles.btnSecondary}`}
               >
                 {t.landing.heroCtaSecondary}
               </a>
             </div>
+            <p className={styles.heroReassurance}>{t.landing.heroReassurance}</p>
           </div>
 
-          {/* Product mockup */}
           <div>
             <DashboardMockup locale={locale} />
           </div>
         </div>
       </section>
 
-      {/* ─── Trust Bar ─── */}
-      <section className={`${styles.section} ${styles.sectionCompact}`}>
-        <div className={styles.trustBar}>
-          {[
-            t.landing.trustBuiltFor,
-            t.landing.trustTaxReady,
-            t.landing.trustSecure,
-            t.landing.trustNoKnowledge,
-          ].map((signal, i) => (
-            <span key={i} className={styles.trustItem}>
-              {i > 0 && <span className={styles.trustDivider}>·</span>}
-              {signal}
-            </span>
-          ))}
-        </div>
-        <p className={styles.trustReassurance}>{t.landing.ctaReassurance}</p>
-      </section>
-
-      <div className={styles.divider}><div className={styles.dividerLine} /></div>
-
       {/* ─── Product Showcase ─── */}
-      <section
-        id="product"
-        className={styles.section}
-      >
-        <p className={styles.sectionLabel}>{t.landing.showcaseLabel}</p>
-
-        {/* Feature 1: Invoices — copy left, mockup right */}
+      <section id="product" className={styles.section}>
+        {/* Invoices — text left, mockup right */}
         <div className={styles.showcaseGrid}>
           <div>
             <h3 className={styles.showcaseTitle}>{t.landing.showcaseInvoicesTitle}</h3>
@@ -216,7 +174,7 @@ export default function LandingPage() {
           <InvoiceMockup locale={locale} />
         </div>
 
-        {/* Feature 2: VAT — mockup left, copy right */}
+        {/* VAT — mockup left, text right */}
         <div className={`${styles.showcaseGrid} ${styles.showcaseGridReverse}`}>
           <VatMockup locale={locale} />
           <div>
@@ -225,8 +183,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Feature 3: Poster invoice — copy left, mockup right */}
-        <div className={styles.showcaseGrid} style={{ marginTop: "clamp(60px, 8vw, 100px)" }}>
+        {/* Invoice design — text left, mockup right */}
+        <div className={styles.showcaseGrid}>
           <div>
             <h3 className={styles.showcaseTitle}>{t.landing.showcasePosterTitle}</h3>
             <p className={styles.showcaseDescription}>{t.landing.showcasePosterDesc}</p>
@@ -235,49 +193,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <div className={styles.divider}><div className={styles.dividerLine} /></div>
-
-      {/* ─── Concept ─── */}
-      <section className={styles.section}>
-        <div className={styles.conceptGrid}>
-          <div>
-            <p className={styles.sectionLabel}>{t.landing.theIdea}</p>
-            <h2 className={styles.sectionTitle} style={{ marginBottom: 0 }}>
-              {t.landing.lessSoftware}
-              <br />
-              {t.landing.moreClarity}
-            </h2>
-          </div>
-          <div>
-            <p className={styles.conceptDescription}>{t.landing.ideaDescription}</p>
-            <div className={styles.statsGrid}>
-              {[
-                { value: "< 30s", label: t.landing.perInvoice },
-                { value: "100%", label: t.landing.vatInsight },
-                { value: "0", label: t.landing.manualWork },
-                { value: "24/7", label: t.landing.overview },
-              ].map((stat) => (
-                <div key={stat.label}>
-                  <p className={styles.statValue}>{stat.value}</p>
-                  <p className={styles.statLabel}>{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className={styles.divider}><div className={styles.dividerLine} /></div>
-
       {/* ─── Features ─── */}
       <section id="functies" className={styles.section}>
-        <p className={styles.sectionLabel}>{t.landing.features}</p>
-        <h2 className={styles.sectionTitle}>
-          {t.landing.featuresTitle}
-          <br />
-          {t.landing.featuresSubtitle}
-        </h2>
-
+        <h2 className={styles.sectionTitle}>{t.landing.featuresTitle}</h2>
         <div className={styles.featuresGrid}>
           {features.map((feature, i) => (
             <div key={i} className={styles.featureCard}>
@@ -288,22 +206,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <div className={styles.divider}><div className={styles.dividerLine} /></div>
-
       {/* ─── Pricing ─── */}
       <section id="prijzen" className={styles.section}>
-        <p className={styles.sectionLabel}>{t.landing.pricing}</p>
         <h2 className={styles.sectionTitle}>{t.landing.pricingTitle}</h2>
-        <p className={styles.sectionSubtitle}>{t.landing.pricingSubtitle}</p>
-
         <div className={styles.pricingGrid}>
           {pricingPlans.map((plan) => (
             <div
               key={plan.name}
               className={`${styles.pricingCard} ${plan.highlighted ? styles.pricingCardHighlighted : ""}`}
             >
-              {plan.highlighted && <div className={styles.pricingBadge}>{plan.cta}</div>}
-
               <p className={styles.pricingName}>{plan.name}</p>
 
               <div className={styles.pricingPrice}>
@@ -326,36 +237,27 @@ export default function LandingPage() {
                 href={`/register?plan=${plan.id}`}
                 className={`${styles.pricingCta} ${plan.highlighted ? styles.pricingCtaPrimary : styles.pricingCtaSecondary}`}
               >
-                {plan.highlighted ? t.landing.getStarted : t.landing.choose + plan.name}
+                {t.landing.pricingCta}
               </a>
             </div>
           ))}
         </div>
       </section>
 
-      <div className={styles.divider}><div className={styles.dividerLine} /></div>
-
-      {/* ─── Persona Quotes ─── */}
+      {/* ─── FAQ ─── */}
       <section className={styles.section}>
-        <p className={styles.sectionLabel}>{t.landing.personaTitle}</p>
-        <div className={styles.personasGrid}>
-          {personas.map((p) => (
-            <div key={p.type} className={styles.personaCard}>
-              <p className={styles.personaType}>{p.type}</p>
-              <p className={styles.personaQuote}>&ldquo;{p.quote}&rdquo;</p>
-            </div>
-          ))}
+        <h2 className={styles.sectionTitle}>{t.landing.faqSectionTitle}</h2>
+        <div className={styles.faqContainer}>
+          <FaqAccordion faqs={faqs} />
         </div>
       </section>
-
-      <div className={styles.divider}><div className={styles.dividerLine} /></div>
 
       {/* ─── Waitlist ─── */}
       <section id="wachtlijst" className={styles.section}>
         <div className={styles.waitlistContainer}>
           {submitted ? (
             <div className={styles.waitlistSuccess}>
-              <p className={styles.waitlistSuccessTitle}>{t.landing.onWaitlist}</p>
+              <p className={styles.waitlistSuccessTitle}>{t.landing.waitlistSuccess}</p>
               <p className={styles.waitlistSuccessText}>
                 {position ? t.landing.waitlistPosition.replace("{position}", String(position)) : ""}
                 {t.landing.waitlistConfirm}
@@ -363,9 +265,7 @@ export default function LandingPage() {
             </div>
           ) : (
             <div>
-              <p className={styles.sectionLabel}>{t.landing.earlyAccess}</p>
               <h2 className={styles.sectionTitle}>{t.landing.waitlistTitle}</h2>
-              <p className={styles.sectionSubtitle}>{t.landing.waitlistDescription}</p>
 
               <form onSubmit={handleSubmit} className={styles.waitlistForm}>
                 <div className={styles.formRow}>
@@ -396,7 +296,7 @@ export default function LandingPage() {
                 {error && <div role="alert" className={styles.formError}>{error}</div>}
 
                 <button type="submit" disabled={pending} className={`btn-primary ${styles.formSubmit}`}>
-                  {pending ? t.common.waiting : t.landing.waitlistButton}
+                  {pending ? "..." : t.landing.waitlistButton}
                 </button>
               </form>
             </div>
