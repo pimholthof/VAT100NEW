@@ -9,7 +9,7 @@ import {
   runPaymentDetectionAgent,
   runMissingReceiptDetection,
   runBtwDeadlineAlert,
-} from "@/features/dashboard/action-feed";
+} from "@/features/dashboard/agents";
 import * as Sentry from "@sentry/nextjs";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
 import { prepareVatReturns, isQuarterStart } from "@/lib/use-cases/prepare-vat-returns";

@@ -549,7 +549,7 @@ export async function runBackgroundAgents(): Promise<void> {
       (m) => m.autoPreparePreviousQuarterVatReturn()
     ),
     // BTW-deadline alert als deadline <14 dagen
-    import("@/features/dashboard/action-feed").then(
+    import("@/features/dashboard/agents").then(
       (m) => m.runBtwDeadlineAlert(user.id)
     ),
   ]);
