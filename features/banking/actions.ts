@@ -394,7 +394,7 @@ export async function syncTransactions(
 
     // 6. Onzichtbare assistent: automatische verwerking na sync
     try {
-      const { runPaymentDetectionAgent, runMissingReceiptDetection } = await import("@/features/dashboard/action-feed");
+      const { runPaymentDetectionAgent, runMissingReceiptDetection } = await import("@/features/dashboard/agents");
       const { autoReconcilePayments } = await import("@/lib/services/payment-reconciliation");
       const { recalculateReserves } = await import("@/lib/services/reserve-recalculator");
 
