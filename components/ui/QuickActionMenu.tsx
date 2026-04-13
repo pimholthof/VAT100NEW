@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useLocale } from "@/lib/i18n/context";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import { QUICK_ACTIONS } from "@/lib/navigation";
 
 export function QuickActionMenu() {
   const [open, setOpen] = useState(false);
@@ -12,12 +13,7 @@ export function QuickActionMenu() {
   const close = useCallback(() => setOpen(false), []);
   useClickOutside(ref, open, close);
 
-  const actions = [
-    { href: "/dashboard/invoices/new", label: t.nav.invoices },
-    { href: "/dashboard/quotes/new", label: "Offerte" },
-    { href: "/dashboard/clients/new", label: t.nav.clients },
-    { href: "/dashboard/receipts/new", label: "Bon" },
-  ];
+  const nav = t.nav as Record<string, string>;
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
@@ -51,7 +47,7 @@ export function QuickActionMenu() {
           <div className="dropdown-menu__label">
             {t.common.new}
           </div>
-          {actions.map((action) => (
+          {QUICK_ACTIONS.map((action) => (
             <Link
               key={action.href}
               href={action.href}
@@ -59,7 +55,7 @@ export function QuickActionMenu() {
               onClick={() => setOpen(false)}
               className="dropdown-item--link"
             >
-              {action.label}
+              {nav[action.labelKey] ?? action.labelKey}
             </Link>
           ))}
         </div>

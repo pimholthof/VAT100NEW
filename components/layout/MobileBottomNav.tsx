@@ -3,14 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/lib/i18n/context";
+import { NAV_ITEMS } from "@/lib/navigation";
 
-const navItems = [
-  { href: "/dashboard", labelKey: "overview" as const, icon: "◉" },
-  { href: "/dashboard/invoices", labelKey: "invoices" as const, icon: "□" },
-  { href: "/dashboard/expenses", labelKey: "expenses" as const, icon: "◇" },
-  { href: "/dashboard/clients", labelKey: "clients" as const, icon: "○" },
-  { href: "/dashboard/tax", labelKey: "tax" as const, icon: "△" },
-];
+const mobileItems = NAV_ITEMS.filter((i) => i.group === "main" && i.icon);
 
 export function MobileBottomNav() {
   const pathname = usePathname();
@@ -21,9 +16,11 @@ export function MobileBottomNav() {
     return pathname.startsWith(href);
   }
 
+  const nav = t.nav as Record<string, string>;
+
   return (
     <nav className="mobile-bottom-nav" aria-label="Mobiele navigatie">
-      {navItems.map((item) => {
+      {mobileItems.map((item) => {
         const active = isActive(item.href);
         return (
           <Link
@@ -32,7 +29,7 @@ export function MobileBottomNav() {
             className={`mobile-bottom-nav-item${active ? " mobile-bottom-nav-item--active" : ""}`}
           >
             <span className="mobile-bottom-nav-icon">{item.icon}</span>
-            <span className="mobile-bottom-nav-label">{t.nav[item.labelKey]}</span>
+            <span className="mobile-bottom-nav-label">{nav[item.labelKey] ?? item.labelKey}</span>
           </Link>
         );
       })}

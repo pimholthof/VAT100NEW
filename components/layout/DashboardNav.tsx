@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
 import { QuickActionMenu } from "@/components/ui/QuickActionMenu";
+import { NAV_ITEMS } from "@/lib/navigation";
 
 function useIsMobile(breakpoint = 768) {
   const subscribe = useCallback((callback: () => void) => {
@@ -23,6 +24,10 @@ function useIsMobile(breakpoint = 768) {
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+const mainItems = NAV_ITEMS.filter((i) => i.group === "main");
+const adminItems = NAV_ITEMS.filter((i) => i.group === "admin");
+const secondaryItems = NAV_ITEMS.filter((i) => i.group === "secondary");
 
 export function DashboardNav({
   studioName,
@@ -50,6 +55,11 @@ export function DashboardNav({
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
+  }
+
+  function navLabel(labelKey: string): string {
+    const nav = t.nav as Record<string, string>;
+    return nav[labelKey] ?? labelKey;
   }
 
   return (
@@ -140,36 +150,67 @@ export function DashboardNav({
           >
             <div className="dashboard-drawer-inner">
 
-              {/* Main navigation */}
+              {/* Linkerkolom: Menu + Account */}
               <div className="dashboard-drawer-col">
-                <span className="label mb-4">Menu</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")}>{t.nav.overview}</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/invoices")}>{t.nav.invoices}</Link>
-                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")}>{t.nav.clients}</Link>
-                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")}>{t.nav.expenses}</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")}>{t.nav.tax}</Link>
-                <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  Berichten
-                  {unreadMessages > 0 && (
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent, #E53E3E)", flexShrink: 0 }} />
+                <span className="label mb-4">{t.nav.menu}</span>
+                {mainItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={linkClass(item.href)}
+                  >
+                    {navLabel(item.labelKey)}
+                  </Link>
+                ))}
+
+                <div style={{ marginTop: 24 }}>
+                  <span className="label mb-4">{t.nav.account}</span>
+                  {isMobile && studioName && (
+                    <span className="label opacity-40 mb-2">{studioName}</span>
                   )}
-                </Link>
+                  <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings")}>{t.nav.settings}</Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="drawer-logout"
+                  >
+                    {t.nav.logout}
+                  </button>
+                </div>
               </div>
 
-              {/* Account */}
+              {/* Rechterkolom: Administratie + Meer */}
               <div className="dashboard-drawer-col dashboard-drawer-col-end">
-                <span className="label mb-4">{t.nav.account}</span>
-                {isMobile && studioName && (
-                  <span className="label opacity-40 mb-2">{studioName}</span>
-                )}
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings")}>{t.nav.settings}</Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="drawer-logout"
-                >
-                  {t.nav.logout}
-                </button>
+                <span className="label mb-4">{t.nav.administration}</span>
+                {adminItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={linkClass(item.href)}
+                  >
+                    {navLabel(item.labelKey)}
+                  </Link>
+                ))}
+
+                <div style={{ marginTop: 24 }}>
+                  <span className="label mb-4">{t.nav.more}</span>
+                  {secondaryItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsDrawerOpen(false)}
+                      className={linkClass(item.href)}
+                      style={item.labelKey === "messages" ? { display: "flex", alignItems: "center", gap: 8 } : undefined}
+                    >
+                      {navLabel(item.labelKey)}
+                      {item.labelKey === "messages" && unreadMessages > 0 && (
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent, #E53E3E)", flexShrink: 0 }} />
+                      )}
+                    </Link>
+                  ))}
+                </div>
               </div>
 
             </div>

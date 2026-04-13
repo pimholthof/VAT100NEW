@@ -3,34 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/lib/i18n/context";
-
-const segmentLabels: Record<string, (t: ReturnType<typeof useLocale>["t"]) => string> = {
-  dashboard: (t) => t.nav.overview,
-  invoices: (t) => t.nav.invoices,
-  clients: (t) => t.nav.clients,
-  expenses: (t) => t.nav.expenses,
-  assets: (t) => t.nav.assets,
-  hours: (t) => t.nav.hours,
-  trips: (t) => t.nav.trips,
-  tax: (t) => t.nav.tax,
-  documents: (t) => t.nav.documents,
-  import: (t) => t.nav.import,
-  settings: (t) => t.nav.settings,
-  receipts: () => "Bonnen",
-  quotes: () => "Offertes",
-  new: (t) => t.common.new,
-  preview: () => "Preview",
-  subscription: () => "Abonnement",
-  berichten: () => "Berichten",
-  resources: () => "Kennisbank",
-  bank: () => "Bank",
-  report: () => "Rapport",
-};
+import { SEGMENT_LABELS } from "@/lib/navigation";
 
 export function Breadcrumb() {
   const pathname = usePathname();
   const { t } = useLocale();
 
+  const nav = t.nav as Record<string, string>;
   const segments = pathname.split("/").filter(Boolean);
 
   // Don't show breadcrumbs on dashboard home
@@ -50,8 +29,8 @@ export function Breadcrumb() {
 
     // UUID-like segments (detail pages) — show as "..."
     const isUuid = segment.length > 20 && segment.includes("-");
-    const labelFn = segmentLabels[segment];
-    const label = isUuid ? "..." : labelFn ? labelFn(t) : segment;
+    const labelKey = SEGMENT_LABELS[segment];
+    const label = isUuid ? "..." : labelKey ? (nav[labelKey] ?? labelKey) : segment;
 
     items.push({ label, href: currentPath });
   }

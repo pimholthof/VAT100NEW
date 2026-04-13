@@ -8,11 +8,8 @@ import { SkeletonTable } from "@/components/ui";
 
 const ReceiptsTab = dynamic(() => import("./ReceiptsTab"));
 const BankTab = dynamic(() => import("./BankTab"));
-const AssetsTab = dynamic(() => import("./AssetsTab"));
-const HoursTab = dynamic(() => import("./HoursTab"));
-const TripsTab = dynamic(() => import("./TripsTab"));
 
-const TAB_KEYS = ["bonnen", "bank", "activa", "uren", "ritten"] as const;
+const TAB_KEYS = ["bonnen", "bank"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 function isValidTab(value: string): value is TabKey {
@@ -27,9 +24,6 @@ export default function ExpensesPage() {
   const tabs = [
     { key: "bonnen", label: t.expenses.receipts },
     { key: "bank", label: t.expenses.bank },
-    { key: "activa", label: t.nav.assets },
-    { key: "uren", label: t.nav.hours },
-    { key: "ritten", label: t.nav.trips },
   ];
 
   return (
@@ -39,9 +33,6 @@ export default function ExpensesPage() {
       <Suspense fallback={<SkeletonTable />}>
         {activeTab === "bonnen" && <ReceiptsTab />}
         {activeTab === "bank" && <BankTab />}
-        {activeTab === "activa" && <AssetsTab />}
-        {activeTab === "uren" && <HoursTab />}
-        {activeTab === "ritten" && <TripsTab />}
       </Suspense>
     </div>
   );

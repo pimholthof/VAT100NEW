@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/lib/i18n/context";
+import { NAV_ITEMS, QUICK_ACTIONS } from "@/lib/navigation";
 
 export function CommandMenu() {
   const [open, setOpen] = useState(false);
@@ -33,6 +34,8 @@ export function CommandMenu() {
   }, []);
 
   if (!open) return null;
+
+  const nav = t.nav as Record<string, string>;
 
   return (
     <div
@@ -105,86 +108,38 @@ export function CommandMenu() {
             </Command.Empty>
 
             <Command.Group heading={t.commandMenu.actionsGroup} className="cmdk-group">
-              <Command.Item
-                onSelect={() => runCommand(() => router.push("/dashboard/invoices/new"))}
-                className="cmdk-item"
-              >
-                {t.commandMenu.newInvoice}
-              </Command.Item>
-              <Command.Item
-                onSelect={() => runCommand(() => router.push("/dashboard/clients/new"))}
-                className="cmdk-item"
-              >
-                {t.commandMenu.newClient}
-              </Command.Item>
+              {QUICK_ACTIONS.map((action) => (
+                <Command.Item
+                  key={action.href}
+                  onSelect={() => runCommand(() => router.push(action.href))}
+                  className="cmdk-item"
+                >
+                  {nav[action.labelKey] ?? action.labelKey}
+                </Command.Item>
+              ))}
             </Command.Group>
 
             <Command.Group heading={t.commandMenu.navGroup} className="cmdk-group">
-              <Command.Item
-                onSelect={() => runCommand(() => router.push("/dashboard"))}
-                className="cmdk-item"
-              >
-                {t.commandMenu.dashboard}
-              </Command.Item>
-              <Command.Item
-                onSelect={() => runCommand(() => router.push("/dashboard/invoices"))}
-                className="cmdk-item"
-              >
-                {t.commandMenu.invoicesOverview}
-              </Command.Item>
-              <Command.Item
-                onSelect={() => runCommand(() => router.push("/dashboard/receipts"))}
-                className="cmdk-item"
-              >
-                {t.commandMenu.receiptsExpenses}
-              </Command.Item>
-              <Command.Item
-                onSelect={() => runCommand(() => router.push("/dashboard/clients"))}
-                className="cmdk-item"
-              >
-                {t.commandMenu.clientsOverview}
-              </Command.Item>
-              <Command.Item
-                onSelect={() => runCommand(() => router.push("/dashboard/berichten"))}
-                className="cmdk-item"
-              >
-                Berichten
-              </Command.Item>
+              {NAV_ITEMS.map((item) => (
+                <Command.Item
+                  key={item.href}
+                  onSelect={() => runCommand(() => router.push(item.href))}
+                  className="cmdk-item"
+                >
+                  {nav[item.labelKey] ?? item.labelKey}
+                </Command.Item>
+              ))}
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/settings"))}
                 className="cmdk-item"
               >
-                {t.commandMenu.settings}
+                {t.nav.settings}
               </Command.Item>
             </Command.Group>
 
           </Command.List>
         </Command>
       </div>
-      <style dangerouslySetInnerHTML={{ __html: `
-        .cmdk-group [cmdk-group-heading] {
-          padding: 8px 24px;
-          font-family: var(--font-body), sans-serif;
-          font-size: var(--text-label);
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: var(--tracking-label);
-          color: rgba(0,0,0,0.3);
-        }
-        .cmdk-item {
-          padding: 12px 24px;
-          cursor: pointer;
-          font-size: var(--text-body-md);
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .cmdk-item[data-selected="true"],
-        .cmdk-item:hover {
-          background: rgba(0,0,0,0.03);
-          color: var(--foreground);
-        }
-      `}} />
     </div>
   );
 }

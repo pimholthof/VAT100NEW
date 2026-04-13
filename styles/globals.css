@@ -2471,3 +2471,30 @@ a {
     break-inside: avoid;
   }
 }
+
+/* ─── Command Menu (cmdk) ─── */
+
+.cmdk-group [cmdk-group-heading] {
+  padding: 8px 24px;
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-label);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.cmdk-item {
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: var(--text-body-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cmdk-item[data-selected="true"],
+.cmdk-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--foreground);
+}
