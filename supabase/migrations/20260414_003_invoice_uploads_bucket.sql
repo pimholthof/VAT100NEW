@@ -1,0 +1,15 @@
+-- Supabase Storage setup voor factuur-uploads (handmatig in dashboard):
+-- 1. Maak bucket "invoice-uploads" aan in Supabase Dashboard > Storage
+-- 2. Voeg RLS policy toe zodat authenticated users kunnen uploaden naar hun eigen user_id prefix:
+--    - Policy naam: "Users can upload invoice files to own folder"
+--    - Allowed operation: INSERT
+--    - Target roles: authenticated
+--    - WITH CHECK: (bucket_id = 'invoice-uploads' AND (storage.foldername(name))[1] = auth.uid()::text)
+-- 3. Voeg RLS policy toe voor lezen:
+--    - Policy naam: "Users can read own invoice uploads"
+--    - Allowed operation: SELECT
+--    - Target roles: authenticated
+--    - USING: (bucket_id = 'invoice-uploads' AND (storage.foldername(name))[1] = auth.uid()::text)
+-- Pad format: {user_id}/{session_uuid}/{filename}
+
+-- Geen database schema wijzigingen nodig — facturen worden aangemaakt via bestaande create_invoice_with_lines RPC.

@@ -121,6 +121,12 @@ function InvoicesTab() {
             {t.common.downloadList}
           </a>
           <Link
+            href="/dashboard/invoices/import"
+            className="btn-secondary"
+          >
+            {t.invoices.importInvoices}
+          </Link>
+          <Link
             href="/dashboard/invoices/new"
             className="btn-primary"
           >
