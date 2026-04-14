@@ -69,7 +69,6 @@ export async function createCustomerAccount(
       id: userId,
       full_name,
       studio_name: studio_name || null,
-      onboarding_completed_at: new Date().toISOString(),
     });
 
     if (profileError) {
