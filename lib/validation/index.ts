@@ -139,9 +139,15 @@ export const profileSchema = z.object({
   btw_number: optionalString,
   address: optionalString,
   city: optionalString,
-  postal_code: optionalString,
+  postal_code: optionalString.refine(
+    (v) => !v || /^[0-9]{4}\s?[A-Za-z]{2}$/.test(v),
+    "Ongeldige postcode (bijv. 1234 AB)"
+  ),
   iban: optionalString,
   bic: optionalString,
+  uses_kor: z.boolean().optional(),
+  estimated_annual_income: z.number().min(0, "Inkomen mag niet negatief zijn").nullable().optional(),
+  meets_urencriterium: z.boolean().optional(),
 });
 
 export type ProfileSchema = z.infer<typeof profileSchema>;
@@ -173,6 +179,23 @@ export function validate<T>(
   if (!result.success) {
     const firstError = result.error.issues[0];
     return { error: firstError?.message ?? "Validatiefout" };
+  }
+  return { error: null, data: result.data };
+}
+
+export function validateAll<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { error: string | null; fieldErrors?: Record<string, string>; data?: T } {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of result.error.issues) {
+      const key = issue.path[0]?.toString();
+      if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    const firstError = result.error.issues[0]?.message ?? "Validatiefout";
+    return { error: firstError, fieldErrors };
   }
   return { error: null, data: result.data };
 }

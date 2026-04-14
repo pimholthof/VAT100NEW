@@ -42,6 +42,26 @@ export default function SettingsPage() {
   return <SettingsForm profile={result?.data ?? null} />;
 }
 
+const radioStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+  padding: "10px 0",
+  borderBottom: "0.5px solid rgba(0,0,0,0.06)",
+  cursor: "pointer",
+  fontSize: "13px",
+  fontWeight: 300,
+};
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <span style={{ fontSize: 11, color: "var(--color-accent)", display: "block", marginTop: 4 }}>
+      {message}
+    </span>
+  );
+}
+
 function SettingsForm({ profile }: { profile: Profile | null }) {
   const { t } = useLocale();
   const queryClient = useQueryClient();
@@ -62,9 +82,11 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
   const [meetsUrencriterium, setMeetsUrencriterium] = useState(profile?.meets_urencriterium ?? true);
 
   const [success, setSuccess] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const mutation = useMutation({
     mutationFn: () => {
+      setFieldErrors({});
       const parsedIncome = estimatedIncome ? parseFloat(estimatedIncome) : null;
       return updateProfile({
         full_name: fullName,
@@ -77,18 +99,32 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         iban,
         bic,
         uses_kor: usesKor,
-        estimated_annual_income: parsedIncome && !isNaN(parsedIncome) ? parsedIncome : null,
+        estimated_annual_income: parsedIncome !== null && !isNaN(parsedIncome) ? parsedIncome : null,
         meets_urencriterium: meetsUrencriterium,
       });
     },
     onSuccess: (res) => {
-      if (!res.error) {
+      if (res.error) {
+        if (res.fieldErrors) setFieldErrors(res.fieldErrors);
+      } else {
         setSuccess(true);
         queryClient.invalidateQueries({ queryKey: ["profile"] });
         setTimeout(() => setSuccess(false), 3000);
       }
     },
   });
+
+  function validatePostalCode(value: string) {
+    if (value && !/^[0-9]{4}\s?[A-Za-z]{2}$/.test(value)) {
+      setFieldErrors((prev) => ({ ...prev, postal_code: t.settings.invalidPostalCode }));
+    } else {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next.postal_code;
+        return next;
+      });
+    }
+  }
 
   const handleSave = () => {
     setSuccess(false);
@@ -101,9 +137,15 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
         {t.settings.title}
       </h1>
 
-      {mutation.data?.error && (
+      {mutation.data?.error && !mutation.data?.fieldErrors && (
         <ErrorMessage style={{ marginBottom: 24 }}>
           {mutation.data.error}
+        </ErrorMessage>
+      )}
+
+      {mutation.data?.fieldErrors && (
+        <ErrorMessage style={{ marginBottom: 24 }}>
+          {t.common.checkFields}
         </ErrorMessage>
       )}
 
@@ -128,6 +170,7 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               placeholder={t.settings.fullNamePlaceholder}
               className="form-input"
             />
+            <FieldError message={fieldErrors.full_name} />
           </FieldGroup>
 
           <FieldGroup label={t.settings.studioName}>
@@ -184,9 +227,11 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
                 type="text"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
+                onBlur={(e) => validatePostalCode(e.target.value)}
                 placeholder="1234 AB"
                 className="form-input"
               />
+              <FieldError message={fieldErrors.postal_code} />
             </FieldGroup>
             <FieldGroup label={t.settings.city}>
               <input
@@ -239,40 +284,98 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
               type="number"
               value={estimatedIncome}
               onChange={(e) => setEstimatedIncome(e.target.value)}
-              placeholder="45000"
+              placeholder="0"
               min="0"
               step="1000"
               className="form-input"
             />
+            <span style={{ fontSize: 11, opacity: 0.4, display: "block", marginTop: 4 }}>
+              {t.settings.estimatedIncomeHint}
+            </span>
+            <FieldError message={fieldErrors.estimated_annual_income} />
           </FieldGroup>
 
-          <FieldGroup label={t.settings.usesKor}>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-              <input
-                type="checkbox"
-                checked={usesKor}
-                onChange={(e) => setUsesKor(e.target.checked)}
-                style={{ accentColor: "var(--foreground)" }}
-              />
-              <span style={{ fontSize: "var(--text-body-md)" }}>
-                {usesKor ? t.common.yes : t.common.no}
-              </span>
+          {/* KOR — Ja/Nee radio buttons */}
+          <div style={{ marginBottom: 20 }}>
+            <label
+              className="label"
+              style={{
+                display: "block",
+                marginBottom: 4,
+                opacity: 0.35,
+                fontSize: 10,
+                letterSpacing: "0.1em",
+              }}
+            >
+              {t.settings.usesKor}
             </label>
-          </FieldGroup>
+            <span style={{ fontSize: 11, opacity: 0.4, display: "block", marginBottom: 8 }}>
+              {t.settings.usesKorHint}
+            </span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <label style={radioStyle}>
+                <input
+                  type="radio"
+                  name="uses_kor"
+                  checked={!usesKor}
+                  onChange={() => setUsesKor(false)}
+                  style={{ accentColor: "var(--foreground)" }}
+                />
+                <span>{t.common.no}</span>
+              </label>
+              <label style={radioStyle}>
+                <input
+                  type="radio"
+                  name="uses_kor"
+                  checked={usesKor}
+                  onChange={() => setUsesKor(true)}
+                  style={{ accentColor: "var(--foreground)" }}
+                />
+                <span>{t.common.yes}</span>
+              </label>
+            </div>
+          </div>
 
-          <FieldGroup label={t.settings.meetsUrencriterium}>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-              <input
-                type="checkbox"
-                checked={meetsUrencriterium}
-                onChange={(e) => setMeetsUrencriterium(e.target.checked)}
-                style={{ accentColor: "var(--foreground)" }}
-              />
-              <span style={{ fontSize: "var(--text-body-md)" }}>
-                {meetsUrencriterium ? t.common.yes : t.common.no}
-              </span>
+          {/* Urencriterium — Ja/Nee radio buttons with hint */}
+          <div style={{ marginBottom: 20 }}>
+            <label
+              className="label"
+              style={{
+                display: "block",
+                marginBottom: 4,
+                opacity: 0.35,
+                fontSize: 10,
+                letterSpacing: "0.1em",
+              }}
+            >
+              {t.settings.meetsUrencriterium}
             </label>
-          </FieldGroup>
+            <span style={{ fontSize: 11, opacity: 0.4, display: "block", marginBottom: 8 }}>
+              {t.settings.meetsUrencriteriumHint}
+            </span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <label style={radioStyle}>
+                <input
+                  type="radio"
+                  name="meets_urencriterium"
+                  checked={meetsUrencriterium}
+                  onChange={() => setMeetsUrencriterium(true)}
+                  style={{ accentColor: "var(--foreground)" }}
+                />
+                <span>{t.common.yes}</span>
+              </label>
+              <label style={radioStyle}>
+                <input
+                  type="radio"
+                  name="meets_urencriterium"
+                  checked={!meetsUrencriterium}
+                  onChange={() => setMeetsUrencriterium(false)}
+                  style={{ accentColor: "var(--foreground)" }}
+                />
+                <span>{t.common.no}</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         {/* Save */}

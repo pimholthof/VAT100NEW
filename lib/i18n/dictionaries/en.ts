@@ -22,6 +22,7 @@ const en = {
     yes: "Yes",
     no: "No",
     or: "or",
+    checkFields: "Please check the highlighted fields.",
     add: "Add",
     new: "New",
     all: "All",
@@ -178,6 +179,17 @@ const en = {
     bic: "BIC",
     saveAndContinue: "Save and continue",
     eightDigits: "8 digits",
+    // Password reset
+    forgotPassword: "Forgot password?",
+    forgotPasswordDesc: "Enter your email address and we'll send you a link to reset your password.",
+    resetPassword: "Reset password",
+    resetPasswordDesc: "Choose a new password for your account.",
+    newPassword: "New password",
+    confirmNewPassword: "Confirm new password",
+    sendResetLink: "Send reset link",
+    resetLinkSent: "If this email address is known, you'll receive a reset email. Also check your spam folder.",
+    passwordUpdated: "Your password has been updated. You can now log in.",
+    backToLogin: "Back to login",
     // KVK auto-lookup
     kvkLookupLoading: "Fetching company details...",
     kvkLookupFound: "Found",
@@ -832,8 +844,12 @@ const en = {
     // Fiscal settings
     fiscal: "Fiscal profile",
     estimatedIncome: "Estimated annual income",
-    usesKor: "KOR (Small business scheme)",
-    meetsUrencriterium: "Hours criterion",
+    estimatedIncomeHint: "This helps calculate your tax reserve. Enter 0 if you're just starting.",
+    usesKor: "Do you use the KOR?",
+    usesKorHint: "Small business scheme — VAT exempt if revenue is below €20,000",
+    meetsUrencriterium: "Do you meet the hours criterion?",
+    meetsUrencriteriumHint: "At least 1,225 hours per year as an entrepreneur",
+    invalidPostalCode: "Invalid postal code (e.g. 1234 AB)",
   },
 
   // ─── Command Menu ───

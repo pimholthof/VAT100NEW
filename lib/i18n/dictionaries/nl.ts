@@ -22,6 +22,7 @@ const nl = {
     yes: "Ja",
     no: "Nee",
     or: "of",
+    checkFields: "Controleer de gemarkeerde velden.",
     add: "Toevoegen",
     new: "Nieuw",
     all: "Alle",
@@ -178,6 +179,17 @@ const nl = {
     bic: "BIC",
     saveAndContinue: "Opslaan en doorgaan",
     eightDigits: "8 cijfers",
+    // Password reset
+    forgotPassword: "Wachtwoord vergeten?",
+    forgotPasswordDesc: "Vul je e-mailadres in en we sturen je een link om je wachtwoord te herstellen.",
+    resetPassword: "Wachtwoord herstellen",
+    resetPasswordDesc: "Kies een nieuw wachtwoord voor je account.",
+    newPassword: "Nieuw wachtwoord",
+    confirmNewPassword: "Bevestig nieuw wachtwoord",
+    sendResetLink: "Verstuur herstelmail",
+    resetLinkSent: "Als dit e-mailadres bekend is, ontvang je een herstelmail. Controleer ook je spam-map.",
+    passwordUpdated: "Je wachtwoord is bijgewerkt. Je kunt nu inloggen.",
+    backToLogin: "Terug naar inloggen",
     // KVK auto-lookup
     kvkLookupLoading: "Bedrijfsgegevens ophalen...",
     kvkLookupFound: "Gevonden",
@@ -832,8 +844,12 @@ const nl = {
     // Fiscal settings
     fiscal: "Fiscaal profiel",
     estimatedIncome: "Geschat jaarinkomen",
-    usesKor: "KOR (Kleineondernemersregeling)",
-    meetsUrencriterium: "Urencriterium",
+    estimatedIncomeHint: "Dit helpt bij het berekenen van je belastingreservering. Voer 0 in als je net begint.",
+    usesKor: "Gebruik je de KOR?",
+    usesKorHint: "Kleineondernemersregeling — vrijgesteld van BTW bij omzet onder €20.000",
+    meetsUrencriterium: "Voldoe je aan het urencriterium?",
+    meetsUrencriteriumHint: "Minimaal 1.225 uur per jaar als ondernemer",
+    invalidPostalCode: "Ongeldige postcode (bijv. 1234 AB)",
   },
 
   // ─── Command Menu ───

@@ -20,7 +20,7 @@ export async function getOnboardingProgress(): Promise<ActionResult<OnboardingPr
   const { supabase, user } = auth;
 
   const [profileRes, clientRes, invoiceRes, receiptRes, bankRes] = await Promise.all([
-    supabase.from("profiles").select("kvk_number, studio_name, onboarding_completed_at, estimated_annual_income, uses_kor").eq("id", user.id).single(),
+    supabase.from("profiles").select("kvk_number, studio_name, onboarding_completed_at, onboarding_dismissed_at, estimated_annual_income, uses_kor").eq("id", user.id).single(),
     supabase.from("clients").select("id").eq("user_id", user.id).limit(1),
     supabase.from("invoices").select("id").eq("user_id", user.id).limit(1),
     supabase.from("receipts").select("id").eq("user_id", user.id).limit(1),
@@ -48,7 +48,7 @@ export async function getOnboardingProgress(): Promise<ActionResult<OnboardingPr
       hasReceipt,
       hasBankConnection,
       onboardingCompleted: allDone,
-      onboardingDismissed: false,
+      onboardingDismissed: !!profileRes.data?.onboarding_dismissed_at,
     },
   };
 }
@@ -56,8 +56,13 @@ export async function getOnboardingProgress(): Promise<ActionResult<OnboardingPr
 export async function markOnboardingDismissed(): Promise<ActionResult> {
   const auth = await requireAuth();
   if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
-  // For now, dismissal is handled client-side.
-  // In a future iteration, this can be persisted to the profile.
+  const { error } = await supabase
+    .from("profiles")
+    .update({ onboarding_dismissed_at: new Date().toISOString() })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
   return { error: null };
 }
