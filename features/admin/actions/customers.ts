@@ -26,6 +26,8 @@ export interface CreatedCustomer {
   userId: string;
   email: string;
   tempPassword: string;
+  emailSent: boolean;
+  emailError: string | null;
 }
 
 export async function createCustomerAccount(
@@ -96,17 +98,29 @@ export async function createCustomerAccount(
       full_name,
     });
 
-    // 5. Send welcome email (async, non-blocking)
+    // 5. Send welcome email
+    let emailSent = false;
+    let emailError: string | null = null;
+
     if (send_welcome_email) {
-      const { sendWelcomeEmail } = await import("@/lib/email/send-onboarding");
-      sendWelcomeEmail({
-        email,
-        fullName: full_name,
-        tempPassword: password,
-        studioName: studio_name,
-      }).catch((err) => {
-        console.error("[Admin] Welcome email failed:", err);
-      });
+      try {
+        const { sendWelcomeEmail } = await import("@/lib/email/send-onboarding");
+        const emailResult = await sendWelcomeEmail({
+          email,
+          fullName: full_name,
+          tempPassword: password,
+          studioName: studio_name,
+        });
+        if (emailResult.error) {
+          emailError = emailResult.error;
+          console.error("[Admin] Welcome email failed:", emailResult.error);
+        } else {
+          emailSent = true;
+        }
+      } catch (err) {
+        emailError = (err as Error).message || "Onbekende fout bij verzenden e-mail.";
+        console.error("[Admin] Welcome email exception:", err);
+      }
     }
 
     revalidatePath("/admin/klanten");
@@ -117,6 +131,8 @@ export async function createCustomerAccount(
         userId,
         email,
         tempPassword: password,
+        emailSent,
+        emailError,
       },
     };
   } catch (e) {

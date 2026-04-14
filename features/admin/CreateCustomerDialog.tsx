@@ -32,7 +32,7 @@ export function CreateCustomerDialog({ open, onClose, onCreated }: CreateCustome
   const [sendEmail, setSendEmail] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [created, setCreated] = useState<{ email: string; tempPassword: string } | null>(null);
+  const [created, setCreated] = useState<{ email: string; tempPassword: string; emailSent: boolean; emailError: string | null } | null>(null);
   const [copied, setCopied] = useState(false);
 
   const reset = () => {
@@ -78,6 +78,8 @@ export function CreateCustomerDialog({ open, onClose, onCreated }: CreateCustome
       setCreated({
         email: result.data.email,
         tempPassword: result.data.tempPassword,
+        emailSent: result.data.emailSent,
+        emailError: result.data.emailError,
       });
     }
   };
@@ -107,8 +109,17 @@ export function CreateCustomerDialog({ open, onClose, onCreated }: CreateCustome
             </p>
             <p className="dialog-panel__message" style={{ marginBottom: 16 }}>
               De klant kan nu inloggen met onderstaande gegevens.
-              {sendEmail && " Er is ook een welkomstmail verstuurd."}
             </p>
+            {created.emailSent && (
+              <div style={{ background: "rgba(22,163,74,0.06)", border: "1px solid rgba(22,163,74,0.15)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#15803d" }}>
+                Welkomstmail verstuurd naar {created.email}
+              </div>
+            )}
+            {created.emailError && (
+              <div style={{ background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.15)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#b91c1c" }}>
+                Welkomstmail mislukt: {created.emailError}
+              </div>
+            )}
             <div
               style={{
                 background: "#F5F5F5",
