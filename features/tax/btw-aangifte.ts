@@ -71,7 +71,8 @@ export async function generateBtwAangifte(
       .select("vat_amount, amount_ex_vat, business_percentage")
       .eq("user_id", user.id)
       .gte("receipt_date", qStart)
-      .lte("receipt_date", qEnd),
+      .lte("receipt_date", qEnd)
+      .is("archived_at", null),
 
     supabase
       .from("profiles")

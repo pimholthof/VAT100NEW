@@ -78,7 +78,8 @@ export async function generateVatReturn(
     .select("id, vat_amount, amount_ex_vat, business_percentage")
     .eq("user_id", user.id)
     .gte("receipt_date", qStart)
-    .lte("receipt_date", qEnd);
+    .lte("receipt_date", qEnd)
+    .is("archived_at", null);
 
   if (recError) {
     return {
@@ -283,7 +284,8 @@ export async function previewVatReturn(
     .select("id, vendor_name, vat_amount, amount_ex_vat, business_percentage")
     .eq("user_id", user.id)
     .gte("receipt_date", qStart)
-    .lte("receipt_date", qEnd);
+    .lte("receipt_date", qEnd)
+    .is("archived_at", null);
 
   if (recError) {
     return { error: sanitizeSupabaseError(recError, { area: "previewVatReturn.fetchReceipts", userId: user.id }) };
@@ -463,7 +465,8 @@ export async function lockVatReturn(
     .eq("user_id", user.id)
     .gte("receipt_date", qStart)
     .lte("receipt_date", qEnd)
-    .is("vat_return_id", null);
+    .is("vat_return_id", null)
+    .is("archived_at", null);
 
   if (linkReceiptsError) {
     return {

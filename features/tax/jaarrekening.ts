@@ -175,7 +175,8 @@ export async function getJaarrekeningData(
       .select("amount_ex_vat, vat_amount, cost_code, receipt_date, business_percentage")
       .eq("user_id", user.id)
       .gte("receipt_date", yearStart)
-      .lte("receipt_date", yearEnd),
+      .lte("receipt_date", yearEnd)
+      .is("archived_at", null),
 
     // Alle investeringen ooit (voor afschrijving)
     supabase
@@ -184,7 +185,8 @@ export async function getJaarrekeningData(
       .eq("user_id", user.id)
       .eq("cost_code", 4230)
       .not("amount_ex_vat", "is", null)
-      .not("receipt_date", "is", null),
+      .not("receipt_date", "is", null)
+      .is("archived_at", null),
 
     // Openstaande facturen op 31/12 (debiteuren)
     supabase
