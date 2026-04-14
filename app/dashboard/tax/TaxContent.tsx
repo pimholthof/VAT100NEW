@@ -314,9 +314,10 @@ export default function TaxContent() {
                       <Td style={{ textAlign: "right" }}>
                         <a
                           href={`/api/export/btw-aangifte?year=${q.quarter.split(" ")[1]}&quarter=${q.quarter.split(" ")[0].replace("Q", "")}`}
-                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
                           style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
-                          title="Download BTW aangifte CSV"
+                          title="BTW aangifte PDF"
                         >
                           Aangifte &darr;
                         </a>
