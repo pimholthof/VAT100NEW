@@ -48,7 +48,8 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
       .from("receipts")
       .select("receipt_date, vat_amount, business_percentage")
       .eq("user_id", user.id)
-      .gte("receipt_date", startDate),
+      .gte("receipt_date", startDate)
+      .is("archived_at", null),
   ]);
 
   if (invoicesResult.error) return { error: invoicesResult.error.message };
@@ -149,7 +150,8 @@ export async function getTaxProjection(): Promise<
         .eq("user_id", user.id)
         .gte("receipt_date", yearStart)
         .lte("receipt_date", yearEnd)
-        .or("cost_code.is.null,cost_code.neq.4230"),
+        .or("cost_code.is.null,cost_code.neq.4230")
+        .is("archived_at", null),
 
       // Investeringen (cost_code 4230) — ALLE jaren voor afschrijving
       supabase
@@ -158,7 +160,8 @@ export async function getTaxProjection(): Promise<
         .eq("user_id", user.id)
         .eq("cost_code", 4230)
         .not("amount_ex_vat", "is", null)
-        .not("receipt_date", "is", null),
+        .not("receipt_date", "is", null)
+        .is("archived_at", null),
     ]);
 
   if (invoicesRes.error) return { error: invoicesRes.error.message };

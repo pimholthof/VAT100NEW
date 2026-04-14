@@ -156,7 +156,8 @@ export async function getTaxPaymentsSummary(
       .select("vat_amount, business_percentage")
       .eq("user_id", user.id)
       .gte("receipt_date", yearStart)
-      .lte("receipt_date", yearEnd),
+      .lte("receipt_date", yearEnd)
+      .is("archived_at", null),
   ]);
 
   const outputVat = (invoicesRes.data ?? []).reduce(
