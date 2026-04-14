@@ -179,21 +179,29 @@ export async function deleteQuote(id: string): Promise<ActionResult> {
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const { data: quote } = await supabase
+  // Soft-delete: archiveer in plaats van verwijderen
+  const { error } = await supabase
     .from("quotes")
-    .select("status")
+    .update({ archived_at: new Date().toISOString() })
     .eq("id", id)
     .eq("user_id", user.id)
-    .single();
+    .is("archived_at", null);
 
-  if (!quote) return { error: "Offerte niet gevonden." };
-  if (quote.status !== "draft") {
-    return { error: "Alleen conceptoffertes kunnen worden verwijderd." };
-  }
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function restoreQuote(id: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig offerte-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("quotes")
-    .delete()
+    .update({ archived_at: null })
     .eq("id", id)
     .eq("user_id", user.id);
 
@@ -213,6 +221,7 @@ export async function getQuotes(filters?: {
     .from("quotes")
     .select("*, client:clients(name)")
     .eq("user_id", user.id)
+    .is("archived_at", null)
     .order("created_at", { ascending: false });
 
   if (filters?.status) {

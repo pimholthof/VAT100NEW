@@ -98,6 +98,116 @@ export async function resolveActionItem(
   return { error: null };
 }
 
+// ─── Preview / Dry-Run ───
+
+export interface ActionPreview {
+  type: string;
+  description: string;
+  changes: Array<{
+    entity: string;
+    field: string;
+    from: string | null;
+    to: string;
+  }>;
+}
+
+/**
+ * Preview what will happen when an action is resolved — dry-run mode.
+ * Does NOT execute any changes.
+ */
+export async function previewResolveAction(
+  itemId: string,
+): Promise<ActionResult<ActionPreview>> {
+  const idCheck = uuidSchema.safeParse(itemId);
+  if (!idCheck.success) return { error: "Ongeldig actie-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { data: item } = await supabase
+    .from("action_feed")
+    .select("*")
+    .eq("id", itemId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!item) return { error: "Actie niet gevonden." };
+
+  const changes: ActionPreview["changes"] = [];
+
+  if (item.type === "match_suggestion" && item.related_invoice_id && item.related_transaction_id) {
+    // Haal factuurdetails op
+    const { data: invoice } = await supabase
+      .from("invoices")
+      .select("invoice_number, status, total_inc_vat")
+      .eq("id", item.related_invoice_id)
+      .eq("user_id", user.id)
+      .single();
+
+    const { data: transaction } = await supabase
+      .from("bank_transactions")
+      .select("description, amount, counterpart_name")
+      .eq("id", item.related_transaction_id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (invoice) {
+      changes.push({
+        entity: `Factuur ${invoice.invoice_number}`,
+        field: "status",
+        from: invoice.status,
+        to: "paid",
+      });
+    }
+
+    if (transaction) {
+      changes.push({
+        entity: `Transactie ${transaction.counterpart_name ?? transaction.description ?? ""}`,
+        field: "linked_invoice_id",
+        from: null,
+        to: invoice?.invoice_number ?? item.related_invoice_id,
+      });
+    }
+  }
+
+  if (item.type === "reminder_suggestion" && item.related_invoice_id) {
+    const { data: invoice } = await supabase
+      .from("invoices")
+      .select("invoice_number, client:clients(name, email)")
+      .eq("id", item.related_invoice_id)
+      .eq("user_id", user.id)
+      .single();
+
+    const client = (invoice as unknown as { client: { name: string; email: string | null } | null })?.client;
+
+    changes.push({
+      entity: `Factuur ${invoice?.invoice_number ?? ""}`,
+      field: "herinnering",
+      from: null,
+      to: `Email naar ${client?.email ?? "onbekend"}`,
+    });
+  }
+
+  if (item.type === "uncategorized" && item.related_transaction_id && item.suggested_category) {
+    changes.push({
+      entity: "Transactie",
+      field: "category",
+      from: null,
+      to: item.suggested_category,
+    });
+  }
+
+  return {
+    error: null,
+    data: {
+      type: item.type,
+      description: item.description,
+      changes,
+    },
+  };
+}
+
 /**
  * Ignore an action item (user decided this is irrelevant).
  */

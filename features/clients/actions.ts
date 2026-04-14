@@ -13,6 +13,7 @@ export async function getClients(search?: string): Promise<ActionResult<Client[]
     .from("clients")
     .select("*")
     .eq("user_id", user.id)
+    .is("archived_at", null)
     .order("name", { ascending: true });
 
   if (search && search.trim()) {
@@ -112,20 +113,26 @@ export async function deleteClient(id: string): Promise<ActionResult> {
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  // Check if client has invoices
-  const { count } = await supabase
-    .from("invoices")
-    .select("id", { count: "exact", head: true })
-    .eq("client_id", id)
-    .eq("user_id", user.id);
+  // Soft-delete: archiveer in plaats van verwijderen
+  const { error } = await supabase
+    .from("clients")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .is("archived_at", null);
 
-  if (count && count > 0) {
-    return { error: "Klant kan niet worden verwijderd omdat er facturen aan gekoppeld zijn." };
-  }
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function restoreClient(id: string): Promise<ActionResult> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
 
   const { error } = await supabase
     .from("clients")
-    .delete()
+    .update({ archived_at: null })
     .eq("id", id)
     .eq("user_id", user.id);
 

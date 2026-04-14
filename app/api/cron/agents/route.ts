@@ -73,6 +73,12 @@ async function processUser(userId: string, supabase: ReturnType<typeof createSer
     }),
   ]);
 
+  // Delta-sync: markeer user als recent verwerkt
+  await supabase
+    .from("profiles")
+    .update({ last_agent_run_at: new Date().toISOString() })
+    .eq("id", userId);
+
   return {
     userId,
     reconciliation: recRes.data?.created ?? 0,
@@ -126,10 +132,12 @@ export async function GET(request: NextRequest) {
     const startTime = Date.now();
     const supabase = createServiceClient();
 
-    // Fetch users with pagination
+    // Fetch users with pagination — skip users die in de laatste 4 uur al verwerkt zijn
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
     const { data: users, error: usersError } = await supabase
       .from("profiles")
       .select("id")
+      .or(`last_agent_run_at.is.null,last_agent_run_at.lt.${fourHoursAgo}`)
       .order("id")
       .range(offset, offset + BATCH_SIZE - 1);
 

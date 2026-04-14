@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     // 1. Haal alle actieve bankverbindingen op
     const { data: connections, error: connError } = await supabase
       .from("bank_connections")
-      .select("id, user_id, account_id, last_synced_at")
+      .select("id, user_id, account_id, last_synced_at, last_synced_booking_date")
       .eq("status", "active")
       .not("account_id", "is", null);
 
@@ -118,15 +118,19 @@ type BankConnection = {
   user_id: string;
   account_id: string;
   last_synced_at: string | null;
+  last_synced_booking_date: string | null;
 };
 
 async function syncConnection(
   supabase: ReturnType<typeof createServiceClient>,
   connection: BankConnection
 ): Promise<{ synced: number }> {
-  const dateFrom = connection.last_synced_at
-    ? new Date(connection.last_synced_at).toISOString().split("T")[0]
-    : undefined;
+  // Delta-sync: gebruik de meest recente booking_date als cursor
+  // Dit is preciezer dan last_synced_at (timestamp van de sync-run zelf)
+  const dateFrom = connection.last_synced_booking_date
+    ?? (connection.last_synced_at
+      ? new Date(connection.last_synced_at).toISOString().split("T")[0]
+      : undefined);
 
   const response = await bankingClient.getTransactions(
     connection.account_id,
@@ -198,6 +202,11 @@ async function syncConnection(
     }
   }
 
+  // Delta-sync: bewaar de meest recente booking_date als cursor
+  const latestBookingDate = newTransactions.reduce((latest, t) => {
+    return t.booking_date > latest ? t.booking_date : latest;
+  }, newTransactions[0].booking_date);
+
   // "Magic Moment": Bij eerste sync, maak een proactieve suggestie
   if (!connection.last_synced_at && newTransactions.length > 0) {
     const firstTransaction = newTransactions[0];
@@ -220,10 +229,13 @@ async function syncConnection(
     }
   }
 
-  // Update last_synced_at
+  // Update sync cursors: zowel timestamp als booking_date cursor
   await supabase
     .from("bank_connections")
-    .update({ last_synced_at: new Date().toISOString() })
+    .update({
+      last_synced_at: new Date().toISOString(),
+      last_synced_booking_date: latestBookingDate,
+    })
     .eq("id", connection.id);
 
   return { synced: newTransactions.length };

@@ -214,6 +214,186 @@ export async function generateVatReturn(
   return { error: null, data: result as VatReturn };
 }
 
+// ─── Preview type ───
+
+export interface VatReturnPreview {
+  returnData: Omit<VatReturn, "id" | "created_at" | "updated_at" | "submitted_at">;
+  invoiceCount: number;
+  receiptCount: number;
+  invoices: Array<{
+    id: string;
+    invoice_number: string;
+    subtotal_ex_vat: number;
+    vat_amount: number;
+    vat_scheme: string;
+    is_credit_note: boolean;
+  }>;
+  receipts: Array<{
+    id: string;
+    vendor_name: string | null;
+    amount_ex_vat: number | null;
+    vat_amount: number | null;
+    business_percentage: number;
+  }>;
+  totaalBtw: number;
+  voorbelasting: number;
+  teBetalen: number;
+}
+
+/**
+ * Preview a VAT return WITHOUT saving to the database.
+ * Shows exactly what would be included and calculated — dry-run mode.
+ */
+export async function previewVatReturn(
+  year: number,
+  quarter: number,
+): Promise<ActionResult<VatReturnPreview>> {
+  if (quarter < 1 || quarter > 4) return { error: "Ongeldig kwartaal." };
+  if (!Number.isInteger(year) || year < 2020 || year > new Date().getFullYear()) {
+    return { error: "Ongeldig jaar." };
+  }
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  // Quarter date range
+  const startMonth = (quarter - 1) * 3 + 1;
+  const endMonth = startMonth + 2;
+  const qStart = `${year}-${String(startMonth).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, endMonth, 0).getDate();
+  const qEnd = `${year}-${String(endMonth).padStart(2, "0")}-${lastDay}`;
+
+  // Fetch invoices with lines
+  const { data: invoices, error: invError } = await supabase
+    .from("invoices")
+    .select("id, invoice_number, subtotal_ex_vat, vat_amount, vat_rate, issue_date, is_credit_note, vat_scheme, invoice_lines(amount, vat_rate)")
+    .eq("user_id", user.id)
+    .in("status", ["sent", "paid"])
+    .gte("issue_date", qStart)
+    .lte("issue_date", qEnd);
+
+  if (invError) {
+    return { error: sanitizeSupabaseError(invError, { area: "previewVatReturn.fetchInvoices", userId: user.id }) };
+  }
+
+  // Fetch receipts
+  const { data: receipts, error: recError } = await supabase
+    .from("receipts")
+    .select("id, vendor_name, vat_amount, amount_ex_vat, business_percentage")
+    .eq("user_id", user.id)
+    .gte("receipt_date", qStart)
+    .lte("receipt_date", qEnd);
+
+  if (recError) {
+    return { error: sanitizeSupabaseError(recError, { area: "previewVatReturn.fetchReceipts", userId: user.id }) };
+  }
+
+  const round2 = (v: number) => Math.round(v * 100) / 100;
+
+  // Calculate rubrieken (identical logic to generateVatReturn)
+  const rubrieken = {
+    "1a": { omzet: 0, btw: 0 },
+    "1b": { omzet: 0, btw: 0 },
+    "1c": { omzet: 0, btw: 0 },
+    "2a": { omzet: 0, btw: 0 },
+    "3b": { omzet: 0, btw: 0 },
+    "4a": { omzet: 0, btw: 0 },
+    "4b": { omzet: 0, btw: 0 },
+  };
+
+  for (const inv of invoices ?? []) {
+    const sign = inv.is_credit_note ? -1 : 1;
+    const scheme = inv.vat_scheme ?? "standard";
+    const lines = (inv as { invoice_lines?: { amount: number; vat_rate: number | null }[] }).invoice_lines;
+
+    if (scheme === "eu_reverse_charge") {
+      const amount = Number(inv.subtotal_ex_vat) || 0;
+      rubrieken["3b"].omzet += sign * amount;
+      continue;
+    }
+
+    if (scheme === "export_outside_eu") {
+      const amount = Number(inv.subtotal_ex_vat) || 0;
+      rubrieken["4b"].omzet += sign * amount;
+      continue;
+    }
+
+    if (lines && lines.length > 0) {
+      for (const line of lines) {
+        const rate = line.vat_rate ?? inv.vat_rate ?? 21;
+        const amount = Number(line.amount) || 0;
+        const key = rate === 21 ? "1a" : rate === 9 ? "1b" : "1c";
+        rubrieken[key].omzet += sign * amount;
+        rubrieken[key].btw += sign * round2(amount * (rate / 100));
+      }
+    } else {
+      const rate = inv.vat_rate ?? 21;
+      const key = rate === 21 ? "1a" : rate === 9 ? "1b" : "1c";
+      rubrieken[key].omzet += sign * (Number(inv.subtotal_ex_vat) || 0);
+      rubrieken[key].btw += sign * (Number(inv.vat_amount) || 0);
+    }
+  }
+
+  let voorbelasting = 0;
+  for (const rec of receipts ?? []) {
+    const pct = (rec.business_percentage ?? 100) / 100;
+    voorbelasting += (Number(rec.vat_amount) || 0) * pct;
+  }
+
+  const totaalBtw = round2(
+    rubrieken["1a"].btw + rubrieken["1b"].btw + rubrieken["1c"].btw
+  );
+  const teBetalen = round2(totaalBtw - voorbelasting);
+
+  return {
+    error: null,
+    data: {
+      returnData: {
+        user_id: user.id,
+        year,
+        quarter,
+        rubriek_1a_omzet: round2(rubrieken["1a"].omzet),
+        rubriek_1a_btw: round2(rubrieken["1a"].btw),
+        rubriek_1b_omzet: round2(rubrieken["1b"].omzet),
+        rubriek_1b_btw: round2(rubrieken["1b"].btw),
+        rubriek_1c_omzet: round2(rubrieken["1c"].omzet),
+        rubriek_1c_btw: round2(rubrieken["1c"].btw),
+        rubriek_2a_omzet: round2(rubrieken["2a"].omzet),
+        rubriek_2a_btw: round2(rubrieken["2a"].btw),
+        rubriek_3b_omzet: round2(rubrieken["3b"].omzet),
+        rubriek_3b_btw: round2(rubrieken["3b"].btw),
+        rubriek_4a_omzet: round2(rubrieken["4a"].omzet),
+        rubriek_4a_btw: round2(rubrieken["4a"].btw),
+        rubriek_4b_omzet: round2(rubrieken["4b"].omzet),
+        rubriek_4b_btw: round2(rubrieken["4b"].btw),
+        rubriek_5b: round2(voorbelasting),
+        status: "draft" as VatReturnStatus,
+      },
+      invoiceCount: (invoices ?? []).length,
+      receiptCount: (receipts ?? []).length,
+      invoices: (invoices ?? []).map((inv) => ({
+        id: inv.id,
+        invoice_number: inv.invoice_number,
+        subtotal_ex_vat: Number(inv.subtotal_ex_vat) || 0,
+        vat_amount: Number(inv.vat_amount) || 0,
+        vat_scheme: inv.vat_scheme ?? "standard",
+        is_credit_note: inv.is_credit_note ?? false,
+      })),
+      receipts: (receipts ?? []).map((rec) => ({
+        id: rec.id,
+        vendor_name: rec.vendor_name,
+        amount_ex_vat: rec.amount_ex_vat != null ? Number(rec.amount_ex_vat) : null,
+        vat_amount: rec.vat_amount != null ? Number(rec.vat_amount) : null,
+        business_percentage: rec.business_percentage ?? 100,
+      })),
+      totaalBtw,
+      voorbelasting: round2(voorbelasting),
+      teBetalen,
+    },
+  };
+}
+
 /**
  * Lock a VAT return and link all relevant invoices/receipts in the quarter.
  */
