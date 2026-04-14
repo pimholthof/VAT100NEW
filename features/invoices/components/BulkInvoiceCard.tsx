@@ -36,17 +36,20 @@ export interface InvoiceEditData {
 
 interface BulkInvoiceCardProps {
   result: BulkInvoiceResult;
+  index: number;
   clients: Client[];
-  onUpdate: (invoiceId: string, data: InvoiceEditData) => void;
+  onUpdate: (index: number, data: InvoiceEditData) => void;
 }
 
 export function BulkInvoiceCard({
   result,
+  index,
   clients,
   onUpdate,
 }: BulkInvoiceCardProps) {
   const { t } = useLocale();
-  const [editing, setEditing] = useState(!!result.aiError);
+  const isManual = result.aiError === "manual";
+  const [editing, setEditing] = useState(isManual || !!result.aiError);
 
   const [clientId, setClientId] = useState(result.clientMatch?.id ?? "");
   const [invoiceNumber, setInvoiceNumber] = useState(
@@ -64,10 +67,20 @@ export function BulkInvoiceCard({
   );
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState(
-    (result.aiData?.lines ?? []).map((l) => ({
-      id: crypto.randomUUID(),
-      ...l,
-    }))
+    result.aiData?.lines && result.aiData.lines.length > 0
+      ? result.aiData.lines.map((l) => ({
+          id: crypto.randomUUID(),
+          ...l,
+        }))
+      : [
+          {
+            id: crypto.randomUUID(),
+            description: "",
+            quantity: 1,
+            unit: "uren" as InvoiceUnit,
+            rate: 0,
+          },
+        ]
   );
 
   const subtotal = lines.reduce((sum, l) => sum + l.quantity * l.rate, 0);
@@ -78,7 +91,7 @@ export function BulkInvoiceCard({
   const isPdf = result.fileName.toLowerCase().endsWith(".pdf");
 
   const handleSave = () => {
-    onUpdate(result.invoiceId, {
+    onUpdate(index, {
       client_id: clientId || null,
       invoice_number: invoiceNumber,
       issue_date: issueDate,
@@ -202,7 +215,7 @@ export function BulkInvoiceCard({
         }}
       >
         <span style={{ fontSize: 14, opacity: 0.4 }}>
-          {isPdf ? "\u{1F4C4}" : "\u{1F4F7}"}
+          {isManual ? "\u{270F}\u{FE0F}" : isPdf ? "\u{1F4C4}" : "\u{1F4F7}"}
         </span>
         <span
           style={{
@@ -240,31 +253,35 @@ export function BulkInvoiceCard({
             </span>
           )}
         </span>
-        <span
-          className="mono-amount"
-          style={{
-            fontSize: "var(--text-body-sm)",
-            opacity: 0.5,
-          }}
-        >
-          {invoiceNumber || "\u2014"}
-        </span>
-        <span
-          className="mono-amount"
-          style={{ fontSize: "var(--text-body-sm)", opacity: 0.4 }}
-        >
-          {issueDate}
-        </span>
-        <span
-          className="mono-amount"
-          style={{
-            fontSize: "var(--text-body-sm)",
-            minWidth: 80,
-            textAlign: "right",
-          }}
-        >
-          {formatCurrency(totalIncVat)}
-        </span>
+        {!isManual && (
+          <>
+            <span
+              className="mono-amount"
+              style={{
+                fontSize: "var(--text-body-sm)",
+                opacity: 0.5,
+              }}
+            >
+              {invoiceNumber || "\u2014"}
+            </span>
+            <span
+              className="mono-amount"
+              style={{ fontSize: "var(--text-body-sm)", opacity: 0.4 }}
+            >
+              {issueDate}
+            </span>
+            <span
+              className="mono-amount"
+              style={{
+                fontSize: "var(--text-body-sm)",
+                minWidth: 80,
+                textAlign: "right",
+              }}
+            >
+              {formatCurrency(totalIncVat)}
+            </span>
+          </>
+        )}
         {confidence !== null && (
           <span
             style={{
@@ -304,7 +321,7 @@ export function BulkInvoiceCard({
       </div>
 
       {/* AI scan unavailable hint */}
-      {result.aiError && !editing && (
+      {result.aiError && result.aiError !== "manual" && !editing && (
         <p
           style={{
             fontSize: "var(--text-label)",
@@ -348,6 +365,7 @@ export function BulkInvoiceCard({
                 type="text"
                 value={invoiceNumber}
                 onChange={(e) => setInvoiceNumber(e.target.value)}
+                placeholder="Wordt automatisch gegenereerd"
                 className="form-input"
               />
             </FieldGroup>
@@ -491,24 +509,26 @@ export function BulkInvoiceCard({
                     className="form-input"
                   />
                 </FieldGroup>
-                <button
-                  type="button"
-                  onClick={() => removeLine(line.id)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "var(--text-label)",
-                    fontWeight: 500,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase" as const,
-                    opacity: 0.3,
-                    padding: "8px 0",
-                    marginBottom: 12,
-                  }}
-                >
-                  {t.invoices.importRemoveLine}
-                </button>
+                {lines.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeLine(line.id)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "var(--text-label)",
+                      fontWeight: 500,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase" as const,
+                      opacity: 0.3,
+                      padding: "8px 0",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {t.invoices.importRemoveLine}
+                  </button>
+                )}
               </div>
             ))}
 
