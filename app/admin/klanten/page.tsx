@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getUsers, getUserKpis } from "@/features/admin/actions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AdminPageKpis } from "@/features/admin/AdminPageKpis";
+import { CreateCustomerDialog } from "@/features/admin/CreateCustomerDialog";
 import type { AdminUser } from "@/lib/types";
 import { AdminStatePanel } from "../AdminStatePanel";
 
@@ -77,9 +78,10 @@ export default function AdminKlantenPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const pageSize = 25;
 
-  const { data: result, isLoading } = useQuery({
+  const { data: result, isLoading, refetch } = useQuery({
     queryKey: ["admin-users", search, statusFilter, page],
     queryFn: () =>
       getUsers({ search, status: statusFilter, page, pageSize }),
@@ -134,6 +136,13 @@ export default function AdminKlantenPage() {
           <option value="active">Actief</option>
           <option value="suspended">Geblokkeerd</option>
         </select>
+        <button
+          onClick={() => setShowCreateDialog(true)}
+          className="btn-primary"
+          style={{ whiteSpace: "nowrap" }}
+        >
+          + Klant aanmaken
+        </button>
       </div>
 
       {/* Results summary */}
@@ -229,6 +238,12 @@ export default function AdminKlantenPage() {
           </button>
         </div>
       )}
+
+      <CreateCustomerDialog
+        open={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onCreated={() => refetch()}
+      />
     </div>
   );
 }
