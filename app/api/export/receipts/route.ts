@@ -18,6 +18,7 @@ export async function GET() {
     .from("receipts")
     .select("*")
     .eq("user_id", user.id)
+    .is("archived_at", null)
     .order("receipt_date", { ascending: false });
 
   if (error) {

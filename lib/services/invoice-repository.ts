@@ -166,9 +166,39 @@ export async function deleteDraftInvoice(
     throw new Error("Alleen conceptfacturen kunnen worden verwijderd.");
   }
 
+  // Soft-delete: archiveer in plaats van verwijderen
   const { error } = await supabase
     .from("invoices")
-    .delete()
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", invoiceId)
+    .eq("user_id", userId);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function archiveInvoice(
+  supabase: SupabaseClient,
+  userId: string,
+  invoiceId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("invoices")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", invoiceId)
+    .eq("user_id", userId)
+    .is("archived_at", null);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function restoreInvoice(
+  supabase: SupabaseClient,
+  userId: string,
+  invoiceId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("invoices")
+    .update({ archived_at: null })
     .eq("id", invoiceId)
     .eq("user_id", userId);
 
@@ -191,6 +221,7 @@ export async function getInvoices(
     .from("invoices")
     .select("*, client:clients(name)")
     .eq("user_id", userId)
+    .is("archived_at", null)
     .order("created_at", { ascending: false });
 
   if (filters?.status) {

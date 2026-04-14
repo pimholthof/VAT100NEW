@@ -41,6 +41,7 @@ export interface Client {
   btw_number: string | null;
   country: string | null;
   payment_terms_days: number | null;
+  archived_at: string | null;
   created_at: string;
 }
 
@@ -85,6 +86,7 @@ export interface Invoice {
   payment_method: string | null;
   vat_scheme: VatScheme;
   pdf_template: string | null;
+  archived_at: string | null;
   created_at: string;
 }
 
@@ -157,6 +159,7 @@ export interface Receipt {
   storage_path: string | null;
   ai_processed: boolean;
   business_percentage: number;
+  archived_at: string | null;
   created_at: string;
 }
 
@@ -184,6 +187,7 @@ export interface BankConnection {
   iban: string | null;
   status: BankConnectionStatus;
   last_synced_at: string | null;
+  last_synced_booking_date: string | null;
   created_at: string;
 }
 
@@ -253,6 +257,7 @@ export interface Quote {
   notes: string | null;
   share_token: string | null;
   converted_invoice_id: string | null;
+  archived_at: string | null;
   created_at: string;
 }
 

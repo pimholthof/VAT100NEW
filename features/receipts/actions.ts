@@ -23,6 +23,7 @@ export async function getReceipts(filters?: {
     .from("receipts")
     .select("*")
     .eq("user_id", user.id)
+    .is("archived_at", null)
     .order("receipt_date", { ascending: false });
 
   if (filters?.category) {
@@ -259,11 +260,13 @@ export async function deleteReceipt(id: string): Promise<ActionResult> {
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  // Soft-delete: archiveer in plaats van verwijderen
   const { error } = await supabase
     .from("receipts")
-    .delete()
+    .update({ archived_at: new Date().toISOString() })
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .is("archived_at", null);
 
   if (error) {
     return {
@@ -279,7 +282,7 @@ export async function deleteReceipt(id: string): Promise<ActionResult> {
 
 export async function deleteReceipts(ids: string[]): Promise<ActionResult> {
   if (ids.length === 0) return { error: "Geen bonnen geselecteerd." };
-  if (ids.length > 100) return { error: "Maximaal 100 bonnen tegelijk verwijderen." };
+  if (ids.length > 100) return { error: "Maximaal 100 bonnen tegelijk archiveren." };
 
   for (const id of ids) {
     const idCheck = uuidSchema.safeParse(id);
@@ -290,9 +293,10 @@ export async function deleteReceipts(ids: string[]): Promise<ActionResult> {
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
+  // Soft-delete: archiveer in plaats van verwijderen
   const { error } = await supabase
     .from("receipts")
-    .delete()
+    .update({ archived_at: new Date().toISOString() })
     .in("id", ids)
     .eq("user_id", user.id);
 
@@ -305,6 +309,24 @@ export async function deleteReceipts(ids: string[]): Promise<ActionResult> {
       }),
     };
   }
+  return { error: null };
+}
+
+export async function restoreReceipt(id: string): Promise<ActionResult> {
+  const idCheck = uuidSchema.safeParse(id);
+  if (!idCheck.success) return { error: "Ongeldig bon-ID." };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { error } = await supabase
+    .from("receipts")
+    .update({ archived_at: null })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
   return { error: null };
 }
 
