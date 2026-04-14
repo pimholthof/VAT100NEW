@@ -64,12 +64,11 @@ export async function createCustomerAccount(
 
     const userId = userData.user.id;
 
-    // 2. Create Profile
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: userId,
+    // 2. Update Profile (trigger on_auth_user_created already inserts a row)
+    const { error: profileError } = await supabase.from("profiles").update({
       full_name,
       studio_name: studio_name || null,
-    });
+    }).eq("id", userId);
 
     if (profileError) {
       await supabase.auth.admin.deleteUser(userId);
