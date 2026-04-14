@@ -5,6 +5,7 @@ export type AuditAction =
   | "user.reactivate"
   | "user.delete"
   | "user.anonymize"
+  | "customer.create"
   | "customer.profile_update"
   | "customer.bulk_action"
   | "invoice.status_change"

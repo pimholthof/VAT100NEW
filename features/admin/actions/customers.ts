@@ -11,6 +11,121 @@ import { revalidatePath } from "next/cache";
 import { logAdminAction } from "@/lib/admin/audit";
 
 
+// ─── Customer Creation ───
+
+export interface CreateCustomerInput {
+  email: string;
+  password: string;
+  full_name: string;
+  studio_name?: string;
+  plan_id: string;
+  send_welcome_email?: boolean;
+}
+
+export interface CreatedCustomer {
+  userId: string;
+  email: string;
+  tempPassword: string;
+}
+
+export async function createCustomerAccount(
+  input: CreateCustomerInput
+): Promise<ActionResult<CreatedCustomer>> {
+  const auth = await requireAdmin();
+  if (auth.error !== null) return { error: auth.error };
+
+  const { email, password, full_name, studio_name, plan_id, send_welcome_email } = input;
+
+  if (!email || !password || !full_name || !plan_id) {
+    return { error: "Vul alle verplichte velden in." };
+  }
+
+  if (password.length < 8) {
+    return { error: "Wachtwoord moet minimaal 8 tekens bevatten." };
+  }
+
+  try {
+    const supabase = createServiceClient();
+
+    // 1. Create Auth User
+    const { data: userData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        full_name,
+        studio_name: studio_name || null,
+      },
+    });
+
+    if (authError || !userData.user) {
+      return { error: `Kon gebruiker niet aanmaken: ${authError?.message}` };
+    }
+
+    const userId = userData.user.id;
+
+    // 2. Create Profile
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: userId,
+      full_name,
+      studio_name: studio_name || null,
+      onboarding_completed_at: new Date().toISOString(),
+    });
+
+    if (profileError) {
+      await supabase.auth.admin.deleteUser(userId);
+      return { error: `Fout bij aanmaken profiel: ${profileError.message}` };
+    }
+
+    // 3. Create Subscription
+    const { error: subError } = await supabase.from("subscriptions").insert({
+      user_id: userId,
+      plan_id,
+      status: "active",
+      current_period_start: new Date().toISOString(),
+      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    if (subError) {
+      await supabase.auth.admin.deleteUser(userId);
+      return { error: `Fout bij aanmaken abonnement: ${subError.message}` };
+    }
+
+    // 4. Log admin action
+    await logAdminAction(auth.user.id, "customer.create", "customer", userId, {
+      email,
+      plan_id,
+      full_name,
+    });
+
+    // 5. Send welcome email (async, non-blocking)
+    if (send_welcome_email) {
+      const { sendWelcomeEmail } = await import("@/lib/email/send-onboarding");
+      sendWelcomeEmail({
+        email,
+        fullName: full_name,
+        tempPassword: password,
+        studioName: studio_name,
+      }).catch((err) => {
+        console.error("[Admin] Welcome email failed:", err);
+      });
+    }
+
+    revalidatePath("/admin/klanten");
+
+    return {
+      error: null,
+      data: {
+        userId,
+        email,
+        tempPassword: password,
+      },
+    };
+  } catch (e) {
+    return { error: sanitizeError(e, { action: "createCustomerAccount" }) };
+  }
+}
+
 // ─── Customer Management (Klantbeheer) ───
 
 export interface CustomerOverviewItem {
