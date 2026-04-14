@@ -120,7 +120,7 @@ export default function DashboardClient({
       className="dashboard-content-inner dashboard-home"
     >
       {/* ── ONBOARDING CHECKLIST (new users) ── */}
-      {!isLoading && onboardingResult && !onboardingResult.onboardingCompleted && (
+      {!isLoading && onboardingResult && !onboardingResult.onboardingCompleted && !onboardingResult.onboardingDismissed && (
         <OnboardingChecklist
           hasProfile={onboardingResult.hasProfile}
           hasFiscalProfile={onboardingResult.hasFiscalProfile}
@@ -128,6 +128,7 @@ export default function DashboardClient({
           hasInvoice={onboardingResult.hasInvoice}
           hasReceipt={onboardingResult.hasReceipt}
           hasBankConnection={onboardingResult.hasBankConnection}
+          onboardingDismissed={onboardingResult.onboardingDismissed}
         />
       )}
 

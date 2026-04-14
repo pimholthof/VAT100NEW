@@ -2,7 +2,7 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, Profile } from "@/lib/types";
-import { profileSchema, validate } from "@/lib/validation";
+import { profileSchema, validateAll } from "@/lib/validation";
 
 export async function getProfile(): Promise<ActionResult<Profile>> {
   const auth = await requireAuth();
@@ -27,8 +27,8 @@ export async function updateProfile(
   if (auth.error !== null) return { error: auth.error };
   const { supabase, user } = auth;
 
-  const v = validate(profileSchema, input);
-  if (v.error) return { error: v.error };
+  const v = validateAll(profileSchema, input);
+  if (v.error) return { error: v.error, fieldErrors: v.fieldErrors };
 
   const { data, error } = await supabase
     .from("profiles")

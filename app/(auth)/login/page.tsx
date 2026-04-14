@@ -115,7 +115,22 @@ export default function LoginPage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="password" className="label">{t.auth.password}</label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <label htmlFor="password" className="label">{t.auth.password}</label>
+              <Link
+                href="/forgot-password"
+                style={{
+                  fontSize: "10px",
+                  color: "var(--color-black)",
+                  opacity: 0.35,
+                  textDecoration: "none",
+                  borderBottom: "0.5px solid rgba(0,0,0,0.15)",
+                  paddingBottom: 1,
+                }}
+              >
+                {t.auth.forgotPassword}
+              </Link>
+            </div>
             <input
               id="password"
               name="password"

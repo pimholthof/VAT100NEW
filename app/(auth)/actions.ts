@@ -70,6 +70,48 @@ export async function register(formData: FormData): Promise<AuthResult> {
   redirect(`/onboarding${planParam}`);
 }
 
+export async function requestPasswordReset(formData: FormData): Promise<AuthResult> {
+  const ip = await getClientIp();
+  if (await isRateLimited(`auth-reset:${ip}`, 3, 60_000)) {
+    return { error: "Te veel pogingen. Probeer het over een minuut opnieuw." };
+  }
+
+  const supabase = await createClient();
+  const email = formData.get("email") as string;
+
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
+  });
+
+  // Always return success to prevent email enumeration
+  return { error: null };
+}
+
+export async function updatePassword(formData: FormData): Promise<AuthResult> {
+  const supabase = await createClient();
+
+  const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirm_password") as string;
+
+  if (!password || password.length < 6) {
+    return { error: "Wachtwoord moet minimaal 6 tekens zijn." };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: "Wachtwoorden komen niet overeen." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
 export async function completeOnboarding(
   formData: FormData
 ): Promise<AuthResult> {
@@ -107,7 +149,7 @@ export async function completeOnboarding(
     vat_frequency: (formData.get("vat_frequency") as string) || "quarterly",
     bookkeeping_start_date: (formData.get("bookkeeping_start_date") as string) || null,
     uses_kor: formData.get("uses_kor") === "true",
-    estimated_annual_income: estimatedIncome && !isNaN(estimatedIncome) ? estimatedIncome : null,
+    estimated_annual_income: estimatedIncome !== null && !isNaN(estimatedIncome) ? estimatedIncome : null,
     meets_urencriterium: formData.get("meets_urencriterium") !== "false",
     onboarding_completed_at: new Date().toISOString(),
   });

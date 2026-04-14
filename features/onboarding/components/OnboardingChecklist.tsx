@@ -20,6 +20,7 @@ interface OnboardingChecklistProps {
   hasInvoice: boolean;
   hasReceipt: boolean;
   hasBankConnection: boolean;
+  onboardingDismissed?: boolean;
 }
 
 export function OnboardingChecklist({
@@ -29,8 +30,9 @@ export function OnboardingChecklist({
   hasInvoice,
   hasReceipt,
   hasBankConnection,
+  onboardingDismissed = false,
 }: OnboardingChecklistProps) {
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(onboardingDismissed);
   const { t } = useLocale();
 
   const steps: OnboardingStep[] = [
@@ -80,8 +82,7 @@ export function OnboardingChecklist({
   // Don't show if all done or dismissed
   if (dismissed || allDone) return null;
 
-  // Allow dismissing after completing at least 3 steps
-  const canDismiss = completedCount >= 3;
+  const canDismiss = true;
 
   async function handleDismiss() {
     setDismissed(true);
