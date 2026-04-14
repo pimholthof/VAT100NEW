@@ -1,91 +1,18 @@
 "use server";
 
 import { z } from "zod";
-import { sanitizeSupabaseError } from "@/lib/errors";
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, ClientInput, VatRate, VatScheme, InvoiceUnit } from "@/lib/types";
 import type { InvoiceOCRData, ExtractedClientData } from "./types/invoice-ocr";
 
-// ─── Upload Invoice File ───
-
-export async function uploadInvoiceFile(
-  formData: FormData
-): Promise<ActionResult<string>> {
-  try {
-    const { requirePlan } = await import("@/lib/supabase/server");
-    const planCheck = await requirePlan("studio");
-    if (planCheck.error !== null) return { error: planCheck.error };
-    const { supabase, user } = planCheck;
-
-    const file = formData.get("file") as File | null;
-    if (!file) return { error: "Geen bestand geselecteerd." };
-
-    const isImage = file.type.startsWith("image/");
-    const isPdf = file.type === "application/pdf";
-    if (!isImage && !isPdf) {
-      return { error: "Alleen afbeeldingen en PDF-bestanden zijn toegestaan." };
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      return { error: "Bestand is te groot (max 10MB)." };
-    }
-
-    // Server-side magic byte validation
-    const headerBytes = new Uint8Array(await file.slice(0, 4).arrayBuffer());
-    const isJpeg = headerBytes[0] === 0xff && headerBytes[1] === 0xd8;
-    const isPng =
-      headerBytes[0] === 0x89 &&
-      headerBytes[1] === 0x50 &&
-      headerBytes[2] === 0x4e &&
-      headerBytes[3] === 0x47;
-    const isWebp = headerBytes[0] === 0x52 && headerBytes[1] === 0x49;
-    const isPdfBytes =
-      headerBytes[0] === 0x25 &&
-      headerBytes[1] === 0x50 &&
-      headerBytes[2] === 0x44 &&
-      headerBytes[3] === 0x46;
-    if (!isJpeg && !isPng && !isWebp && !isPdfBytes) {
-      return {
-        error:
-          "Ongeldig bestandstype. Upload een JPEG, PNG, WebP afbeelding of PDF.",
-      };
-    }
-
-    const ext = (file.name.split(".").pop() ?? "jpg").replace(
-      /[^a-zA-Z0-9]/g,
-      ""
-    );
-    const safeFilename = `${crypto.randomUUID()}.${ext}`;
-    const sessionId = crypto.randomUUID();
-    const storagePath = `${user.id}/${sessionId}/${safeFilename}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("invoice-uploads")
-      .upload(storagePath, file, { upsert: true });
-
-    if (uploadError) {
-      return {
-        error: sanitizeSupabaseError(uploadError, {
-          area: "uploadInvoiceFile.upload",
-          userId: user.id,
-        }),
-      };
-    }
-
-    return { error: null, data: storagePath };
-  } catch (e) {
-    return { error: getErrorMessage(e) };
-  }
-}
-
-// ─── Scan Invoice with AI ───
+// ─── Scan Invoice with AI (accepts file directly, no storage needed) ───
 
 const INVOICE_OCR_SYSTEM_PROMPT = `Je bent een OCR-specialist voor Nederlandse uitgaande facturen.
 Retourneer UITSLUITEND valide JSON — geen markdown, geen toelichting.
 
 STAP 1 — AFLEZEN
 Lees letterlijk van de factuur af:
-- Klantgegevens: bedrijfsnaam/naam klant, adres, postcode, stad, KVK-nummer, BTW-nummer, e-mailadres
+- Klantgegevens: bedrijfsnaam/naam klant (de ONTVANGER van de factuur, niet de verzender), adres, postcode, stad, KVK-nummer, BTW-nummer, e-mailadres
 - Factuurnummer
 - Factuurdatum (elk formaat: DD-MM-YYYY, DD/MM/YY, etc.)
 - Vervaldatum (als vermeld)
@@ -147,37 +74,56 @@ const aiInvoiceSchema = z.object({
 });
 
 export async function scanInvoiceWithAI(
-  storagePath: string
+  formData: FormData
 ): Promise<ActionResult<InvoiceOCRData>> {
   try {
     const { requirePlan } = await import("@/lib/supabase/server");
     const planCheck = await requirePlan("studio");
     if (planCheck.error !== null) return { error: planCheck.error };
-    const { supabase } = planCheck;
 
-    // Download file from storage
-    const { data: fileData, error: downloadError } = await supabase.storage
-      .from("invoice-uploads")
-      .download(storagePath);
+    const file = formData.get("file") as File | null;
+    if (!file) return { error: "Geen bestand geselecteerd." };
 
-    if (downloadError || !fileData) {
-      return { error: "Kon factuurbestand niet downloaden." };
+    const isImage = file.type.startsWith("image/");
+    const isPdf = file.type === "application/pdf";
+    if (!isImage && !isPdf) {
+      return { error: "Alleen afbeeldingen en PDF-bestanden zijn toegestaan." };
     }
 
-    const buffer = Buffer.from(await fileData.arrayBuffer());
+    if (file.size > 10 * 1024 * 1024) {
+      return { error: "Bestand is te groot (max 10MB)." };
+    }
+
+    // Server-side magic byte validation
+    const headerBytes = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+    const isJpeg = headerBytes[0] === 0xff && headerBytes[1] === 0xd8;
+    const isPng =
+      headerBytes[0] === 0x89 &&
+      headerBytes[1] === 0x50 &&
+      headerBytes[2] === 0x4e &&
+      headerBytes[3] === 0x47;
+    const isWebp = headerBytes[0] === 0x52 && headerBytes[1] === 0x49;
+    const isPdfBytes =
+      headerBytes[0] === 0x25 &&
+      headerBytes[1] === 0x50 &&
+      headerBytes[2] === 0x44 &&
+      headerBytes[3] === 0x46;
+    if (!isJpeg && !isPng && !isWebp && !isPdfBytes) {
+      return {
+        error: "Ongeldig bestandstype. Upload een JPEG, PNG, WebP afbeelding of PDF.",
+      };
+    }
+
+    // Read file directly into base64 (no storage needed)
+    const buffer = Buffer.from(await file.arrayBuffer());
     const base64 = buffer.toString("base64");
-    const mimeType = fileData.type || "image/jpeg";
-    const isPdfFile =
-      buffer[0] === 0x25 &&
-      buffer[1] === 0x50 &&
-      buffer[2] === 0x44 &&
-      buffer[3] === 0x46;
+    const mimeType = file.type || "image/jpeg";
 
     // Call Anthropic API
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const documentContent = isPdfFile
+    const documentContent = isPdfBytes
       ? {
           type: "document" as const,
           source: {
@@ -220,7 +166,7 @@ export async function scanInvoiceWithAI(
     const textContent = response.content.find((c) => c.type === "text");
     if (!textContent || textContent.type !== "text") {
       return {
-        error: "Geen parsable tekst gevonden in de uitslag van Claude Vision.",
+        error: "Geen tekst gevonden in AI-antwoord.",
       };
     }
 
@@ -264,20 +210,16 @@ export async function scanInvoiceWithAI(
       data.vat_rate != null
     ) {
       const expectedIncVat =
-        Math.round(
-          data.subtotal_ex_vat * (1 + data.vat_rate / 100) * 100
-        ) / 100;
+        Math.round(data.subtotal_ex_vat * (1 + data.vat_rate / 100) * 100) /
+        100;
       const diff = Math.abs(expectedIncVat - data.total_inc_vat);
       if (diff > 0.05) {
-        // total_inc_vat is more reliable (directly read from invoice)
         data.subtotal_ex_vat =
           Math.round(
             (data.total_inc_vat / (1 + data.vat_rate / 100)) * 100
           ) / 100;
         data.vat_amount =
-          Math.round(
-            data.subtotal_ex_vat * (data.vat_rate / 100) * 100
-          ) / 100;
+          Math.round(data.subtotal_ex_vat * (data.vat_rate / 100) * 100) / 100;
       }
     }
 
@@ -341,7 +283,6 @@ export async function findOrCreateClient(
       .limit(5);
 
     if (matches && matches.length > 0) {
-      // Use best match (first result)
       return {
         error: null,
         data: { id: matches[0].id, name: matches[0].name, isNew: false },

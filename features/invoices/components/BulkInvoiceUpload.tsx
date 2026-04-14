@@ -4,14 +4,12 @@ import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  uploadInvoiceFile,
   scanInvoiceWithAI,
   findOrCreateClient,
 } from "@/features/invoices/invoice-ocr-actions";
 import {
   createInvoice,
   generateInvoiceNumber,
-  updateInvoice,
 } from "@/features/invoices/actions";
 import { getClients } from "@/features/clients/actions";
 import {
@@ -67,8 +65,8 @@ export function BulkInvoiceUpload() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
-  // Track user edits per invoiceId
-  const [edits, setEdits] = useState<Record<string, InvoiceEditData>>({});
+  // Track user edits per result index (since invoices don't exist yet)
+  const [edits, setEdits] = useState<Record<number, InvoiceEditData>>({});
 
   // Fetch clients for the dropdown in review cards
   const { data: clientsResult } = useQuery({
@@ -117,6 +115,7 @@ export function BulkInvoiceUpload() {
     }
   };
 
+  // ─── PROCESSING: Only OCR + client matching, NO invoice creation ───
   const processFiles = async () => {
     setPhase("processing");
     setProcessing(true);
@@ -129,41 +128,18 @@ export function BulkInvoiceUpload() {
     }));
     setResults(initialResults);
 
-    const today = new Date().toISOString().split("T")[0];
-
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
-      let invoiceId = "";
 
       try {
-        // 1. Upload file to storage
+        // 1. Send file directly to AI for OCR (no storage upload needed)
         const formData = new FormData();
         formData.append("file", file);
-        const uploadResult = await uploadInvoiceFile(formData);
-
-        if (uploadResult.error || !uploadResult.data) {
-          setResults((prev) => {
-            const updated = [...prev];
-            updated[i] = {
-              invoiceId: "",
-              fileName: file.name,
-              status: "error",
-              error: uploadResult.error ?? "Upload mislukt.",
-            };
-            return updated;
-          });
-          setProcessedCount((c) => c + 1);
-          continue;
-        }
-
-        const storagePath = uploadResult.data;
-
-        // 2. AI scan
-        const scanResult = await scanInvoiceWithAI(storagePath);
+        const scanResult = await scanInvoiceWithAI(formData);
         const aiData = scanResult.data ?? undefined;
         const aiError = scanResult.error ?? undefined;
 
-        // 3. Find or create client
+        // 2. Find or create client (if AI extracted a name)
         let clientMatch: BulkInvoiceResult["clientMatch"] = undefined;
         if (aiData?.client_name) {
           const clientResult = await findOrCreateClient({
@@ -178,106 +154,21 @@ export function BulkInvoiceUpload() {
 
           if (!clientResult.error && clientResult.data) {
             clientMatch = clientResult.data;
-            // Invalidate clients cache so new clients show in dropdowns
             if (clientResult.data.isNew) {
               queryClient.invalidateQueries({ queryKey: ["clients"] });
             }
           }
         }
 
-        // 4. Generate invoice number + create draft invoice
-        const numberResult = await generateInvoiceNumber();
-        const invNumber =
-          aiData?.invoice_number ?? numberResult.data ?? `IMPORT-${i + 1}`;
-
-        const invoiceLines =
-          aiData?.lines && aiData.lines.length > 0
-            ? aiData.lines.map((l) => ({
-                id: crypto.randomUUID(),
-                description: l.description,
-                quantity: l.quantity,
-                unit: l.unit as InvoiceUnit,
-                rate: l.rate,
-              }))
-            : [
-                {
-                  id: crypto.randomUUID(),
-                  description: "Geïmporteerde factuur",
-                  quantity: 1,
-                  unit: "stuks" as InvoiceUnit,
-                  rate: aiData?.subtotal_ex_vat ?? 0,
-                },
-              ];
-
-        const createResult = await createInvoice({
-          client_id: clientMatch?.id ?? "",
-          invoice_number: invNumber,
-          status: "draft",
-          issue_date: aiData?.issue_date ?? today,
-          due_date: aiData?.due_date ?? null,
-          vat_rate: (aiData?.vat_rate ?? 21) as VatRate,
-          vat_scheme: aiData?.vat_scheme ?? "standard",
-          notes: null,
-          lines: invoiceLines,
-        });
-
-        if (createResult.error || !createResult.data) {
-          // If invoice creation fails (e.g., duplicate number), retry with generated number
-          if (createResult.error?.includes("duplicate") || createResult.error?.includes("bestaat al")) {
-            const retryNumber = numberResult.data ?? `IMPORT-${Date.now()}`;
-            const retryResult = await createInvoice({
-              client_id: clientMatch?.id ?? "",
-              invoice_number: retryNumber,
-              status: "draft",
-              issue_date: aiData?.issue_date ?? today,
-              due_date: aiData?.due_date ?? null,
-              vat_rate: (aiData?.vat_rate ?? 21) as VatRate,
-              vat_scheme: aiData?.vat_scheme ?? "standard",
-              notes: null,
-              lines: invoiceLines,
-            });
-
-            if (retryResult.error || !retryResult.data) {
-              setResults((prev) => {
-                const updated = [...prev];
-                updated[i] = {
-                  invoiceId: "",
-                  fileName: file.name,
-                  status: "error",
-                  error: retryResult.error ?? "Kon factuur niet aanmaken.",
-                };
-                return updated;
-              });
-              setProcessedCount((c) => c + 1);
-              continue;
-            }
-            invoiceId = retryResult.data;
-          } else {
-            setResults((prev) => {
-              const updated = [...prev];
-              updated[i] = {
-                invoiceId: "",
-                fileName: file.name,
-                status: "error",
-                error: createResult.error ?? "Kon factuur niet aanmaken.",
-              };
-              return updated;
-            });
-            setProcessedCount((c) => c + 1);
-            continue;
-          }
-        } else {
-          invoiceId = createResult.data;
-        }
-
+        // 3. Store result for review (invoice will be created during confirm)
         setResults((prev) => {
           const updated = [...prev];
           updated[i] = {
-            invoiceId,
+            invoiceId: "", // Will be set during confirm
             fileName: file.name,
-            status: "success",
-            aiData: aiData ?? undefined,
-            aiError: aiError ?? undefined,
+            status: aiData ? "success" : "error",
+            aiData,
+            aiError,
             clientMatch,
           };
           return updated;
@@ -288,7 +179,7 @@ export function BulkInvoiceUpload() {
         setResults((prev) => {
           const updated = [...prev];
           updated[i] = {
-            invoiceId,
+            invoiceId: "",
             fileName: file.name,
             status: "error",
             error: message,
@@ -304,39 +195,106 @@ export function BulkInvoiceUpload() {
     setPhase("review");
   };
 
-  const handleCardUpdate = (invoiceId: string, data: InvoiceEditData) => {
-    setEdits((prev) => ({ ...prev, [invoiceId]: data }));
+  const handleCardUpdate = (index: number, data: InvoiceEditData) => {
+    setEdits((prev) => ({ ...prev, [index]: data }));
   };
 
+  // ─── CONFIRM: Create all invoices at once ───
   const confirmAll = async () => {
     setConfirming(true);
     setConfirmError(null);
 
-    const successResults = results.filter(
-      (r) => r.status === "success" && r.invoiceId
-    );
+    const successResults = results
+      .map((r, i) => ({ result: r, index: i }))
+      .filter((x) => x.result.status === "success");
 
     try {
-      for (const result of successResults) {
-        const editData = edits[result.invoiceId];
-        if (editData) {
-          await updateInvoice(result.invoiceId, {
-            client_id: editData.client_id ?? "",
-            invoice_number: editData.invoice_number,
+      for (const { result, index } of successResults) {
+        const editData = edits[index];
+        const aiData = result.aiData;
+        const today = new Date().toISOString().split("T")[0];
+
+        // Determine client_id
+        const clientId =
+          editData?.client_id || result.clientMatch?.id || "";
+
+        if (!clientId) {
+          setConfirmError(
+            `Selecteer een klant voor "${result.fileName}" voordat je bevestigt.`
+          );
+          setConfirming(false);
+          return;
+        }
+
+        // Determine invoice number
+        let invoiceNumber = editData?.invoice_number || aiData?.invoice_number;
+        if (!invoiceNumber) {
+          const numberResult = await generateInvoiceNumber();
+          invoiceNumber = numberResult.data ?? `IMP-${Date.now()}`;
+        }
+
+        // Build lines
+        const lines =
+          editData?.lines ??
+          (aiData?.lines && aiData.lines.length > 0
+            ? aiData.lines.map((l) => ({
+                id: crypto.randomUUID(),
+                description: l.description,
+                quantity: l.quantity,
+                unit: l.unit as InvoiceUnit,
+                rate: l.rate,
+              }))
+            : [
+                {
+                  id: crypto.randomUUID(),
+                  description: "Geïmporteerde factuur",
+                  quantity: 1,
+                  unit: "stuks" as InvoiceUnit,
+                  rate: aiData?.subtotal_ex_vat ?? 0,
+                },
+              ]);
+
+        // Ensure all lines have a description
+        const validLines = lines.map((l) => ({
+          ...l,
+          description: l.description || "Factuurregel",
+        }));
+
+        const createResult = await createInvoice({
+          client_id: clientId,
+          invoice_number: invoiceNumber,
+          status: "draft",
+          issue_date: editData?.issue_date || aiData?.issue_date || today,
+          due_date: editData?.due_date || aiData?.due_date || null,
+          vat_rate: (editData?.vat_rate ?? aiData?.vat_rate ?? 21) as VatRate,
+          vat_scheme: editData?.vat_scheme ?? aiData?.vat_scheme ?? "standard",
+          notes: editData?.notes || null,
+          lines: validLines,
+        });
+
+        if (createResult.error) {
+          // If duplicate number, retry with generated number
+          const numberResult = await generateInvoiceNumber();
+          const retryNumber = numberResult.data ?? `IMP-${Date.now()}`;
+          const retryResult = await createInvoice({
+            client_id: clientId,
+            invoice_number: retryNumber,
             status: "draft",
-            issue_date: editData.issue_date,
-            due_date: editData.due_date || null,
-            vat_rate: editData.vat_rate,
-            vat_scheme: editData.vat_scheme,
-            notes: editData.notes || null,
-            lines: editData.lines.map((l) => ({
-              id: l.id,
-              description: l.description,
-              quantity: l.quantity,
-              unit: l.unit,
-              rate: l.rate,
-            })),
+            issue_date: editData?.issue_date || aiData?.issue_date || today,
+            due_date: editData?.due_date || aiData?.due_date || null,
+            vat_rate: (editData?.vat_rate ?? aiData?.vat_rate ?? 21) as VatRate,
+            vat_scheme: editData?.vat_scheme ?? aiData?.vat_scheme ?? "standard",
+            notes: editData?.notes || null,
+            lines: validLines,
           });
+
+          if (retryResult.error) {
+            setConfirmError(
+              `Fout bij aanmaken factuur "${result.fileName}": ${retryResult.error}`
+            );
+            setConfirming(false);
+            return;
+          }
         }
       }
 
@@ -348,41 +306,16 @@ export function BulkInvoiceUpload() {
     }
   };
 
-  const addManualInvoice = async () => {
-    const numberResult = await generateInvoiceNumber();
-    const invNumber = numberResult.data ?? `HANDMATIG-${Date.now()}`;
-    const today = new Date().toISOString().split("T")[0];
-
-    const createResult = await createInvoice({
-      client_id: "",
-      invoice_number: invNumber,
-      status: "draft",
-      issue_date: today,
-      due_date: null,
-      vat_rate: 21,
-      vat_scheme: "standard",
-      notes: null,
-      lines: [
-        {
-          id: crypto.randomUUID(),
-          description: "",
-          quantity: 1,
-          unit: "uren" as InvoiceUnit,
-          rate: 0,
-        },
-      ],
-    });
-
-    if (createResult.data) {
-      const newResult: BulkInvoiceResult = {
-        invoiceId: createResult.data,
-        fileName: t.invoices.importManualEntry,
-        status: "success",
-        aiData: undefined,
-        aiError: "manual",
-      };
-      setResults((prev) => [...prev, newResult]);
-    }
+  // ─── Manual entry: add empty card to review ───
+  const addManualInvoice = () => {
+    const newResult: BulkInvoiceResult = {
+      invoiceId: "",
+      fileName: t.invoices.importManualEntry,
+      status: "success",
+      aiData: undefined,
+      aiError: "manual",
+    };
+    setResults((prev) => [...prev, newResult]);
   };
 
   const successCount = results.filter((r) => r.status === "success").length;
@@ -476,9 +409,9 @@ export function BulkInvoiceUpload() {
         <div style={{ marginTop: 16, textAlign: "center" }}>
           <button
             type="button"
-            onClick={async () => {
+            onClick={() => {
               setPhase("review");
-              await addManualInvoice();
+              addManualInvoice();
             }}
             style={{
               background: "none",
@@ -625,6 +558,7 @@ export function BulkInvoiceUpload() {
           <BulkInvoiceCard
             key={`${result.fileName}-${i}`}
             result={result}
+            index={i}
             clients={clients}
             onUpdate={handleCardUpdate}
           />
@@ -669,6 +603,7 @@ export function BulkInvoiceUpload() {
         <BulkInvoiceCard
           key={`${result.fileName}-${i}`}
           result={result}
+          index={i}
           clients={clients}
           onUpdate={handleCardUpdate}
         />
