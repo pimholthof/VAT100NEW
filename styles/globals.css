@@ -1577,6 +1577,12 @@ a {
 
 .widget-drag-handle:hover {
   opacity: 0.55 !important;
+  cursor: grab;
+}
+
+.widget-drag-handle:active {
+  cursor: grabbing;
+  opacity: 0.7 !important;
 }
 
 .widget-mobile-arrows {

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { DashboardLayout } from "@/lib/types";
 import {
   DEFAULT_WIDGET_ORDER,
+  DEFAULT_HIDDEN,
   ALL_WIDGET_IDS,
   type WidgetId,
 } from "@/features/dashboard/widget-registry";
@@ -39,7 +40,7 @@ function reconcileHidden(stored: string[]): WidgetId[] {
 
 export const useDashboardStore = create<DashboardLayoutState>((set, get) => ({
   order: [...DEFAULT_WIDGET_ORDER],
-  hidden: [],
+  hidden: [...DEFAULT_HIDDEN],
   isEditMode: false,
   isDirty: false,
   initialized: false,
@@ -56,7 +57,7 @@ export const useDashboardStore = create<DashboardLayoutState>((set, get) => ({
     } else {
       set({
         order: [...DEFAULT_WIDGET_ORDER],
-        hidden: [],
+        hidden: [...DEFAULT_HIDDEN],
         initialized: true,
         isDirty: false,
       });
@@ -93,7 +94,7 @@ export const useDashboardStore = create<DashboardLayoutState>((set, get) => ({
   resetToDefault: () => {
     set({
       order: [...DEFAULT_WIDGET_ORDER],
-      hidden: [],
+      hidden: [...DEFAULT_HIDDEN],
       isDirty: true,
     });
   },

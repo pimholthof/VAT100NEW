@@ -1,6 +1,6 @@
 "use client";
 
-import { Reorder, useDragControls } from "framer-motion";
+import { Reorder, useDragControls, useMotionValue } from "framer-motion";
 import {
   GripVertical,
   Eye,
@@ -27,6 +27,7 @@ export function DashboardWidget({
   isLast,
 }: DashboardWidgetProps) {
   const controls = useDragControls();
+  const y = useMotionValue(0);
   const { hidden, toggleVisibility, moveWidget } = useDashboardStore();
   const isHidden = hidden.includes(widgetId);
 
@@ -35,10 +36,21 @@ export function DashboardWidget({
       value={widgetId}
       dragListener={false}
       dragControls={controls}
-      style={{ listStyle: "none" }}
+      layout
+      style={{
+        listStyle: "none",
+        y,
+        position: "relative",
+        zIndex: 0,
+      }}
+      whileDrag={{
+        scale: 1.02,
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+        zIndex: 50,
+        cursor: "grabbing",
+      }}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* Edit mode toolbar */}
@@ -57,10 +69,17 @@ export function DashboardWidget({
           userSelect: "none",
         }}
       >
-        {/* Drag handle (desktop) */}
-        <button
-          onPointerDown={(e) => controls.start(e)}
+        {/* Drag handle (desktop) — div, not button, to avoid pointer capture issues */}
+        <div
+          onPointerDown={(e) => {
+            e.preventDefault();
+            controls.start(e);
+          }}
           className="widget-drag-handle"
+          role="button"
+          tabIndex={0}
+          aria-roledescription="sorteerbaar"
+          aria-label={`${label} verslepen`}
           style={{
             display: "flex",
             alignItems: "center",
@@ -75,13 +94,15 @@ export function DashboardWidget({
             touchAction: "none",
             flexShrink: 0,
           }}
-          aria-label="Versleep widget"
         >
           <GripVertical size={16} />
-        </button>
+        </div>
 
         {/* Mobile up/down buttons */}
-        <div className="widget-mobile-arrows" style={{ display: "none", gap: 2, flexShrink: 0 }}>
+        <div
+          className="widget-mobile-arrows"
+          style={{ display: "none", gap: 2, flexShrink: 0 }}
+        >
           <button
             onClick={() => moveWidget(widgetId, "up")}
             disabled={isFirst}

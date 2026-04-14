@@ -15,6 +15,9 @@ import { StatCard, SkeletonTable } from "@/components/ui";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
 import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
 import { HealthScore } from "@/features/dashboard/components/HealthScore";
+import { QuickReceiptUpload } from "@/features/dashboard/components/QuickReceiptUpload";
+import { QuickLogWidget } from "@/features/dashboard/components/QuickLogWidget";
+import { ActionFeed } from "@/features/dashboard/components/ActionFeed";
 import { DashboardWidget } from "@/features/dashboard/components/DashboardWidget";
 import {
   OnboardingChecklist,
@@ -155,6 +158,9 @@ export default function DashboardClient({
         (stats?.receiptsThisMonth ?? 0) > 0),
     [WIDGET_IDS.AI_ASSISTANT]: !isLoading,
     [WIDGET_IDS.OPEN_INVOICES]: !isLoading,
+    [WIDGET_IDS.QUICK_RECEIPT]: !isLoading,
+    [WIDGET_IDS.QUICK_LOG]: !isLoading,
+    [WIDGET_IDS.ACTION_FEED]: !isLoading,
   };
 
   // ── Widget content renderers ──
@@ -256,6 +262,28 @@ export default function DashboardClient({
         )}
       </>
     ),
+
+    [WIDGET_IDS.QUICK_RECEIPT]: (
+      <>
+        <h2 className="brutalist-section-title">
+          <span>{(t.dashboard.widgets as Record<string, string>).quickReceipt}</span>
+          <span className="brutalist-rule" />
+        </h2>
+        <QuickReceiptUpload />
+      </>
+    ),
+
+    [WIDGET_IDS.QUICK_LOG]: (
+      <>
+        <h2 className="brutalist-section-title">
+          <span>{(t.dashboard.widgets as Record<string, string>).quickLog}</span>
+          <span className="brutalist-rule" />
+        </h2>
+        <QuickLogWidget />
+      </>
+    ),
+
+    [WIDGET_IDS.ACTION_FEED]: <ActionFeed />,
   };
 
   // ── Widget label resolver ──
@@ -450,7 +478,14 @@ export default function DashboardClient({
           axis="y"
           values={order}
           onReorder={(newOrder) => reorder(newOrder as WidgetId[])}
-          style={{ padding: 0, margin: 0 }}
+          layout
+          style={{
+            padding: 0,
+            margin: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-md)",
+          }}
         >
           {order.map((widgetId, idx) => (
             <DashboardWidget
