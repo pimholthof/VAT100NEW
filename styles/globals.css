@@ -1573,6 +1573,25 @@ a {
   gap: 16px;
 }
 
+/* ── Widget edit mode ── */
+
+.widget-drag-handle:hover {
+  opacity: 0.55 !important;
+}
+
+.widget-mobile-arrows {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .widget-drag-handle {
+    display: none !important;
+  }
+  .widget-mobile-arrows {
+    display: flex !important;
+  }
+}
+
 .dashboard-home-analysis-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);

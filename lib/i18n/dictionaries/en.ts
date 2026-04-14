@@ -289,6 +289,21 @@ const en = {
     incorrect: "Incorrect",
     processingError: "Processing error",
     aiScanUnavailable: "AI scan unavailable — fill in the details manually via \"Edit\".",
+    // Widget customization
+    widgets: {
+      customize: "Customize",
+      done: "Done",
+      resetToDefault: "Reset to default",
+      kpiGrid: "Key metrics",
+      healthScore: "Financial health",
+      cashflowForecast: "Cashflow forecast",
+      aiAssistant: "AI Tax Assistant",
+      openInvoices: "Open invoices",
+      hiddenWidget: "Hidden",
+      dragToReorder: "Drag to reorder",
+      showWidget: "Show widget",
+      hideWidget: "Hide widget",
+    },
   },
 
   // ─── Invoices ───

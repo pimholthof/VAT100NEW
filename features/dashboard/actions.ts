@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAuth, requireAdmin } from "@/lib/supabase/server";
-import type { ActionResult, SafeToSpendData } from "@/lib/types";
+import type { ActionResult, SafeToSpendData, DashboardLayout } from "@/lib/types";
 import { calculateZZPTaxProjection, calculateKIA } from "@/lib/tax/dutch-tax-2026";
 import { calculateFinancialHealth, type FinancialHealth } from "@/lib/tax/financial-health";
 import * as Sentry from "@sentry/nextjs";
@@ -87,6 +87,7 @@ export interface DashboardData {
   latestTaxAudit?: TaxAuditSummary;
   cashflowForecast: CashflowForecastWeek[];
   financialHealth: FinancialHealth;
+  dashboardLayout: DashboardLayout | null;
 }
 
 interface RpcCashflowEntry {
@@ -272,14 +273,23 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
 
   // Check of er een recent reserve_snapshot is (<24 uur oud)
   const fourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentSnapshot } = await supabase
+  const [{ data: recentSnapshot }, { data: profileLayout }] = await Promise.all([
+    supabase
     .from("reserve_snapshots")
     .select("bank_balance, estimated_vat, estimated_income_tax, reserved_total, safe_to_spend")
     .eq("user_id", user.id)
     .gt("created_at", fourHoursAgo)
     .order("created_at", { ascending: false })
     .limit(1)
-    .maybeSingle();
+    .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("dashboard_layout")
+      .eq("id", user.id)
+      .single(),
+  ]);
+
+  const dashboardLayout = (profileLayout?.dashboard_layout as DashboardLayout | null) ?? null;
 
   if (recentSnapshot) {
     safeToSpend = {
@@ -346,8 +356,26 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       safeToSpend,
       cashflowForecast,
       financialHealth,
+      dashboardLayout,
     },
   };
+}
+
+// ── Save Dashboard Layout ──
+export async function saveDashboardLayout(
+  layout: DashboardLayout
+): Promise<ActionResult> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ dashboard_layout: layout })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+  return { error: null };
 }
 
 // ── Cashflow Forecast Calculator ──
