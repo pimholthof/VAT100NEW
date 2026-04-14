@@ -33,8 +33,8 @@ const VALUE = {
 const HERO = {
   fontFamily: "Courier",
   fontWeight: 900 as const,
-  fontSize: 140,
-  letterSpacing: -0.03 * 140,
+  fontSize: 120,
+  letterSpacing: -0.03 * 120,
   color: COLOR,
 };
 
@@ -67,7 +67,7 @@ const s = StyleSheet.create({
     fontFamily: "Helvetica",
     fontWeight: 400,
     color: COLOR,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FAFAF8",
   },
 
   // Header
@@ -104,26 +104,26 @@ const s = StyleSheet.create({
   metaLabel: { ...LABEL, marginBottom: 6 },
   metaValue: { ...VALUE, lineHeight: 1.4 },
   metaValueLarge: {
-    fontSize: 22,
+    fontSize: 28,
     fontFamily: "Helvetica",
     fontWeight: 700,
-    letterSpacing: -0.02 * 22,
+    letterSpacing: -0.02 * 28,
     color: COLOR,
   },
 
   // Section headers
   sectionTitle: {
     ...LABEL,
-    fontSize: 10,
-    letterSpacing: 0.2 * 10,
+    fontSize: 11,
+    letterSpacing: 0.2 * 11,
     marginBottom: 16,
-    marginTop: 32,
+    marginTop: 36,
     color: ACCENT,
   },
   sectionTitleFirst: {
     ...LABEL,
-    fontSize: 10,
-    letterSpacing: 0.2 * 10,
+    fontSize: 11,
+    letterSpacing: 0.2 * 11,
     marginBottom: 16,
     color: ACCENT,
   },
@@ -134,10 +134,10 @@ const s = StyleSheet.create({
     ...RULE,
     paddingVertical: 8,
   },
-  tableHeaderCell: { ...LABEL, fontSize: 7 },
+  tableHeaderCell: { ...LABEL, fontSize: 8 },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 6,
+    paddingVertical: 8,
     ...RULE_THIN,
   },
   tableRowBold: {
@@ -175,17 +175,17 @@ const s = StyleSheet.create({
   fiscValue: { width: "40%", textAlign: "right" as const, ...VALUE, fontSize: 9 },
   fiscRowBold: {
     flexDirection: "row",
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderTopWidth: 2,
-    borderTopColor: COLOR,
-    marginTop: 4,
+    borderTopColor: ACCENT,
+    marginTop: 8,
   },
   fiscLabelBold: { width: "60%", ...VALUE, fontSize: 10, fontWeight: 700 },
   fiscValueBold: {
     width: "40%",
     textAlign: "right" as const,
     ...VALUE,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 700,
   },
 
@@ -221,11 +221,13 @@ const s = StyleSheet.create({
     right: MARGIN,
     flexDirection: "row",
     justifyContent: "space-between",
-    ...RULE_THIN,
+    borderTopWidth: 0.5,
+    borderTopColor: "rgba(10,10,10,0.15)",
+    borderTopStyle: "solid" as const,
     paddingTop: 12,
   },
   footerText: {
-    fontSize: 7,
+    fontSize: 8,
     fontFamily: "Helvetica",
     fontWeight: 400,
     color: "rgba(10,10,10,0.35)",
@@ -343,10 +345,10 @@ export function JaarrekeningPDF({ data }: { data: JaarrekeningData }) {
         )}
 
         {/* Bruto winst */}
-        <View style={[s.tableRowBold, { marginTop: 8 }]}>
-          <Text style={[s.tableCellBold, s.plLabel, { fontSize: 12 }]}>Bruto winst</Text>
+        <View style={[s.tableRowBold, { marginTop: 8, borderTopWidth: 2, borderTopColor: ACCENT }]}>
+          <Text style={[s.tableCellBold, s.plLabel, { fontSize: 14 }]}>Bruto winst</Text>
           <Text style={[s.tableCellBold, s.plAmount]} />
-          <Text style={[s.tableCellBold, s.plTotal, { fontSize: 12 }]}>{fc(wv.brutoWinst)}</Text>
+          <Text style={[s.tableCellBold, s.plTotal, { fontSize: 14 }]}>{fc(wv.brutoWinst)}</Text>
         </View>
 
         {renderFooter(1)}
