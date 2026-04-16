@@ -24,6 +24,7 @@ export const viewport: Viewport = {
   themeColor: "#f4f4f4",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vat100.nl";

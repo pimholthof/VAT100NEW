@@ -19,14 +19,46 @@ import { HealthScore } from "@/features/dashboard/components/HealthScore";
 import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
 import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
-import { useState } from "react";
+import { useState, useCallback, useSyncExternalStore } from "react";
 import TaxAgentChat from "@/components/ai/TaxAgentChat";
 import { Button } from "@/components/ui/Button";
 import { Bot } from "lucide-react";
+import MobileDashboard from "@/features/dashboard/MobileDashboard";
 
-
+function useIsMobile(breakpoint = 768) {
+  const subscribe = useCallback((cb: () => void) => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    mql.addEventListener("change", cb);
+    return () => mql.removeEventListener("change", cb);
+  }, [breakpoint]);
+  const getSnapshot = useCallback(
+    () => window.matchMedia(`(max-width: ${breakpoint}px)`).matches,
+    [breakpoint]
+  );
+  const getServerSnapshot = useCallback(() => false, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
 
 export default function DashboardClient({
+  initialResult,
+  initialOnboarding,
+}: {
+  initialResult?: ActionResult<DashboardData>;
+  initialOnboarding?: OnboardingProgress | null;
+}) {
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return <MobileDashboard initialResult={initialResult} />;
+  }
+  return (
+    <DesktopDashboard
+      initialResult={initialResult}
+      initialOnboarding={initialOnboarding}
+    />
+  );
+}
+
+function DesktopDashboard({
   initialResult,
   initialOnboarding,
 }: {

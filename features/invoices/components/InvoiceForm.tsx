@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "@/lib/i18n/context";
@@ -19,12 +19,33 @@ import { m as motion  } from "framer-motion";
 import { InvoiceRecipientSection } from "./InvoiceRecipientSection";
 import { InvoiceLinesSection } from "./InvoiceLinesSection";
 import { InvoiceFormActions } from "./InvoiceFormActions";
+import { MobileInvoiceWizard } from "./MobileInvoiceWizard";
 
 interface InvoiceFormProps {
   invoiceId?: string;
 }
 
+function useIsMobile(breakpoint = 768) {
+  const subscribe = useCallback((cb: () => void) => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    mql.addEventListener("change", cb);
+    return () => mql.removeEventListener("change", cb);
+  }, [breakpoint]);
+  const getSnapshot = useCallback(
+    () => window.matchMedia(`(max-width: ${breakpoint}px)`).matches,
+    [breakpoint]
+  );
+  const getServerSnapshot = useCallback(() => false, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
 export function InvoiceForm({ invoiceId }: InvoiceFormProps) {
+  const isMobile = useIsMobile();
+  if (isMobile) return <MobileInvoiceWizard invoiceId={invoiceId} />;
+  return <DesktopInvoiceForm invoiceId={invoiceId} />;
+}
+
+function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
   const { t } = useLocale();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
