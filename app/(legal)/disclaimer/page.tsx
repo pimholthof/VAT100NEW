@@ -122,12 +122,10 @@ export default function DisclaimerPage() {
         <Section title="5. KOR (Kleineondernemersregeling)">
           <p>
             Als je gebruikmaakt van de KOR, schakel dit dan expliciet aan in je
-            instellingen. VAT100 monitort de €20.000-omzetdrempel per
-            kalenderjaar en waarschuwt je tijdig wanneer je deze nadert. Bij
-            overschrijding ben je <strong>per direct</strong> BTW-plichtig over
-            de transactie die de drempel overschrijdt — VAT100 detecteert dit,
-            maar het correct factureren en aanmelden bij de Belastingdienst is
-            jouw verantwoordelijkheid.
+            instellingen. Het bewaken van de €20.000-omzetdrempel per
+            kalenderjaar en het tijdig afmelden bij de Belastingdienst bij
+            overschrijding is volledig jouw verantwoordelijkheid. VAT100
+            biedt geen automatische drempelmonitor.
           </p>
         </Section>
 
