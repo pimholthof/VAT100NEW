@@ -441,6 +441,15 @@ export async function scanReceiptWithAI(
     if (planCheck.error !== null) return { error: planCheck.error };
     const { supabase, user } = planCheck;
 
+    // Rate limit AI-scans (Anthropic kostenbescherming): max 30 per 5 min per user
+    const { isRateLimited } = await import("@/lib/rate-limit");
+    if (await isRateLimited(`ocr-receipt:${user.id}`, 30, 5 * 60_000)) {
+      return {
+        error:
+          "Te veel scans achter elkaar. Wacht enkele minuten en probeer het opnieuw.",
+      };
+    }
+
     // Get receipt to find storage_path
     const { data: receipt, error: receiptError } = await supabase
       .from("receipts")

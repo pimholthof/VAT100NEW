@@ -32,7 +32,20 @@ export interface InvoiceOCRData {
   // Meta
   confidence: number; // 0.0 - 1.0
   vat_scheme: VatScheme;
+  /**
+   * True wanneer confidence < OCR_REVIEW_THRESHOLD.
+   * UI moet expliciet om handmatige bevestiging vragen voordat
+   * de factuur wordt opgeslagen of de aangifte raakt.
+   */
+  requires_review: boolean;
 }
+
+/**
+ * Onder deze drempel vragen we de gebruiker om handmatig te
+ * controleren voordat we de OCR-data accepteren als bron voor
+ * fiscale berekeningen.
+ */
+export const OCR_REVIEW_THRESHOLD = 0.85;
 
 export interface ExtractedClientData {
   name: string;

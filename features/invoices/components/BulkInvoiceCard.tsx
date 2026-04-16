@@ -88,6 +88,7 @@ export function BulkInvoiceCard({
   const totalIncVat = Math.round((subtotal + vatAmount) * 100) / 100;
 
   const confidence = result.aiData?.confidence ?? null;
+  const requiresReview = result.aiData?.requires_review ?? false;
   const isPdf = result.fileName.toLowerCase().endsWith(".pdf");
 
   const handleSave = () => {
@@ -198,10 +199,9 @@ export function BulkInvoiceCard({
     <div
       style={{
         padding: "16px 20px",
-        border:
-          confidence !== null && confidence < 0.7
-            ? "0.5px solid rgba(180,83,9,0.4)"
-            : "0.5px solid rgba(13,13,11,0.08)",
+        border: requiresReview
+          ? "0.5px solid rgba(180,83,9,0.4)"
+          : "0.5px solid rgba(13,13,11,0.08)",
         marginBottom: 8,
       }}
     >
@@ -289,15 +289,20 @@ export function BulkInvoiceCard({
               fontWeight: 500,
               letterSpacing: "0.08em",
               textTransform: "uppercase" as const,
-              opacity: confidence < 0.7 ? 0.8 : 0.3,
-              color:
-                confidence < 0.7
-                  ? "var(--color-warning, #b45309)"
-                  : "inherit",
+              opacity: requiresReview ? 0.8 : 0.3,
+              color: requiresReview
+                ? "var(--color-warning, #b45309)"
+                : "inherit",
               minWidth: 40,
               textAlign: "right",
             }}
+            title={
+              requiresReview
+                ? "Lage AI-zekerheid \u2014 controleer alle velden voor je opslaat."
+                : undefined
+            }
           >
+            {requiresReview ? "Controle " : ""}
             {Math.round(confidence * 100)}%
           </span>
         )}

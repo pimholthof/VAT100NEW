@@ -9,6 +9,7 @@ import * as Sentry from "@sentry/nextjs";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { getMolliePayment } from "@/lib/payments/mollie";
+import { isRateLimited } from "@/lib/rate-limit";
 
 interface RetryResult {
   processed: number;
@@ -123,6 +124,12 @@ export async function processWebhookRetries(): Promise<RetryResult> {
           `Webhook retry exhausted after ${newAttempt} attempts: ${errorMessage}`,
           "error"
         );
+        await alertAdminOnExhausted({
+          source: event.source,
+          eventId: event.id,
+          attempts: newAttempt,
+          error: errorMessage,
+        });
       } else {
         result.failed++;
       }
@@ -130,6 +137,51 @@ export async function processWebhookRetries(): Promise<RetryResult> {
   }
 
   return result;
+}
+
+/**
+ * Stuur een admin-alert wanneer een webhook-event definitief faalt.
+ * Throttled (max 1 mail per uur per source) om mailbom te voorkomen.
+ */
+async function alertAdminOnExhausted(opts: {
+  source: string;
+  eventId: string;
+  attempts: number;
+  error: string;
+}): Promise<void> {
+  const adminEmail = process.env.ADMIN_ALERT_EMAIL;
+  if (!adminEmail) return;
+
+  // Max 1 alert per uur per source — ook bij stortvloed
+  if (await isRateLimited(`dlq-alert:${opts.source}`, 1, 60 * 60_000)) {
+    return;
+  }
+
+  try {
+    const { Resend } = await import("resend");
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || "alerts@vat100.nl",
+      to: adminEmail,
+      subject: `[VAT100] Webhook DLQ: ${opts.source} retry uitgeput`,
+      text: [
+        `Een webhook-event is na ${opts.attempts} pogingen definitief gefaald.`,
+        ``,
+        `Source: ${opts.source}`,
+        `Event ID: ${opts.eventId}`,
+        `Laatste fout: ${opts.error}`,
+        ``,
+        `Bekijk de Dead Letter Queue in /admin/systeem voor volledige payload en replay-actie.`,
+        ``,
+        `Throttle: max 1 alert per uur per source. Aanvullende failures worden alleen in Sentry vastgelegd.`,
+      ].join("\n"),
+    });
+  } catch (e) {
+    Sentry.captureMessage(
+      `DLQ admin alert email failed: ${getErrorMessage(e)}`,
+      "warning"
+    );
+  }
 }
 
 /**

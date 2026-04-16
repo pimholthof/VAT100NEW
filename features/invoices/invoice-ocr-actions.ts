@@ -3,7 +3,11 @@
 import { z } from "zod";
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, ClientInput, VatRate, VatScheme, InvoiceUnit } from "@/lib/types";
-import type { InvoiceOCRData, ExtractedClientData } from "./types/invoice-ocr";
+import {
+  type InvoiceOCRData,
+  type ExtractedClientData,
+  OCR_REVIEW_THRESHOLD,
+} from "./types/invoice-ocr";
 
 // ─── Scan Invoice with AI (accepts file directly, no storage needed) ───
 
@@ -80,6 +84,15 @@ export async function scanInvoiceWithAI(
     const { requirePlan } = await import("@/lib/supabase/server");
     const planCheck = await requirePlan("studio");
     if (planCheck.error !== null) return { error: planCheck.error };
+
+    // Rate limit AI-scans (Anthropic kostenbescherming): max 20 per 5 min per user
+    const { isRateLimited } = await import("@/lib/rate-limit");
+    if (await isRateLimited(`ocr-invoice:${planCheck.user.id}`, 20, 5 * 60_000)) {
+      return {
+        error:
+          "Te veel scans achter elkaar. Wacht enkele minuten en probeer het opnieuw.",
+      };
+    }
 
     const file = formData.get("file") as File | null;
     if (!file) return { error: "Geen bestand geselecteerd." };
@@ -223,6 +236,7 @@ export async function scanInvoiceWithAI(
       }
     }
 
+    const confidence = data.confidence ?? 0.5;
     const result: InvoiceOCRData = {
       client_name: data.client_name ?? null,
       client_address: data.client_address ?? null,
@@ -245,7 +259,8 @@ export async function scanInvoiceWithAI(
         unit: l.unit as InvoiceUnit,
         rate: l.rate,
       })),
-      confidence: data.confidence ?? 0.5,
+      confidence,
+      requires_review: confidence < OCR_REVIEW_THRESHOLD,
     };
 
     return { error: null, data: result };
