@@ -310,6 +310,7 @@ export default function LandingPage() {
         <div className={styles.footerLinks}>
           <Link href="/privacy" className={styles.footerLink}>Privacy</Link>
           <Link href="/voorwaarden" className={styles.footerLink}>Voorwaarden</Link>
+          <Link href="/disclaimer" className={styles.footerLink}>Disclaimer</Link>
           <Link href="/login" className={styles.footerLink}>{t.landing.login}</Link>
           <Link href="/register" className={styles.footerLink}>{t.landing.register}</Link>
         </div>
