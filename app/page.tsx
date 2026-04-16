@@ -308,6 +308,8 @@ export default function LandingPage() {
       <footer className={styles.footer}>
         <span className={styles.footerCopyright}>&copy; {new Date().getFullYear()} VAT100</span>
         <div className={styles.footerLinks}>
+          <Link href="/help" className={styles.footerLink}>Help</Link>
+          <Link href="/status" className={styles.footerLink}>Status</Link>
           <Link href="/privacy" className={styles.footerLink}>Privacy</Link>
           <Link href="/voorwaarden" className={styles.footerLink}>Voorwaarden</Link>
           <Link href="/disclaimer" className={styles.footerLink}>Disclaimer</Link>

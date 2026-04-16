@@ -58,6 +58,76 @@ export default function DocumentsPage() {
           </a>
         ))}
       </div>
+
+      {/* Boekhouder-export */}
+      <h2
+        className="section-header"
+        style={{ margin: "var(--space-section) 0 8px" }}
+      >
+        Boekhouder-export
+      </h2>
+      <p
+        style={{
+          fontSize: "var(--text-body-sm)",
+          fontWeight: 300,
+          opacity: 0.5,
+          margin: "0 0 24px",
+          maxWidth: 640,
+        }}
+      >
+        CSV in memoriaalboeking-formaat met grootboekrekeningen en BTW-codes.
+        Compatibel met Twinfield, Exact Online en Snelstart. Deel deze bestanden
+        direct met je accountant.
+      </p>
+
+      <p
+        className="label"
+        style={{ margin: "0 0 8px", opacity: 0.5 }}
+      >
+        Uitgaande facturen
+      </p>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          flexWrap: "wrap",
+          marginBottom: 20,
+        }}
+      >
+        {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map(
+          (y) => (
+            <a
+              key={`inv-${y}`}
+              href={`/api/export/accountant?type=invoices&year=${y}`}
+              download
+              className="btn-secondary"
+            >
+              Facturen {y}
+            </a>
+          )
+        )}
+      </div>
+
+      <p
+        className="label"
+        style={{ margin: "0 0 8px", opacity: 0.5 }}
+      >
+        Bonnen & kosten
+      </p>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map(
+          (y) => (
+            <a
+              key={`rcpt-${y}`}
+              href={`/api/export/accountant?type=receipts&year=${y}`}
+              download
+              className="btn-secondary"
+            >
+              Bonnen {y}
+            </a>
+          )
+        )}
+      </div>
     </div>
   );
 }
