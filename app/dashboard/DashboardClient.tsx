@@ -17,6 +17,7 @@ import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingIn
 import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
 import { HealthScore } from "@/features/dashboard/components/HealthScore";
 import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
+import { SampleDataBanner } from "@/features/onboarding/components/SampleDataBanner";
 import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
 import { useState } from "react";
@@ -119,6 +120,9 @@ export default function DashboardClient({
       }}
       className="dashboard-content-inner dashboard-home"
     >
+      {/* ── VOORBEELDDATA-BANNER ── */}
+      <SampleDataBanner />
+
       {/* ── ONBOARDING CHECKLIST (new users) ── */}
       {!isLoading && onboardingResult && !onboardingResult.onboardingCompleted && !onboardingResult.onboardingDismissed && (
         <OnboardingChecklist

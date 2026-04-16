@@ -158,6 +158,15 @@ export async function completeOnboarding(
     return { error: error.message };
   }
 
+  // Best-effort: seed voorbeelddata zodat het dashboard niet leeg oogt.
+  // Faalt deze stap, dan doorgaan — de gebruiker merkt het hoogstens aan een leeg overzicht.
+  try {
+    const { seedSampleData } = await import("@/features/onboarding/sample-data");
+    await seedSampleData();
+  } catch {
+    // stil falen: activation mag niet blokkeren
+  }
+
   const planParam = plan ? `?plan=${plan}` : "";
   redirect(`/abonnement/kies${planParam}`);
 }
