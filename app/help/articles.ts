@@ -2,7 +2,12 @@ export interface HelpArticle {
   slug: string;
   title: string;
   description: string;
-  category: "btw" | "inkomstenbelasting" | "factureren";
+  category:
+    | "btw"
+    | "inkomstenbelasting"
+    | "factureren"
+    | "internationaal"
+    | "bedrijfskosten";
   updated: string;
   body: string;
 }
@@ -221,6 +226,245 @@ Je moet facturen **7 jaar** bewaren (art. 52 AWR). Voor onroerend goed geldt 10 
 - Gat in factuurnummering — als je factuur 013 vergeet te sturen, levert dat vragen op bij controle.
 `.trim(),
   },
+  {
+    slug: "icp-opgave",
+    title: "ICP-opgave: wat en wanneer?",
+    description:
+      "Leveringen en diensten aan BTW-plichtige afnemers in andere EU-landen apart melden. Samen met je kwartaalaangifte.",
+    category: "internationaal",
+    updated: "16 april 2026",
+    body: `
+### Wat is een ICP-opgave?
+
+De Opgaaf Intracommunautaire Prestaties (ICP) is een extra melding naast je gewone BTW-aangifte. Hierin geef je per EU-afnemer aan voor welk bedrag je aan ze hebt gefactureerd onder de verleggingsregeling (rubriek 3b).
+
+### Wanneer moet je een ICP indienen?
+
+- Je factureert als BTW-ondernemer in Nederland.
+- Aan een zakelijke afnemer (B2B) in een ander EU-land.
+- Die afnemer heeft een geldig EU BTW-nummer.
+- Je past de verleggingsregeling toe (0% BTW op de factuur, "BTW verlegd" vermelden).
+
+Als je dit hebt gedaan in een kwartaal, moet je naast je BTW-aangifte ook een ICP indienen.
+
+### Deadline
+
+- **Kwartaal ICP** (de standaard): binnen een maand na afloop van het kwartaal. Gelijk met je BTW-aangifte.
+- Bij een maandelijkse BTW-aangifte kan ook ICP per maand.
+
+### Wat moet erin staan?
+
+Per afnemer:
+
+1. Het **volledige BTW-identificatienummer** van de klant (landcode + nummer, bijv. DE123456789).
+2. Het **totaalbedrag** exclusief BTW in euro's voor het kwartaal.
+3. Of het om **diensten** of **goederen** gaat.
+
+### Boete bij te laat of incompleet
+
+De Belastingdienst kan €136 per fout rekenen (2026). Ook bij mismatches tussen jouw opgave en die van je EU-klant (die VIES-lookups doet).
+
+### In VAT100
+
+VAT100 herkent EU-reverse-charge facturen automatisch en genereert de ICP-opgave samen met je BTW-concept. Gebruik **Belasting → ICP** om de opgaaf te exporteren in het formaat dat Mijn Belastingdienst Zakelijk accepteert.
+
+### VIES-validatie
+
+Controleer altijd het BTW-nummer van je EU-klant via de VIES-service van de Europese Commissie. VAT100 doet dit bij het aanmaken van een nieuwe klant met een EU BTW-nummer. Ongeldige nummers = geen recht op verleggingsregeling = alsnog 21% BTW verschuldigd.
+`.trim(),
+  },
+  {
+    slug: "suppletie",
+    title: "Suppletie: foutje corrigeren in een eerdere aangifte",
+    description:
+      "Te veel of te weinig BTW aangegeven? Met een suppletie corrigeer je dat. Drempels, deadlines en rente.",
+    category: "btw",
+    updated: "16 april 2026",
+    body: `
+### Wat is een suppletie?
+
+Een suppletie is een extra aangifte waarmee je een eerdere BTW-aangifte corrigeert. Je ontdekt bijvoorbeeld dat je een factuur vergeten bent, of dat je een kostenpost dubbel hebt geboekt.
+
+### Wanneer verplicht?
+
+- Je hebt een fout ontdekt in een BTW-aangifte die **je al hebt ingediend**.
+- Het te corrigeren bedrag is **meer dan €1.000**.
+- Binnen vijf jaar na afloop van het boekjaar waarop de aangifte betrekking heeft.
+
+### Wanneer optioneel?
+
+- Is het bedrag ≤ €1.000? Dan mag je het meenemen in je volgende reguliere aangifte. Geen aparte suppletie nodig.
+
+### Hoe werkt het?
+
+1. Je vult een suppletie-formulier in via Mijn Belastingdienst Zakelijk of via de Belastingdienst-brief.
+2. Per gecorrigeerd tijdvak geef je de juiste bedragen op.
+3. Het verschil betaal je bij, of krijg je terug.
+
+### Belastingrente
+
+Bij een suppletie waarbij je **moet bijbetalen** berekent de Belastingdienst belastingrente vanaf 6 maanden na afloop van het kalenderjaar. Tarief 2026: 8% voor de vennootschapsbelasting, 6% voor overige belastingen (wijzigt jaarlijks).
+
+### Geen boete bij vrijwillige verbetering
+
+Meld je de fout **voordat** de Belastingdienst deze zelf ontdekt? Dan is er in principe geen vergrijpboete. Wacht je tot een controle? Dan kan de boete 25-100% van het verschuldigde bedrag zijn.
+
+### In VAT100
+
+**Belasting → Suppletie** genereert het overzicht van je eigen correcties over de afgelopen jaren en suggereert de juiste indiening-structuur. Let op: indienen gebeurt altijd zelf via Mijn Belastingdienst.
+`.trim(),
+  },
+  {
+    slug: "auto-van-de-zaak",
+    title: "Zakelijke auto versus privé-auto: wat is fiscaal slim?",
+    description:
+      "Vier opties voor je vervoer: zakelijke auto, privé-auto met kilometervergoeding, leasen, of geen auto. Plus de bijtelling in 2026.",
+    category: "bedrijfskosten",
+    updated: "16 april 2026",
+    body: `
+### De vier opties
+
+#### 1. Zakelijke auto (op de balans)
+
+De auto staat op je bedrijfsbalans. Alle kosten zijn aftrekbaar: afschrijving, brandstof, verzekering, onderhoud, motorrijtuigenbelasting.
+
+**Nadeel:** privégebruik leidt tot **bijtelling** op je belastbare winst.
+
+Bijtelling 2026:
+- **Volledig elektrisch** ≤ €30.000 catalogusprijs: 17%.
+- **Volledig elektrisch** > €30.000: 17% tot €30k, 22% daarboven.
+- **Brandstof- of hybride**: 22%.
+
+Geen privégebruik? Dan geen bijtelling, maar je moet een **verklaring geen privégebruik** aanvragen en een sluitende rittenadministratie bijhouden (elke zakelijke rit loggen).
+
+#### 2. Privé-auto met kilometervergoeding
+
+De auto is van jou privé. Voor elke zakelijke kilometer mag je **€0,23 per km** aftrekken van je belastbare winst (2026). Eenvoudig en zonder bijtelling.
+
+**Ideaal** als je de auto meer privé dan zakelijk gebruikt.
+
+#### 3. Lease (operational of financial)
+
+Bij operational lease betaal je een maandelijks bedrag dat grotendeels aftrekbaar is als kosten. Bij financial lease staat de auto effectief op de balans met bijbehorende bijtelling-regels.
+
+#### 4. Geen auto
+
+Soms is OV + af en toe deelauto of taxi het fiscaal én praktisch voordeligst. Alle reiskosten zijn zakelijk aftrekbaar.
+
+### Hoe kies je?
+
+| Situatie                                  | Vaak beste keuze             |
+| ----------------------------------------- | ---------------------------- |
+| < 7.500 zakelijke km per jaar             | Privé-auto + €0,23/km        |
+| 7.500–20.000 zakelijke km, veel privé     | Privé-auto + €0,23/km        |
+| > 20.000 zakelijke km, weinig privé       | Zakelijke auto (elektrisch)  |
+| Nieuwe EV, sterke milieu-focus            | Zakelijke EV (17% bijtelling)|
+
+### In VAT100
+
+Ga naar **Ritten** om zakelijke kilometers per dag te loggen. Bij keuze "privé-auto met vergoeding" berekent VAT100 automatisch de aftrekbare vergoeding in je IB-prognose.
+`.trim(),
+  },
+  {
+    slug: "werkruimte-thuis",
+    title: "Werkruimte thuis aftrekken — de strikte voorwaarden",
+    description:
+      "De werkkamer in je huis is zelden aftrekbaar. Wat wel kan: zakelijk gedeelte van internet, telefoon en energie.",
+    category: "bedrijfskosten",
+    updated: "16 april 2026",
+    body: `
+### Het harde uitgangspunt
+
+De Belastingdienst is streng over **werkkamer-aftrek**. In 2026 mag je de kosten van een werkruimte thuis **alleen aftrekken als de werkruimte een zelfstandige werkruimte is**. Dat betekent:
+
+- Eigen opgang of eigen ingang.
+- Eigen toilet en watervoorziening.
+- De ruimte is verhuurbaar aan derden zonder de rest van de woning mee te verhuren.
+
+Kort: een verbouwd souterrain of losstaand studiogebouw op je perceel kan voldoen. Een kamertje boven met een bureau ertussen **niet**.
+
+### Wat is wél altijd aftrekbaar?
+
+Ook zonder een "zelfstandige werkruimte" zijn de volgende zakelijke kosten aftrekbaar:
+
+- **Internet**: zakelijke percentage van de abonnementskosten (meestal 50-80%).
+- **Mobiele telefoon**: zakelijke percentage van het abonnement.
+- **Drukwerk, kantoorartikelen, printerinkt**: volledig.
+- **Zakelijke computerapparatuur** (meer dan €450: KIA-investering; minder: directe afboek).
+- **Vakliteratuur, abonnementen, cursussen** specifiek voor je vak.
+
+### Voorbeeld: realistisch zakelijk percentage
+
+Je werkt 4 dagen per week thuis, hebt een gezin dat ook internet en telefoon gebruikt. Redelijke percentages:
+
+- Internet: 40-60%
+- Telefoon: 50-80%
+- Printer/inkt: 80-100%
+
+Documenteer je onderbouwing in VAT100 bij de bon (opmerkingenveld). Bij controle wil de inspecteur weten waarom jij 70% kiest.
+
+### Energie- en huurkosten
+
+Zonder zelfstandige werkruimte zijn deze **niet aftrekbaar**, hoe graag je het ook wilt. Ook een "evenredig deel" van de huur op basis van m² accepteert de fiscus niet.
+
+### In VAT100
+
+Bij elke bon kun je een **zakelijk percentage** instellen tussen 0 en 100. VAT100 past dit percentage toe op zowel de aftrekbare kosten als de voorbelasting (BTW).
+`.trim(),
+  },
+  {
+    slug: "btw-verlegd",
+    title: "BTW verlegd: wanneer en hoe toepassen?",
+    description:
+      "Verleggingsregeling binnen Nederland en binnen de EU. De afnemer betaalt de BTW in plaats van jij. Voorkom dure fouten.",
+    category: "internationaal",
+    updated: "16 april 2026",
+    body: `
+### Wat is "BTW verlegd"?
+
+Bij verlegde BTW vermeld je op je factuur géén BTW-bedrag, maar de zin "BTW verlegd" (of *reverse charge* in het Engels). Je afnemer verwerkt de BTW zelf op zijn eigen aangifte. Jij factureert 0% en draagt niks af.
+
+### Wanneer toepassen?
+
+#### 1. Binnenlandse verlegging (zeldzaam bij creatieven)
+
+- **Onderaanneming in de bouw**: verplicht verleggen naar de hoofdaannemer.
+- **Schoonmaakdiensten** aan een andere BTW-plichtige opdrachtgever in de sector.
+- **Levering mobiele telefoons boven €10.000** aan een andere BTW-plichtige.
+
+Voor de meeste creatieve diensten (ontwerp, fotografie, tekst) is binnenlandse verlegging **niet van toepassing**. Je factureert gewoon 21%.
+
+#### 2. Intracommunautaire verlegging (B2B binnen de EU)
+
+Lever je een dienst aan een zakelijke klant in een ander EU-land met geldig BTW-nummer? Dan verleg je de BTW. Op de factuur:
+
+- 0% BTW.
+- Vermelding: **"BTW verlegd - reverse charge - Art. 44 EU BTW-richtlijn"**.
+- Je eigen BTW-nummer.
+- Het BTW-nummer van de klant (geverifieerd via VIES).
+
+Daarnaast: **ICP-opgave** indienen (zie het artikel daarover).
+
+#### 3. Diensten aan klanten buiten de EU
+
+Voor de meeste diensten geldt: géén Nederlandse BTW verschuldigd, want de dienst wordt in het land van de afnemer geconsumeerd. Op de factuur:
+
+- 0% BTW.
+- Vermelding: **"Niet-belastbaar in Nederland - plaats van dienst buiten EU"**.
+
+Geen ICP nodig.
+
+### Veelgemaakte fouten
+
+- **Vergeten te verleggen** bij een Duitse of Belgische klant met BTW-nummer. Gevolg: je bent alsnog 21% Nederlandse BTW verschuldigd, maar kunt dat niet meer terughalen bij je klant.
+- **Verleggen naar particuliere EU-klanten.** Dat mag niet — alleen B2B. Bij B2C gelden andere regels (OSS, drempels).
+- **Geen VIES-validatie** vooraf. Als het nummer ongeldig is, is verlegging niet geldig.
+
+### In VAT100
+
+Zet bij het opstellen van de factuur **BTW-regeling: verlegd EU** of **export buiten EU**. VAT100 vult de juiste vermelding automatisch in op de PDF en neemt de factuur correct mee in rubriek 3b (EU) of 4a (export).
+`.trim(),
+  },
 ];
 
 export function getArticle(slug: string): HelpArticle | undefined {
@@ -231,4 +475,6 @@ export const CATEGORY_LABELS: Record<HelpArticle["category"], string> = {
   btw: "BTW",
   inkomstenbelasting: "Inkomstenbelasting",
   factureren: "Factureren",
+  internationaal: "Internationaal",
+  bedrijfskosten: "Bedrijfskosten",
 };

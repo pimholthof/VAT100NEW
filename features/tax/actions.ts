@@ -8,6 +8,42 @@ import {
   type Investment,
 } from "@/lib/tax/dutch-tax-2026";
 
+/**
+ * Aantal actieve fiscale deadlines voor de huidige gebruiker.
+ * Wordt gebruikt voor het rode bolletje bij "Belasting" in de nav.
+ * Head-count query zodat de payload klein blijft.
+ */
+export async function getActiveDeadlineCount(): Promise<
+  ActionResult<{ count: number; urgent: number }>
+> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  try {
+    const [{ count: all }, { count: urgent }] = await Promise.all([
+      supabase
+        .from("deadline_alerts")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "active"),
+      supabase
+        .from("deadline_alerts")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .in("urgency", ["URGENT", "OVERDUE"]),
+    ]);
+
+    return {
+      error: null,
+      data: { count: all ?? 0, urgent: urgent ?? 0 },
+    };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
 export interface QuarterStats {
   quarter: string;
   revenueExVat: number;

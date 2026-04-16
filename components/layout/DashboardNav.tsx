@@ -27,9 +27,13 @@ function useIsMobile(breakpoint = 768) {
 export function DashboardNav({
   studioName,
   unreadMessages = 0,
+  deadlineCount = 0,
+  deadlineUrgent = 0,
 }: {
   studioName?: string;
   unreadMessages?: number;
+  deadlineCount?: number;
+  deadlineUrgent?: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -147,7 +151,34 @@ export function DashboardNav({
                 <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/invoices")}>{t.nav.invoices}</Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")}>{t.nav.clients}</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")}>{t.nav.expenses}</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")}>{t.nav.tax}</Link>
+                <Link
+                  href="/dashboard/tax"
+                  onClick={() => setIsDrawerOpen(false)}
+                  className={linkClass("/dashboard/tax")}
+                  style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  aria-label={
+                    deadlineCount > 0
+                      ? `${t.nav.tax} (${deadlineCount} openstaande deadline${deadlineCount === 1 ? "" : "s"})`
+                      : t.nav.tax
+                  }
+                >
+                  {t.nav.tax}
+                  {deadlineCount > 0 && (
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background:
+                          deadlineUrgent > 0
+                            ? "var(--color-accent, #E53E3E)"
+                            : "var(--color-warning, #b45309)",
+                        flexShrink: 0,
+                      }}
+                      aria-hidden
+                    />
+                  )}
+                </Link>
                 <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Berichten
                   {unreadMessages > 0 && (
