@@ -15,6 +15,7 @@ import {
   duplicateInvoice,
 } from "@/features/invoices/actions";
 import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
+import { InvoiceLivePreview } from "@/features/invoices/components/InvoiceLivePreview";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
 import {
   ButtonPrimary,
@@ -361,7 +362,20 @@ export default function EditInvoicePage() {
 
       <div style={{ marginTop: 24 }}>
         {currentStatus === "draft" ? (
-          <InvoiceForm invoiceId={params.id} />
+          <div className="invoice-edit-layout">
+            <div className="invoice-edit-layout__form">
+              <InvoiceForm invoiceId={params.id} />
+            </div>
+            <aside
+              className="invoice-edit-layout__preview"
+              aria-label="Live factuurvoorbeeld"
+            >
+              <InvoiceLivePreview
+                invoiceId={params.id}
+                isCreditNote={result?.data?.is_credit_note ?? false}
+              />
+            </aside>
+          </div>
         ) : (
           <p style={{ opacity: 0.3, fontSize: "var(--text-body-sm)", padding: "24px 0", fontStyle: "italic" }}>
             Deze factuur is verzonden en kan niet meer worden bewerkt.

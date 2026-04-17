@@ -2517,3 +2517,56 @@ a {
     break-inside: avoid;
   }
 }
+
+/* ─── Invoice edit layout — split form + live preview ─── */
+.invoice-edit-layout {
+  display: block;
+}
+
+.invoice-edit-layout__form {
+  min-width: 0;
+}
+
+.invoice-edit-layout__preview {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .invoice-edit-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    gap: 64px;
+    align-items: start;
+  }
+
+  .invoice-edit-layout__preview {
+    display: block;
+  }
+}
+
+.invoice-mobile-preview-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin: 16px 0 0;
+  background: transparent;
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.invoice-mobile-preview-toggle[aria-expanded="true"] {
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+.invoice-mobile-preview-wrapper {
+  margin-top: 16px;
+}
