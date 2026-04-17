@@ -22,6 +22,7 @@ import {
   ButtonSecondary,
   ErrorMessage,
   ConfirmDialog,
+  useToast,
 } from "@/components/ui";
 import { STATUS_LABELS } from "@/lib/constants/status";
 
@@ -29,6 +30,7 @@ export default function EditInvoicePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const loadInvoice = useInvoiceStore((s) => s.loadInvoice);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
@@ -73,15 +75,40 @@ export default function EditInvoicePage() {
   }, [result?.data, loadInvoice]);
 
   const handleStatusChange = async (newStatus: InvoiceStatus) => {
+    const previousStatus = result?.data?.status as InvoiceStatus | undefined;
     setStatusUpdating(true);
     setStatusMsg(null);
     const res = await updateInvoiceStatus(params.id, newStatus);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else {
-      setStatusMsg(`Status gewijzigd naar ${STATUS_LABELS[newStatus]}.`);
       queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      const canUndo = previousStatus && previousStatus !== newStatus;
+      toast(`Status: ${STATUS_LABELS[newStatus]}`, {
+        type: "success",
+        action: canUndo
+          ? {
+              label: "Ongedaan",
+              onClick: async () => {
+                const undoRes = await updateInvoiceStatus(
+                  params.id,
+                  previousStatus
+                );
+                if (undoRes.error) {
+                  toast(undoRes.error, "error");
+                } else {
+                  toast(`Teruggezet naar ${STATUS_LABELS[previousStatus]}`);
+                  queryClient.invalidateQueries({
+                    queryKey: ["invoice", params.id],
+                  });
+                  queryClient.invalidateQueries({ queryKey: ["invoices"] });
+                }
+              },
+            }
+          : undefined,
+      });
     }
     setStatusUpdating(false);
   };
@@ -91,11 +118,10 @@ export default function EditInvoicePage() {
     setStatusMsg(null);
     const res = await sendInvoice(params.id);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else {
-      setStatusMsg(
-        `Factuur verstuurd naar ${result?.data?.client?.email}.`
-      );
+      toast(`Verstuurd naar ${result?.data?.client?.email}`);
       queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
     }
     setEmailSending(false);
@@ -106,9 +132,10 @@ export default function EditInvoicePage() {
     setStatusMsg(null);
     const res = await sendReminder(params.id);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else {
-      setStatusMsg("Herinnering verstuurd.");
+      toast("Herinnering verstuurd");
     }
     setReminderSending(false);
   };
@@ -119,9 +146,11 @@ export default function EditInvoicePage() {
     setShareLoading(true);
     const res = await generateShareToken(params.id);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else if (res.data) {
       setLocalShareToken(res.data);
+      toast("Deellink aangemaakt");
     }
     setShareLoading(false);
   };
@@ -131,6 +160,7 @@ export default function EditInvoicePage() {
     const url = `${window.location.origin}/invoice/${shareToken}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
+    toast("Gekopieerd");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -140,8 +170,10 @@ export default function EditInvoicePage() {
     setStatusMsg(null);
     const res = await createCreditNote(params.id);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else if (res.data) {
+      toast("Creditnota aangemaakt");
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       router.push(`/dashboard/invoices/${res.data}`);
     }
@@ -275,8 +307,10 @@ export default function EditInvoicePage() {
               setDuplicating(true);
               const res = await duplicateInvoice(params.id);
               if (res.error) {
+                toast(res.error, "error");
                 setStatusMsg(res.error);
               } else if (res.data) {
+                toast("Factuur gedupliceerd");
                 router.push(`/dashboard/invoices/${res.data}`);
               }
               setDuplicating(false);
@@ -402,9 +436,11 @@ export default function EditInvoicePage() {
           setDeleting(true);
           const res = await deleteInvoice(params.id);
           if (res.error) {
+            toast(res.error, "error");
             setStatusMsg(res.error);
             setDeleting(false);
           } else {
+            toast("Factuur verwijderd");
             router.push("/dashboard/invoices");
           }
         }}
