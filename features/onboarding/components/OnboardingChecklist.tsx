@@ -23,6 +23,8 @@ interface OnboardingChecklistProps {
   onboardingDismissed?: boolean;
 }
 
+const MINIMIZED_STORAGE_KEY = "vat100-onboarding-minimized";
+
 export function OnboardingChecklist({
   hasProfile,
   hasFiscalProfile,
@@ -33,60 +35,108 @@ export function OnboardingChecklist({
   onboardingDismissed = false,
 }: OnboardingChecklistProps) {
   const [dismissed, setDismissed] = useState(onboardingDismissed);
+  const [minimized, setMinimized] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(MINIMIZED_STORAGE_KEY) === "1";
+  });
   const { t } = useLocale();
 
   const steps: OnboardingStep[] = [
-    {
-      key: "profile",
-      done: hasProfile,
-      label: t.onboarding.stepProfile,
-      href: "/dashboard/settings",
-    },
-    {
-      key: "fiscal",
-      done: hasFiscalProfile,
-      label: t.onboarding.stepFiscal,
-      href: "/dashboard/settings",
-    },
-    {
-      key: "client",
-      done: hasClient,
-      label: t.onboarding.stepClient,
-      href: "/dashboard/clients/new",
-    },
-    {
-      key: "invoice",
-      done: hasInvoice,
-      label: t.onboarding.stepInvoice,
-      href: "/dashboard/invoices/new",
-    },
-    {
-      key: "bank",
-      done: hasBankConnection,
-      label: t.onboarding.stepBank,
-      href: "/dashboard/bank",
-    },
-    {
-      key: "receipt",
-      done: hasReceipt,
-      label: t.onboarding.stepReceipt,
-      href: "/dashboard/receipts/new",
-    },
+    { key: "profile", done: hasProfile, label: t.onboarding.stepProfile, href: "/dashboard/settings" },
+    { key: "fiscal", done: hasFiscalProfile, label: t.onboarding.stepFiscal, href: "/dashboard/settings" },
+    { key: "client", done: hasClient, label: t.onboarding.stepClient, href: "/dashboard/clients/new" },
+    { key: "invoice", done: hasInvoice, label: t.onboarding.stepInvoice, href: "/dashboard/invoices/new" },
+    { key: "bank", done: hasBankConnection, label: t.onboarding.stepBank, href: "/dashboard/bank" },
+    { key: "receipt", done: hasReceipt, label: t.onboarding.stepReceipt, href: "/dashboard/receipts/new" },
   ];
 
   const completedCount = steps.filter((s) => s.done).length;
   const totalSteps = steps.length;
   const allDone = completedCount === totalSteps;
-  const nextStep = steps.find((s) => !s.done);
+  const remainingSteps = steps.filter((s) => !s.done);
+  const nextStep = remainingSteps[0];
 
-  // Don't show if all done or dismissed
   if (dismissed || allDone) return null;
-
-  const canDismiss = true;
 
   async function handleDismiss() {
     setDismissed(true);
     await markOnboardingDismissed();
+  }
+
+  function toggleMinimized() {
+    const next = !minimized;
+    setMinimized(next);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(MINIMIZED_STORAGE_KEY, next ? "1" : "0");
+    }
+  }
+
+  if (minimized) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "10px 14px 10px 18px",
+          border: "0.5px solid rgba(0,0,0,0.08)",
+          borderRadius: 999,
+          marginBottom: 24,
+          background: "rgba(255,255,255,0.85)",
+          backdropFilter: "blur(40px)",
+          WebkitBackdropFilter: "blur(40px)",
+          width: "fit-content",
+        }}
+      >
+        <span
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            opacity: 0.55,
+            fontWeight: 500,
+          }}
+        >
+          Onboarding {completedCount}/{totalSteps}
+        </span>
+        {nextStep && (
+          <>
+            <span style={{ opacity: 0.2 }}>·</span>
+            <Link
+              href={nextStep.href}
+              style={{
+                fontSize: 12,
+                color: "var(--foreground)",
+                textDecoration: "none",
+                fontWeight: 500,
+              }}
+            >
+              {nextStep.label} →
+            </Link>
+          </>
+        )}
+        <button
+          type="button"
+          onClick={toggleMinimized}
+          aria-label="Uitklappen"
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 14,
+            opacity: 0.4,
+            padding: "4px 6px",
+            color: "var(--foreground)",
+            lineHeight: 1,
+          }}
+        >
+          ▾
+        </button>
+      </motion.div>
+    );
   }
 
   return (
@@ -107,28 +157,55 @@ export function OnboardingChecklist({
           WebkitBackdropFilter: "blur(40px)",
         }}
       >
-        {/* Dismiss button */}
-        {canDismiss && (
+        <div
+          style={{
+            position: "absolute",
+            top: 14,
+            right: 14,
+            display: "flex",
+            gap: 4,
+          }}
+        >
           <button
-            onClick={handleDismiss}
-            aria-label={t.onboarding.dismiss}
+            type="button"
+            onClick={toggleMinimized}
+            aria-label="Minimaliseren"
+            title="Minimaliseren"
             style={{
-              position: "absolute",
-              top: 16,
-              right: 16,
               background: "none",
               border: "none",
               cursor: "pointer",
-              fontSize: 14,
-              opacity: 0.25,
+              fontSize: 18,
+              opacity: 0.35,
               color: "var(--foreground)",
+              padding: "4px 8px",
+              lineHeight: 1,
+              fontWeight: 300,
+            }}
+          >
+            –
+          </button>
+          <button
+            type="button"
+            onClick={handleDismiss}
+            aria-label={t.onboarding.dismiss}
+            title={t.onboarding.dismiss}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 18,
+              opacity: 0.35,
+              color: "var(--foreground)",
+              padding: "4px 8px",
+              lineHeight: 1,
+              fontWeight: 300,
             }}
           >
             ×
           </button>
-        )}
+        </div>
 
-        {/* Header */}
         <p className="label" style={{ margin: "0 0 4px", opacity: 0.4 }}>
           {t.onboarding.title}
         </p>
@@ -152,7 +229,6 @@ export function OnboardingChecklist({
           </p>
         </div>
 
-        {/* Progress bar */}
         <div
           style={{
             height: 2,
@@ -174,52 +250,37 @@ export function OnboardingChecklist({
           />
         </div>
 
-        {/* Steps */}
-        <div
+        <ul
           style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
             display: "flex",
             flexDirection: "column",
             gap: 10,
           }}
         >
-          {steps.map((step) => (
-            <div
-              key={step.key}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <span
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: "50%",
-                  border: step.done ? "none" : "1px solid rgba(0,0,0,0.15)",
-                  background: step.done ? "var(--foreground)" : "transparent",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 10,
-                  color: "var(--background)",
-                  flexShrink: 0,
-                  transition: "all 0.3s ease",
-                }}
+          <AnimatePresence initial={false}>
+            {remainingSteps.map((step) => (
+              <motion.li
+                key={step.key}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                style={{ display: "flex", alignItems: "center", gap: 12 }}
               >
-                {step.done && "✓"}
-              </span>
-              {step.done ? (
                 <span
+                  aria-hidden="true"
                   style={{
-                    fontSize: "var(--text-body-md)",
-                    opacity: 0.3,
-                    textDecoration: "line-through",
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    border: "1px solid rgba(0,0,0,0.15)",
+                    background: "transparent",
+                    flexShrink: 0,
                   }}
-                >
-                  {step.label}
-                </span>
-              ) : (
+                />
                 <Link
                   href={step.href}
                   style={{
@@ -227,17 +288,16 @@ export function OnboardingChecklist({
                     color: "var(--foreground)",
                     textDecoration: "none",
                     fontWeight: step.key === nextStep?.key ? 500 : 400,
-                    opacity: step.key === nextStep?.key ? 0.8 : 0.5,
+                    opacity: step.key === nextStep?.key ? 0.85 : 0.55,
                   }}
                 >
                   {step.label} {step.key === nextStep?.key && "→"}
                 </Link>
-              )}
-            </div>
-          ))}
-        </div>
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </ul>
 
-        {/* Next action CTA */}
         {nextStep && (
           <Link
             href={nextStep.href}
