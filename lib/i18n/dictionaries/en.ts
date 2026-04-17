@@ -255,6 +255,7 @@ const en = {
     receiptsProcessed: "Receipts processed",
     thisMonth: "This month",
     vatReserve: "VAT to reserve",
+    vatReserveHint: "Not yours to spend",
     thisQuarter: "This quarter",
     openInvoicesTitle: "Open invoices",
     noOpenInvoices: "No open invoices",

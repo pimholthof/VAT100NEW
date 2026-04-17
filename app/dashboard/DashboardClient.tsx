@@ -244,6 +244,7 @@ function DesktopDashboard({
               value={formatCurrency(stats.vatToPay)}
               numericValue={stats.vatToPay}
               sub={vatDeadline ? new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" }) : t.dashboard.thisQuarter}
+              hint={stats.vatToPay > 0 ? t.dashboard.vatReserveHint : undefined}
             />
           </motion.div>
         </div>

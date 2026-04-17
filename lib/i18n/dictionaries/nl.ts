@@ -255,6 +255,7 @@ const nl = {
     receiptsProcessed: "Bonnetjes verwerkt",
     thisMonth: "Deze maand",
     vatReserve: "BTW apart zetten",
+    vatReserveHint: "Niet jouw geld",
     thisQuarter: "Dit kwartaal",
     openInvoicesTitle: "Openstaande facturen",
     noOpenInvoices: "Geen openstaande facturen",
