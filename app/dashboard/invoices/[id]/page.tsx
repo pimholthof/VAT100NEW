@@ -244,102 +244,119 @@ export default function EditInvoicePage() {
         >
           {STATUS_LABELS[currentStatus ?? ""] ?? currentStatus}
         </span>
-        <div style={{ display: "flex", gap: 8 }}>
-          {currentStatus === "draft" && (
-            <ButtonPrimary
-              onClick={() => handleStatusChange("sent")}
-              loading={statusUpdating}
-            >
-              Markeer als verzonden
-            </ButtonPrimary>
-          )}
-          {currentStatus === "sent" && (
-            <>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          {/* Primary flow: status transition + email send/remind */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {currentStatus === "draft" && (
               <ButtonPrimary
-                onClick={() => handleStatusChange("paid")}
+                onClick={() => handleStatusChange("sent")}
                 loading={statusUpdating}
               >
-                Markeer als betaald
-              </ButtonPrimary>
-              <ButtonSecondary
-                onClick={() => handleStatusChange("overdue")}
-                loading={statusUpdating}
-              >
-                Markeer als verlopen
-              </ButtonSecondary>
-            </>
-          )}
-          {(currentStatus === "paid" || currentStatus === "overdue") && (
-            <ButtonSecondary
-              onClick={() => handleStatusChange("draft")}
-              loading={statusUpdating}
-            >
-              Terug naar concept
-            </ButtonSecondary>
-          )}
-          {currentStatus === "overdue" && result?.data?.client?.email && (
-            <ButtonSecondary
-              onClick={handleSendReminder}
-              loading={reminderSending}
-            >
-              Stuur herinnering
-            </ButtonSecondary>
-          )}
-          {(currentStatus === "sent" || currentStatus === "paid") &&
-            result?.data?.client?.email && (
-              <ButtonPrimary
-                onClick={handleSendEmail}
-                loading={emailSending}
-              >
-                Verstuur per e-mail
+                Markeer als verzonden
               </ButtonPrimary>
             )}
-          {currentStatus !== "draft" && !result?.data?.is_credit_note && (
-            <ButtonSecondary
-              onClick={() => setShowCreditNoteConfirm(true)}
-              loading={creditNoteLoading}
-            >
-              Creditnota aanmaken
-            </ButtonSecondary>
-          )}
-          <ButtonSecondary
-            onClick={async () => {
-              setDuplicating(true);
-              const res = await duplicateInvoice(params.id);
-              if (res.error) {
-                toast(res.error, "error");
-                setStatusMsg(res.error);
-              } else if (res.data) {
-                toast("Factuur gedupliceerd");
-                router.push(`/dashboard/invoices/${res.data}`);
-              }
-              setDuplicating(false);
+            {currentStatus === "sent" && (
+              <>
+                <ButtonPrimary
+                  onClick={() => handleStatusChange("paid")}
+                  loading={statusUpdating}
+                >
+                  Markeer als betaald
+                </ButtonPrimary>
+                <ButtonSecondary
+                  onClick={() => handleStatusChange("overdue")}
+                  loading={statusUpdating}
+                >
+                  Markeer als verlopen
+                </ButtonSecondary>
+              </>
+            )}
+            {(currentStatus === "paid" || currentStatus === "overdue") && (
+              <ButtonSecondary
+                onClick={() => handleStatusChange("draft")}
+                loading={statusUpdating}
+              >
+                Terug naar concept
+              </ButtonSecondary>
+            )}
+            {currentStatus === "overdue" && result?.data?.client?.email && (
+              <ButtonSecondary
+                onClick={handleSendReminder}
+                loading={reminderSending}
+              >
+                Stuur herinnering
+              </ButtonSecondary>
+            )}
+            {(currentStatus === "sent" || currentStatus === "paid") &&
+              result?.data?.client?.email && (
+                <ButtonPrimary
+                  onClick={handleSendEmail}
+                  loading={emailSending}
+                >
+                  Verstuur per e-mail
+                </ButtonPrimary>
+              )}
+          </div>
+
+          {/* Utility actions: visually separated, quieter */}
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              alignItems: "center",
+              paddingLeft: 8,
+              borderLeft: "0.5px solid rgba(0,0,0,0.08)",
             }}
-            loading={duplicating}
           >
-            Dupliceer factuur
-          </ButtonSecondary>
-          {currentStatus === "draft" && (
-            <button
-              type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={deleting}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "var(--text-label)",
-                fontWeight: 500,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                opacity: 0.3,
-                padding: "14px 0",
-                color: "var(--color-accent)",
+            {currentStatus !== "draft" && !result?.data?.is_credit_note && (
+              <ButtonSecondary
+                onClick={() => setShowCreditNoteConfirm(true)}
+                loading={creditNoteLoading}
+              >
+                Creditnota
+              </ButtonSecondary>
+            )}
+            <ButtonSecondary
+              onClick={async () => {
+                setDuplicating(true);
+                const res = await duplicateInvoice(params.id);
+                if (res.error) {
+                  toast(res.error, "error");
+                  setStatusMsg(res.error);
+                } else if (res.data) {
+                  toast("Factuur gedupliceerd");
+                  router.push(`/dashboard/invoices/${res.data}`);
+                }
+                setDuplicating(false);
               }}
+              loading={duplicating}
             >
-              {deleting ? "Verwijderen..." : "Verwijder"}
-            </button>
-          )}
+              Dupliceer
+            </ButtonSecondary>
+            {currentStatus === "draft" && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={deleting}
+                aria-busy={deleting || undefined}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: deleting ? "not-allowed" : "pointer",
+                  fontSize: "var(--text-label)",
+                  fontWeight: 500,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  opacity: 0.35,
+                  padding: "8px 4px",
+                  color: "var(--color-accent)",
+                }}
+              >
+                {deleting ? "..." : "Verwijder"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
       {statusMsg && (
