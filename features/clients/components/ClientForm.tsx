@@ -382,11 +382,11 @@ export function ClientForm({ client }: ClientFormProps) {
           borderTop: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
-        <ButtonSecondary onClick={() => router.back()}>
+        <ButtonSecondary onClick={() => router.back()} disabled={saving}>
           {t.common.cancel}
         </ButtonSecondary>
-        <ButtonPrimary onClick={handleSubmit} disabled={saving}>
-          {saving ? t.common.saving : client ? t.clients.update : t.clients.createClient}
+        <ButtonPrimary onClick={handleSubmit} loading={saving}>
+          {client ? t.clients.update : t.clients.createClient}
         </ButtonPrimary>
       </div>
     </div>
