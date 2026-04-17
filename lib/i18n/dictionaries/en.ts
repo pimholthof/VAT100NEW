@@ -255,6 +255,7 @@ const en = {
     receiptsProcessed: "Receipts processed",
     thisMonth: "This month",
     vatReserve: "VAT to reserve",
+    vatReserveHint: "Not yours to spend",
     thisQuarter: "This quarter",
     openInvoicesTitle: "Open invoices",
     noOpenInvoices: "No open invoices",
@@ -343,7 +344,7 @@ const en = {
     // Form
     selectClient: "Please select a client.",
     addNewClient: "Add new client",
-    descriptionPlaceholder: "Description",
+    descriptionPlaceholder: "e.g. Logo design — phase 1",
     saveAsDraft: "Save as draft",
     saveAndSend: "Save and send",
     invoiceNumberRequired: "Invoice number is required.",

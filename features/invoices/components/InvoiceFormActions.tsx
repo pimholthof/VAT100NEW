@@ -8,10 +8,12 @@ export function InvoiceFormActions({
   saving,
   onSaveDraft,
   onIssueAndPreview,
+  recipientName,
 }: {
   saving: boolean;
   onSaveDraft: () => void;
   onIssueAndPreview: () => void;
+  recipientName?: string | null;
 }) {
   const { t } = useLocale();
   const isDirty = useInvoiceStore((s) => s.isDirty);
@@ -84,7 +86,11 @@ export function InvoiceFormActions({
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)",
           }}
         >
-          {saving ? "..." : t.invoices.issueAndPreview}
+          {saving
+            ? "..."
+            : recipientName
+            ? `Versturen aan ${recipientName}`
+            : t.invoices.issueAndPreview}
         </button>
       </div>
     </div>

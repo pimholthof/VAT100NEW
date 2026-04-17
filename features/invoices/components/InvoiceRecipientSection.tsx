@@ -37,6 +37,8 @@ export function InvoiceRecipientSection({
             setClientId(e.target.value);
             playSound("tink");
           }}
+          autoFocus={!clientId}
+          aria-label={t.invoices.recipientLabel}
           className="form-input"
           style={{
             fontSize: 16,

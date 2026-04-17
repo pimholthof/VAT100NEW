@@ -13,6 +13,7 @@ import type { TaxPaymentType, VatReturn } from "@/lib/types";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
+import { AangifteExplainer } from "@/features/tax/components/AangifteExplainer";
 
 export default function TaxContent() {
   const { data: btwResult, isLoading: btwLoading } = useQuery({
@@ -253,6 +254,8 @@ export default function TaxContent() {
           )}
         </div>
 
+        <AangifteExplainer />
+
         {/* BTW in same grid rhythm */}
         <div style={{
           display: "grid",
@@ -328,6 +331,51 @@ export default function TaxContent() {
               </table>
             ) : (
               <p className="empty-state">Nog geen gegevens</p>
+            )}
+
+            {!btwLoading && quarters.length > 0 && (
+              <div
+                style={{
+                  marginTop: "var(--space-lg)",
+                  padding: "20px 24px",
+                  border: "0.5px solid rgba(0, 0, 0, 0.08)",
+                  borderRadius: "var(--radius)",
+                  background: "rgba(45, 90, 123, 0.03)",
+                }}
+              >
+                <p
+                  className="label"
+                  style={{
+                    margin: "0 0 8px",
+                    opacity: 0.55,
+                    fontSize: 10,
+                  }}
+                >
+                  Volgende stap · Dien in
+                </p>
+                <p
+                  style={{
+                    margin: "0 0 14px",
+                    fontSize: 13,
+                    opacity: 0.7,
+                    lineHeight: 1.55,
+                    maxWidth: 560,
+                  }}
+                >
+                  Download de aangifte hierboven en neem de waarden over op
+                  <strong> Mijn Belastingdienst Zakelijk</strong>. VAT100 dient
+                  niet automatisch in — dat doe je zelf met DigiD of eHerkenning.
+                </p>
+                <a
+                  href="https://mijn.belastingdienst.nl/mbd-pmb/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+                >
+                  Open Mijn Belastingdienst →
+                </a>
+              </div>
             )}
           </div>
         </div>

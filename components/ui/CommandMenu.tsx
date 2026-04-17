@@ -1,36 +1,84 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useDeferredValue } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "@/lib/i18n/context";
+import { useRecentNav } from "@/lib/hooks/useRecentNav";
+import { COMMAND_MENU_OPEN_EVENT } from "@/lib/events/command-menu";
+import { getInvoices } from "@/features/invoices/actions";
+import { getClients } from "@/features/clients/actions";
+import { formatCurrency } from "@/lib/format";
+
+const SEARCH_MIN_CHARS = 2;
+const MAX_RESULTS_PER_GROUP = 5;
 
 export function CommandMenu() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+  const trimmed = deferredQuery.trim();
+  const searchEnabled = trimmed.length >= SEARCH_MIN_CHARS;
 
   const router = useRouter();
   const { t } = useLocale();
+  const recent = useRecentNav();
+
+  const closeMenu = useCallback(() => {
+    setOpen(false);
+    setQuery("");
+  }, []);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((open) => !open);
+        setOpen((prev) => {
+          if (prev) {
+            setQuery("");
+            return false;
+          }
+          return true;
+        });
       }
       if (e.key === "Escape") {
         setOpen(false);
+        setQuery("");
       }
     };
-
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    const openHandler = () => setOpen(true);
+    document.addEventListener(COMMAND_MENU_OPEN_EVENT, openHandler);
+    return () => {
+      document.removeEventListener("keydown", down);
+      document.removeEventListener(COMMAND_MENU_OPEN_EVENT, openHandler);
+    };
   }, []);
 
-  const runCommand = useCallback((command: () => unknown) => {
-    setOpen(false);
-    command();
-  }, []);
+  const { data: invoiceResults } = useQuery({
+    queryKey: ["cmdk-invoices", trimmed],
+    queryFn: () => getInvoices({ search: trimmed }),
+    enabled: open && searchEnabled,
+    staleTime: 30_000,
+  });
+  const { data: clientResults } = useQuery({
+    queryKey: ["cmdk-clients", trimmed],
+    queryFn: () => getClients(trimmed),
+    enabled: open && searchEnabled,
+    staleTime: 30_000,
+  });
+
+  const invoiceMatches = (invoiceResults?.data ?? []).slice(0, MAX_RESULTS_PER_GROUP);
+  const clientMatches = (clientResults?.data ?? []).slice(0, MAX_RESULTS_PER_GROUP);
+
+  const runCommand = useCallback(
+    (command: () => unknown) => {
+      closeMenu();
+      command();
+    },
+    [closeMenu]
+  );
 
   if (!open) return null;
 
@@ -54,7 +102,7 @@ export function CommandMenu() {
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
       }}
-      onClick={() => setOpen(false)}
+      onClick={closeMenu}
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -71,6 +119,7 @@ export function CommandMenu() {
         <Command
           style={{ width: "100%" }}
           label="Global commands"
+          shouldFilter={!searchEnabled}
         >
           <div style={{ borderBottom: "var(--border-rule)" }}>
             <Command.Input
@@ -92,7 +141,7 @@ export function CommandMenu() {
 
           <Command.List
             style={{
-              maxHeight: 320,
+              maxHeight: 420,
               overflowY: "auto",
               padding: "12px 0",
               fontFamily: "var(--font-body), sans-serif",
@@ -103,6 +152,78 @@ export function CommandMenu() {
             >
               {t.commandMenu.noResults} &quot;{query}&quot;.
             </Command.Empty>
+
+            {searchEnabled && invoiceMatches.length > 0 && (
+              <Command.Group heading="Facturen" className="cmdk-group">
+                {invoiceMatches.map((inv) => (
+                  <Command.Item
+                    key={inv.id}
+                    value={`invoice-${inv.id}-${inv.invoice_number}-${inv.client?.name ?? ""}`}
+                    onSelect={() =>
+                      runCommand(() => router.push(`/dashboard/invoices/${inv.id}`))
+                    }
+                    className="cmdk-item"
+                  >
+                    <span style={{ flex: 1, display: "flex", gap: 12, minWidth: 0 }}>
+                      <span
+                        className="mono-amount"
+                        style={{ opacity: 0.5, flexShrink: 0 }}
+                      >
+                        {inv.invoice_number}
+                      </span>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {inv.client?.name ?? "—"}
+                      </span>
+                    </span>
+                    <span
+                      className="mono-amount"
+                      style={{ opacity: 0.55, fontSize: 12, flexShrink: 0 }}
+                    >
+                      {formatCurrency(Number(inv.total_inc_vat) || 0)}
+                    </span>
+                  </Command.Item>
+                ))}
+              </Command.Group>
+            )}
+
+            {searchEnabled && clientMatches.length > 0 && (
+              <Command.Group heading="Klanten" className="cmdk-group">
+                {clientMatches.map((client) => (
+                  <Command.Item
+                    key={client.id}
+                    value={`client-${client.id}-${client.name}`}
+                    onSelect={() =>
+                      runCommand(() => router.push(`/dashboard/clients/${client.id}`))
+                    }
+                    className="cmdk-item"
+                  >
+                    <span style={{ flex: 1, display: "flex", gap: 12, minWidth: 0 }}>
+                      <span>{client.name}</span>
+                      {client.city && (
+                        <span style={{ opacity: 0.4, fontSize: 12 }}>
+                          {client.city}
+                        </span>
+                      )}
+                    </span>
+                  </Command.Item>
+                ))}
+              </Command.Group>
+            )}
+
+            {!searchEnabled && recent.length > 0 && (
+              <Command.Group heading="Recent" className="cmdk-group">
+                {recent.map((item) => (
+                  <Command.Item
+                    key={`recent-${item.path}`}
+                    value={`recent-${item.path}-${item.label}`}
+                    onSelect={() => runCommand(() => router.push(item.path))}
+                    className="cmdk-item"
+                  >
+                    {item.label}
+                  </Command.Item>
+                ))}
+              </Command.Group>
+            )}
 
             <Command.Group heading={t.commandMenu.actionsGroup} className="cmdk-group">
               <Command.Item
@@ -116,6 +237,12 @@ export function CommandMenu() {
                 className="cmdk-item"
               >
                 {t.commandMenu.newClient}
+              </Command.Item>
+              <Command.Item
+                onSelect={() => runCommand(() => router.push("/dashboard/receipts/new"))}
+                className="cmdk-item"
+              >
+                Nieuwe bon
               </Command.Item>
             </Command.Group>
 
@@ -133,16 +260,22 @@ export function CommandMenu() {
                 {t.commandMenu.invoicesOverview}
               </Command.Item>
               <Command.Item
-                onSelect={() => runCommand(() => router.push("/dashboard/receipts"))}
-                className="cmdk-item"
-              >
-                {t.commandMenu.receiptsExpenses}
-              </Command.Item>
-              <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/clients"))}
                 className="cmdk-item"
               >
                 {t.commandMenu.clientsOverview}
+              </Command.Item>
+              <Command.Item
+                onSelect={() => runCommand(() => router.push("/dashboard/tax"))}
+                className="cmdk-item"
+              >
+                BTW & belasting
+              </Command.Item>
+              <Command.Item
+                onSelect={() => runCommand(() => router.push("/dashboard/expenses"))}
+                className="cmdk-item"
+              >
+                {t.commandMenu.receiptsExpenses}
               </Command.Item>
               <Command.Item
                 onSelect={() => runCommand(() => router.push("/dashboard/berichten"))}
@@ -157,7 +290,6 @@ export function CommandMenu() {
                 {t.commandMenu.settings}
               </Command.Item>
             </Command.Group>
-
           </Command.List>
         </Command>
       </div>

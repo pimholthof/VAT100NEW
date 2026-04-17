@@ -43,6 +43,33 @@ export async function generateInvoiceNumber(): Promise<ActionResult<string>> {
   }
 }
 
+export async function checkInvoiceNumberExists(
+  invoiceNumber: string,
+  excludeId?: string
+): Promise<ActionResult<boolean>> {
+  const trimmed = invoiceNumber.trim();
+  if (!trimmed) return { error: null, data: false };
+
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  try {
+    let query = supabase
+      .from("invoices")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("invoice_number", trimmed)
+      .limit(1);
+    if (excludeId) query = query.neq("id", excludeId);
+    const { data, error } = await query;
+    if (error) return { error: error.message };
+    return { error: null, data: (data?.length ?? 0) > 0 };
+  } catch (e: unknown) {
+    return { error: getErrorMessage(e) };
+  }
+}
+
 export async function createInvoice(
   input: InvoiceInput
 ): Promise<ActionResult<string>> {

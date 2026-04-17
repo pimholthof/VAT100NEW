@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
 import { QuickActionMenu } from "@/components/ui/QuickActionMenu";
+import { openCommandMenu } from "@/lib/events/command-menu";
 
 function useIsMobile(breakpoint = 768) {
   const subscribe = useCallback((callback: () => void) => {
@@ -27,9 +28,11 @@ function useIsMobile(breakpoint = 768) {
 export function DashboardNav({
   studioName,
   unreadMessages = 0,
+  overdueInvoices = 0,
 }: {
   studioName?: string;
   unreadMessages?: number;
+  overdueInvoices?: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -44,6 +47,10 @@ export function DashboardNav({
 
   function linkClass(href: string) {
     return isActive(href) ? "drawer-link drawer-link-active" : "drawer-link";
+  }
+
+  function linkAriaCurrent(href: string): "page" | undefined {
+    return isActive(href) ? "page" : undefined;
   }
 
   async function handleLogout() {
@@ -67,26 +74,59 @@ export function DashboardNav({
               <span className="nav-studio-name">{studioName}</span>
             )}
             <QuickActionMenu />
-            {!isMobile && (
-              <kbd
+            {isMobile ? (
+              <button
+                type="button"
+                onClick={openCommandMenu}
+                aria-label="Zoeken"
+                title="Zoeken"
+                style={{
+                  width: 36,
+                  height: 36,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: "0.5px solid rgba(0,0,0,0.12)",
+                  borderRadius: "var(--radius-sm)",
+                  cursor: "pointer",
+                  color: "var(--foreground)",
+                  padding: 0,
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.25" />
+                  <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openCommandMenu}
+                aria-label="Open zoek en acties"
+                title="Zoeken · Cmd+K"
                 style={{
                   fontSize: 10,
                   fontWeight: 500,
                   letterSpacing: "0.05em",
-                  opacity: 0.2,
-                  padding: "3px 6px",
+                  opacity: 0.4,
+                  padding: "4px 8px",
                   border: "0.5px solid rgba(0,0,0,0.12)",
                   borderRadius: "var(--radius-sm)",
                   fontFamily: "inherit",
                   cursor: "pointer",
+                  background: "transparent",
+                  color: "var(--foreground)",
                 }}
-                onClick={() => {
-                  document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
-                }}
-                title="Cmd+K"
               >
                 ⌘K
-              </kbd>
+              </button>
             )}
             <button
               onClick={() => setLocale(locale === "nl" ? "en" : "nl")}
@@ -143,12 +183,43 @@ export function DashboardNav({
               {/* Main navigation */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")}>{t.nav.overview}</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/invoices")}>{t.nav.invoices}</Link>
-                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")}>{t.nav.clients}</Link>
-                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")}>{t.nav.expenses}</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")}>{t.nav.tax}</Link>
-                <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")} aria-current={linkAriaCurrent("/dashboard")}>{t.nav.overview}</Link>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Link
+                    href="/dashboard/invoices"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={linkClass("/dashboard/invoices")}
+                    aria-current={linkAriaCurrent("/dashboard/invoices")}
+                  >
+                    {t.nav.invoices}
+                  </Link>
+                  {overdueInvoices > 0 && (
+                    <Link
+                      href="/dashboard/invoices?status=overdue"
+                      onClick={() => setIsDrawerOpen(false)}
+                      aria-label={`${overdueInvoices} verlopen — toon alleen verlopen`}
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        letterSpacing: "0.02em",
+                        padding: "2px 6px",
+                        borderRadius: 999,
+                        background: "var(--color-accent)",
+                        color: "#fff",
+                        lineHeight: 1.2,
+                        minWidth: 16,
+                        textAlign: "center",
+                        textDecoration: "none",
+                      }}
+                    >
+                      {overdueInvoices}
+                    </Link>
+                  )}
+                </span>
+                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")} aria-current={linkAriaCurrent("/dashboard/clients")}>{t.nav.clients}</Link>
+                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")} aria-current={linkAriaCurrent("/dashboard/expenses")}>{t.nav.expenses}</Link>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")} aria-current={linkAriaCurrent("/dashboard/tax")}>{t.nav.tax}</Link>
+                <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} aria-current={linkAriaCurrent("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Berichten
                   {unreadMessages > 0 && (
                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent, #E53E3E)", flexShrink: 0 }} />
@@ -162,7 +233,7 @@ export function DashboardNav({
                 {isMobile && studioName && (
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings")}>{t.nav.settings}</Link>
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings")} aria-current={linkAriaCurrent("/dashboard/settings")}>{t.nav.settings}</Link>
                 <button
                   type="button"
                   onClick={handleLogout}

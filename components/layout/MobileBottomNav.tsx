@@ -29,9 +29,10 @@ export function MobileBottomNav() {
           <Link
             key={item.href}
             href={item.href}
+            aria-current={active ? "page" : undefined}
             className={`mobile-bottom-nav-item${active ? " mobile-bottom-nav-item--active" : ""}`}
           >
-            <span className="mobile-bottom-nav-icon">{item.icon}</span>
+            <span aria-hidden="true" className="mobile-bottom-nav-icon">{item.icon}</span>
             <span className="mobile-bottom-nav-label">{t.nav[item.labelKey]}</span>
           </Link>
         );

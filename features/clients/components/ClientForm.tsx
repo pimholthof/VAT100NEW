@@ -199,8 +199,13 @@ export function ClientForm({ client }: ClientFormProps) {
         />
       </FieldGroup>
 
-      <FieldGroup label={t.clients.email}>
+      <FieldGroup
+        label={t.clients.email}
+        htmlFor="client-email"
+        error={fieldErrors.email ?? undefined}
+      >
         <input
+          id="client-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -208,9 +213,6 @@ export function ClientForm({ client }: ClientFormProps) {
           placeholder="email@voorbeeld.nl"
           className="form-input"
         />
-        {fieldErrors.email && (
-          <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.email}</span>
-        )}
       </FieldGroup>
 
       <FieldGroup label={t.clients.address}>
@@ -310,9 +312,15 @@ export function ClientForm({ client }: ClientFormProps) {
           gap: 16,
         }}
       >
-        <FieldGroup label={t.clients.kvkNumber}>
+        <FieldGroup
+          label={t.clients.kvkNumber}
+          htmlFor="client-kvk"
+          error={fieldErrors.kvk ?? undefined}
+          hint={kvkFilled ? "Gegevens aangevuld via KvK" : undefined}
+        >
           <div style={{ position: "relative" }}>
             <input
+              id="client-kvk"
               type="text"
               value={kvkNumber}
               onChange={(e) => setKvkNumber(e.target.value)}
@@ -328,16 +336,22 @@ export function ClientForm({ client }: ClientFormProps) {
               <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#16a34a" }}>✓</span>
             )}
           </div>
-          {fieldErrors.kvk && (
-            <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.kvk}</span>
-          )}
-          {kvkFilled && (
-            <span style={{ fontSize: 11, color: "#16a34a", marginTop: 4, display: "block" }}>Gegevens aangevuld via KvK</span>
-          )}
         </FieldGroup>
-        <FieldGroup label={t.clients.vatNumber}>
+        <FieldGroup
+          label={t.clients.vatNumber}
+          htmlFor="client-btw"
+          error={fieldErrors.btw ?? undefined}
+          hint={
+            viesStatus === "valid"
+              ? `BTW-nummer geldig via VIES${viesName ? ` — ${viesName}` : ""}`
+              : viesStatus === "invalid"
+              ? "BTW-nummer niet gevonden in VIES"
+              : undefined
+          }
+        >
           <div style={{ position: "relative" }}>
             <input
+              id="client-btw"
               type="text"
               value={btwNumber}
               onChange={(e) => setBtwNumber(e.target.value)}
@@ -356,17 +370,6 @@ export function ClientForm({ client }: ClientFormProps) {
               <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#dc2626" }}>✗</span>
             )}
           </div>
-          {fieldErrors.btw && (
-            <span style={{ fontSize: 11, color: "var(--color-accent)", marginTop: 4, display: "block" }}>{fieldErrors.btw}</span>
-          )}
-          {viesStatus === "valid" && (
-            <span style={{ fontSize: 11, color: "#16a34a", marginTop: 4, display: "block" }}>
-              BTW-nummer geldig via VIES{viesName ? ` — ${viesName}` : ""}
-            </span>
-          )}
-          {viesStatus === "invalid" && (
-            <span style={{ fontSize: 11, color: "#dc2626", marginTop: 4, display: "block" }}>BTW-nummer niet gevonden in VIES</span>
-          )}
         </FieldGroup>
       </div>
 
@@ -379,11 +382,11 @@ export function ClientForm({ client }: ClientFormProps) {
           borderTop: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
-        <ButtonSecondary onClick={() => router.back()}>
+        <ButtonSecondary onClick={() => router.back()} disabled={saving}>
           {t.common.cancel}
         </ButtonSecondary>
-        <ButtonPrimary onClick={handleSubmit} disabled={saving}>
-          {saving ? t.common.saving : client ? t.clients.update : t.clients.createClient}
+        <ButtonPrimary onClick={handleSubmit} loading={saving}>
+          {client ? t.clients.update : t.clients.createClient}
         </ButtonPrimary>
       </div>
     </div>

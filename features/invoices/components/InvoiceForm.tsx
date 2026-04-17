@@ -236,6 +236,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
         saving={saving}
         onSaveDraft={() => handleSave(false)}
         onIssueAndPreview={() => handleSave(true)}
+        recipientName={clients.find((c) => c.id === clientId)?.name ?? null}
       />
 
       {lastSavedAt && (

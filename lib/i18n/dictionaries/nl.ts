@@ -255,6 +255,7 @@ const nl = {
     receiptsProcessed: "Bonnetjes verwerkt",
     thisMonth: "Deze maand",
     vatReserve: "BTW apart zetten",
+    vatReserveHint: "Niet jouw geld",
     thisQuarter: "Dit kwartaal",
     openInvoicesTitle: "Openstaande facturen",
     noOpenInvoices: "Geen openstaande facturen",
@@ -343,7 +344,7 @@ const nl = {
     // Form
     selectClient: "Selecteer een klant.",
     addNewClient: "Nieuwe klant toevoegen",
-    descriptionPlaceholder: "Omschrijving",
+    descriptionPlaceholder: "Bijv. Logo ontwerp — fase 1",
     saveAsDraft: "Opslaan als concept",
     saveAndSend: "Opslaan en versturen",
     invoiceNumberRequired: "Factuurnummer is verplicht.",

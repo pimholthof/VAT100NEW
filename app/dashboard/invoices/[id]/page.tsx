@@ -15,19 +15,23 @@ import {
   duplicateInvoice,
 } from "@/features/invoices/actions";
 import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
+import { InvoiceLivePreview } from "@/features/invoices/components/InvoiceLivePreview";
 import type { InvoiceStatus, VatRate } from "@/lib/types";
 import {
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
   ConfirmDialog,
+  useToast,
 } from "@/components/ui";
 import { STATUS_LABELS } from "@/lib/constants/status";
+import { formatCurrency } from "@/lib/format";
 
 export default function EditInvoicePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const loadInvoice = useInvoiceStore((s) => s.loadInvoice);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
@@ -72,15 +76,40 @@ export default function EditInvoicePage() {
   }, [result?.data, loadInvoice]);
 
   const handleStatusChange = async (newStatus: InvoiceStatus) => {
+    const previousStatus = result?.data?.status as InvoiceStatus | undefined;
     setStatusUpdating(true);
     setStatusMsg(null);
     const res = await updateInvoiceStatus(params.id, newStatus);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else {
-      setStatusMsg(`Status gewijzigd naar ${STATUS_LABELS[newStatus]}.`);
       queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      const canUndo = previousStatus && previousStatus !== newStatus;
+      toast(`Status: ${STATUS_LABELS[newStatus]}`, {
+        type: "success",
+        action: canUndo
+          ? {
+              label: "Ongedaan",
+              onClick: async () => {
+                const undoRes = await updateInvoiceStatus(
+                  params.id,
+                  previousStatus
+                );
+                if (undoRes.error) {
+                  toast(undoRes.error, "error");
+                } else {
+                  toast(`Teruggezet naar ${STATUS_LABELS[previousStatus]}`);
+                  queryClient.invalidateQueries({
+                    queryKey: ["invoice", params.id],
+                  });
+                  queryClient.invalidateQueries({ queryKey: ["invoices"] });
+                }
+              },
+            }
+          : undefined,
+      });
     }
     setStatusUpdating(false);
   };
@@ -90,11 +119,10 @@ export default function EditInvoicePage() {
     setStatusMsg(null);
     const res = await sendInvoice(params.id);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else {
-      setStatusMsg(
-        `Factuur verstuurd naar ${result?.data?.client?.email}.`
-      );
+      toast(`Verstuurd naar ${result?.data?.client?.email}`);
       queryClient.invalidateQueries({ queryKey: ["invoice", params.id] });
     }
     setEmailSending(false);
@@ -105,9 +133,10 @@ export default function EditInvoicePage() {
     setStatusMsg(null);
     const res = await sendReminder(params.id);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else {
-      setStatusMsg("Herinnering verstuurd.");
+      toast("Herinnering verstuurd");
     }
     setReminderSending(false);
   };
@@ -118,9 +147,11 @@ export default function EditInvoicePage() {
     setShareLoading(true);
     const res = await generateShareToken(params.id);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else if (res.data) {
       setLocalShareToken(res.data);
+      toast("Deellink aangemaakt");
     }
     setShareLoading(false);
   };
@@ -130,6 +161,7 @@ export default function EditInvoicePage() {
     const url = `${window.location.origin}/invoice/${shareToken}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
+    toast("Gekopieerd");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -139,8 +171,10 @@ export default function EditInvoicePage() {
     setStatusMsg(null);
     const res = await createCreditNote(params.id);
     if (res.error) {
+      toast(res.error, "error");
       setStatusMsg(res.error);
     } else if (res.data) {
+      toast("Creditnota aangemaakt");
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       router.push(`/dashboard/invoices/${res.data}`);
     }
@@ -211,157 +245,225 @@ export default function EditInvoicePage() {
         >
           {STATUS_LABELS[currentStatus ?? ""] ?? currentStatus}
         </span>
-        <div style={{ display: "flex", gap: 8 }}>
-          {currentStatus === "draft" && (
-            <ButtonPrimary
-              onClick={() => handleStatusChange("sent")}
-              disabled={statusUpdating}
-            >
-              Markeer als verzonden
-            </ButtonPrimary>
-          )}
-          {currentStatus === "sent" && (
-            <>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          {/* Primary flow: status transition + email send/remind */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {currentStatus === "draft" && (
+              <ButtonPrimary
+                onClick={() => handleStatusChange("sent")}
+                loading={statusUpdating}
+              >
+                Markeer als verzonden
+              </ButtonPrimary>
+            )}
+            {currentStatus === "sent" && (
+              <>
+                <ButtonPrimary
+                  onClick={() => handleStatusChange("paid")}
+                  loading={statusUpdating}
+                >
+                  Markeer als betaald
+                </ButtonPrimary>
+                <ButtonSecondary
+                  onClick={() => handleStatusChange("overdue")}
+                  loading={statusUpdating}
+                >
+                  Markeer als verlopen
+                </ButtonSecondary>
+              </>
+            )}
+            {currentStatus === "overdue" && (
               <ButtonPrimary
                 onClick={() => handleStatusChange("paid")}
-                disabled={statusUpdating}
+                loading={statusUpdating}
               >
                 Markeer als betaald
               </ButtonPrimary>
-              <ButtonSecondary
-                onClick={() => handleStatusChange("overdue")}
-                disabled={statusUpdating}
-              >
-                Markeer als verlopen
-              </ButtonSecondary>
-            </>
-          )}
-          {(currentStatus === "paid" || currentStatus === "overdue") && (
-            <ButtonSecondary
-              onClick={() => handleStatusChange("draft")}
-              disabled={statusUpdating}
-            >
-              Terug naar concept
-            </ButtonSecondary>
-          )}
-          {currentStatus === "overdue" && result?.data?.client?.email && (
-            <ButtonSecondary
-              onClick={handleSendReminder}
-              disabled={reminderSending}
-            >
-              {reminderSending ? "Verzenden..." : "Stuur herinnering"}
-            </ButtonSecondary>
-          )}
-          {(currentStatus === "sent" || currentStatus === "paid") &&
-            result?.data?.client?.email && (
-              <ButtonPrimary
-                onClick={handleSendEmail}
-                disabled={emailSending}
-              >
-                {emailSending ? "Verzenden..." : "Verstuur per e-mail"}
-              </ButtonPrimary>
             )}
-          {currentStatus !== "draft" && !result?.data?.is_credit_note && (
-            <ButtonSecondary
-              onClick={() => setShowCreditNoteConfirm(true)}
-              disabled={creditNoteLoading}
-            >
-              {creditNoteLoading ? "Aanmaken..." : "Creditnota aanmaken"}
-            </ButtonSecondary>
-          )}
-          <ButtonSecondary
-            onClick={async () => {
-              setDuplicating(true);
-              const res = await duplicateInvoice(params.id);
-              if (res.error) {
-                setStatusMsg(res.error);
-              } else if (res.data) {
-                router.push(`/dashboard/invoices/${res.data}`);
-              }
-              setDuplicating(false);
+            {currentStatus === "paid" && (
+              <span
+                style={{
+                  fontSize: 11,
+                  opacity: 0.45,
+                  fontStyle: "italic",
+                  padding: "8px 4px",
+                }}
+              >
+                Betaald — niet meer te wijzigen
+              </span>
+            )}
+            {currentStatus === "overdue" && result?.data?.client?.email && (
+              <ButtonSecondary
+                onClick={handleSendReminder}
+                loading={reminderSending}
+              >
+                Stuur herinnering
+              </ButtonSecondary>
+            )}
+            {(currentStatus === "sent" || currentStatus === "paid") &&
+              result?.data?.client?.email && (
+                <ButtonPrimary
+                  onClick={handleSendEmail}
+                  loading={emailSending}
+                >
+                  Verstuur per e-mail
+                </ButtonPrimary>
+              )}
+          </div>
+
+          {/* Utility actions: visually separated, quieter */}
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              alignItems: "center",
+              paddingLeft: 8,
+              borderLeft: "0.5px solid rgba(0,0,0,0.08)",
             }}
-            disabled={duplicating}
           >
-            {duplicating ? "Dupliceren..." : "Dupliceer factuur"}
-          </ButtonSecondary>
-          {currentStatus === "draft" && (
-            <button
-              type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={deleting}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "var(--text-label)",
-                fontWeight: 500,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                opacity: 0.3,
-                padding: "14px 0",
-                color: "var(--color-accent)",
+            {currentStatus !== "draft" && !result?.data?.is_credit_note && (
+              <ButtonSecondary
+                onClick={() => setShowCreditNoteConfirm(true)}
+                loading={creditNoteLoading}
+              >
+                Creditnota
+              </ButtonSecondary>
+            )}
+            <ButtonSecondary
+              onClick={async () => {
+                setDuplicating(true);
+                const res = await duplicateInvoice(params.id);
+                if (res.error) {
+                  toast(res.error, "error");
+                  setStatusMsg(res.error);
+                } else if (res.data) {
+                  toast("Factuur gedupliceerd");
+                  router.push(`/dashboard/invoices/${res.data}`);
+                }
+                setDuplicating(false);
               }}
+              loading={duplicating}
             >
-              {deleting ? "Verwijderen..." : "Verwijder"}
-            </button>
-          )}
+              Dupliceer
+            </ButtonSecondary>
+            {currentStatus === "draft" && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={deleting}
+                aria-busy={deleting || undefined}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: deleting ? "not-allowed" : "pointer",
+                  fontSize: "var(--text-label)",
+                  fontWeight: 500,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  opacity: 0.35,
+                  padding: "8px 4px",
+                  color: "var(--color-accent)",
+                }}
+              >
+                {deleting ? "..." : "Verwijder"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
       {statusMsg && (
         <ErrorMessage style={{ marginBottom: 24 }}>{statusMsg}</ErrorMessage>
       )}
-      {/* Share link section */}
+      {/* Share link — compact single-row */}
       <div
         style={{
           borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-          padding: "16px 0",
+          padding: "12px 0",
           marginBottom: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          flexWrap: "wrap",
         }}
       >
-        <div
+        <span
           style={{
             fontSize: "var(--text-label)",
             fontWeight: 500,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            marginBottom: 8,
             opacity: 0.4,
+            flexShrink: 0,
           }}
         >
-          Deel link
-        </div>
+          Deellink
+        </span>
         {shareToken ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <>
             <span
+              title={
+                typeof window !== "undefined"
+                  ? `${window.location.origin}/invoice/${shareToken}`
+                  : undefined
+              }
               style={{
-                fontSize: "var(--text-mono-md)",
+                fontSize: "var(--text-body-sm)",
+                fontFamily: "var(--font-mono)",
                 fontWeight: 300,
-                opacity: 0.6,
-                wordBreak: "break-all",
+                opacity: 0.55,
                 flex: 1,
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {typeof window !== "undefined"
                 ? `${window.location.origin}/invoice/${shareToken}`
                 : `/invoice/${shareToken}`}
             </span>
-            <ButtonSecondary onClick={handleCopyShareLink}>
-              {copied ? "Gekopieerd" : "Kopieer"}
-            </ButtonSecondary>
-          </div>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <ButtonSecondary onClick={handleCopyShareLink}>
+                {copied ? "Gekopieerd" : "Kopieer"}
+              </ButtonSecondary>
+              <a
+                href={`/invoice/${shareToken}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+                aria-label="Open deellink in nieuw tabblad"
+              >
+                Open
+              </a>
+            </div>
+          </>
         ) : (
           <ButtonSecondary
             onClick={handleGenerateShareLink}
-            disabled={shareLoading}
+            loading={shareLoading}
           >
-            {shareLoading ? "Genereren..." : "Genereer deellink"}
+            Genereer deellink
           </ButtonSecondary>
         )}
       </div>
 
       <div style={{ marginTop: 24 }}>
         {currentStatus === "draft" ? (
-          <InvoiceForm invoiceId={params.id} />
+          <div className="invoice-edit-layout">
+            <div className="invoice-edit-layout__form">
+              <InvoiceForm invoiceId={params.id} />
+            </div>
+            <aside
+              className="invoice-edit-layout__preview"
+              aria-label="Live factuurvoorbeeld"
+            >
+              <InvoiceLivePreview
+                invoiceId={params.id}
+                isCreditNote={result?.data?.is_credit_note ?? false}
+              />
+            </aside>
+          </div>
         ) : (
           <p style={{ opacity: 0.3, fontSize: "var(--text-body-sm)", padding: "24px 0", fontStyle: "italic" }}>
             Deze factuur is verzonden en kan niet meer worden bewerkt.
@@ -372,30 +474,83 @@ export default function EditInvoicePage() {
       <ConfirmDialog
         open={showCreditNoteConfirm}
         title="Creditnota aanmaken"
-        message="Weet je zeker dat je een creditnota wilt aanmaken voor deze factuur? Dit maakt een nieuwe negatieve factuur aan."
+        message="Dit genereert een nieuwe factuur met negatieve bedragen, gekoppeld aan de huidige. Je BTW-aangifte corrigeert automatisch bij het volgende kwartaal."
         confirmLabel="Creditnota aanmaken"
         onConfirm={handleCreateCreditNote}
         onCancel={() => setShowCreditNoteConfirm(false)}
-      />
+      >
+        {result?.data && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: "12px 16px",
+              background: "rgba(0,0,0,0.03)",
+              borderRadius: "var(--radius-sm)",
+              display: "grid",
+              gridTemplateColumns: "auto 1fr",
+              columnGap: 20,
+              rowGap: 6,
+              fontSize: 12,
+            }}
+          >
+            <span style={{ opacity: 0.5 }}>Originele factuur</span>
+            <span className="mono-amount">{result.data.invoice_number}</span>
+            <span style={{ opacity: 0.5 }}>Klant</span>
+            <span>{result.data.client?.name ?? "—"}</span>
+            <span style={{ opacity: 0.5 }}>Bedrag</span>
+            <span className="mono-amount">
+              −{formatCurrency(Number(result.data.total_inc_vat) || 0)}
+            </span>
+          </div>
+        )}
+      </ConfirmDialog>
 
       <ConfirmDialog
         open={showDeleteConfirm}
         title="Factuur verwijderen"
-        message="Weet je zeker dat je deze conceptfactuur wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+        message="Deze conceptfactuur wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt."
         confirmLabel="Verwijderen"
         onConfirm={async () => {
           setShowDeleteConfirm(false);
           setDeleting(true);
           const res = await deleteInvoice(params.id);
           if (res.error) {
+            toast(res.error, "error");
             setStatusMsg(res.error);
             setDeleting(false);
           } else {
+            toast("Factuur verwijderd");
             router.push("/dashboard/invoices");
           }
         }}
         onCancel={() => setShowDeleteConfirm(false)}
-      />
+      >
+        {result?.data && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: "12px 16px",
+              background: "rgba(165, 28, 48, 0.04)",
+              borderLeft: "2px solid var(--color-accent)",
+              borderRadius: "0 var(--radius-sm) var(--radius-sm) 0",
+              display: "grid",
+              gridTemplateColumns: "auto 1fr",
+              columnGap: 20,
+              rowGap: 6,
+              fontSize: 12,
+            }}
+          >
+            <span style={{ opacity: 0.5 }}>Factuur</span>
+            <span className="mono-amount">{result.data.invoice_number}</span>
+            <span style={{ opacity: 0.5 }}>Klant</span>
+            <span>{result.data.client?.name ?? "—"}</span>
+            <span style={{ opacity: 0.5 }}>Bedrag</span>
+            <span className="mono-amount">
+              {formatCurrency(Number(result.data.total_inc_vat) || 0)}
+            </span>
+          </div>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }

@@ -14,7 +14,7 @@ import type {
   VatRate,
 } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
-import { useToast } from "@/components/ui";
+import { useToast, ButtonPrimary, ButtonSecondary } from "@/components/ui";
 
 const FREQ_OPTIONS: { value: RecurringFrequency; label: string }[] = [
   { value: "weekly", label: "Wekelijks" },
@@ -430,20 +430,16 @@ export function RecurringInvoiceForm({
 
       {/* Save */}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-        <button onClick={onCancel} className="btn-secondary">
+        <ButtonSecondary onClick={onCancel} disabled={saveMutation.isPending}>
           Annuleren
-        </button>
-        <button
+        </ButtonSecondary>
+        <ButtonPrimary
           onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending || !clientId}
-          className="btn-primary"
+          disabled={!clientId}
+          loading={saveMutation.isPending}
         >
-          {saveMutation.isPending
-            ? "Opslaan..."
-            : existing
-              ? "Bijwerken"
-              : "Template aanmaken"}
-        </button>
+          {existing ? "Bijwerken" : "Template aanmaken"}
+        </ButtonPrimary>
       </div>
     </div>
   );

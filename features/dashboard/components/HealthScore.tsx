@@ -1,198 +1,188 @@
 "use client";
 
+import Link from "next/link";
 import { m as motion } from "framer-motion";
-import type { FinancialHealth } from "@/lib/tax/financial-health";
+import type { FinancialHealth, HealthFactor } from "@/lib/tax/financial-health";
 
-const gradeGlow: Record<string, string> = {
-  A: "#1a7a3a",
-  B: "#2D5A7B",
-  C: "#b45309",
-  D: "#C44D2A",
-  F: "#A51C30",
+interface Signal {
+  factor: HealthFactor;
+  severity: "urgent" | "attention" | "ok";
+  href?: string;
+  cta?: string;
+}
+
+const FACTOR_LINKS: Record<string, { href: string; cta: string }> = {
+  Betaalsnelheid: { href: "/dashboard/invoices", cta: "Bekijk facturen" },
+  Openstaand: { href: "/dashboard/invoices", cta: "Naar facturen" },
+  Reserve: { href: "/dashboard/tax", cta: "Naar BTW" },
+  Administratie: { href: "/dashboard/receipts/new", cta: "Voeg bon toe" },
 };
 
-function factorBarColor(score: number): string {
-  if (score >= 70) return "var(--color-success)";
-  if (score >= 40) return "var(--color-warning)";
-  return "var(--color-overdue)";
+function severityFromScore(score: number): Signal["severity"] {
+  if (score < 40) return "urgent";
+  if (score < 70) return "attention";
+  return "ok";
+}
+
+function toSignals(factors: HealthFactor[]): Signal[] {
+  return factors
+    .map<Signal>((factor) => ({
+      factor,
+      severity: severityFromScore(factor.score),
+      ...(FACTOR_LINKS[factor.name] ?? {}),
+    }))
+    .sort((a, b) => {
+      const order = { urgent: 0, attention: 1, ok: 2 };
+      return order[a.severity] - order[b.severity] || a.factor.score - b.factor.score;
+    });
+}
+
+function SeverityMark({ severity }: { severity: Signal["severity"] }) {
+  const color =
+    severity === "urgent"
+      ? "var(--color-accent)"
+      : severity === "attention"
+      ? "var(--color-warning)"
+      : "var(--color-success)";
+  const label =
+    severity === "urgent" ? "Urgent" : severity === "attention" ? "Aandacht" : "In orde";
+  return (
+    <span
+      aria-label={label}
+      style={{
+        display: "inline-block",
+        width: 8,
+        height: 8,
+        borderRadius: "50%",
+        background: color,
+        flexShrink: 0,
+        marginTop: 8,
+      }}
+    />
+  );
 }
 
 export function HealthScore({ health }: { health: FinancialHealth }) {
-  const glow = gradeGlow[health.grade] ?? "#1a1a19";
+  const signals = toSignals(health.factors);
+  const needsAttention = signals.filter((s) => s.severity !== "ok");
+  const allGood = needsAttention.length === 0;
+  const visibleSignals = allGood ? signals : needsAttention;
+
+  const headline = allGood
+    ? "Alles in orde"
+    : needsAttention.length === 1
+    ? "Eén punt vraagt aandacht"
+    : `${needsAttention.length} punten vragen aandacht`;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      aria-label="Financiële gezondheid"
       style={{
-        padding: "clamp(32px, 5vw, 48px) clamp(28px, 4vw, 40px)",
+        padding: "clamp(28px, 4vw, 40px)",
         border: "0.5px solid rgba(0, 0, 0, 0.08)",
         borderRadius: "var(--radius)",
         background: "var(--dashboard-surface, var(--background))",
-        position: "relative",
-        overflow: "hidden",
       }}
     >
-      {/* ── Zone 1: Grade Statement ── */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "clamp(20px, 4vw, 32px)", marginBottom: 28 }}>
-        {/* Grade letter with atmospheric glow */}
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: 120,
-              height: 120,
-              background: glow,
-              filter: "blur(80px)",
-              opacity: 0.12,
-              borderRadius: "50%",
-              pointerEvents: "none",
-            }}
-          />
-          <div
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: "clamp(72px, 10vw, 104px)",
-              fontWeight: 300,
-              fontStyle: "italic",
-              lineHeight: 0.85,
-              letterSpacing: "-0.04em",
-              color: "var(--foreground)",
-              position: "relative",
-            }}
-          >
-            {health.grade}
-          </div>
-        </div>
+      <p
+        className="label"
+        style={{
+          margin: 0,
+          opacity: 0.45,
+          fontSize: 10,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          fontWeight: 500,
+        }}
+      >
+        Financiële gezondheid
+      </p>
+      <p
+        style={{
+          fontSize: "clamp(22px, 3vw, 28px)",
+          fontWeight: 400,
+          margin: "8px 0 24px",
+          letterSpacing: "-0.02em",
+          lineHeight: 1.25,
+          color: "var(--foreground)",
+        }}
+      >
+        {headline}
+      </p>
 
-        {/* Score + Summary */}
-        <div style={{ paddingTop: "clamp(8px, 1.5vw, 16px)" }}>
-          <p
-            className="label"
-            style={{
-              margin: "0 0 6px",
-              opacity: 0.35,
-              fontSize: 10,
-              letterSpacing: "0.12em",
+      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        {visibleSignals.map((signal, index) => (
+          <motion.li
+            key={signal.factor.name}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{
+              duration: 0.3,
+              delay: 0.05 + index * 0.04,
+              ease: [0.16, 1, 0.3, 1],
             }}
-          >
-            {health.score} / 100
-          </p>
-          <p
             style={{
-              fontSize: "clamp(14px, 2vw, 16px)",
-              fontWeight: 500,
-              margin: 0,
-              opacity: 0.55,
-              letterSpacing: "-0.01em",
-              lineHeight: 1.4,
+              padding: "16px 0",
+              borderTop: "0.5px solid rgba(0, 0, 0, 0.06)",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 14,
             }}
           >
-            {health.summary}
-          </p>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div style={{ width: 40, height: "0.5px", background: "rgba(0, 0, 0, 0.08)", marginBottom: 4 }} />
-
-      {/* ── Zone 2: Factor List ── */}
-      <div>
-        {health.factors.map((factor, index) => {
-          const fill = factorBarColor(factor.score);
-          return (
-            <motion.div
-              key={factor.name}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{
-                duration: 0.5,
-                delay: 0.3 + index * 0.1,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              style={{
-                padding: "14px 0",
-                borderTop: "0.5px solid rgba(0, 0, 0, 0.06)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-              }}
-            >
-              {/* Left: name + message */}
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p
-                  className="label"
-                  style={{
-                    margin: "0 0 3px",
-                    opacity: 0.35,
-                    fontSize: 10,
-                    letterSpacing: "0.12em",
-                  }}
-                >
-                  {factor.name}
-                </p>
-                <p
-                  style={{
-                    fontSize: 12,
-                    margin: 0,
-                    opacity: 0.55,
-                    lineHeight: 1.4,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {factor.message}
-                </p>
-              </div>
-
-              {/* Right: bar + score */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                <div
-                  style={{
-                    width: 80,
-                    height: 3,
-                    background: "rgba(0, 0, 0, 0.04)",
-                    borderRadius: 2,
-                    overflow: "hidden",
-                  }}
-                >
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${factor.score}%` }}
-                    transition={{
-                      duration: 1.2,
-                      delay: 0.5 + index * 0.12,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                    style={{
-                      height: "100%",
-                      background: fill,
-                      borderRadius: 2,
-                    }}
-                  />
-                </div>
-                <span
-                  style={{
-                    fontSize: 11,
-                    opacity: 0.35,
-                    fontVariantNumeric: "tabular-nums",
-                    minWidth: 20,
-                    textAlign: "right",
-                  }}
-                >
-                  {factor.score}
-                </span>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-    </motion.div>
+            <SeverityMark severity={signal.severity} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 10,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  fontWeight: 500,
+                  opacity: 0.5,
+                  marginBottom: 4,
+                }}
+              >
+                {signal.factor.name}
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 14,
+                  lineHeight: 1.45,
+                  letterSpacing: "-0.005em",
+                  color: "var(--foreground)",
+                  opacity: signal.severity === "ok" ? 0.55 : 0.9,
+                }}
+              >
+                {signal.factor.message}
+              </p>
+            </div>
+            {signal.severity !== "ok" && signal.href && signal.cta && (
+              <Link
+                href={signal.href}
+                style={{
+                  alignSelf: "center",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  padding: "8px 14px",
+                  border: "0.5px solid rgba(0,0,0,0.12)",
+                  borderRadius: "var(--radius-sm)",
+                  color: "var(--foreground)",
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {signal.cta}
+              </Link>
+            )}
+          </motion.li>
+        ))}
+      </ul>
+    </motion.section>
   );
 }

@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getReceipts, deleteReceipt, deleteReceipts } from "@/features/receipts/actions";
 import { getKostensoortByCode, KOSTENSOORTEN } from "@/lib/constants/costs";
 import type { Receipt } from "@/lib/types";
-import { Th, Td, SkeletonTable, SearchFilter, TableWrapper, ConfirmDialog } from "@/components/ui";
+import { Th, Td, SkeletonTable, SearchFilter, TableWrapper, ConfirmDialog, EmptyState } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/context";
 
@@ -163,20 +163,21 @@ export default function ReceiptsTab() {
           bodyWidths={[10, 50, 70, 60, 50, 40, 40, 30]}
         />
       ) : receipts.length === 0 ? (
-        <div style={{ paddingTop: "var(--space-block)" }}>
-          <p className="empty-state">
-            {search || categoryFilter ? t.receipts.noReceiptsFound : t.receipts.noReceiptsYet}
-          </p>
-          {!search && !categoryFilter && (
-            <Link
-              href="/dashboard/receipts/new"
-              className="table-action"
-              style={{ opacity: 0.4 }}
-            >
-              {t.receipts.addFirst}
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon="◇"
+          title={
+            search || categoryFilter
+              ? t.receipts.noReceiptsFound
+              : t.receipts.noReceiptsYet
+          }
+          description={
+            !search && !categoryFilter
+              ? "Scan of upload bonnen en VAT100 verwerkt ze automatisch voor je BTW en IB."
+              : undefined
+          }
+          actionLabel={!search && !categoryFilter ? t.receipts.addFirst : undefined}
+          actionHref={!search && !categoryFilter ? "/dashboard/receipts/new" : undefined}
+        />
       ) : (
         <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>

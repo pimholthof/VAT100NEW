@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/format";
 import {
   StatCard,
   SkeletonTable,
+  EmptyState,
 } from "@/components/ui";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
 import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
@@ -99,8 +100,8 @@ function DesktopDashboard({
   const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.due_date && invoice.days_overdue <= 0);
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    hidden: { opacity: 0, y: 8 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }
   };
 
   const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
@@ -145,7 +146,7 @@ function DesktopDashboard({
         hidden: {},
         show: {
           transition: {
-            staggerChildren: 0.12,
+            staggerChildren: 0.04,
           },
         },
       }}
@@ -243,6 +244,7 @@ function DesktopDashboard({
               value={formatCurrency(stats.vatToPay)}
               numericValue={stats.vatToPay}
               sub={vatDeadline ? new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" }) : t.dashboard.thisQuarter}
+              hint={stats.vatToPay > 0 ? t.dashboard.vatReserveHint : undefined}
             />
           </motion.div>
         </div>
@@ -302,8 +304,22 @@ function DesktopDashboard({
           <SkeletonTable />
         ) : openInvoices && openInvoices.length > 0 ? (
           <UpcomingInvoiceTable invoices={openInvoices} />
+        ) : onboardingResult && !onboardingResult.hasClient ? (
+          <EmptyState
+            icon="○"
+            title="Begin met een klant"
+            description="Voeg eerst een klant toe — daarna stuur je er een factuur naartoe."
+            actionLabel="Voeg klant toe"
+            actionHref="/dashboard/clients/new"
+          />
         ) : (
-          <p className="empty-state">{t.dashboard.noOpenInvoices}</p>
+          <EmptyState
+            icon="□"
+            title={t.dashboard.noOpenInvoices}
+            description="Alles geïnd of nog geen facturen verstuurd. Stuur er een om te beginnen."
+            actionLabel="Nieuwe factuur"
+            actionHref="/dashboard/invoices/new"
+          />
         )}
       </motion.div>
 

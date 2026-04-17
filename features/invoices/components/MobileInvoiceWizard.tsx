@@ -18,6 +18,7 @@ import { InvoiceRecipientSection } from "./InvoiceRecipientSection";
 import { InvoiceLinesSection } from "./InvoiceLinesSection";
 import { InvoiceMetadata } from "./InvoiceMetadata";
 import { InvoiceTotals } from "./InvoiceTotals";
+import { InvoiceLivePreview } from "./InvoiceLivePreview";
 import { ErrorMessage, StepIndicator } from "@/components/ui";
 import { playSound } from "@/lib/utils/sound";
 
@@ -35,6 +36,7 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
   const [error, setError] = useState<string | null>(null);
   const [showNewClient, setShowNewClient] = useState(false);
   const [vatReason, setVatReason] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const clientId = useInvoiceStore((s) => s.clientId);
@@ -242,6 +244,23 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
             <div style={{ marginTop: 24 }}>
               <InvoiceTotals />
             </div>
+            <button
+              type="button"
+              className="invoice-mobile-preview-toggle"
+              onClick={() => setShowPreview((v) => !v)}
+              aria-expanded={showPreview}
+              aria-controls="mobile-invoice-preview"
+            >
+              {showPreview ? "Verberg voorbeeld" : "Toon voorbeeld"}
+            </button>
+            {showPreview && (
+              <div
+                id="mobile-invoice-preview"
+                className="invoice-mobile-preview-wrapper"
+              >
+                <InvoiceLivePreview mode="inline" scale={0.52} />
+              </div>
+            )}
           </motion.section>
         )}
       </AnimatePresence>

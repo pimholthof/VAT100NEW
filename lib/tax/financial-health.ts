@@ -75,24 +75,40 @@ export function calculateFinancialHealth(params: {
   factors.push({ name: "Betaalsnelheid", score: dsoScore, message: dsoMessage });
 
   // Factor 2: Openstaande facturen ratio
-  const openRatio = params.yearRevenue > 0
-    ? (params.openInvoiceAmount / params.yearRevenue) * 100
-    : 0;
+  // Altijd tonen als 0–100% — als openstaand > jaaromzet (veel sturen,
+  // weinig ontvangen), dan reframen naar absolute status i.p.v. een
+  // misleidende >100% ratio.
+  const hasRevenue = params.yearRevenue > 0;
+  const hasOpen = params.openInvoiceAmount > 0;
+  const rawRatio = hasRevenue ? (params.openInvoiceAmount / params.yearRevenue) * 100 : 0;
+  const displayRatio = Math.min(100, Math.round(rawRatio));
+
   let openScore: number;
   let openMessage: string;
-  if (openRatio < 10) {
+
+  if (!hasRevenue && !hasOpen) {
+    openScore = 60;
+    openMessage = "Nog geen facturen dit jaar";
+  } else if (!hasRevenue && hasOpen) {
+    openScore = 55;
+    openMessage = "Facturen verstuurd — wacht op betaling";
+  } else if (rawRatio >= 100) {
+    openScore = 25;
+    openMessage = "Meer openstaand dan ontvangen — stuur een herinnering";
+  } else if (rawRatio < 10) {
     openScore = 100;
-    openMessage = "Bijna alles geïnd — netjes";
-  } else if (openRatio < 25) {
+    openMessage = "Bijna alles geïnd";
+  } else if (rawRatio < 25) {
     openScore = 70;
-    openMessage = `${Math.round(openRatio)}% staat nog open`;
-  } else if (openRatio < 50) {
+    openMessage = `${displayRatio}% staat nog open`;
+  } else if (rawRatio < 50) {
     openScore = 45;
-    openMessage = `${Math.round(openRatio)}% staat open — een herinnering kan helpen`;
+    openMessage = `${displayRatio}% staat open — een herinnering helpt`;
   } else {
-    openScore = 20;
-    openMessage = `${Math.round(openRatio)}% staat open — stuur een herinnering`;
+    openScore = 25;
+    openMessage = `${displayRatio}% staat open — stuur een herinnering`;
   }
+
   if (params.overdueCount > 0) {
     openScore = Math.max(15, openScore - params.overdueCount * 8);
     openMessage += ` · ${params.overdueCount} te laat`;
@@ -139,28 +155,40 @@ export function calculateFinancialHealth(params: {
 
   const adminMessage = adminScore >= 80
     ? "Up-to-date"
-    : `Tip: ${adminTips.join(" en ")}`;
+    : adminTips.length > 0
+    ? `Voeg ${adminTips.join(" en ")} toe`
+    : "Up-to-date";
 
   factors.push({ name: "Administratie", score: clamp(adminScore, 0, 100), message: adminMessage });
 
+  // Detecteer beginnende gebruikers: niet hard scoren op lege data.
+  const isSparseData =
+    params.yearRevenue === 0 &&
+    params.openInvoiceAmount === 0 &&
+    params.receiptsThisMonth === 0;
+
   // Gewogen gemiddelde (gelijk gewicht)
-  const totalScore = Math.round(
+  const rawScore = Math.round(
     factors.reduce((sum, f) => sum + f.score, 0) / factors.length
   );
+
+  // Bij sparse data: score nooit onder 55 — voorkom demotiverende D/F.
+  const totalScore = isSparseData ? Math.max(55, rawScore) : rawScore;
 
   const grade = gradeFromScore(totalScore);
   const summaries: Record<string, string> = {
     A: "Alles loopt lekker",
     B: "Goed op weg",
-    C: "Een paar dingen om op te letten",
-    D: "Er zijn verbeterpunten",
-    F: "Hier kun je winst pakken",
+    C: "Op koers, let op een paar dingen",
+    D: "Een paar punten verdienen aandacht",
+    F: "Tijd om een paar zaken op te pakken",
   };
+  const sparseSummary = "Je bent net begonnen — meer data komt vanzelf";
 
   return {
     score: totalScore,
     grade,
-    summary: summaries[grade],
+    summary: isSparseData ? sparseSummary : summaries[grade],
     factors,
   };
 }

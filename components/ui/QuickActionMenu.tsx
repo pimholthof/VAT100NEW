@@ -13,10 +13,10 @@ export function QuickActionMenu() {
   useClickOutside(ref, open, close);
 
   const actions = [
-    { href: "/dashboard/invoices/new", label: t.nav.invoices },
-    { href: "/dashboard/quotes/new", label: "Offerte" },
-    { href: "/dashboard/clients/new", label: t.nav.clients },
-    { href: "/dashboard/receipts/new", label: "Bon" },
+    { href: "/dashboard/invoices/new", label: "Factuur", hint: "Bedrag + klant" },
+    { href: "/dashboard/quotes/new", label: "Offerte", hint: "Voorstel voor klant" },
+    { href: "/dashboard/receipts/new", label: "Bon", hint: "Scan of upload" },
+    { href: "/dashboard/clients/new", label: "Klant", hint: "KvK / VIES autofill" },
   ];
 
   return (
@@ -58,8 +58,10 @@ export function QuickActionMenu() {
               role="menuitem"
               onClick={() => setOpen(false)}
               className="dropdown-item--link"
+              style={{ display: "flex", flexDirection: "column", gap: 2 }}
             >
-              {action.label}
+              <span style={{ fontSize: 13, fontWeight: 500 }}>{action.label}</span>
+              <span style={{ fontSize: 11, opacity: 0.5 }}>{action.hint}</span>
             </Link>
           ))}
         </div>
