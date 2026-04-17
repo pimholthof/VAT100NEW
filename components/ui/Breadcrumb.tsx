@@ -59,24 +59,18 @@ export function Breadcrumb() {
   // Don't render if only "Overzicht"
   if (items.length <= 1) return null;
 
+  // On mobile, collapse long trails: keep only parent (previous item) + current,
+  // prefixed with a "back" glyph that reads as a single unit.
+  const parent = items.length >= 2 ? items[items.length - 2] : null;
+  const current = items[items.length - 1];
+
   return (
-    <nav aria-label="Breadcrumb" style={{ marginBottom: 16 }}>
-      <ol
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          listStyle: "none",
-          margin: 0,
-          padding: 0,
-          fontSize: "var(--text-body-sm)",
-          letterSpacing: "0.02em",
-        }}
-      >
+    <nav aria-label="Breadcrumb" className="breadcrumb-nav" style={{ marginBottom: 16 }}>
+      <ol className="breadcrumb-list breadcrumb-list--full">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <li key={item.href} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <li key={item.href} style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
               {index > 0 && (
                 <span style={{ opacity: 0.2, fontSize: 10 }}>›</span>
               )}
@@ -100,6 +94,42 @@ export function Breadcrumb() {
             </li>
           );
         })}
+      </ol>
+
+      {/* Mobile collapsed view: ‹ parent · current */}
+      <ol className="breadcrumb-list breadcrumb-list--compact">
+        {parent && (
+          <li style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+            <Link
+              href={parent.href}
+              style={{
+                color: "var(--foreground)",
+                textDecoration: "none",
+                opacity: 0.5,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <span style={{ opacity: 0.7 }}>‹</span>
+              <span>{parent.label}</span>
+            </Link>
+          </li>
+        )}
+        <li
+          style={{
+            opacity: 0.4,
+            fontWeight: 500,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
+          {parent && <span style={{ opacity: 0.3, marginRight: 6 }}>›</span>}
+          {current.label}
+        </li>
       </ol>
     </nav>
   );

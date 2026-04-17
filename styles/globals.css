@@ -2537,6 +2537,39 @@ a {
   }
 }
 
+/* ─── Breadcrumb — desktop full trail vs mobile compact ─── */
+.breadcrumb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-body-sm);
+  letter-spacing: 0.02em;
+  align-items: center;
+  gap: 6px;
+}
+
+.breadcrumb-list--full {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.breadcrumb-list--compact {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .breadcrumb-list--full {
+    display: none;
+  }
+  .breadcrumb-list--compact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    min-width: 0;
+  }
+}
+
 /* ─── Invoice edit layout — split form + live preview ─── */
 .invoice-edit-layout {
   display: block;

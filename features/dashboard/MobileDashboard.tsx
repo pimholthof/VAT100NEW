@@ -154,6 +154,7 @@ export default function MobileDashboard({
           <MobileStatCard
             label={t.dashboard.vatReserve}
             value={formatCurrency(stats.vatToPay)}
+            hint={stats.vatToPay > 0 ? t.dashboard.vatReserveHint : undefined}
           />
           <MobileStatCard
             label={t.dashboard.receiptsProcessed}
@@ -364,11 +365,13 @@ function MobileStatCard({
   label,
   value,
   sub,
+  hint,
   accent,
 }: {
   label: string;
   value: string;
   sub?: string;
+  hint?: string;
   accent?: boolean;
 }) {
   return (
@@ -403,6 +406,18 @@ function MobileStatCard({
       </p>
       {sub && (
         <p style={{ margin: "2px 0 0", fontSize: 10, opacity: 0.5 }}>{sub}</p>
+      )}
+      {hint && (
+        <p
+          style={{
+            margin: "2px 0 0",
+            fontSize: 10,
+            opacity: 0.45,
+            fontStyle: "italic",
+          }}
+        >
+          {hint}
+        </p>
       )}
     </div>
   );
