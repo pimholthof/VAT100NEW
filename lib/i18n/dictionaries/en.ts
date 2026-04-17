@@ -344,7 +344,7 @@ const en = {
     // Form
     selectClient: "Please select a client.",
     addNewClient: "Add new client",
-    descriptionPlaceholder: "Description",
+    descriptionPlaceholder: "e.g. Logo design — phase 1",
     saveAsDraft: "Save as draft",
     saveAndSend: "Save and send",
     invoiceNumberRequired: "Invoice number is required.",

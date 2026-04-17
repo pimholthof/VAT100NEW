@@ -344,7 +344,7 @@ const nl = {
     // Form
     selectClient: "Selecteer een klant.",
     addNewClient: "Nieuwe klant toevoegen",
-    descriptionPlaceholder: "Omschrijving",
+    descriptionPlaceholder: "Bijv. Logo ontwerp — fase 1",
     saveAsDraft: "Opslaan als concept",
     saveAndSend: "Opslaan en versturen",
     invoiceNumberRequired: "Factuurnummer is verplicht.",
