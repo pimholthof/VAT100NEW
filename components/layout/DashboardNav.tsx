@@ -184,17 +184,20 @@ export function DashboardNav({
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
                 <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")} aria-current={linkAriaCurrent("/dashboard")}>{t.nav.overview}</Link>
-                <Link
-                  href="/dashboard/invoices"
-                  onClick={() => setIsDrawerOpen(false)}
-                  className={linkClass("/dashboard/invoices")}
-                  aria-current={linkAriaCurrent("/dashboard/invoices")}
-                  style={{ display: "flex", alignItems: "center", gap: 8 }}
-                >
-                  {t.nav.invoices}
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Link
+                    href="/dashboard/invoices"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={linkClass("/dashboard/invoices")}
+                    aria-current={linkAriaCurrent("/dashboard/invoices")}
+                  >
+                    {t.nav.invoices}
+                  </Link>
                   {overdueInvoices > 0 && (
-                    <span
-                      aria-label={`${overdueInvoices} verlopen`}
+                    <Link
+                      href="/dashboard/invoices?status=overdue"
+                      onClick={() => setIsDrawerOpen(false)}
+                      aria-label={`${overdueInvoices} verlopen — toon alleen verlopen`}
                       style={{
                         fontSize: 10,
                         fontWeight: 600,
@@ -206,12 +209,13 @@ export function DashboardNav({
                         lineHeight: 1.2,
                         minWidth: 16,
                         textAlign: "center",
+                        textDecoration: "none",
                       }}
                     >
                       {overdueInvoices}
-                    </span>
+                    </Link>
                   )}
-                </Link>
+                </span>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")} aria-current={linkAriaCurrent("/dashboard/clients")}>{t.nav.clients}</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")} aria-current={linkAriaCurrent("/dashboard/expenses")}>{t.nav.expenses}</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")} aria-current={linkAriaCurrent("/dashboard/tax")}>{t.nav.tax}</Link>

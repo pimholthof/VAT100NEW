@@ -57,8 +57,10 @@ function InvoicesTab() {
   const { t } = useLocale();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const initialStatus = searchParams.get("status") ?? "";
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
@@ -141,6 +143,7 @@ function InvoicesTab() {
         filters={[
           { key: "status", label: t.invoices.allStatuses, options: invoiceStatusOptions },
         ]}
+        initialFilters={initialStatus ? { status: initialStatus } : undefined}
         onSearch={handleSearch}
         onFilterChange={handleFilter}
       />
