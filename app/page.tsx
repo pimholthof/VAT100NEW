@@ -16,6 +16,7 @@ export default function LandingPage() {
   const [position, setPosition] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { locale, t, setLocale } = useLocale();
 
   const features = [
@@ -115,11 +116,11 @@ export default function LandingPage() {
       {/* ─── Header ─── */}
       <header className={styles.header}>
         <span className={styles.logo}>VAT100</span>
-        <nav className={styles.nav}>
-          <a href="#functies" className={styles.navLink}>
+        <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ""}`}>
+          <a href="#functies" className={styles.navLink} onClick={() => setMenuOpen(false)}>
             {t.landing.features}
           </a>
-          <a href="#prijzen" className={styles.navLink}>
+          <a href="#prijzen" className={styles.navLink} onClick={() => setMenuOpen(false)}>
             {t.landing.pricing}
           </a>
           <button
@@ -128,10 +129,18 @@ export default function LandingPage() {
           >
             {locale === "nl" ? "EN" : "NL"}
           </button>
-          <Link href="/login" className={styles.loginButton}>
+          <Link href="/login" className={styles.loginButton} onClick={() => setMenuOpen(false)}>
             {t.landing.login}
           </Link>
         </nav>
+        <button
+          className={styles.menuToggle}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label={menuOpen ? "Menu sluiten" : "Menu openen"}
+          aria-expanded={menuOpen}
+        >
+          <span className={`${styles.menuBar} ${menuOpen ? styles.menuBarOpen : ""}`} />
+        </button>
       </header>
 
       {/* ─── Hero ─── */}
