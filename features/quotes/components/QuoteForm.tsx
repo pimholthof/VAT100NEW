@@ -18,6 +18,7 @@ import { InvoiceMetadata } from "@/features/invoices/components/InvoiceMetadata"
 import { InvoiceTotals } from "@/features/invoices/components/InvoiceTotals";
 import type { QuoteStatus } from "@/lib/types";
 import { ErrorMessage } from "@/components/ui";
+import { Spinner } from "@/components/ui/Button";
 import { m as motion } from "framer-motion";
 import { playSound } from "@/lib/utils/sound";
 import { useInvoiceStore } from "@/lib/store/invoice";
@@ -352,13 +353,21 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
       {/* Actions */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
         <button
+          type="button"
           onClick={() => {
             handleSave("draft");
             playSound("glass-ping");
           }}
           disabled={saving}
+          aria-busy={saving || undefined}
+          aria-disabled={saving || undefined}
           style={{
             flex: 1,
+            minWidth: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
             padding: "24px",
             background: "rgba(0,0,0,0.03)",
             border: "var(--border-rule)",
@@ -366,16 +375,25 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.2em",
-            cursor: "pointer"
+            cursor: saving ? "wait" : "pointer"
           }}
         >
-          {saving ? "..." : t.quotes.saveDraft}
+          {saving && <Spinner size={12} />}
+          <span>{t.quotes.saveDraft}</span>
         </button>
         <button
+          type="button"
           onClick={handleSendEmail}
           disabled={saving || sending}
+          aria-busy={sending || undefined}
+          aria-disabled={saving || sending || undefined}
           style={{
             flex: 2,
+            minWidth: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
             padding: "24px",
             background: "var(--foreground)",
             color: "var(--background)",
@@ -384,11 +402,12 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
             fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.2em",
-            cursor: "pointer",
+            cursor: saving || sending ? "wait" : "pointer",
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)"
           }}
         >
-          {sending ? "Versturen..." : t.quotes.sendQuote}
+          {sending && <Spinner size={12} />}
+          <span>{sending ? "Versturen" : t.quotes.sendQuote}</span>
         </button>
       </div>
 

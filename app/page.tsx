@@ -9,6 +9,7 @@ import InvoiceMockup from "@/components/landing/InvoiceMockup";
 import VatMockup from "@/components/landing/VatMockup";
 import PosterMockup from "@/components/landing/PosterMockup";
 import FaqAccordion from "@/components/landing/FaqAccordion";
+import { Button } from "@/components/ui/Button";
 import styles from "./page.module.css";
 
 export default function LandingPage() {
@@ -304,9 +305,9 @@ export default function LandingPage() {
 
                 {error && <div role="alert" className={styles.formError}>{error}</div>}
 
-                <button type="submit" disabled={pending} className={`btn-primary ${styles.formSubmit}`}>
-                  {pending ? "..." : t.landing.waitlistButton}
-                </button>
+                <Button type="submit" loading={pending} className={styles.formSubmit}>
+                  {t.landing.waitlistButton}
+                </Button>
               </form>
             </div>
           )}

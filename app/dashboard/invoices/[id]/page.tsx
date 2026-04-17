@@ -26,6 +26,7 @@ import {
 } from "@/components/ui";
 import { STATUS_LABELS } from "@/lib/constants/status";
 import { formatCurrency } from "@/lib/format";
+import { Spinner } from "@/components/ui/Button";
 
 export default function EditInvoicePage() {
   const params = useParams<{ id: string }>();
@@ -364,9 +365,13 @@ export default function EditInvoicePage() {
                   opacity: 0.35,
                   padding: "8px 4px",
                   color: "var(--color-accent)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
-                {deleting ? "..." : "Verwijder"}
+                {deleting && <Spinner size={10} />}
+                <span>Verwijder</span>
               </button>
             )}
           </div>

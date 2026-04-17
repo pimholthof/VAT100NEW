@@ -20,6 +20,7 @@ import { InvoiceMetadata } from "./InvoiceMetadata";
 import { InvoiceTotals } from "./InvoiceTotals";
 import { InvoiceLivePreview } from "./InvoiceLivePreview";
 import { ErrorMessage, StepIndicator } from "@/components/ui";
+import { Spinner } from "@/components/ui/Button";
 import { playSound } from "@/lib/utils/sound";
 
 interface MobileInvoiceWizardProps {
@@ -331,8 +332,15 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
                 playSound("glass-ping");
               }}
               disabled={saving}
+              aria-busy={saving || undefined}
+              aria-disabled={saving || undefined}
               style={{
                 flex: 1,
+                minWidth: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
                 padding: "16px",
                 background: "transparent",
                 border: "0.5px solid rgba(0,0,0,0.12)",
@@ -341,10 +349,11 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
                 fontWeight: 500,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                cursor: "pointer",
+                cursor: saving ? "wait" : "pointer",
               }}
             >
-              {saving ? "..." : t.invoices.saveDraft}
+              {saving && <Spinner size={12} />}
+              <span>{t.invoices.saveDraft}</span>
             </button>
             <button
               type="button"
@@ -353,8 +362,15 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
                 playSound("glass-ping");
               }}
               disabled={saving}
+              aria-busy={saving || undefined}
+              aria-disabled={saving || undefined}
               style={{
                 flex: 2,
+                minWidth: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
                 padding: "16px",
                 background: "var(--foreground)",
                 color: "var(--background)",
@@ -364,10 +380,11 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
                 fontWeight: 600,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                cursor: "pointer",
+                cursor: saving ? "wait" : "pointer",
               }}
             >
-              {saving ? "..." : t.invoices.issueAndPreview}
+              {saving && <Spinner size={12} />}
+              <span>{t.invoices.issueAndPreview}</span>
             </button>
           </>
         )}
