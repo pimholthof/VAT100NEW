@@ -2518,6 +2518,13 @@ a {
   }
 }
 
+/* ─── Button spinner ─── */
+@keyframes vat100-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ─── Invoice edit layout — split form + live preview ─── */
 .invoice-edit-layout {
   display: block;

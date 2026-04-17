@@ -179,9 +179,18 @@ export default function MobileDashboard({
           {t.dashboard.openInvoicesTitle}
         </h2>
         {openInvoices.length === 0 ? (
-          <p style={{ padding: "24px 20px", opacity: 0.4, fontSize: 14 }}>
-            {t.dashboard.noOpenInvoices}
-          </p>
+          <div style={{ padding: "12px 20px" }}>
+            <p style={{ margin: 0, fontSize: 14, opacity: 0.45, lineHeight: 1.5 }}>
+              {t.dashboard.noOpenInvoices}
+            </p>
+            <Link
+              href="/dashboard/invoices/new"
+              className="btn-primary"
+              style={{ marginTop: 16, display: "inline-block" }}
+            >
+              Nieuwe factuur
+            </Link>
+          </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "0 20px" }}>
             {openInvoices.slice(0, 6).map((invoice) => (

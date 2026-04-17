@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/format";
 import {
   StatCard,
   SkeletonTable,
+  EmptyState,
 } from "@/components/ui";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
 import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
@@ -302,8 +303,22 @@ function DesktopDashboard({
           <SkeletonTable />
         ) : openInvoices && openInvoices.length > 0 ? (
           <UpcomingInvoiceTable invoices={openInvoices} />
+        ) : onboardingResult && !onboardingResult.hasClient ? (
+          <EmptyState
+            icon="○"
+            title="Begin met een klant"
+            description="Voeg eerst een klant toe — daarna stuur je er een factuur naartoe."
+            actionLabel="Voeg klant toe"
+            actionHref="/dashboard/clients/new"
+          />
         ) : (
-          <p className="empty-state">{t.dashboard.noOpenInvoices}</p>
+          <EmptyState
+            icon="□"
+            title={t.dashboard.noOpenInvoices}
+            description="Alles geïnd of nog geen facturen verstuurd. Stuur er een om te beginnen."
+            actionLabel="Nieuwe factuur"
+            actionHref="/dashboard/invoices/new"
+          />
         )}
       </motion.div>
 

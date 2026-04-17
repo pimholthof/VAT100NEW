@@ -248,7 +248,7 @@ export default function EditInvoicePage() {
           {currentStatus === "draft" && (
             <ButtonPrimary
               onClick={() => handleStatusChange("sent")}
-              disabled={statusUpdating}
+              loading={statusUpdating}
             >
               Markeer als verzonden
             </ButtonPrimary>
@@ -257,13 +257,13 @@ export default function EditInvoicePage() {
             <>
               <ButtonPrimary
                 onClick={() => handleStatusChange("paid")}
-                disabled={statusUpdating}
+                loading={statusUpdating}
               >
                 Markeer als betaald
               </ButtonPrimary>
               <ButtonSecondary
                 onClick={() => handleStatusChange("overdue")}
-                disabled={statusUpdating}
+                loading={statusUpdating}
               >
                 Markeer als verlopen
               </ButtonSecondary>
@@ -272,7 +272,7 @@ export default function EditInvoicePage() {
           {(currentStatus === "paid" || currentStatus === "overdue") && (
             <ButtonSecondary
               onClick={() => handleStatusChange("draft")}
-              disabled={statusUpdating}
+              loading={statusUpdating}
             >
               Terug naar concept
             </ButtonSecondary>
@@ -280,26 +280,26 @@ export default function EditInvoicePage() {
           {currentStatus === "overdue" && result?.data?.client?.email && (
             <ButtonSecondary
               onClick={handleSendReminder}
-              disabled={reminderSending}
+              loading={reminderSending}
             >
-              {reminderSending ? "Verzenden..." : "Stuur herinnering"}
+              Stuur herinnering
             </ButtonSecondary>
           )}
           {(currentStatus === "sent" || currentStatus === "paid") &&
             result?.data?.client?.email && (
               <ButtonPrimary
                 onClick={handleSendEmail}
-                disabled={emailSending}
+                loading={emailSending}
               >
-                {emailSending ? "Verzenden..." : "Verstuur per e-mail"}
+                Verstuur per e-mail
               </ButtonPrimary>
             )}
           {currentStatus !== "draft" && !result?.data?.is_credit_note && (
             <ButtonSecondary
               onClick={() => setShowCreditNoteConfirm(true)}
-              disabled={creditNoteLoading}
+              loading={creditNoteLoading}
             >
-              {creditNoteLoading ? "Aanmaken..." : "Creditnota aanmaken"}
+              Creditnota aanmaken
             </ButtonSecondary>
           )}
           <ButtonSecondary
@@ -315,9 +315,9 @@ export default function EditInvoicePage() {
               }
               setDuplicating(false);
             }}
-            disabled={duplicating}
+            loading={duplicating}
           >
-            {duplicating ? "Dupliceren..." : "Dupliceer factuur"}
+            Dupliceer factuur
           </ButtonSecondary>
           {currentStatus === "draft" && (
             <button
@@ -387,9 +387,9 @@ export default function EditInvoicePage() {
         ) : (
           <ButtonSecondary
             onClick={handleGenerateShareLink}
-            disabled={shareLoading}
+            loading={shareLoading}
           >
-            {shareLoading ? "Genereren..." : "Genereer deellink"}
+            Genereer deellink
           </ButtonSecondary>
         )}
       </div>
