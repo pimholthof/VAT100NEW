@@ -4,13 +4,9 @@ import React, { useEffect, useRef } from "react";
 import { animate, useMotionValue, useTransform, m as motion } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
 
-/**
- * AnimatedNumber — Smoothly counts up/down to a target value.
- * Used for financial displays to give a premium, real-time feel.
- */
 export function AnimatedNumber({
   value,
-  duration = 1.2,
+  duration = 0.5,
   prefix = "",
   suffix = "",
   style,
@@ -32,24 +28,31 @@ export function AnimatedNumber({
     const formatter = new Intl.NumberFormat(numLocale, {
       style: isCurrency ? "currency" : "decimal",
       currency: "EUR",
-      minimumFractionDigits: isCurrency ? 0 : 0,
+      minimumFractionDigits: 0,
       maximumFractionDigits: isCurrency ? 0 : 2,
     });
-    
-    // For currency, it already adds the symbol, so we might not need prefix/suffix 
-    // but we keep them for flexibility.
-    const formatted = formatter.format(Math.round(latest));
-    return `${prefix}${formatted}${suffix}`;
+    return `${prefix}${formatter.format(Math.round(latest))}${suffix}`;
   });
 
   const prevValue = useRef(value);
+  const firstRender = useRef(true);
 
   useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      prevValue.current = value;
+      count.set(value);
+      return;
+    }
+    if (Math.abs(prevValue.current - value) < 1) {
+      prevValue.current = value;
+      count.set(value);
+      return;
+    }
     const controls = animate(count, value, {
-      duration: duration,
-      ease: [0.16, 1, 0.3, 1], // Custom "liquid" ease: fast start, soft settle
+      duration,
+      ease: [0.16, 1, 0.3, 1],
     });
-    
     prevValue.current = value;
     return controls.stop;
   }, [value, count, duration]);

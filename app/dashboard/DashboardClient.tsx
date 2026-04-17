@@ -100,8 +100,8 @@ function DesktopDashboard({
   const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.due_date && invoice.days_overdue <= 0);
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    hidden: { opacity: 0, y: 8 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }
   };
 
   const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
@@ -146,7 +146,7 @@ function DesktopDashboard({
         hidden: {},
         show: {
           transition: {
-            staggerChildren: 0.12,
+            staggerChildren: 0.04,
           },
         },
       }}
