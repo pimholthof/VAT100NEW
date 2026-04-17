@@ -271,13 +271,25 @@ export default function EditInvoicePage() {
                 </ButtonSecondary>
               </>
             )}
-            {(currentStatus === "paid" || currentStatus === "overdue") && (
-              <ButtonSecondary
-                onClick={() => handleStatusChange("draft")}
+            {currentStatus === "overdue" && (
+              <ButtonPrimary
+                onClick={() => handleStatusChange("paid")}
                 loading={statusUpdating}
               >
-                Terug naar concept
-              </ButtonSecondary>
+                Markeer als betaald
+              </ButtonPrimary>
+            )}
+            {currentStatus === "paid" && (
+              <span
+                style={{
+                  fontSize: 11,
+                  opacity: 0.45,
+                  fontStyle: "italic",
+                  padding: "8px 4px",
+                }}
+              >
+                Betaald — niet meer te wijzigen
+              </span>
             )}
             {currentStatus === "overdue" && result?.data?.client?.email && (
               <ButtonSecondary
