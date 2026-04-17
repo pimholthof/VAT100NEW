@@ -46,6 +46,10 @@ export function DashboardNav({
     return isActive(href) ? "drawer-link drawer-link-active" : "drawer-link";
   }
 
+  function linkAriaCurrent(href: string): "page" | undefined {
+    return isActive(href) ? "page" : undefined;
+  }
+
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -143,12 +147,12 @@ export function DashboardNav({
               {/* Main navigation */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")}>{t.nav.overview}</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/invoices")}>{t.nav.invoices}</Link>
-                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")}>{t.nav.clients}</Link>
-                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")}>{t.nav.expenses}</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")}>{t.nav.tax}</Link>
-                <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")} aria-current={linkAriaCurrent("/dashboard")}>{t.nav.overview}</Link>
+                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/invoices")} aria-current={linkAriaCurrent("/dashboard/invoices")}>{t.nav.invoices}</Link>
+                <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")} aria-current={linkAriaCurrent("/dashboard/clients")}>{t.nav.clients}</Link>
+                <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")} aria-current={linkAriaCurrent("/dashboard/expenses")}>{t.nav.expenses}</Link>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")} aria-current={linkAriaCurrent("/dashboard/tax")}>{t.nav.tax}</Link>
+                <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} aria-current={linkAriaCurrent("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Berichten
                   {unreadMessages > 0 && (
                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent, #E53E3E)", flexShrink: 0 }} />
@@ -162,7 +166,7 @@ export function DashboardNav({
                 {isMobile && studioName && (
                   <span className="label opacity-40 mb-2">{studioName}</span>
                 )}
-                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings")}>{t.nav.settings}</Link>
+                <Link href="/dashboard/settings" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/settings")} aria-current={linkAriaCurrent("/dashboard/settings")}>{t.nav.settings}</Link>
                 <button
                   type="button"
                   onClick={handleLogout}
