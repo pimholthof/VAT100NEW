@@ -1,16 +1,26 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/Button";
-import { Send, Bot, User, AlertCircle, CheckCircle } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, type KeyboardEvent, type ReactNode } from "react";
+import { useToast, ButtonPrimary } from "@/components/ui";
+
+interface TaxData {
+  nettoIB: number;
+  effectiefTarief: number;
+  [key: string]: unknown;
+}
+
+interface Compliance {
+  score: number;
+  issues: string[];
+  [key: string]: unknown;
+}
 
 interface Message {
   id: string;
   type: "user" | "assistant";
   content: string;
   timestamp: Date;
-  taxData?: { nettoIB: number; effectiefTarief: number; [key: string]: unknown };
-  compliance?: { score: number; issues: string[]; [key: string]: unknown };
+  taxData?: TaxData;
 }
 
 interface TaxAgentChatProps {
@@ -18,341 +28,509 @@ interface TaxAgentChatProps {
   initialMessage?: string;
 }
 
+const SUGGESTIONS = [
+  "Wat is mijn verwachte belasting dit jaar?",
+  "Welke aftrekposten laat ik liggen?",
+  "Hoe staat mijn BTW-aangifte ervoor?",
+  "Moet ik uren blijven bijhouden?",
+];
+
+function formatEuro(value: number): string {
+  return new Intl.NumberFormat("nl-NL", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function formatTime(d: Date): string {
+  return d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+}
+
+// Minimal safe renderer: splits on \n and only applies **bold** inline.
+function renderMessageBody(content: string): ReactNode {
+  return content.split("\n").map((line, lineIdx) => {
+    if (!line.trim()) return <div key={lineIdx} style={{ height: 6 }} />;
+    const isBullet = line.startsWith("- ") || line.startsWith("• ");
+    const body = isBullet ? line.slice(2) : line;
+    const segments = body.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+    return (
+      <p
+        key={lineIdx}
+        style={{
+          margin: 0,
+          paddingLeft: isBullet ? 16 : 0,
+          position: "relative",
+          lineHeight: 1.55,
+        }}
+      >
+        {isBullet && (
+          <span
+            aria-hidden="true"
+            style={{ position: "absolute", left: 0, opacity: 0.4 }}
+          >
+            ·
+          </span>
+        )}
+        {segments.map((part, i) =>
+          part.startsWith("**") && part.endsWith("**") ? (
+            <strong key={i} style={{ fontWeight: 600 }}>
+              {part.slice(2, -2)}
+            </strong>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </p>
+    );
+  });
+}
+
 export default function TaxAgentChat({ userId, initialMessage }: TaxAgentChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [compliance, setCompliance] = useState<{ score: number; issues: string[]; [key: string]: unknown } | null>(null);
+  const [compliance, setCompliance] = useState<Compliance | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
 
-  const scrollToBottom = () => {
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, [messages, isLoading]);
+
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || isLoading) return;
+
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        type: "user",
+        content: trimmed,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+      setIsLoading(true);
+
+      try {
+        const response = await fetch("/api/ai/tax-agent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: trimmed,
+            context: { userId, compliance },
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to send message");
+
+        const data = await response.json();
+
+        const assistantMessage: Message = {
+          id: crypto.randomUUID(),
+          type: "assistant",
+          content: data.response,
+          timestamp: new Date(),
+          taxData: data.taxData,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+        if (data.compliance) setCompliance(data.compliance);
+      } catch {
+        toast("De fiscale assistent reageerde niet. Probeer opnieuw.", "error");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [compliance, isLoading, toast, userId]
+  );
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    // Load initial compliance status
-    loadCompliance();
-    
-    // Set initial message if provided
-    if (initialMessage) {
-      setInput(initialMessage);
-      setTimeout(() => sendMessage(), 100);
-    }
+    fetch("/api/ai/tax-agent/compliance")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.compliance) setCompliance(data.compliance);
+      })
+      .catch(() => {});
   }, []);
 
-  const loadCompliance = async () => {
-    try {
-      const response = await fetch("/api/ai/tax-agent/compliance");
-      if (response.ok) {
-        const data = await response.json();
-        setCompliance(data.compliance);
-      }
-    } catch (error) {
-      console.error("Failed to load compliance:", error);
-    }
-  };
+  useEffect(() => {
+    if (initialMessage) sendMessage(initialMessage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/ai/tax-agent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: input,
-          context: {
-            userId,
-            compliance
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
-      const data = await response.json();
-      
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "assistant",
-        content: data.response,
-        timestamp: new Date(),
-        taxData: data.taxData,
-        compliance: data.compliance,
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
-      
-      // Update compliance if received
-      if (data.compliance) {
-        setCompliance(data.compliance);
-      }
-      
-    } catch (error) {
-      console.error("Error sending message:", error);
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "assistant",
-        content: "Er is een fout opgetreden. Probeer het opnieuw.",
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      sendMessage(input);
     }
-  };
+  }
 
-  const formatMessage = (content: string) => {
-    // Convert markdown-like formatting to JSX
-    return content
-      .split('\n')
-      .map((line, index) => {
-        // Bold text
-        line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        
-        // Emoji handling
-        if (line.startsWith('📊') || line.startsWith('💰') || line.startsWith('🧾') || 
-            line.startsWith('💸') || line.startsWith('📈') || line.startsWith('💡') || 
-            line.startsWith('🔍') || line.startsWith('🎯') || line.startsWith('📞')) {
-          return (
-            <div key={index} className="font-semibold text-gray-900 mt-3 first:mt-0">
-              <span dangerouslySetInnerHTML={{ __html: line }} />
-            </div>
-          );
-        }
-        
-        // Bullet points
-        if (line.startsWith('-')) {
-          return (
-            <div key={index} className="ml-4 text-gray-700">
-              <span dangerouslySetInnerHTML={{ __html: line }} />
-            </div>
-          );
-        }
-        
-        // Regular text
-        return (
-          <div key={index} className="text-gray-700">
-            <span dangerouslySetInnerHTML={{ __html: line }} />
-          </div>
-        );
-      });
-  };
-
-  const ComplianceScore = ({ score }: { score: number }) => {
-    const getColor = () => {
-      if (score >= 90) return "text-green-600 bg-green-50";
-      if (score >= 70) return "text-yellow-600 bg-yellow-50";
-      return "text-red-600 bg-red-50";
-    };
-
-    const getIcon = () => {
-      if (score >= 90) return <CheckCircle className="w-4 h-4" />;
-      if (score >= 70) return <AlertCircle className="w-4 h-4" />;
-      return <AlertCircle className="w-4 h-4" />;
-    };
-
-    return (
-      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getColor()}`}>
-        {getIcon()}
-        <span>Compliance: {score}/100</span>
-      </div>
-    );
-  };
-
-  const QuickQuestions = [
-    "Hoeveel belasting betaal ik over mijn omzet?",
-    "Welke aftrekposten kan ik gebruiken?",
-    "Hoe staat het met mijn BTW-aangifte?",
-    "Wat is de beste investeringsstrategie?",
-    "Moet ik nog uren bijhouden?"
-  ];
+  const complianceSeverity: "ok" | "attention" | "urgent" | null = compliance
+    ? compliance.score >= 90
+      ? "ok"
+      : compliance.score >= 70
+      ? "attention"
+      : "urgent"
+    : null;
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <Bot className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">VAT100 Tax Agent</h3>
-            <p className="text-sm text-gray-500">Jouw fiscale assistent</p>
-          </div>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 420,
+        border: "0.5px solid rgba(0, 0, 0, 0.08)",
+        borderRadius: "var(--radius)",
+        background: "var(--background)",
+      }}
+    >
+      {/* Header — restrained, on-brand */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "14px 20px",
+          borderBottom: "0.5px solid rgba(0, 0, 0, 0.06)",
+          gap: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <span
+            className="label"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              opacity: 0.5,
+              fontWeight: 500,
+            }}
+          >
+            VAT100 · Fiscale assistent
+          </span>
+          <span style={{ fontSize: 11, opacity: 0.35 }}>Live uit jouw cijfers</span>
         </div>
-        {compliance && <ComplianceScore score={compliance.score} />}
+        {complianceSeverity && complianceSeverity !== "ok" && (
+          <ComplianceChip
+            severity={complianceSeverity}
+            score={compliance!.score}
+            issues={compliance!.issues}
+          />
+        )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="text-center py-8">
-            <Bot className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">
-              Welkom bij de VAT100 Tax Agent
-            </h4>
-            <p className="text-gray-600 mb-6">
-              Stel je vragen over belastingen, BTW, aftrekposten of fiscale strategieën.
-            </p>
-            
-            {/* Quick Questions */}
-            <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
-              {QuickQuestions.map((question, index) => (
-                <button
-                  key={index}
-                  onClick={() => setInput(question)}
-                  className="text-left p-3 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
-                >
-                  {question}
-                </button>
-              ))}
-            </div>
-          </div>
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "20px 20px 8px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 18,
+        }}
+      >
+        {messages.length === 0 && !isLoading && (
+          <EmptyState
+            onPick={(q) => {
+              setInput(q);
+              inputRef.current?.focus();
+            }}
+          />
         )}
 
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex gap-3 ${
-              message.type === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
-            {message.type === "assistant" && (
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Bot className="w-5 h-5 text-blue-600" />
-              </div>
-            )}
-            
-            <div
-              className={`max-w-[80%] rounded-lg p-4 ${
-                message.type === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-50 text-gray-900 border border-gray-200"
-              }`}
-            >
-              <div className="whitespace-pre-wrap">
-                {message.type === "user" ? (
-                  message.content
-                ) : (
-                  formatMessage(message.content)
-                )}
-              </div>
-              
-              {/* Tax Data Summary */}
-              {message.taxData && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Netto belasting:</span>
-                      <div className="font-semibold">
-                        €{message.taxData.nettoIB.toLocaleString("nl-NL", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Effectief tarief:</span>
-                      <div className="font-semibold">{message.taxData.effectiefTarief}%</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="text-xs mt-2 opacity-70">
-                {message.timestamp.toLocaleTimeString("nl-NL", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-            </div>
-
-            {message.type === "user" && (
-              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-gray-600" />
-              </div>
-            )}
-          </div>
+        {messages.map((msg) => (
+          <MessageBubble key={msg.id} message={msg} />
         ))}
 
-        {isLoading && (
-          <div className="flex gap-3 justify-start">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <Bot className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-              </div>
-            </div>
-          </div>
-        )}
-        
+        {isLoading && <TypingIndicator />}
+
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Stel je fiscale vraag..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={isLoading}
-          />
-          <Button
-            onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
-            className="px-4 py-2"
+      <div
+        style={{
+          borderTop: "0.5px solid rgba(0, 0, 0, 0.06)",
+          padding: "14px 16px",
+          display: "flex",
+          gap: 10,
+          alignItems: "flex-end",
+        }}
+      >
+        <textarea
+          ref={inputRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Stel je fiscale vraag…"
+          aria-label="Bericht aan fiscale assistent"
+          rows={1}
+          disabled={isLoading}
+          style={{
+            flex: 1,
+            minHeight: 38,
+            maxHeight: 140,
+            resize: "none",
+            padding: "10px 14px",
+            border: "0.5px solid rgba(0, 0, 0, 0.12)",
+            borderRadius: "var(--radius-sm)",
+            background: "rgba(0, 0, 0, 0.015)",
+            fontFamily: "var(--font-geist)",
+            fontSize: 14,
+            lineHeight: 1.5,
+            color: "var(--foreground)",
+            outline: "none",
+          }}
+        />
+        <ButtonPrimary
+          onClick={() => sendMessage(input)}
+          loading={isLoading}
+          disabled={!input.trim()}
+          style={{ padding: "10px 18px", fontSize: 11 }}
+        >
+          Verstuur
+        </ButtonPrimary>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ onPick }: { onPick: (q: string) => void }) {
+  return (
+    <div style={{ padding: "8px 0 16px" }}>
+      <p
+        style={{
+          fontSize: "clamp(18px, 2.5vw, 22px)",
+          fontWeight: 400,
+          letterSpacing: "-0.02em",
+          lineHeight: 1.3,
+          margin: "0 0 8px",
+        }}
+      >
+        Waar kan ik mee helpen?
+      </p>
+      <p
+        style={{
+          fontSize: 13,
+          opacity: 0.55,
+          margin: "0 0 20px",
+          lineHeight: 1.5,
+          maxWidth: 520,
+        }}
+      >
+        Ik reken met jouw facturen, bonnen en fiscale instellingen. Antwoorden zijn
+        indicatief — bevestig grote besluiten met een adviseur.
+      </p>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          maxWidth: 520,
+        }}
+      >
+        {SUGGESTIONS.map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => onPick(q)}
+            style={{
+              textAlign: "left",
+              padding: "10px 14px",
+              background: "transparent",
+              border: "0.5px solid rgba(0, 0, 0, 0.08)",
+              borderRadius: "var(--radius-sm)",
+              fontSize: 13,
+              cursor: "pointer",
+              color: "var(--foreground)",
+              transition: "background 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(0,0,0,0.02)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
           >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
-        
-        {/* Compliance Issues */}
-        {compliance?.issues && compliance.issues.length > 0 && (
-          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center gap-2 text-sm text-yellow-800">
-              <AlertCircle className="w-4 h-4" />
-              <span>Actie nodig: {compliance.issues.join(", ")}</span>
-            </div>
+            {q}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MessageBubble({ message }: { message: Message }) {
+  const isUser = message.type === "user";
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: isUser ? "flex-end" : "flex-start",
+        gap: 4,
+      }}
+    >
+      {!isUser && (
+        <span
+          className="label"
+          style={{
+            fontSize: 9,
+            opacity: 0.4,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            fontWeight: 500,
+          }}
+        >
+          VAT100
+        </span>
+      )}
+      <div
+        style={{
+          maxWidth: "82%",
+          padding: isUser ? "10px 14px" : 0,
+          background: isUser ? "var(--foreground)" : "transparent",
+          color: isUser ? "var(--background)" : "var(--foreground)",
+          borderRadius: isUser ? "var(--radius-sm)" : 0,
+          fontSize: 14,
+          lineHeight: 1.55,
+          letterSpacing: "-0.005em",
+        }}
+      >
+        {renderMessageBody(message.content)}
+
+        {message.taxData && (
+          <div
+            style={{
+              marginTop: 14,
+              paddingTop: 12,
+              borderTop: "0.5px solid rgba(0, 0, 0, 0.08)",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              columnGap: 20,
+              rowGap: 4,
+              fontSize: 12,
+            }}
+          >
+            <span style={{ opacity: 0.5 }}>Netto belasting</span>
+            <span style={{ opacity: 0.5 }}>Effectief tarief</span>
+            <span
+              className="mono-amount"
+              style={{ fontWeight: 600, fontSize: 14 }}
+            >
+              {formatEuro(message.taxData.nettoIB)}
+            </span>
+            <span
+              className="mono-amount"
+              style={{ fontWeight: 600, fontSize: 14 }}
+            >
+              {message.taxData.effectiefTarief}%
+            </span>
           </div>
         )}
       </div>
+      <span
+        style={{
+          fontSize: 10,
+          opacity: 0.35,
+          fontVariantNumeric: "tabular-nums",
+          marginTop: 2,
+        }}
+      >
+        {formatTime(message.timestamp)}
+      </span>
     </div>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
+      <span
+        className="label"
+        style={{
+          fontSize: 9,
+          opacity: 0.4,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          fontWeight: 500,
+        }}
+      >
+        VAT100
+      </span>
+      <span
+        role="status"
+        aria-label="VAT100 denkt na"
+        style={{
+          fontSize: 13,
+          opacity: 0.55,
+          fontStyle: "italic",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+        }}
+      >
+        Denkt na
+        <span className="vat100-typing-dots" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function ComplianceChip({
+  severity,
+  score,
+  issues,
+}: {
+  severity: "attention" | "urgent";
+  score: number;
+  issues: string[];
+}) {
+  const color =
+    severity === "urgent" ? "var(--color-accent)" : "var(--color-warning)";
+  const label = issues[0] ?? (severity === "urgent" ? "Actie vereist" : "Aandacht");
+  return (
+    <span
+      title={issues.join("\n")}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "4px 10px",
+        border: `0.5px solid ${color}`,
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 500,
+        color,
+        maxWidth: 280,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          background: color,
+          flexShrink: 0,
+        }}
+      />
+      {label}
+      <span style={{ opacity: 0.55 }}>· {score}</span>
+    </span>
   );
 }

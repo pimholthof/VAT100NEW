@@ -2525,6 +2525,32 @@ a {
   }
 }
 
+/* ─── Chat typing dots — three dots fading in sequence ─── */
+@keyframes vat100-typing-dot {
+  0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-1px); }
+}
+.vat100-typing-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 6px;
+  align-items: center;
+}
+.vat100-typing-dots > span {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: vat100-typing-dot 1.2s infinite ease-in-out;
+}
+.vat100-typing-dots > span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.vat100-typing-dots > span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
 /* ─── Reduced motion — respect user OS preference ─── */
 @media (prefers-reduced-motion: reduce) {
   *,
