@@ -5,7 +5,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   loading?: boolean;
 }
 
-function Spinner({ size = 14 }: { size?: number }) {
+export function Spinner({ size = 14 }: { size?: number }) {
   return (
     <span
       aria-hidden="true"

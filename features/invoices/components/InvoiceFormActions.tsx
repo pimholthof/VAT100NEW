@@ -3,6 +3,7 @@
 import { useLocale } from "@/lib/i18n/context";
 import { playSound } from "@/lib/utils/sound";
 import { useInvoiceStore } from "@/lib/store/invoice";
+import { Spinner } from "@/components/ui/Button";
 
 export function InvoiceFormActions({
   saving,
@@ -47,13 +48,21 @@ export function InvoiceFormActions({
 
       <div style={{ display: "flex", gap: 24 }}>
         <button
+          type="button"
           onClick={() => {
             onSaveDraft();
             playSound("glass-ping");
           }}
           disabled={saving}
+          aria-busy={saving || undefined}
+          aria-disabled={saving || undefined}
           style={{
             flex: 1,
+            minWidth: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
             padding: "24px",
             background: "rgba(0,0,0,0.03)",
             border: "var(--border-rule)",
@@ -61,19 +70,28 @@ export function InvoiceFormActions({
             fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.2em",
-            cursor: "pointer",
+            cursor: saving ? "wait" : "pointer",
           }}
         >
-          {saving ? "..." : t.invoices.saveDraft}
+          {saving && <Spinner size={12} />}
+          <span>{t.invoices.saveDraft}</span>
         </button>
         <button
+          type="button"
           onClick={() => {
             onIssueAndPreview();
             playSound("glass-ping");
           }}
           disabled={saving}
+          aria-busy={saving || undefined}
+          aria-disabled={saving || undefined}
           style={{
             flex: 2,
+            minWidth: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
             padding: "24px",
             background: "var(--foreground)",
             color: "var(--background)",
@@ -82,15 +100,23 @@ export function InvoiceFormActions({
             fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.2em",
-            cursor: "pointer",
+            cursor: saving ? "wait" : "pointer",
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)",
           }}
         >
-          {saving
-            ? "..."
-            : recipientName
-            ? `Versturen aan ${recipientName}`
-            : t.invoices.issueAndPreview}
+          {saving && <Spinner size={12} />}
+          <span
+            style={{
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {recipientName
+              ? `Versturen aan ${recipientName}`
+              : t.invoices.issueAndPreview}
+          </span>
         </button>
       </div>
     </div>
