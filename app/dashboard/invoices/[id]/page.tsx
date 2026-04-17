@@ -362,45 +362,69 @@ export default function EditInvoicePage() {
       {statusMsg && (
         <ErrorMessage style={{ marginBottom: 24 }}>{statusMsg}</ErrorMessage>
       )}
-      {/* Share link section */}
+      {/* Share link — compact single-row */}
       <div
         style={{
           borderBottom: "0.5px solid rgba(13,13,11,0.15)",
-          padding: "16px 0",
+          padding: "12px 0",
           marginBottom: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          flexWrap: "wrap",
         }}
       >
-        <div
+        <span
           style={{
             fontSize: "var(--text-label)",
             fontWeight: 500,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            marginBottom: 8,
             opacity: 0.4,
+            flexShrink: 0,
           }}
         >
-          Deel link
-        </div>
+          Deellink
+        </span>
         {shareToken ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <>
             <span
+              title={
+                typeof window !== "undefined"
+                  ? `${window.location.origin}/invoice/${shareToken}`
+                  : undefined
+              }
               style={{
-                fontSize: "var(--text-mono-md)",
+                fontSize: "var(--text-body-sm)",
+                fontFamily: "var(--font-mono)",
                 fontWeight: 300,
-                opacity: 0.6,
-                wordBreak: "break-all",
+                opacity: 0.55,
                 flex: 1,
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {typeof window !== "undefined"
                 ? `${window.location.origin}/invoice/${shareToken}`
                 : `/invoice/${shareToken}`}
             </span>
-            <ButtonSecondary onClick={handleCopyShareLink}>
-              {copied ? "Gekopieerd" : "Kopieer"}
-            </ButtonSecondary>
-          </div>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <ButtonSecondary onClick={handleCopyShareLink}>
+                {copied ? "Gekopieerd" : "Kopieer"}
+              </ButtonSecondary>
+              <a
+                href={`/invoice/${shareToken}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+                aria-label="Open deellink in nieuw tabblad"
+              >
+                Open
+              </a>
+            </div>
+          </>
         ) : (
           <ButtonSecondary
             onClick={handleGenerateShareLink}
