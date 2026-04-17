@@ -28,9 +28,11 @@ function useIsMobile(breakpoint = 768) {
 export function DashboardNav({
   studioName,
   unreadMessages = 0,
+  overdueInvoices = 0,
 }: {
   studioName?: string;
   unreadMessages?: number;
+  overdueInvoices?: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -182,7 +184,34 @@ export function DashboardNav({
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
                 <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")} aria-current={linkAriaCurrent("/dashboard")}>{t.nav.overview}</Link>
-                <Link href="/dashboard/invoices" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/invoices")} aria-current={linkAriaCurrent("/dashboard/invoices")}>{t.nav.invoices}</Link>
+                <Link
+                  href="/dashboard/invoices"
+                  onClick={() => setIsDrawerOpen(false)}
+                  className={linkClass("/dashboard/invoices")}
+                  aria-current={linkAriaCurrent("/dashboard/invoices")}
+                  style={{ display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  {t.nav.invoices}
+                  {overdueInvoices > 0 && (
+                    <span
+                      aria-label={`${overdueInvoices} verlopen`}
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        letterSpacing: "0.02em",
+                        padding: "2px 6px",
+                        borderRadius: 999,
+                        background: "var(--color-accent)",
+                        color: "#fff",
+                        lineHeight: 1.2,
+                        minWidth: 16,
+                        textAlign: "center",
+                      }}
+                    >
+                      {overdueInvoices}
+                    </span>
+                  )}
+                </Link>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")} aria-current={linkAriaCurrent("/dashboard/clients")}>{t.nav.clients}</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")} aria-current={linkAriaCurrent("/dashboard/expenses")}>{t.nav.expenses}</Link>
                 <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")} aria-current={linkAriaCurrent("/dashboard/tax")}>{t.nav.tax}</Link>

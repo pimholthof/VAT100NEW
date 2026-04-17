@@ -16,14 +16,21 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  // Fetch profile and unread count in parallel
-  const [profileResult, unreadResult] = await Promise.all([
+  // Fetch profile, unread count, and overdue invoice count in parallel
+  const todayIso = new Date().toISOString().split("T")[0];
+  const [profileResult, unreadResult, overdueResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("studio_name")
       .eq("id", user.id)
       .single(),
     getUnreadCount(),
+    supabase
+      .from("invoices")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .in("status", ["sent", "overdue"])
+      .lt("due_date", todayIso),
   ]);
 
   return (
@@ -34,6 +41,7 @@ export default async function DashboardLayout({
       <DashboardNav
         studioName={profileResult.data?.studio_name ?? undefined}
         unreadMessages={unreadResult.data ?? 0}
+        overdueInvoices={overdueResult.count ?? 0}
       />
       <DashboardTransition>
         <main id="main" className="dashboard-content">
