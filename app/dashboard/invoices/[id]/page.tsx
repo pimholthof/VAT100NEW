@@ -25,6 +25,7 @@ import {
   useToast,
 } from "@/components/ui";
 import { STATUS_LABELS } from "@/lib/constants/status";
+import { formatCurrency } from "@/lib/format";
 
 export default function EditInvoicePage() {
   const params = useParams<{ id: string }>();
@@ -473,16 +474,41 @@ export default function EditInvoicePage() {
       <ConfirmDialog
         open={showCreditNoteConfirm}
         title="Creditnota aanmaken"
-        message="Weet je zeker dat je een creditnota wilt aanmaken voor deze factuur? Dit maakt een nieuwe negatieve factuur aan."
+        message="Dit genereert een nieuwe factuur met negatieve bedragen, gekoppeld aan de huidige. Je BTW-aangifte corrigeert automatisch bij het volgende kwartaal."
         confirmLabel="Creditnota aanmaken"
         onConfirm={handleCreateCreditNote}
         onCancel={() => setShowCreditNoteConfirm(false)}
-      />
+      >
+        {result?.data && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: "12px 16px",
+              background: "rgba(0,0,0,0.03)",
+              borderRadius: "var(--radius-sm)",
+              display: "grid",
+              gridTemplateColumns: "auto 1fr",
+              columnGap: 20,
+              rowGap: 6,
+              fontSize: 12,
+            }}
+          >
+            <span style={{ opacity: 0.5 }}>Originele factuur</span>
+            <span className="mono-amount">{result.data.invoice_number}</span>
+            <span style={{ opacity: 0.5 }}>Klant</span>
+            <span>{result.data.client?.name ?? "—"}</span>
+            <span style={{ opacity: 0.5 }}>Bedrag</span>
+            <span className="mono-amount">
+              −{formatCurrency(Number(result.data.total_inc_vat) || 0)}
+            </span>
+          </div>
+        )}
+      </ConfirmDialog>
 
       <ConfirmDialog
         open={showDeleteConfirm}
         title="Factuur verwijderen"
-        message="Weet je zeker dat je deze conceptfactuur wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+        message="Deze conceptfactuur wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt."
         confirmLabel="Verwijderen"
         onConfirm={async () => {
           setShowDeleteConfirm(false);
@@ -498,7 +524,33 @@ export default function EditInvoicePage() {
           }
         }}
         onCancel={() => setShowDeleteConfirm(false)}
-      />
+      >
+        {result?.data && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: "12px 16px",
+              background: "rgba(165, 28, 48, 0.04)",
+              borderLeft: "2px solid var(--color-accent)",
+              borderRadius: "0 var(--radius-sm) var(--radius-sm) 0",
+              display: "grid",
+              gridTemplateColumns: "auto 1fr",
+              columnGap: 20,
+              rowGap: 6,
+              fontSize: 12,
+            }}
+          >
+            <span style={{ opacity: 0.5 }}>Factuur</span>
+            <span className="mono-amount">{result.data.invoice_number}</span>
+            <span style={{ opacity: 0.5 }}>Klant</span>
+            <span>{result.data.client?.name ?? "—"}</span>
+            <span style={{ opacity: 0.5 }}>Bedrag</span>
+            <span className="mono-amount">
+              {formatCurrency(Number(result.data.total_inc_vat) || 0)}
+            </span>
+          </div>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }
