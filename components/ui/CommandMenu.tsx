@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "@/lib/i18n/context";
 import { useRecentNav } from "@/lib/hooks/useRecentNav";
+import { COMMAND_MENU_OPEN_EVENT } from "@/lib/events/command-menu";
 import { getInvoices } from "@/features/invoices/actions";
 import { getClients } from "@/features/clients/actions";
 import { formatCurrency } from "@/lib/format";
@@ -47,7 +48,12 @@ export function CommandMenu() {
       }
     };
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    const openHandler = () => setOpen(true);
+    document.addEventListener(COMMAND_MENU_OPEN_EVENT, openHandler);
+    return () => {
+      document.removeEventListener("keydown", down);
+      document.removeEventListener(COMMAND_MENU_OPEN_EVENT, openHandler);
+    };
   }, []);
 
   const { data: invoiceResults } = useQuery({

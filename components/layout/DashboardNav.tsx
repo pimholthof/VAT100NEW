@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
 import { QuickActionMenu } from "@/components/ui/QuickActionMenu";
+import { openCommandMenu } from "@/lib/events/command-menu";
 
 function useIsMobile(breakpoint = 768) {
   const subscribe = useCallback((callback: () => void) => {
@@ -71,26 +72,59 @@ export function DashboardNav({
               <span className="nav-studio-name">{studioName}</span>
             )}
             <QuickActionMenu />
-            {!isMobile && (
-              <kbd
+            {isMobile ? (
+              <button
+                type="button"
+                onClick={openCommandMenu}
+                aria-label="Zoeken"
+                title="Zoeken"
+                style={{
+                  width: 36,
+                  height: 36,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: "0.5px solid rgba(0,0,0,0.12)",
+                  borderRadius: "var(--radius-sm)",
+                  cursor: "pointer",
+                  color: "var(--foreground)",
+                  padding: 0,
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.25" />
+                  <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openCommandMenu}
+                aria-label="Open zoek en acties"
+                title="Zoeken · Cmd+K"
                 style={{
                   fontSize: 10,
                   fontWeight: 500,
                   letterSpacing: "0.05em",
-                  opacity: 0.2,
-                  padding: "3px 6px",
+                  opacity: 0.4,
+                  padding: "4px 8px",
                   border: "0.5px solid rgba(0,0,0,0.12)",
                   borderRadius: "var(--radius-sm)",
                   fontFamily: "inherit",
                   cursor: "pointer",
+                  background: "transparent",
+                  color: "var(--foreground)",
                 }}
-                onClick={() => {
-                  document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
-                }}
-                title="Cmd+K"
               >
                 ⌘K
-              </kbd>
+              </button>
             )}
             <button
               onClick={() => setLocale(locale === "nl" ? "en" : "nl")}
