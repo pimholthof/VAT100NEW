@@ -26,14 +26,27 @@ export async function GET(
   const templateParam = request.nextUrl.searchParams.get("template") ?? "poster";
   const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "poster") as InvoiceTemplate;
 
+  // Plus-tier mag witlabelen; alle andere tiers houden "Gemaakt met VAT100" footer.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let branded = true;
+  if (user) {
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("plan_id")
+      .eq("user_id", user.id)
+      .in("status", ["active", "past_due"])
+      .single();
+    if (sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly") branded = false;
+  }
+
   try {
-    const element = createElement(InvoicePDF, { data, template });
+    const element = createElement(InvoicePDF, { data, template, branded });
     const buffer = await renderToBuffer(
       element as unknown as Parameters<typeof renderToBuffer>[0]
     );
 
     // Track which template was used
-    const supabase = await createClient();
     await supabase
       .from("invoices")
       .update({ pdf_template: template })
