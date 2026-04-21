@@ -234,7 +234,7 @@ export async function activateSubscriptionAfterPayment(
     paid_at: new Date().toISOString(),
   });
 
-  // Eerste betaling geslaagd? Kwalificeer evt. referral voor deze gebruiker.
+  // Eerste betaling geslaagd? Kwalificeer evt. referral + stuur welkomstmail.
   const { data: subRow } = await supabase
     .from("subscriptions")
     .select("user_id")
@@ -246,6 +246,45 @@ export async function activateSubscriptionAfterPayment(
       await qualifyReferral(subRow.user_id);
     } catch {
       // referral-kwalificatie mag activatie niet blokkeren
+    }
+
+    // Alleen bij eerste geslaagde betaling een welkomstmail sturen
+    // (idempotent: subscription_payments telt al het bewijs).
+    const { count: paidCount } = await supabase
+      .from("subscription_payments")
+      .select("id", { count: "exact", head: true })
+      .eq("subscription_id", subscriptionId)
+      .eq("status", "paid");
+
+    if (paidCount === 1) {
+      try {
+        const [{ data: profile }, { data: authUser }] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("full_name, referral_code")
+            .eq("id", subRow.user_id)
+            .single(),
+          supabase.auth.admin.getUserById(subRow.user_id),
+        ]);
+
+        const { data: planRow } = await supabase
+          .from("plans")
+          .select("name")
+          .eq("id", planId)
+          .single();
+
+        if (profile?.referral_code && authUser.user?.email && planRow?.name) {
+          const { sendWelcomeEmail } = await import("@/lib/email/send-welcome");
+          await sendWelcomeEmail({
+            email: authUser.user.email,
+            fullName: profile.full_name ?? "",
+            planName: planRow.name,
+            referralCode: profile.referral_code,
+          });
+        }
+      } catch {
+        // mailen mag activatie niet blokkeren
+      }
     }
   }
 
