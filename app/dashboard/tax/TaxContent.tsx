@@ -14,6 +14,7 @@ import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components
 import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 import { AangifteExplainer } from "@/features/tax/components/AangifteExplainer";
+import { DigipoortSubmitButton } from "@/features/tax/components/DigipoortSubmitButton";
 
 export default function TaxContent() {
   const { data: btwResult, isLoading: btwLoading } = useQuery({
@@ -315,15 +316,18 @@ export default function TaxContent() {
                       <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.netVat)}</span></Td>
                       <Td><span className="label" style={{ opacity: 1 }}>{q.netVat >= 0 ? "Te betalen" : "Te vorderen"}</span></Td>
                       <Td style={{ textAlign: "right" }}>
-                        <a
-                          href={`/api/export/btw-aangifte?year=${q.quarter.split(" ")[1]}&quarter=${q.quarter.split(" ")[0].replace("Q", "")}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
-                          title="BTW aangifte PDF"
-                        >
-                          Aangifte &darr;
-                        </a>
+                        <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", alignItems: "center" }}>
+                          <a
+                            href={`/api/export/btw-aangifte?year=${q.quarter.split(" ")[1]}&quarter=${q.quarter.split(" ")[0].replace("Q", "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
+                            title="BTW aangifte PDF"
+                          >
+                            Aangifte &darr;
+                          </a>
+                          <DigipoortSubmitButton quarter={q} />
+                        </div>
                       </Td>
                     </tr>
                   ))}

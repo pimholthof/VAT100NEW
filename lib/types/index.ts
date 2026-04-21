@@ -345,6 +345,10 @@ export interface Plan {
   is_active: boolean;
   sort_order: number;
   created_at: string;
+  billing_interval?: "monthly" | "yearly";
+  ai_ocr_quota?: number | null;
+  ai_chat_quota?: number | null;
+  includes_digipoort?: boolean;
 }
 
 export interface Subscription {
@@ -360,6 +364,8 @@ export interface Subscription {
   cancelled_at: string | null;
   created_at: string;
   updated_at: string;
+  price_lock_cents?: number | null;
+  is_founding_member?: boolean;
 }
 
 export interface SubscriptionWithPlan extends Subscription {

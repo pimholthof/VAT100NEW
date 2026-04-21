@@ -143,7 +143,21 @@ export async function startSubscription(
   }
 
   const mollieCustomerId = customerResult.data.id;
-  const amountInEuros = plan.price_cents / 100;
+
+  // Grandfathering: als deze gebruiker een eerdere founding-member subscription
+  // heeft gehad met een oude prijs, respecteren we die prijs op dit plan.
+  const { data: priorSub } = await supabase
+    .from("subscriptions")
+    .select("price_lock_cents, is_founding_member")
+    .eq("user_id", auth.user.id)
+    .eq("plan_id", planId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const effectivePriceCents =
+    priorSub?.price_lock_cents ?? plan.price_cents;
+  const amountInEuros = effectivePriceCents / 100;
   const baseUrl = await getBaseUrl();
 
   // Create subscription row (pending)
@@ -154,6 +168,8 @@ export async function startSubscription(
       plan_id: planId,
       status: "pending",
       mollie_customer_id: mollieCustomerId,
+      price_lock_cents: priorSub?.price_lock_cents ?? null,
+      is_founding_member: priorSub?.is_founding_member ?? false,
     })
     .select("id")
     .single();
@@ -218,6 +234,21 @@ export async function activateSubscriptionAfterPayment(
     paid_at: new Date().toISOString(),
   });
 
+  // Eerste betaling geslaagd? Kwalificeer evt. referral voor deze gebruiker.
+  const { data: subRow } = await supabase
+    .from("subscriptions")
+    .select("user_id")
+    .eq("id", subscriptionId)
+    .single();
+  if (subRow?.user_id) {
+    try {
+      const { qualifyReferral } = await import("@/features/referrals/actions");
+      await qualifyReferral(subRow.user_id);
+    } catch {
+      // referral-kwalificatie mag activatie niet blokkeren
+    }
+  }
+
   // Get mandate
   const mandateResult = await getCustomerMandates(mollieCustomerId);
   const validMandate = mandateResult.data?.find((m) => m.status === "valid");
@@ -237,26 +268,37 @@ export async function activateSubscriptionAfterPayment(
   // Get plan for amount
   const { data: plan } = await supabase
     .from("plans")
-    .select("price_cents, name")
+    .select("price_cents, name, interval_months")
     .eq("id", planId)
     .single();
 
   if (!plan) return;
+
+  // Respecteer grandfathered pricing als dit een founding-member is.
+  const { data: currentSub } = await supabase
+    .from("subscriptions")
+    .select("price_lock_cents")
+    .eq("id", subscriptionId)
+    .single();
+
+  const effectivePriceCents =
+    currentSub?.price_lock_cents ?? plan.price_cents;
+  const intervalMonths = plan.interval_months ?? 1;
 
   // Create Mollie recurring subscription
   const baseUrl = await getBaseUrl();
 
   const mollieSubResult = await createMollieSubscription({
     customerId: mollieCustomerId,
-    amount: plan.price_cents / 100,
-    interval: "1 month",
-    description: `VAT100 ${plan.name} — maandelijks`,
+    amount: effectivePriceCents / 100,
+    interval: `${intervalMonths} month${intervalMonths === 1 ? "" : "s"}`,
+    description: `VAT100 ${plan.name} — ${intervalMonths === 12 ? "jaarlijks" : "maandelijks"}`,
     webhookUrl: `${baseUrl}/api/webhooks/mollie`,
   });
 
   const now = new Date();
   const periodEnd = new Date(now);
-  periodEnd.setMonth(periodEnd.getMonth() + 1);
+  periodEnd.setMonth(periodEnd.getMonth() + intervalMonths);
 
   await supabase.from("subscriptions").update({
     status: "active",
