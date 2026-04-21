@@ -14,10 +14,13 @@ export interface AiUsageSummary {
   topUsers: Array<{
     userId: string;
     fullName: string | null;
+    email: string | null;
+    planId: string | null;
     ocrCount: number;
     chatCount: number;
     estimatedCostEuros: number;
   }>;
+  totalMrrCents: number;
 }
 
 /**
@@ -69,24 +72,72 @@ export async function getAiUsageSummary(
     .slice(0, 10);
 
   const userIds = enriched.map((u) => u.userId);
-  const { data: profiles } = userIds.length
-    ? await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", userIds)
-    : { data: [] as Array<{ id: string; full_name: string | null }> };
+
+  // Parallel: profielnamen, plan-id's en auth-emails ophalen
+  const [profileQuery, subQuery, mrrQuery] = await Promise.all([
+    userIds.length
+      ? supabase.from("profiles").select("id, full_name").in("id", userIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; full_name: string | null }> }),
+    userIds.length
+      ? supabase
+          .from("subscriptions")
+          .select("user_id, plan_id, price_lock_cents, plan:plans(price_cents, interval_months)")
+          .in("user_id", userIds)
+          .in("status", ["active", "past_due"])
+      : Promise.resolve({ data: [] as Array<{
+          user_id: string;
+          plan_id: string;
+          price_lock_cents: number | null;
+          plan: { price_cents: number; interval_months: number } | null;
+        }> }),
+    // Totale MRR over alle actieve klanten: één query, sommeren met grandfathering
+    supabase
+      .from("subscriptions")
+      .select("price_lock_cents, plan:plans(price_cents, interval_months)")
+      .in("status", ["active", "past_due"]),
+  ]);
 
   const profileMap = new Map(
-    (profiles ?? []).map((p) => [p.id, p]),
+    (profileQuery.data ?? []).map((p) => [p.id, p]),
+  );
+
+  // Email uit auth.users via admin API (alleen voor top-users, niet schaalbaar naar volledige base).
+  const emailMap = new Map<string, string | null>();
+  await Promise.all(
+    userIds.map(async (id) => {
+      try {
+        const { data } = await supabase.auth.admin.getUserById(id);
+        emailMap.set(id, data.user?.email ?? null);
+      } catch {
+        emailMap.set(id, null);
+      }
+    }),
+  );
+
+  const planMap = new Map(
+    (subQuery.data ?? []).map((s) => [s.user_id, s]),
   );
 
   const topUsers = enriched.map((u) => {
     const p = profileMap.get(u.userId);
+    const sub = planMap.get(u.userId);
     return {
       ...u,
       fullName: p?.full_name ?? null,
+      email: emailMap.get(u.userId) ?? null,
+      planId: sub?.plan_id ?? null,
     };
   });
+
+  // Totale MRR = sum(price_lock_cents ?? plan.price_cents) / interval_months.
+  // Supabase kan nested joins als array of object typen; normaliseer naar object.
+  const totalMrrCents = (mrrQuery.data ?? []).reduce((sum, row) => {
+    const plan = Array.isArray(row.plan) ? row.plan[0] : row.plan;
+    const months = (plan?.interval_months as number) ?? 1;
+    const priceCents =
+      row.price_lock_cents ?? ((plan?.price_cents as number) ?? 0);
+    return sum + Math.round(priceCents / months);
+  }, 0);
 
   return {
     error: null,
@@ -97,6 +148,7 @@ export async function getAiUsageSummary(
       uniqueUsers: list.length,
       estimatedCostEuros: totalCostEuros,
       topUsers,
+      totalMrrCents,
     },
   };
 }

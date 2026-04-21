@@ -18,6 +18,7 @@ import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingIn
 import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
 import { HealthScore } from "@/features/dashboard/components/HealthScore";
 import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
+import { AiQuotaBanner } from "@/features/dashboard/components/AiQuotaBanner";
 import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
 import { useState, useCallback, useSyncExternalStore } from "react";
@@ -164,6 +165,9 @@ function DesktopDashboard({
           onboardingDismissed={onboardingResult.onboardingDismissed}
         />
       )}
+
+      {/* ── AI QUOTA BANNER (alleen bij >80% verbruik) ── */}
+      <AiQuotaBanner />
 
       {/* ── HERO ── */}
       {!isLoading && (

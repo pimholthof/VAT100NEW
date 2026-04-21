@@ -41,9 +41,19 @@ export default async function AiUsagePage() {
         <Kpi label="Actieve gebruikers" value={s.uniqueUsers.toString()} />
         <Kpi label="OCR-scans" value={s.totalOcr.toLocaleString("nl-NL")} />
         <Kpi label="Chat-berichten" value={s.totalChat.toLocaleString("nl-NL")} />
+        <Kpi label="MRR" value={`€ ${(s.totalMrrCents / 100).toFixed(0)}`} />
         <Kpi
-          label="Geschatte kosten"
+          label="Geschatte AI-kosten"
           value={`€ ${s.estimatedCostEuros.toFixed(2)}`}
+          accent
+        />
+        <Kpi
+          label="Kosten % MRR"
+          value={
+            s.totalMrrCents > 0
+              ? `${((s.estimatedCostEuros * 100) / (s.totalMrrCents / 100)).toFixed(1)}%`
+              : "—"
+          }
           accent
         />
       </div>
@@ -59,6 +69,7 @@ export default async function AiUsagePage() {
             <thead>
               <tr style={{ borderBottom: "1px solid var(--color-black)", textAlign: "left" }}>
                 <th style={thStyle}>Gebruiker</th>
+                <th style={thStyle}>Plan</th>
                 <th style={{ ...thStyle, textAlign: "right" }}>OCR</th>
                 <th style={{ ...thStyle, textAlign: "right" }}>Chat</th>
                 <th style={{ ...thStyle, textAlign: "right" }}>Kosten</th>
@@ -67,7 +78,24 @@ export default async function AiUsagePage() {
             <tbody>
               {s.topUsers.map((u) => (
                 <tr key={u.userId} style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)" }}>
-                  <td style={tdStyle}>{u.fullName ?? u.userId.slice(0, 8)}</td>
+                  <td style={tdStyle}>
+                    <div style={{ fontWeight: 500 }}>{u.fullName ?? u.userId.slice(0, 8)}</div>
+                    {u.email && (
+                      <div style={{ fontSize: 11, opacity: 0.5, marginTop: 2 }}>{u.email}</div>
+                    )}
+                  </td>
+                  <td style={tdStyle}>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        opacity: 0.7,
+                      }}
+                    >
+                      {u.planId ?? "—"}
+                    </span>
+                  </td>
                   <td style={{ ...tdStyle, textAlign: "right" }}>{u.ocrCount}</td>
                   <td style={{ ...tdStyle, textAlign: "right" }}>{u.chatCount}</td>
                   <td style={{ ...tdStyle, textAlign: "right", fontWeight: 600 }}>

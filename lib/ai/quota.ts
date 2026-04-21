@@ -1,9 +1,64 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase/service";
+import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 
 export type AiQuotaKind = "ocr" | "chat";
+
+export interface AiQuotaStatus {
+  ocrUsed: number;
+  ocrLimit: number | null;
+  chatUsed: number;
+  chatLimit: number | null;
+  planId: string | null;
+  planName: string | null;
+}
+
+/**
+ * Haal het huidige verbruik + limiet op voor de ingelogde gebruiker.
+ *
+ * Gebruikt door de dashboard-banner en de instellingen-pagina zodat
+ * gebruikers zelf zien wanneer ze tegen hun limiet aanlopen — en kunnen
+ * upgraden voordat het hen blokkeert.
+ */
+export async function getAiQuotaStatus(): Promise<ActionResult<AiQuotaStatus>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+
+  const supabase = createServiceClient();
+
+  const [{ data: sub }, { data: usage }] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select("plan_id, plan:plans(name, ai_ocr_quota, ai_chat_quota)")
+      .eq("user_id", auth.user.id)
+      .in("status", ["active", "past_due"])
+      .maybeSingle(),
+    supabase
+      .from("ai_usage")
+      .select("ocr_count, chat_count")
+      .eq("user_id", auth.user.id)
+      .eq("period_start", currentPeriodStart())
+      .maybeSingle(),
+  ]);
+
+  const plan = (sub?.plan ?? null) as
+    | { name: string; ai_ocr_quota: number | null; ai_chat_quota: number | null }
+    | null;
+
+  return {
+    error: null,
+    data: {
+      ocrUsed: usage?.ocr_count ?? 0,
+      ocrLimit: plan?.ai_ocr_quota ?? null,
+      chatUsed: usage?.chat_count ?? 0,
+      chatLimit: plan?.ai_chat_quota ?? null,
+      planId: sub?.plan_id ?? null,
+      planName: plan?.name ?? null,
+    },
+  };
+}
 
 const QUOTA_COLUMN: Record<AiQuotaKind, "ai_ocr_quota" | "ai_chat_quota"> = {
   ocr: "ai_ocr_quota",
