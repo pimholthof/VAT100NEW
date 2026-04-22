@@ -411,7 +411,7 @@ export async function updateCustomerProfile(
     if (Object.keys(profileData).length > 0) {
       const { error } = await supabase
         .from("profiles")
-        .update({ ...profileData, updated_at: new Date().toISOString() })
+        .update(profileData)
         .eq("id", userId);
 
       if (error) return { error: sanitizeError(error, { action: "updateCustomerProfile" }) };

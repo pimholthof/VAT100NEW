@@ -36,8 +36,7 @@ export default function MobileDashboard({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
     initialData: initialResult,
-    staleTime: 0,
-    refetchOnWindowFocus: "always",
+    staleTime: 30_000,
   });
 
   const { pullDistance, isRefreshing, progress, triggered } = usePullToRefresh({
