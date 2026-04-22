@@ -31,6 +31,16 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // VIES accepts a 2-letter country prefix + 2-12 character identifier.
+  // Reject anything else before hitting the upstream — saves budget and
+  // prevents arbitrary strings from being forwarded to an external API.
+  if (!/^[A-Za-z0-9.\- ]{4,20}$/.test(vatNumber.trim())) {
+    return NextResponse.json(
+      { error: "Ongeldig BTW-nummer formaat.", valid: null },
+      { status: 400 }
+    );
+  }
+
   const result = await lookupVIES(vatNumber);
   return NextResponse.json(result);
 }
