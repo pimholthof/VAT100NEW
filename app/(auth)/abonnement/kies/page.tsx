@@ -1,21 +1,41 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { getPlans, startSubscription } from "@/features/subscriptions/actions";
 import type { Plan } from "@/lib/types";
 
+type BillingInterval = "monthly" | "yearly";
+
 function PlanSelection() {
   const searchParams = useSearchParams();
-  const preselected = searchParams.get("plan") ?? "studio";
+  const preselected = (searchParams.get("plan") ?? "studio").replace(/_yearly$/, "");
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [selected, setSelected] = useState<string>(preselected);
+  const [interval, setInterval] = useState<BillingInterval>("monthly");
+  // We bewaren alleen de "basis" plan-id (zonder _yearly). Effectieve plan-id
+  // wordt afgeleid van de gekozen interval — geen dubbele state, geen cascading
+  // setState in effects.
+  const [selectedBase, setSelectedBase] = useState<string>(preselected);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getPlans().then(setPlans);
   }, []);
+
+  const visiblePlans = useMemo(
+    () =>
+      plans
+        .filter((p) => (p.billing_interval ?? "monthly") === interval)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [plans, interval],
+  );
+
+  const selected = useMemo(() => {
+    const target = interval === "yearly" ? `${selectedBase}_yearly` : selectedBase;
+    if (visiblePlans.some((p) => p.id === target)) return target;
+    return visiblePlans[0]?.id ?? selectedBase;
+  }, [interval, selectedBase, visiblePlans]);
 
   async function handleSelect(planId: string) {
     setError(null);
@@ -44,12 +64,9 @@ function PlanSelection() {
         background: "var(--background)",
       }}
     >
-      <div style={{ width: "100%", maxWidth: 720 }}>
-        <div style={{ marginBottom: 64 }}>
-          <p
-            className="label"
-            style={{ opacity: 0.3, margin: "0 0 16px" }}
-          >
+      <div style={{ width: "100%", maxWidth: 960 }}>
+        <div style={{ marginBottom: 40 }}>
+          <p className="label" style={{ opacity: 0.3, margin: "0 0 16px" }}>
             VAT100
           </p>
           <h1
@@ -72,46 +89,83 @@ function PlanSelection() {
           </p>
         </div>
 
+        {/* Maand/Jaar toggle */}
+        <div
+          role="tablist"
+          aria-label="Facturatie-interval"
+          style={{
+            display: "inline-flex",
+            border: "0.5px solid rgba(0,0,0,0.1)",
+            padding: 4,
+            marginBottom: 32,
+            gap: 4,
+          }}
+        >
+          <button
+            role="tab"
+            aria-selected={interval === "monthly"}
+            onClick={() => setInterval("monthly")}
+            style={toggleBtn(interval === "monthly")}
+          >
+            Maandelijks
+          </button>
+          <button
+            role="tab"
+            aria-selected={interval === "yearly"}
+            onClick={() => setInterval("yearly")}
+            style={toggleBtn(interval === "yearly")}
+          >
+            Jaarlijks
+            <span style={{ marginLeft: 8, fontSize: 10, opacity: 0.6 }}>
+              2 maanden gratis
+            </span>
+          </button>
+        </div>
+
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 24,
+            gap: 16,
           }}
         >
-          {plans.map((plan) => {
+          {visiblePlans.map((plan) => {
             const isSelected = selected === plan.id;
-            const features: string[] = Array.isArray(plan.features)
-              ? plan.features
-              : [];
+            const isRecommended = plan.id === "studio" || plan.id === "studio_yearly";
+            const features: string[] = Array.isArray(plan.features) ? plan.features : [];
+            const displayPrice =
+              interval === "yearly"
+                ? Math.round(plan.price_cents / 12) / 100
+                : plan.price_cents / 100;
+            const suffix = interval === "yearly" ? "/mnd (jaarlijks)" : "/mnd";
 
             return (
               <button
                 key={plan.id}
-                onClick={() => setSelected(plan.id)}
+                onClick={() => setSelectedBase(plan.id.replace(/_yearly$/, ""))}
                 disabled={pending}
                 style={{
-                  padding: 32,
-                  background: isSelected
-                    ? "var(--foreground)"
-                    : "transparent",
-                  color: isSelected
-                    ? "var(--background)"
-                    : "var(--foreground)",
+                  padding: 28,
+                  background: isSelected ? "var(--foreground)" : "transparent",
+                  color: isSelected ? "var(--background)" : "var(--foreground)",
                   border: `0.5px solid ${isSelected ? "var(--foreground)" : "rgba(0,0,0,0.1)"}`,
                   cursor: "pointer",
                   textAlign: "left",
                   transition: "all 0.2s ease",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 24,
+                  gap: 20,
                 }}
               >
                 <div>
-                  {plan.id === "studio" && (
+                  {isRecommended && (
                     <p
                       className="label-strong"
-                      style={{ margin: "0 0 10px", fontSize: 10, opacity: isSelected ? 0.7 : 0.4 }}
+                      style={{
+                        margin: "0 0 10px",
+                        fontSize: 10,
+                        opacity: isSelected ? 0.7 : 0.4,
+                      }}
                     >
                       AANBEVOLEN
                     </p>
@@ -125,27 +179,27 @@ function PlanSelection() {
                       textTransform: "uppercase",
                     }}
                   >
-                    {plan.name}
+                    {plan.name.replace(/ jaarlijks$/, "")}
                   </p>
                   <p
                     style={{
-                      fontSize: "clamp(2rem, 3vw, 2.5rem)",
+                      fontSize: "clamp(1.7rem, 2.5vw, 2.2rem)",
                       fontWeight: 700,
                       letterSpacing: "-0.03em",
                       margin: "8px 0 0",
                       lineHeight: 1,
                     }}
                   >
-                    &euro;{plan.price_cents / 100}
+                    &euro;{displayPrice}
                     <span
                       style={{
-                        fontSize: "14px",
+                        fontSize: "12px",
                         fontWeight: 400,
                         opacity: 0.5,
                         marginLeft: 4,
                       }}
                     >
-                      /mnd
+                      {suffix}
                     </span>
                   </p>
                 </div>
@@ -157,7 +211,7 @@ function PlanSelection() {
                     margin: 0,
                     display: "flex",
                     flexDirection: "column",
-                    gap: 8,
+                    gap: 6,
                     flex: 1,
                   }}
                 >
@@ -165,7 +219,7 @@ function PlanSelection() {
                     <li
                       key={feature}
                       style={{
-                        fontSize: "13px",
+                        fontSize: "12.5px",
                         opacity: 0.7,
                         lineHeight: 1.5,
                       }}
@@ -213,15 +267,27 @@ function PlanSelection() {
         >
           {pending ? "Even wachten..." : "Doorgaan naar betaling"}
         </button>
-        <p
-          className="label"
-          style={{ marginTop: 16, opacity: 0.35, maxWidth: 520 }}
-        >
+        <p className="label" style={{ marginTop: 16, opacity: 0.35, maxWidth: 520 }}>
           Je ziet in VAT100 realtime wat je moet reserveren voor BTW en belasting, zodat je weet wat je vrij kunt besteden.
         </p>
       </div>
     </div>
   );
+}
+
+function toggleBtn(active: boolean): React.CSSProperties {
+  return {
+    padding: "10px 20px",
+    background: active ? "var(--foreground)" : "transparent",
+    color: active ? "var(--background)" : "var(--foreground)",
+    border: "none",
+    cursor: "pointer",
+    fontSize: 12,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    fontWeight: 500,
+    transition: "all 0.15s ease",
+  };
 }
 
 export default function AbonnementKiesPage() {

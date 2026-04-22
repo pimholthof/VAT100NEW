@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
 import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import type { InvoiceTemplate } from "@/lib/types";
+import { createServiceClient } from "@/lib/supabase/service";
 
 const VALID_TEMPLATES = ["poster", "minimaal", "klassiek", "strak"];
 
@@ -26,7 +27,17 @@ export async function GET(
     const templateParam = request.nextUrl.searchParams.get("template") ?? "poster";
     const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "poster") as InvoiceTemplate;
 
-    const element = createElement(InvoicePDF, { data, template });
+    // Respect white-label voor Plus-abonnees op gedeelde links.
+    const svc = createServiceClient();
+    const { data: sub } = await svc
+      .from("subscriptions")
+      .select("plan_id")
+      .eq("user_id", data.profile.id)
+      .in("status", ["active", "past_due"])
+      .single();
+    const branded = !(sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly");
+
+    const element = createElement(InvoicePDF, { data, template, branded });
     const buffer = await renderToBuffer(
       element as unknown as Parameters<typeof renderToBuffer>[0]
     );

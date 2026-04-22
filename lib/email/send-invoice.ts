@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult } from "@/lib/types";
 import { escapeHtml } from "@/lib/format";
 import { buildInvoiceEmailHtml } from "./template";
@@ -34,8 +35,18 @@ export async function sendInvoiceEmail(
     return { error: "Conceptfacturen kunnen niet worden verzonden." };
   }
 
+  // White-label check: Plus-abonnees krijgen een onbranded PDF.
+  const svc = createServiceClient();
+  const { data: sub } = await svc
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("user_id", profile.id)
+    .in("status", ["active", "past_due"])
+    .maybeSingle();
+  const branded = !(sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly");
+
   // Generate PDF buffer
-  const element = createElement(InvoicePDF, { data });
+  const element = createElement(InvoicePDF, { data, branded });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pdfBuffer = await renderToBuffer(element as any);
 

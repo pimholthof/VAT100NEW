@@ -22,12 +22,24 @@ function fmtDateLong(d: string | null): string {
 
 // ─── Dispatcher ───
 
-export function InvoicePDF({ data, template = "poster", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
+export function InvoicePDF({
+  data,
+  template = "poster",
+  locale = "nl",
+  branded = true,
+}: {
+  data: InvoiceData;
+  template?: InvoiceTemplate;
+  locale?: Locale;
+  /** Virale K-factor: subtiele "Gemaakt met VAT100" footer.
+   *  Plus-tier zet dit uit. */
+  branded?: boolean;
+}) {
   switch (template) {
-    case "minimaal": return <MinimaalPDF data={data} locale={locale} />;
-    case "klassiek": return <KlassiekPDF data={data} locale={locale} />;
-    case "strak": return <StrakPDF data={data} locale={locale} />;
-    default: return <PosterPDF data={data} locale={locale} />;
+    case "minimaal": return <MinimaalPDF data={data} locale={locale} branded={branded} />;
+    case "klassiek": return <KlassiekPDF data={data} locale={locale} branded={branded} />;
+    case "strak": return <StrakPDF data={data} locale={locale} branded={branded} />;
+    default: return <PosterPDF data={data} locale={locale} branded={branded} />;
   }
 }
 
@@ -88,7 +100,7 @@ const s1 = StyleSheet.create({
   footVal: { fontSize: 8, color: INK1 },
 });
 
-function MinimaalPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function MinimaalPDF({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const cr = invoice.is_credit_note;
@@ -151,6 +163,7 @@ function MinimaalPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
           {profile.iban && <View><Text style={s1.footLbl}>IBAN</Text><Text style={s1.footVal}>{profile.iban}</Text></View>}
           {profile.bic && <View><Text style={s1.footLbl}>BIC</Text><Text style={s1.footVal}>{profile.bic}</Text></View>}
           <View><Text style={s1.footLbl}>{t.invoiceDoc.paymentTerms}</Text><Text style={s1.footVal}>{days} {t.invoiceDoc.daysNet}</Text></View>
+          {branded && <View><Text style={s1.footLbl}>Gemaakt met</Text><Text style={s1.footVal}>VAT100</Text></View>}
         </View>
       </Page>
     </Document>
@@ -210,7 +223,7 @@ const s2 = StyleSheet.create({
   footRight: { fontSize: 7, color: GREY2, alignSelf: "flex-end" },
 });
 
-function KlassiekPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function KlassiekPDF({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const cr = invoice.is_credit_note;
@@ -286,7 +299,7 @@ function KlassiekPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
             {profile.bic && <View><Text style={s2.footLbl}>BIC</Text><Text style={s2.footVal}>{profile.bic}</Text></View>}
             <View><Text style={s2.footLbl}>{t.invoiceDoc.paymentTerms}</Text><Text style={s2.footVal}>{days} {t.invoiceDoc.daysNet}</Text></View>
           </View>
-          <Text style={s2.footRight}>{profile.studio_name || profile.full_name}</Text>
+          <Text style={s2.footRight}>{branded ? `${profile.studio_name || profile.full_name} · Gemaakt met VAT100` : (profile.studio_name || profile.full_name)}</Text>
         </View>
       </Page>
     </Document>
@@ -343,7 +356,7 @@ const s3 = StyleSheet.create({
   footVal: { fontSize: 7.5, color: INK3 },
 });
 
-function StrakPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function StrakPDF({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const cr = invoice.is_credit_note;
@@ -413,6 +426,7 @@ function StrakPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
           <View style={s3.footLeft}>
             <Text style={s3.footName}>{profile.studio_name || profile.full_name}</Text>
             {profile.address && <Text style={s3.footAddr}>{profile.address}, {[profile.postal_code, profile.city].filter(Boolean).join(" ")}</Text>}
+            {branded && <Text style={s3.footAddr}>Gemaakt met VAT100</Text>}
           </View>
           <View style={s3.footRight}>
             {profile.iban && <View><Text style={s3.footLbl}>IBAN</Text><Text style={s3.footVal}>{profile.iban}</Text></View>}
@@ -474,7 +488,7 @@ const s4 = StyleSheet.create({
   footCompany: { fontSize: 6.5, color: INK4 },
 });
 
-function PosterPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function PosterPDF({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
@@ -575,7 +589,7 @@ function PosterPDF({ data, locale }: { data: InvoiceData; locale: Locale }) {
           {profile.iban && <Text style={s4.footLine}>IBAN {profile.iban}{profile.bic ? `  BIC ${profile.bic}` : ""}</Text>}
           <Text style={s4.footLine}>{t.invoiceDoc.paymentTerms}: {days} {t.invoiceDoc.daysNet}</Text>
           <View style={s4.footRow}>
-            <Text style={s4.footCompany}></Text>
+            <Text style={s4.footCompany}>{branded ? "Gemaakt met VAT100 — vat100.nl" : ""}</Text>
             <Text style={s4.footCompany}>{profile.studio_name || profile.full_name}</Text>
           </View>
         </View>
