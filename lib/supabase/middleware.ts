@@ -59,11 +59,28 @@ export async function updateSession(request: NextRequest) {
 
   // Profile checks: admin role + suspended status + subscription
   if (user && !isPublicRoute && !isAuthOnlyRoute) {
-    const { data: profile } = await supabase
+    const needsSubscription =
+      pathname.startsWith("/dashboard");
+
+    const profilePromise = supabase
       .from("profiles")
       .select("role, status")
       .eq("id", user.id)
       .single();
+
+    const subscriptionPromise = needsSubscription
+      ? supabase
+          .from("subscriptions")
+          .select("status")
+          .eq("user_id", user.id)
+          .in("status", ["active", "past_due"])
+          .single()
+      : Promise.resolve({ data: null });
+
+    const [{ data: profile }, { data: subscription }] = await Promise.all([
+      profilePromise,
+      subscriptionPromise,
+    ]);
 
     // Suspended user protection
     if (profile?.status === "suspended") {
@@ -81,19 +98,10 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Subscription gating: users without active subscription → plan selection
-    if (pathname.startsWith("/dashboard") && profile?.role !== "admin") {
-      const { data: subscription } = await supabase
-        .from("subscriptions")
-        .select("status")
-        .eq("user_id", user.id)
-        .in("status", ["active", "past_due"])
-        .single();
-
-      if (!subscription) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/onboarding";
-        return NextResponse.redirect(url);
-      }
+    if (needsSubscription && profile?.role !== "admin" && !subscription) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
     }
   }
 

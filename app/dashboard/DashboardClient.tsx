@@ -73,9 +73,7 @@ function DesktopDashboard({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
     initialData: initialResult,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
+    staleTime: 30_000,
   });
 
   const { data: onboardingResult } = useQuery({
