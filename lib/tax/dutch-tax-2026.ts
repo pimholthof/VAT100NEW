@@ -116,6 +116,17 @@ export interface TaxProjection {
 
 // ─── Kernberekeningen ───
 
+/**
+ * Berekent de bruto Box 1-inkomstenbelasting over een belastbaar inkomen,
+ * volgens het schijventarief 2026 (zonder heffingskortingen).
+ *
+ * @param belastbaarInkomen Belastbaar inkomen in euro's (≥ 0). Negatieve of
+ *   nul-inkomens geven 0 terug.
+ * @returns Bruto inkomstenbelasting in euro's, afgerond op 2 decimalen.
+ *
+ * @example
+ * calculateBox1Tax(50_000) // ~16 087,53 (schijf 1 + deel schijf 2)
+ */
 export function calculateBox1Tax(belastbaarInkomen: number): number {
   if (belastbaarInkomen <= 0) return 0;
   let tax = 0;
@@ -127,6 +138,13 @@ export function calculateBox1Tax(belastbaarInkomen: number): number {
   return round2(tax);
 }
 
+/**
+ * Berekent de algemene heffingskorting 2026. Maximaal €3.115, afgebouwd met
+ * 6,398% boven €29.739; nul bij verzamelinkomen ≥ €78.426.
+ *
+ * @param verzamelinkomen Verzamelinkomen (som van Box 1, 2, 3) in euro's.
+ * @returns Heffingskorting in euro's, afgerond op 2 decimalen.
+ */
 export function calculateAlgemeneHeffingskorting(
   verzamelinkomen: number,
 ): number {
@@ -135,6 +153,14 @@ export function calculateAlgemeneHeffingskorting(
   return round2(Math.max(0, AHK_MAX - reduction));
 }
 
+/**
+ * Berekent de arbeidskorting 2026 volgens de vier-trajectenformule:
+ * opbouw (t/m €11.691), opbouw (t/m €25.224), opbouw (t/m €45.593),
+ * afbouw 6,51% tot nul bij ≥ €132.920.
+ *
+ * @param arbeidsinkomen Inkomen uit arbeid/winst in euro's (≥ 0).
+ * @returns Arbeidskorting in euro's, afgerond op 2 decimalen.
+ */
 export function calculateArbeidskorting(arbeidsinkomen: number): number {
   if (arbeidsinkomen <= 0) return 0;
 
@@ -166,6 +192,21 @@ export function calculateArbeidskorting(arbeidsinkomen: number): number {
   return round2(Math.max(0, ak));
 }
 
+/**
+ * Berekent de Kleinschaligheidsinvesteringsaftrek (KIA) 2026 over de
+ * investeringstotaal van het jaar.
+ *
+ * - Onder €2.901 of boven €398.236: geen aftrek.
+ * - €2.901 – €71.683: 28% van totaal.
+ * - €71.684 – €132.746: vast €20.072.
+ * - Boven €132.746: €20.072 – 7,56% × (bedrag – €132.746), niet onder nul.
+ *
+ * Let op: bedrijfsmiddelen onder €450 tellen niet mee in de som (check in
+ * de aanroepende code), deze functie neemt de reeds gesommeerde waarde aan.
+ *
+ * @param totalInvestments Som van in aanmerking komende investeringen.
+ * @returns KIA-aftrekbedrag in euro's.
+ */
 export function calculateKIA(totalInvestments: number): number {
   if (totalInvestments < KIA_MIN_TOTAL || totalInvestments > KIA_TIER3_MAX)
     return 0;
@@ -183,6 +224,22 @@ export function calculateKIA(totalInvestments: number): number {
 
 // ─── Afschrijving ───
 
+/**
+ * Berekent de afschrijving over één kalenderjaar voor een bedrijfsmiddel,
+ * rekening houdend met:
+ * - Lineair over `levensduur` jaren (afschrijfbaar = aanschafprijs − restwaarde).
+ * - Wettelijk maximum van 20% van de aanschafprijs per jaar.
+ * - Pro-rata in het eerste jaar op basis van de aanschafmaand.
+ *
+ * @param aanschafprijs Bruto aanschafprijs in euro's.
+ * @param restwaarde Geschatte restwaarde aan einde levensduur.
+ * @param levensduur Verwachte economische levensduur in jaren (> 0).
+ * @param aanschafDatum ISO-datum van aanschaf (YYYY-MM-DD).
+ * @param huidigJaar Het jaar waarvoor de afschrijving wordt berekend.
+ * @returns Eén regel met `jaar`, `afschrijving`, `boekwaarde` en een
+ *   `isFullyDepreciated` flag die aangeeft of het bedrijfsmiddel volledig
+ *   is afgeschreven.
+ */
 export function calculateYearlyDepreciation(
   aanschafprijs: number,
   restwaarde: number,
@@ -337,6 +394,22 @@ function generateBespaartips(
 
 // ─── Hoofdfunctie ───
 
+/**
+ * Volledige jaarlijkse belastingprognose voor een ZZP'er op basis van
+ * year-to-date data. Past zelfstandigenaftrek, MKB-vrijstelling, KIA,
+ * afschrijvingen, Box 1 schijven, AHK en arbeidskorting toe.
+ *
+ * Alle componenten zijn doorberekend volgens 2026-tarieven (`TAX_CONSTANTS`).
+ *
+ * @param input.jaarOmzetExBtw Totale omzet tot nu toe (ex. BTW).
+ * @param input.jaarKostenExBtw Totale aftrekbare kosten tot nu toe (ex. BTW).
+ * @param input.investeringen Lopende investeringen voor KIA- en
+ *   afschrijvingsberekening.
+ * @param input.maandenVerstreken Aantal maanden van het boekjaar dat al is
+ *   verstreken (1-12). Gebruikt voor lineaire extrapolatie.
+ * @param input.huidigJaar Optioneel kalenderjaar; default = huidig jaar.
+ * @returns Volledige {@link TaxProjection} inclusief bespaartips.
+ */
 export function calculateZZPTaxProjection(input: {
   jaarOmzetExBtw: number;
   jaarKostenExBtw: number;
@@ -499,6 +572,14 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+/**
+ * Geeft het marginale tarief (de rate van de hoogste schijf waarin
+ * `belastbaarInkomen` valt) terug. Gebruikt voor bespaartip-berekeningen:
+ * "hoeveel zou €X extra aftrek opleveren?".
+ *
+ * @param belastbaarInkomen Belastbaar inkomen in euro's.
+ * @returns Marginaal tarief als decimaal (0,3575 / 0,3756 / 0,495).
+ */
 export function getMarginalRate(belastbaarInkomen: number): number {
   if (belastbaarInkomen <= 0) return BOX1_BRACKETS[0].rate;
   for (let i = BOX1_BRACKETS.length - 1; i >= 0; i--) {
