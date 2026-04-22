@@ -60,12 +60,18 @@ export async function isRateLimited(
       return checkFallback(key, limit, windowMs);
     }
 
-    // Cleanup old entries (async, non-blocking)
+    // Cleanup old entries (async, non-blocking). Log failures so the table
+    // doesn't silently bloat when cleanup breaks.
     supabase
       .from("rate_limits")
       .delete()
       .lt("created_at", windowStart)
-      .then(() => {}, () => {});
+      .then(
+        () => {},
+        (err) => {
+          console.warn("[rate-limit] cleanup failed:", err);
+        }
+      );
 
     return false;
   } catch {

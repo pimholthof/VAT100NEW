@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import * as Sentry from "@sentry/nextjs";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { ProcessingResult } from "./types";
@@ -145,7 +146,14 @@ export async function processSystemEvents(batchSize = 25): Promise<ProcessingRes
             user_id: claimedEvent.user_id,
             attempts: claimedEvent.attempts,
             last_error: lastError,
-          }).catch(() => {}); // DLQ insert mag event processing niet breken
+          }).catch((err) => {
+            // DLQ insert mag event processing niet breken, maar we willen
+            // het wel weten — anders stapelen gefaalde events stilletjes op.
+            Sentry.captureException(err, {
+              tags: { area: "event-processor-dlq" },
+              extra: { eventId: claimedEvent.id, eventType: claimedEvent.event_type },
+            });
+          });
         }
 
         result.failures++;
