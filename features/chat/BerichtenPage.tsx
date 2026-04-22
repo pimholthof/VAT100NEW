@@ -44,12 +44,39 @@ export function BerichtenPage() {
 
   const { mutate: send, isPending } = useMutation({
     mutationFn: sendChatMessage,
-    onSuccess: () => {
+    onMutate: async (messageText: string) => {
       setInput("");
-      queryClient.invalidateQueries({ queryKey: ["chat-messages"] });
+      await queryClient.cancelQueries({ queryKey: ["chat-messages"] });
+      const previous = queryClient.getQueryData<{ error: string | null; data?: ChatMessage[] }>([
+        "chat-messages",
+      ]);
+      const optimistic: ChatMessage = {
+        id: `optimistic-${Date.now()}`,
+        conversation_id: "",
+        sender: "user",
+        message: messageText,
+        created_at: new Date().toISOString(),
+      };
+      queryClient.setQueryData<{ error: string | null; data?: ChatMessage[] }>(
+        ["chat-messages"],
+        (prev) => ({
+          error: null,
+          data: [...(prev?.data ?? []), optimistic],
+        })
+      );
+      return { previous, messageText };
     },
-    onError: () => {
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["chat-messages"], context.previous);
+      }
+      if (context?.messageText) {
+        setInput(context.messageText);
+      }
       toast("Bericht kon niet worden verstuurd.", "error");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["chat-messages"] });
     },
   });
 
