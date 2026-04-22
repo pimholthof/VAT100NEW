@@ -47,7 +47,17 @@ export default async function SubscriptionPage() {
               <div className="space-y-4 border-t-2 border-black pt-8">
                 <div className="flex justify-between text-sm">
                   <span className="opacity-40">Status:</span>
-                  <span className={`font-bold uppercase ${subscription.status === 'past_due' ? 'text-red-600' : 'text-green-600'}`}>
+                  <span
+                    className="font-bold uppercase"
+                    style={{
+                      color:
+                        subscription.status === 'past_due'
+                          ? 'var(--color-accent)'
+                          : subscription.status === 'active'
+                          ? 'var(--color-success)'
+                          : 'var(--foreground)',
+                    }}
+                  >
                     {subscription.status === 'active' ? 'Actief' : subscription.status === 'past_due' ? 'Betaling mislukt' : subscription.status}
                   </span>
                 </div>
@@ -102,7 +112,7 @@ export default async function SubscriptionPage() {
         </div>
         <div className="flex gap-4">
           <Link href="/dashboard" className="text-sm font-bold border-b-2 border-black hover:border-transparent transition-all">Dashboard Overzicht</Link>
-          <a href="mailto:support@vat100.nl" className="text-sm font-bold text-red-600 border-b-2 border-red-600 hover:border-transparent transition-all">Support Contact</a>
+          <a href="mailto:support@vat100.nl" className="text-sm font-bold border-b-2 border-black hover:border-transparent transition-all">Contact Ondersteuning</a>
         </div>
       </div>
     </div>

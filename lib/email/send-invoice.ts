@@ -45,10 +45,19 @@ export async function sendInvoiceEmail(
     .maybeSingle();
   const branded = !(sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly");
 
-  // Generate PDF buffer
-  const element = createElement(InvoicePDF, { data, branded });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfBuffer = await renderToBuffer(element as any);
+  // Generate PDF buffer. Omwille van niet-matchende react-pdf types tussen
+  // deze Resend-pipeline en het component blijft de cast nodig, maar we
+  // vangen de render-fout af zodat een corrupte factuur niet de hele
+  // e-mail-pipeline laat crashen.
+  let pdfBuffer: Buffer;
+  try {
+    const element = createElement(InvoicePDF, { data, branded });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pdfBuffer = await renderToBuffer(element as any);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Kon factuur-PDF niet genereren: ${msg}` };
+  }
 
   const senderName = escapeHtml(profile.studio_name || profile.full_name);
   const invoiceNum = escapeHtml(invoice.invoice_number);

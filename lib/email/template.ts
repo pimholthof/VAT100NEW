@@ -1,7 +1,7 @@
 import { formatCurrency, escapeHtml } from "@/lib/format";
 import type { InvoiceData } from "@/lib/types";
 
-interface EmailTemplateOptions {
+export interface EmailTemplateOptions {
   /** Intro paragraph (already escaped) */
   introParagraph: string;
   /** Label for the amount row, e.g. "Totaal incl. BTW" or "Openstaand bedrag" */
