@@ -1,6 +1,5 @@
 import type { ActionResult, ActionFeedItem } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
-import { formatCurrency } from "@/lib/format";
 import { CONFIDENCE_THRESHOLDS, toHumanReviewTitle, toHumanReviewDescription } from "@/lib/tax/fiscal-claim-validator";
 import { getErrorMessage } from "@/lib/utils/errors";
 import * as Sentry from "@sentry/nextjs";

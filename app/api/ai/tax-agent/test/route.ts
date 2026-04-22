@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/supabase/server';
-import { calculateZZPTaxProjection, type Investment } from '@/lib/tax/dutch-tax-2026';
+import { calculateZZPTaxProjection } from '@/lib/tax/dutch-tax-2026';
 
 export async function POST(request: NextRequest) {
   try {

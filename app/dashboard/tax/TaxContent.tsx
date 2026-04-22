@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
@@ -218,12 +219,13 @@ export default function TaxContent() {
         overflow: "hidden",
         position: "relative",
       }}>
-        <img
+        <Image
           src="/images/office-walnut.png"
           alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
           style={{
-            width: "100%",
-            height: "100%",
             objectFit: "cover",
             objectPosition: "center 40%",
             opacity: 0.12,
@@ -403,13 +405,15 @@ export default function TaxContent() {
         height: 160,
         borderRadius: "var(--radius)",
         overflow: "hidden",
+        position: "relative",
       }}>
-        <img
+        <Image
           src="/images/office-corridor.png"
           alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
           style={{
-            width: "100%",
-            height: "100%",
             objectFit: "cover",
             objectPosition: "center 60%",
             opacity: 0.09,

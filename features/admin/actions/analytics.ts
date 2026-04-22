@@ -78,7 +78,6 @@ export async function getSubscriptionAnalytics(): Promise<ActionResult<Subscript
       .gte("updated_at", monthStart);
 
     // Previous month active count for churn rate
-    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
     const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
     const { count: prevMonthActive } = await supabase
       .from("subscriptions")

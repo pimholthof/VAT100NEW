@@ -32,7 +32,6 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
   }));
 
   const linePath = points.map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`)).join(" ");
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`;
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);

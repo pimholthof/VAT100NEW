@@ -14,8 +14,6 @@ import {
   calculateZZPTaxProjection,
   calculateBox1Tax,
   calculateKIA,
-  calculateAlgemeneHeffingskorting,
-  calculateArbeidskorting,
   TAX_CONSTANTS,
 } from "./dutch-tax-2026";
 
