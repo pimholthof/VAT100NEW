@@ -60,10 +60,16 @@ export async function sendReminderEmail(
 
   const senderName = escapeHtml(profile.studio_name || profile.full_name);
 
-  const element = createElement(InvoicePDF, { data });
-  const pdfBuffer = await renderToBuffer(
-    element as unknown as Parameters<typeof renderToBuffer>[0]
-  );
+  let pdfBuffer: Buffer;
+  try {
+    const element = createElement(InvoicePDF, { data });
+    pdfBuffer = await renderToBuffer(
+      element as unknown as Parameters<typeof renderToBuffer>[0]
+    );
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Kon herinnering-PDF niet genereren: ${msg}` };
+  }
 
   const filename = `factuur-${invoice.invoice_number}.pdf`;
   const invoiceNum = escapeHtml(invoice.invoice_number);

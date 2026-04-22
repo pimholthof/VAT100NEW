@@ -87,8 +87,11 @@ export async function autoReconcilePayments(
 
       if (!matchType) continue;
 
-      // 4. Markeer factuur als betaald
-      const { error: updateError } = await supabase
+      // 4. Markeer factuur als betaald. We halen de geüpdatete rij op zodat
+      //    we zeker weten dat déze run de factuur heeft gematcht — voorkomt
+      //    dubbele boekingen als een parallelle reconciliation of een Mollie
+      //    webhook dezelfde factuur net eerder oppakte.
+      const { data: updated, error: updateError } = await supabase
         .from("invoices")
         .update({
           status: "paid",
@@ -96,9 +99,17 @@ export async function autoReconcilePayments(
         })
         .eq("id", inv.id)
         .eq("user_id", userId)
-        .in("status", ["sent", "overdue"]);
+        .in("status", ["sent", "overdue"])
+        .select("id");
 
       if (updateError) continue;
+      if (!updated || updated.length === 0) {
+        // Iemand anders heeft de factuur al gematcht. Verwijder uit lijst
+        // zodat volgende tx's hem niet opnieuw proberen.
+        const invIndex = invoices.indexOf(inv);
+        if (invIndex !== -1) invoices.splice(invIndex, 1);
+        continue;
+      }
 
       // 5. Koppel transactie aan factuur
       await supabase

@@ -124,6 +124,7 @@ export function CommandMenu() {
           <div style={{ borderBottom: "var(--border-rule)" }}>
             <Command.Input
               placeholder={t.commandMenu.placeholder}
+              aria-label={t.commandMenu.placeholder}
               autoFocus
               value={query}
               onValueChange={setQuery}

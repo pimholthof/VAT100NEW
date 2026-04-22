@@ -9,11 +9,13 @@ export async function fetchQuoteData(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return { error: "Niet ingelogd" };
 
+  // Scope to the authenticated user as defense-in-depth (see fetchInvoiceData).
   const { data: quote, error: quoteError } = await supabase
     .from("quotes")
     .select("*")
     .eq("id", quoteId)
-    .single();
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   if (quoteError || !quote) return { error: "Offerte niet gevonden" };
 
@@ -23,8 +25,13 @@ export async function fetchQuoteData(
       .select("*")
       .eq("quote_id", quoteId)
       .order("sort_order", { ascending: true }),
-    supabase.from("clients").select("*").eq("id", quote.client_id).single(),
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase
+      .from("clients")
+      .select("*")
+      .eq("id", quote.client_id)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
   ]);
 
   if (clientResult.error || !clientResult.data)

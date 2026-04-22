@@ -106,7 +106,7 @@ export function QuickReceiptUpload() {
       }
       processMutation.mutate(file);
     },
-    [processMutation]
+    [processMutation, t.receipts.onlyImagesRetry]
   );
 
   const handleDrop = useCallback(

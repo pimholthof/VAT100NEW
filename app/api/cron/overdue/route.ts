@@ -3,6 +3,7 @@ import { processOverdueInvoices } from "@/lib/use-cases/process-overdue-invoices
 import { processSubscriptionReminders } from "@/lib/use-cases/process-subscription-reminders";
 import { processExpiredQuotes } from "@/lib/use-cases/process-expired-quotes";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { isRateLimited } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
@@ -17,6 +18,12 @@ import { withCronLock } from "@/lib/cron/lock";
 export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Defense in depth: if the cron secret ever leaks, cap how quickly the
+  // endpoint can be abused. Scheduler fires once per day; 5/hour is plenty.
+  if (await isRateLimited("cron:overdue", 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
   }
 
   const locked = await withCronLock("overdue", async () => {

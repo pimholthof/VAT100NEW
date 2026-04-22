@@ -20,9 +20,13 @@ export default function AuthError({
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="max-w-md w-full text-center">
         <div className="mb-6">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: "rgba(165, 28, 48, 0.08)" }}
+          >
             <svg
-              className="w-8 h-8 text-red-600"
+              className="w-8 h-8"
+              style={{ color: "var(--color-accent)" }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -36,7 +40,7 @@ export default function AuthError({
             </svg>
           </div>
           <h1 className="text-2xl font-bold mb-2">Er ging iets mis</h1>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6" style={{ opacity: "var(--opacity-secondary)" }}>
             Er is een onverwachte fout opgetreden. Probeer het opnieuw of neem contact op als het probleem aanhoudt.
           </p>
         </div>
@@ -51,7 +55,7 @@ export default function AuthError({
         </div>
 
         {error.digest && (
-          <p className="mt-6 text-sm text-gray-400">
+          <p className="mt-6 text-sm" style={{ opacity: "var(--opacity-tertiary)" }}>
             Foutcode: {error.digest}
           </p>
         )}

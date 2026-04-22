@@ -282,17 +282,10 @@ export function BulkUpload() {
           </div>
         )}
 
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           aria-label="Klik of sleep bestanden om te uploaden"
           onClick={() => fileInputRef.current?.click()}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              fileInputRef.current?.click();
-            }
-          }}
           onDrop={handleDrop}
           onDragOver={(e) => {
             e.preventDefault();
@@ -312,6 +305,10 @@ export function BulkUpload() {
             alignItems: "center",
             justifyContent: "center",
             gap: 12,
+            width: "100%",
+            background: "transparent",
+            font: "inherit",
+            color: "inherit",
           }}
         >
           <input
@@ -351,7 +348,7 @@ export function BulkUpload() {
           >
             Max {MAX_FILES} bestanden, max 10MB per bestand
           </p>
-        </div>
+        </button>
 
         {/* Selected files list */}
         {selectedFiles.length > 0 && (

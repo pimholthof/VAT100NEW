@@ -149,7 +149,10 @@ export function DashboardNav({
               {locale === "nl" ? "EN" : "NL"}
             </button>
             <button
+              type="button"
               onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+              aria-expanded={isDrawerOpen}
+              aria-controls="dashboard-nav-drawer"
               className="label-strong"
               style={{
                 fontSize: "12px",
@@ -172,6 +175,7 @@ export function DashboardNav({
       <AnimatePresence>
         {isDrawerOpen && (
           <motion.div
+            id="dashboard-nav-drawer"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

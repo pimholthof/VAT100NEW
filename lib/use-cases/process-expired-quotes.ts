@@ -8,6 +8,7 @@
 
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
+import { todayIso } from "@/lib/utils/date-helpers";
 
 export interface ExpiredQuotesResult {
   processed: number;
@@ -18,7 +19,7 @@ export interface ExpiredQuotesResult {
 export async function processExpiredQuotes(): Promise<ExpiredQuotesResult> {
   const result: ExpiredQuotesResult = { processed: 0, actionsCreated: 0, errors: [] };
   const supabase = createServiceClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIso();
 
   const { data: expiredQuotes, error } = await supabase
     .from("quotes")

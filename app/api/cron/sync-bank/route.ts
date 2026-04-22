@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { isRateLimited } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
+import { todayIso } from "@/lib/utils/date-helpers";
 import { bankingClient } from "@/lib/banking/tink";
 import { autoCategorizeTransactionsInternal } from "@/features/banking/actions";
 import { recalculateReserves } from "@/lib/services/reserve-recalculator";
@@ -24,6 +26,11 @@ import { withCronLock } from "@/lib/cron/lock";
 export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Defense in depth against leaked cron secret. Daily schedule; 5/hour is ample.
+  if (await isRateLimited("cron:sync-bank", 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
   }
 
   const locked = await withCronLock("sync-bank", async () => {
@@ -328,7 +335,7 @@ async function processConnection(
           await autoBookInvoice({
             invoiceId: invoice.id,
             userId: invoice.user_id,
-            entryDate: transaction.booking_date ?? new Date().toISOString().split("T")[0],
+            entryDate: transaction.booking_date ?? todayIso(),
             description: `Factuur betaling: ${invoice.invoice_number}`,
             subtotalExVat: invoice.subtotal_ex_vat,
             vatAmount: invoice.vat_amount ?? 0,
@@ -361,7 +368,7 @@ async function processConnection(
           await autoBookReceipt({
             receiptId: receipt.id,
             userId: receipt.user_id,
-            entryDate: new Date().toISOString().split("T")[0],
+            entryDate: todayIso(),
             description: receipt.vendor_name ?? "Onbekende leverancier",
             costCode: receipt.cost_code ?? 4999,
             amountExVat: receipt.amount_ex_vat ?? 0,

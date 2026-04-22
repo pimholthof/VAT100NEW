@@ -1,7 +1,7 @@
 import { formatCurrency, escapeHtml } from "@/lib/format";
 import type { InvoiceData } from "@/lib/types";
 
-interface EmailTemplateOptions {
+export interface EmailTemplateOptions {
   /** Intro paragraph (already escaped) */
   introParagraph: string;
   /** Label for the amount row, e.g. "Totaal incl. BTW" or "Openstaand bedrag" */
@@ -59,14 +59,19 @@ export function buildInvoiceEmailHtml(
   options: EmailTemplateOptions
 ): string {
   const { invoice, client, profile } = data;
-  const senderName = profile.studio_name || profile.full_name;
-  const recipientName = client.contact_name || client.name;
-  
+  // Escape user-generated names — these come from the DB and end up in raw
+  // HTML. Invoice number is DB-generated and always safe but we escape
+  // defense-in-depth. The caller is contractually responsible for escaping
+  // introParagraph and extraHtml (see EmailTemplateOptions docs).
+  const senderName = escapeHtml(profile.studio_name || profile.full_name);
+  const recipientName = escapeHtml(client.contact_name || client.name);
+  const invoiceNumber = escapeHtml(invoice.invoice_number);
+
   const contentHtml = `
     <p style="margin-bottom:24px;">Beste ${recipientName},</p>
     <p style="margin-bottom:32px;">${options.introParagraph}</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;border-top:1px solid #E0E0E0;border-bottom:1px solid #E0E0E0;">
-      <tr><td style="padding:12px 0;font-size:14px;color:#808080;">Factuur</td><td style="padding:12px 0;font-size:14px;text-align:right;font-weight:bold;">${invoice.invoice_number}</td></tr>
+      <tr><td style="padding:12px 0;font-size:14px;color:#808080;">Factuur</td><td style="padding:12px 0;font-size:14px;text-align:right;font-weight:bold;">${invoiceNumber}</td></tr>
       <tr><td style="padding:12px 0;font-size:14px;color:#808080;border-top:1px solid #F0F0F0;">Totaal</td><td style="padding:12px 0;font-size:18px;text-align:right;font-weight:900;">${formatCurrency(invoice.total_inc_vat)}</td></tr>
     </table>
     ${options.extraHtml ?? ""}
@@ -76,6 +81,6 @@ export function buildInvoiceEmailHtml(
   return buildBaseEmailHtml({
     title: "Factuur",
     contentHtml,
-    footerText: `Verzonden door ${senderName}`
+    footerText: `Verzonden door ${senderName}`,
   });
 }

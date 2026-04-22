@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { getErrorMessage } from "@/lib/utils/errors";
+import { todayIso } from "@/lib/utils/date-helpers";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
 import { withCronLock } from "@/lib/cron/lock";
+import { isRateLimited } from "@/lib/rate-limit";
 
 function calculateNextRunDate(runDate: string, frequency: string): string {
   const nextDate = new Date(runDate);
@@ -34,10 +36,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Defense in depth against leaked cron secret. Daily schedule; 5/hour is ample.
+  if (await isRateLimited("cron:recurring", 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+  }
+
   const locked = await withCronLock("recurring", async () => {
   try {
   const supabase = createServiceClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIso();
 
   // Find all active recurring invoices due today or earlier
   const { data: templates, error: fetchError } = await supabase

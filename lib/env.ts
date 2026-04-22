@@ -35,8 +35,6 @@ const requiredEnvVars = {
   NEXT_PUBLIC_APP_URL: { required: false, public: true, default: "https://vat100.nl" },
 } as const;
 
-type EnvVar = keyof typeof requiredEnvVars;
-
 interface ValidationResult {
   valid: boolean;
   missing: string[];

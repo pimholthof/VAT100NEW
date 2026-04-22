@@ -335,17 +335,10 @@ export function BulkInvoiceUpload() {
           </div>
         )}
 
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           aria-label="Klik of sleep bestanden om te uploaden"
           onClick={() => fileInputRef.current?.click()}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              fileInputRef.current?.click();
-            }
-          }}
           onDrop={handleDrop}
           onDragOver={(e) => {
             e.preventDefault();
@@ -365,6 +358,10 @@ export function BulkInvoiceUpload() {
             alignItems: "center",
             justifyContent: "center",
             gap: 12,
+            width: "100%",
+            background: "transparent",
+            font: "inherit",
+            color: "inherit",
           }}
         >
           <input
@@ -403,7 +400,7 @@ export function BulkInvoiceUpload() {
           >
             Max {MAX_FILES} bestanden, max 10MB per bestand
           </p>
-        </div>
+        </button>
 
         {/* Manual entry option */}
         <div style={{ marginTop: 16, textAlign: "center" }}>

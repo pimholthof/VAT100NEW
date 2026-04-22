@@ -9,11 +9,15 @@ export async function fetchInvoiceData(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return { error: "Niet ingelogd" };
 
+  // Scope to the authenticated user as defense-in-depth. RLS should already
+  // block cross-tenant access, but an explicit user_id filter means we fail
+  // closed even if a policy regresses.
   const { data: invoice, error: invoiceError } = await supabase
     .from("invoices")
     .select("*")
     .eq("id", invoiceId)
-    .single();
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   if (invoiceError || !invoice) return { error: "Factuur niet gevonden" };
 
@@ -23,8 +27,13 @@ export async function fetchInvoiceData(
       .select("*")
       .eq("invoice_id", invoiceId)
       .order("sort_order", { ascending: true }),
-    supabase.from("clients").select("*").eq("id", invoice.client_id).single(),
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase
+      .from("clients")
+      .select("*")
+      .eq("id", invoice.client_id)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
   ]);
 
   if (clientResult.error || !clientResult.data)

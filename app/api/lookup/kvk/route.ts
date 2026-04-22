@@ -34,6 +34,21 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // KvK numbers are 8 digits; reject anything else before hitting the upstream.
+  if (nummer && !/^\d{8}$/.test(nummer)) {
+    return NextResponse.json(
+      { error: "KvK-nummer moet 8 cijfers zijn.", results: [] },
+      { status: 400 }
+    );
+  }
+  // Cap free-text query length so we don't forward arbitrary blobs upstream.
+  if (q && q.length > 120) {
+    return NextResponse.json(
+      { error: "Zoekterm is te lang (max 120 tekens).", results: [] },
+      { status: 400 }
+    );
+  }
+
   if (!process.env.KVK_API_KEY) {
     return NextResponse.json({
       error: "KvK lookup niet geconfigureerd",

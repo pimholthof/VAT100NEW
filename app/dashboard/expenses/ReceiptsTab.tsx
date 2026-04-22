@@ -53,7 +53,8 @@ export default function ReceiptsTab() {
     },
   });
 
-  const receipts = result?.data ?? [];
+  // Stabilise reference so useMemo / useCallback deps don't fire on unrelated re-renders.
+  const receipts = useMemo(() => result?.data ?? [], [result?.data]);
 
   const allSelected = useMemo(
     () => receipts.length > 0 && receipts.every((r: Receipt) => selected.has(r.id)),

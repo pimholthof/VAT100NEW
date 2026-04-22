@@ -56,3 +56,7 @@ public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
 public/fallback-*.js
+
+# Dev server logs
+*.log
+!package-lock.json.log

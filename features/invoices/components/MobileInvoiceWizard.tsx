@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { m as motion, AnimatePresence } from "framer-motion";
@@ -57,7 +57,8 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
     queryKey: ["clients"],
     queryFn: () => getClients(),
   });
-  const clients = clientsResult?.data ?? [];
+  // Stabilise reference so useEffect deps don't fire on unrelated re-renders.
+  const clients = useMemo(() => clientsResult?.data ?? [], [clientsResult?.data]);
   const hasClientError = clientsError || !!clientsResult?.error;
   const clientErrorMessage = clientsResult?.error || t.errors.generic;
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAuth } from "@/lib/supabase/server";
-import type { ActionResult, VatReturn, VatReturnCorrection } from "@/lib/types";
+import type { ActionResult, VatReturnCorrection } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 
 /**

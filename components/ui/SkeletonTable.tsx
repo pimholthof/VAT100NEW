@@ -12,7 +12,13 @@ export function SkeletonTable({
   bodyWidths?: number[];
 }) {
   return (
-    <div style={{ opacity: 0.12 }}>
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="Gegevens laden"
+      aria-busy="true"
+      style={{ opacity: 0.12 }}
+    >
       <div
         style={{
           display: "grid",

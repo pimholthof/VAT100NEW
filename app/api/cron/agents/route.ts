@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { isRateLimited } from "@/lib/rate-limit";
 import { getErrorMessage } from "@/lib/utils/errors";
 import {
   runReconciliationAgent,
@@ -127,6 +128,12 @@ export async function GET(request: NextRequest) {
   // Alleen de initiële aanroep (offset=0) verkrijgt de lock.
   // Continuation calls (offset > 0) draaien binnen de lopende cron-run.
   const isInitialCall = offset === 0;
+
+  // Defense in depth: only rate-limit the initial call — continuation
+  // calls are part of the same cron run and must not be blocked.
+  if (isInitialCall && (await isRateLimited("cron:agents", 5, 60 * 60 * 1000))) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+  }
 
   async function runAgentBatch() {
     const startTime = Date.now();

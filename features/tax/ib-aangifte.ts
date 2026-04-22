@@ -1,6 +1,6 @@
 "use server";
 
-import { getJaarrekeningData, type JaarrekeningData } from "./jaarrekening";
+import { getJaarrekeningData } from "./jaarrekening";
 import type { ActionResult } from "@/lib/types";
 
 // ─── IB Aangifte data (gemapt op officieel formulier) ───

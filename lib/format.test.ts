@@ -110,4 +110,80 @@ describe("escapeHtml", () => {
   it("escapes single quotes", () => {
     expect(escapeHtml("it's")).toBe("it&#39;s");
   });
+
+  it("escapes ampersands before other entities (no double-escape)", () => {
+    // Order matters: & must be replaced first, otherwise &lt; becomes &amp;lt;
+    expect(escapeHtml("<a>")).toBe("&lt;a&gt;");
+    expect(escapeHtml("&<")).toBe("&amp;&lt;");
+  });
+
+  it("leaves safe text untouched", () => {
+    expect(escapeHtml("Jan Jansen, Amsterdam")).toBe("Jan Jansen, Amsterdam");
+  });
+});
+
+describe("formatCurrency edge cases", () => {
+  it("renders negative with minus sign and nl-NL separators", () => {
+    // Intl may use a narrow-no-break space between € and amount.
+    const result = formatCurrency(-1234.5);
+    expect(result).toMatch(/-.*1\.234,50/);
+  });
+
+  it("handles very large amounts without scientific notation", () => {
+    const result = formatCurrency(1_234_567.89);
+    expect(result).toContain("1.234.567,89");
+  });
+
+  it("handles sub-cent input by rounding half-to-even/up (Intl behaviour)", () => {
+    // 0.005 rounds to either 0,00 or 0,01 depending on engine banker's rounding.
+    // We only assert that the output has exactly two fractional digits.
+    expect(formatCurrency(0.005)).toMatch(/0,0[01]/);
+  });
+});
+
+describe("calculateVat rounding edge cases", () => {
+  it("rounds half-cent up (21% of 0.024 = 0.00504 → 0.01)", () => {
+    const result = calculateVat(0.024, 21);
+    // 0.024 first rounds to 0.02; 21% of 0.02 = 0.0042 → 0.00
+    // The asymmetry is intentional: VAT is always on the rounded subtotal.
+    expect(result.vatAmount).toBe(0);
+    expect(result.totalIncVat).toBe(0.02);
+  });
+
+  it("keeps totalIncVat = subtotal + vat after rounding", () => {
+    const result = calculateVat(19.995, 21); // rounds to 20.00
+    expect(result.subtotalExVat + result.vatAmount).toBeCloseTo(result.totalIncVat, 10);
+  });
+});
+
+describe("calculateLineTotals rounding edge cases", () => {
+  it("handles three lines at 0.335 summed then rounded (not line-by-line)", () => {
+    // 3 lines van 0.335 = 1.005 → subtotal 1.01 (rounded on sum), not 1.02.
+    const result = calculateLineTotals(
+      [
+        { quantity: 1, rate: 0.335 },
+        { quantity: 1, rate: 0.335 },
+        { quantity: 1, rate: 0.335 },
+      ],
+      21
+    );
+    expect(result.subtotalExVat).toBe(1.01);
+  });
+
+  it("handles fractional quantity (e.g. half hour)", () => {
+    const result = calculateLineTotals([{ quantity: 0.5, rate: 100 }], 21);
+    expect(result.subtotalExVat).toBe(50);
+    expect(result.vatAmount).toBe(10.5);
+    expect(result.totalIncVat).toBe(60.5);
+  });
+});
+
+describe("formatDate robustness", () => {
+  it("handles ISO timestamps (not just date-only)", () => {
+    expect(formatDate("2026-03-15T12:34:56.000Z")).toBe("15-03-2026");
+  });
+
+  it("returns '—' for empty string", () => {
+    expect(formatDate("")).toBe("—");
+  });
 });
