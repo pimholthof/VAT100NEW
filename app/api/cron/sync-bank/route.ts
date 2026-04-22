@@ -4,6 +4,7 @@ import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { isRateLimited } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
+import { todayIso } from "@/lib/utils/date-helpers";
 import { bankingClient } from "@/lib/banking/tink";
 import { autoCategorizeTransactionsInternal } from "@/features/banking/actions";
 import { recalculateReserves } from "@/lib/services/reserve-recalculator";
@@ -334,7 +335,7 @@ async function processConnection(
           await autoBookInvoice({
             invoiceId: invoice.id,
             userId: invoice.user_id,
-            entryDate: transaction.booking_date ?? new Date().toISOString().split("T")[0],
+            entryDate: transaction.booking_date ?? todayIso(),
             description: `Factuur betaling: ${invoice.invoice_number}`,
             subtotalExVat: invoice.subtotal_ex_vat,
             vatAmount: invoice.vat_amount ?? 0,
@@ -367,7 +368,7 @@ async function processConnection(
           await autoBookReceipt({
             receiptId: receipt.id,
             userId: receipt.user_id,
-            entryDate: new Date().toISOString().split("T")[0],
+            entryDate: todayIso(),
             description: receipt.vendor_name ?? "Onbekende leverancier",
             costCode: receipt.cost_code ?? 4999,
             amountExVat: receipt.amount_ex_vat ?? 0,

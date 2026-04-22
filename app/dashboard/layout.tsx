@@ -5,6 +5,7 @@ import { DashboardTransition } from "@/components/layout/DashboardTransition";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { getUnreadCount } from "@/features/chat/actions";
+import { todayIso as getTodayIso } from "@/lib/utils/date-helpers";
 
 export default async function DashboardLayout({
   children,
@@ -17,7 +18,7 @@ export default async function DashboardLayout({
   if (!user) redirect("/login");
 
   // Fetch profile, unread count, and overdue invoice count in parallel
-  const todayIso = new Date().toISOString().split("T")[0];
+  const todayIso = getTodayIso();
   const [profileResult, unreadResult, overdueResult] = await Promise.all([
     supabase
       .from("profiles")
