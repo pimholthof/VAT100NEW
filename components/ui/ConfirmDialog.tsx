@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { ButtonPrimary, ButtonSecondary } from "./Button";
 
@@ -15,6 +15,15 @@ interface ConfirmDialogProps {
   children?: React.ReactNode;
 }
 
+const FOCUSABLE = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
 export function ConfirmDialog({
   open,
   title,
@@ -26,7 +35,45 @@ export function ConfirmDialog({
   children,
 }: ConfirmDialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
   useClickOutside(panelRef, open, onCancel);
+
+  // Focus trap + Escape + focus restore. Zonder dit kunnen toetsenbord-
+  // gebruikers per ongeluk met de achtergrond interacteren terwijl de
+  // dialog open is.
+  useEffect(() => {
+    if (!open) return;
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCancel();
+        return;
+      }
+      if (e.key !== "Tab" || !panelRef.current) return;
+
+      const nodes = panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE);
+      if (nodes.length === 0) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      previouslyFocused.current?.focus?.();
+    };
+  }, [open, onCancel]);
 
   if (!open) return null;
 
