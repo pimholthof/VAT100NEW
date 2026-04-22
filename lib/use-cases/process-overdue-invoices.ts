@@ -34,6 +34,40 @@ export async function processOverdueInvoices(userId?: string): Promise<{
 
   if (error) throw new Error(error.message);
 
+  // Batch-fetch alle eerdere herinneringen vooraf (voorkomt N+1 in de loop).
+  // Per factuur houden we de hoogste stap en het laatste verzenddatum bij, en
+  // een set van alle gebruikte stappen zodat we dubbele ingebrekestellingen
+  // (stap 4) kunnen detecteren zonder extra round-trip.
+  const invoiceIds = (overdueInvoices ?? []).map((inv) => inv.id);
+  const reminderMap = new Map<
+    string,
+    { lastStep: number; lastSentAt: string | null; steps: Set<number> }
+  >();
+
+  if (invoiceIds.length > 0) {
+    const { data: allReminders } = await supabase
+      .from("invoice_reminders")
+      .select("invoice_id, step, sent_at")
+      .in("invoice_id", invoiceIds);
+
+    for (const r of allReminders ?? []) {
+      const existing = reminderMap.get(r.invoice_id);
+      if (!existing) {
+        reminderMap.set(r.invoice_id, {
+          lastStep: r.step,
+          lastSentAt: r.sent_at,
+          steps: new Set([r.step]),
+        });
+      } else {
+        existing.steps.add(r.step);
+        if (r.step > existing.lastStep) {
+          existing.lastStep = r.step;
+          existing.lastSentAt = r.sent_at;
+        }
+      }
+    }
+  }
+
   // Process each overdue invoice concurrently with Promise.allSettled
   const settled = await Promise.allSettled(
     (overdueInvoices ?? []).map(async (inv) => {
@@ -74,16 +108,10 @@ export async function processOverdueInvoices(userId?: string): Promise<{
           profile: profileResult.data as InvoiceData["profile"],
         };
 
-        // Determine escalation step based on previous reminders
-        const { data: prevReminders } = await supabase
-          .from("invoice_reminders")
-          .select("step, sent_at")
-          .eq("invoice_id", inv.id)
-          .order("step", { ascending: false })
-          .limit(1);
-
-        const lastStep = prevReminders?.[0]?.step ?? 0;
-        const lastSentAt = prevReminders?.[0]?.sent_at;
+        // Escalatie-stap uit vooraf gebatchte reminders-map
+        const reminderState = reminderMap.get(inv.id);
+        const lastStep = reminderState?.lastStep ?? 0;
+        const lastSentAt = reminderState?.lastSentAt ?? null;
 
         // Only escalate if enough time has passed (7 days between steps)
         const daysSinceLastReminder = lastSentAt
@@ -108,12 +136,7 @@ export async function processOverdueInvoices(userId?: string): Promise<{
 
         // Na stap 3: ingebrekestelling (stap 4)
         if (lastStep >= 3 && daysSinceLastReminder >= 14) {
-          const { data: hasDefaultNotice } = await supabase
-            .from("invoice_reminders")
-            .select("id")
-            .eq("invoice_id", inv.id)
-            .eq("step", 4)
-            .maybeSingle();
+          const hasDefaultNotice = reminderState?.steps.has(4) ?? false;
 
           if (!hasDefaultNotice) {
             const defaultResult = await sendDefaultNotice(invoiceData);
