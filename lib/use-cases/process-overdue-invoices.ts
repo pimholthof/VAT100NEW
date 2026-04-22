@@ -5,6 +5,7 @@ import * as Sentry from "@sentry/nextjs";
 import type { InvoiceData } from "@/lib/types";
 import { sendDefaultNotice } from "@/lib/email/send-default-notice";
 import { calculateLegalInterest } from "@/lib/logic/interest-calculator";
+import { todayIso } from "@/lib/utils/date-helpers";
 
 export async function processOverdueInvoices(userId?: string): Promise<{
   updated: number;
@@ -16,7 +17,7 @@ export async function processOverdueInvoices(userId?: string): Promise<{
   }>;
 }> {
   const supabase = createServiceClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIso();
 
   let query = supabase
     .from("invoices")

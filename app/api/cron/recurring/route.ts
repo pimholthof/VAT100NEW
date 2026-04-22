@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { getErrorMessage } from "@/lib/utils/errors";
+import { todayIso } from "@/lib/utils/date-helpers";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
 import { withCronLock } from "@/lib/cron/lock";
 import { isRateLimited } from "@/lib/rate-limit";
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
   const locked = await withCronLock("recurring", async () => {
   try {
   const supabase = createServiceClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIso();
 
   // Find all active recurring invoices due today or earlier
   const { data: templates, error: fetchError } = await supabase
