@@ -4,6 +4,7 @@ import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { alertCronFailure } from "@/lib/monitoring/cron-alerts";
 import { withCronLock } from "@/lib/cron/lock";
+import { isRateLimited } from "@/lib/rate-limit";
 
 function calculateNextRunDate(runDate: string, frequency: string): string {
   const nextDate = new Date(runDate);
@@ -32,6 +33,11 @@ function calculateNextRunDate(runDate: string, frequency: string): string {
 export async function GET(request: Request) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Defense in depth against leaked cron secret. Daily schedule; 5/hour is ample.
+  if (await isRateLimited("cron:recurring", 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
   }
 
   const locked = await withCronLock("recurring", async () => {

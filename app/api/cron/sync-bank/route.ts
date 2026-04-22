@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { verifyCronSecret } from "@/lib/auth/verify-cron-secret";
+import { isRateLimited } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { bankingClient } from "@/lib/banking/tink";
@@ -24,6 +25,11 @@ import { withCronLock } from "@/lib/cron/lock";
 export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Defense in depth against leaked cron secret. Daily schedule; 5/hour is ample.
+  if (await isRateLimited("cron:sync-bank", 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
   }
 
   const locked = await withCronLock("sync-bank", async () => {
