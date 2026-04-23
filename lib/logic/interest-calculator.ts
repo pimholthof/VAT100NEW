@@ -7,6 +7,7 @@
  */
 
 import { MS_PER_DAY } from "@/lib/constants/time";
+import { todayIso } from "@/lib/utils/date-helpers";
 
 const WETTELIJKE_HANDELSRENTE_JAARLIJKS = 0.105; // 10.5% per jaar
 
@@ -16,7 +17,7 @@ const WETTELIJKE_HANDELSRENTE_JAARLIJKS = 0.105; // 10.5% per jaar
 export function calculateLegalInterest(
   principalAmount: number,
   dueDate: string,
-  calculationDate: string = new Date().toISOString().split("T")[0]
+  calculationDate: string = todayIso()
 ): {
   daysOverdue: number;
   interestAmount: number;

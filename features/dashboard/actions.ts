@@ -515,7 +515,7 @@ export async function getSetupProgress(): Promise<ActionResult<SetupProgress>> {
 export async function getControllerAuditData(): Promise<ActionResult<TaxAuditSummary>> {
   const auth = await requireAdmin();
   if (auth.error !== null) return { error: auth.error };
-  const { supabase, user } = auth;
+  const { supabase } = auth;
 
   const now = new Date();
   const currentQ = (Math.floor(now.getMonth() / 3) + 1);

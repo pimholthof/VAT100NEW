@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { useLocale } from "@/lib/i18n/context";
 import { useInvoiceStore } from "@/lib/store/invoice";
+import {
+  checkInvoiceNumberExists,
+  generateInvoiceNumber,
+} from "@/features/invoices/actions";
 import type { VatScheme } from "@/lib/types";
 
 const VAT_OPTIONS: Array<{ value: string; labelKey: string; rate: number; scheme: VatScheme }> = [
@@ -16,6 +21,10 @@ const VAT_OPTIONS: Array<{ value: string; labelKey: string; rate: number; scheme
 export function InvoiceMetadata({ defaultCollapsed = false }: { defaultCollapsed?: boolean }) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const { t } = useLocale();
+  const params = useParams<{ id?: string }>();
+  const invoiceId = params?.id;
+  const [numberConflict, setNumberConflict] = useState(false);
+  const [checkingNumber, setCheckingNumber] = useState(false);
 
   function vatLabel(rate: number, scheme: VatScheme): string {
     if (scheme === "eu_reverse_charge") return t.invoices.euReverseCharge;
@@ -97,10 +106,69 @@ export function InvoiceMetadata({ defaultCollapsed = false }: { defaultCollapsed
             <input
               type="text"
               value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
+              onChange={(e) => {
+                setInvoiceNumber(e.target.value);
+                if (numberConflict) setNumberConflict(false);
+              }}
+              onBlur={async () => {
+                const trimmed = invoiceNumber.trim();
+                if (!trimmed) return;
+                setCheckingNumber(true);
+                const res = await checkInvoiceNumberExists(trimmed, invoiceId);
+                setCheckingNumber(false);
+                if (res.error === null) setNumberConflict(!!res.data);
+              }}
+              aria-invalid={numberConflict || undefined}
+              aria-describedby={numberConflict ? "invoice-number-conflict" : undefined}
               className="form-input"
-              style={{ border: "none", padding: 0, opacity: 0.6, fontSize: 13 }}
+              style={{
+                border: "none",
+                padding: 0,
+                opacity: 0.6,
+                fontSize: 13,
+                color: numberConflict ? "var(--color-accent)" : undefined,
+              }}
             />
+            {checkingNumber && (
+              <span style={{ fontSize: 11, opacity: 0.35 }}>Controleren…</span>
+            )}
+            {numberConflict && (
+              <span
+                id="invoice-number-conflict"
+                role="alert"
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 8,
+                  fontSize: 11,
+                  color: "var(--color-accent)",
+                  lineHeight: 1.45,
+                }}
+              >
+                Nummer is al in gebruik.
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const res = await generateInvoiceNumber();
+                    if (res.error === null && res.data) {
+                      setInvoiceNumber(res.data);
+                      setNumberConflict(false);
+                    }
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    fontSize: 11,
+                    color: "var(--foreground)",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Genereer een nieuw nummer
+                </button>
+              </span>
+            )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <p className="label">{t.invoices.dateLabel}</p>

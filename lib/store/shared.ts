@@ -1,4 +1,5 @@
 import type { InvoiceLineInput } from "@/lib/types";
+import { todayIso, daysFromTodayIso } from "@/lib/utils/date-helpers";
 
 /**
  * Creates an empty invoice/quote line with default values.
@@ -15,16 +16,16 @@ export function createEmptyLine(): InvoiceLineInput {
 
 /**
  * Returns today's date as YYYY-MM-DD string.
+ * @deprecated Use `todayIso` from @/lib/utils/date-helpers directly.
  */
 export function today(): string {
-  return new Date().toISOString().split("T")[0];
+  return todayIso();
 }
 
 /**
  * Returns a date 30 days from now as YYYY-MM-DD string.
+ * @deprecated Use `daysFromTodayIso(30)` from @/lib/utils/date-helpers directly.
  */
 export function in30Days(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 30);
-  return d.toISOString().split("T")[0];
+  return daysFromTodayIso(30);
 }

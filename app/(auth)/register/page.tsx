@@ -23,6 +23,7 @@ const inputStyle: React.CSSProperties = {
 function RegisterForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const referralCode = searchParams.get("r");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const { t } = useLocale();
@@ -149,8 +150,23 @@ function RegisterForm() {
         </div>
 
         {/* Form — flat, no card */}
+        {referralCode && !leadData && (
+          <div style={{
+            marginTop: -16,
+            marginBottom: 32,
+            padding: "12px 16px",
+            backgroundColor: "rgba(0,0,0,0.03)",
+            borderLeft: "2px solid var(--foreground)",
+            fontSize: "13px",
+          }}>
+            <span style={{ fontWeight: 700 }}>Aangeraden door een VAT100-gebruiker.</span>{" "}
+            Jullie krijgen allebei één maand gratis na je eerste betaling.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             {plan && <input type="hidden" name="plan" value={plan} />}
+            {referralCode && <input type="hidden" name="referral_code" value={referralCode} />}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label htmlFor="full_name" className="label">{t.auth.fullName}</label>
               <input id="full_name" name="full_name" type="text" required autoComplete="name" style={inputStyle} defaultValue={leadData?.full_name || ""} />

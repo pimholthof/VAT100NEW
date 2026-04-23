@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
@@ -13,6 +14,8 @@ import type { TaxPaymentType, VatReturn } from "@/lib/types";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
+import { AangifteExplainer } from "@/features/tax/components/AangifteExplainer";
+import { DigipoortSubmitButton } from "@/features/tax/components/DigipoortSubmitButton";
 
 export default function TaxContent() {
   const { data: btwResult, isLoading: btwLoading } = useQuery({
@@ -216,12 +219,13 @@ export default function TaxContent() {
         overflow: "hidden",
         position: "relative",
       }}>
-        <img
+        <Image
           src="/images/office-walnut.png"
           alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
           style={{
-            width: "100%",
-            height: "100%",
             objectFit: "cover",
             objectPosition: "center 40%",
             opacity: 0.12,
@@ -252,6 +256,8 @@ export default function TaxContent() {
             </p>
           )}
         </div>
+
+        <AangifteExplainer />
 
         {/* BTW in same grid rhythm */}
         <div style={{
@@ -312,14 +318,18 @@ export default function TaxContent() {
                       <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(q.netVat)}</span></Td>
                       <Td><span className="label" style={{ opacity: 1 }}>{q.netVat >= 0 ? "Te betalen" : "Te vorderen"}</span></Td>
                       <Td style={{ textAlign: "right" }}>
-                        <a
-                          href={`/api/export/btw-aangifte?year=${q.quarter.split(" ")[1]}&quarter=${q.quarter.split(" ")[0].replace("Q", "")}`}
-                          download
-                          style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
-                          title="Download BTW aangifte CSV"
-                        >
-                          Aangifte &darr;
-                        </a>
+                        <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", alignItems: "center" }}>
+                          <a
+                            href={`/api/export/btw-aangifte?year=${q.quarter.split(" ")[1]}&quarter=${q.quarter.split(" ")[0].replace("Q", "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
+                            title="BTW aangifte PDF"
+                          >
+                            Aangifte &darr;
+                          </a>
+                          <DigipoortSubmitButton quarter={q} />
+                        </div>
                       </Td>
                     </tr>
                   ))}
@@ -327,6 +337,51 @@ export default function TaxContent() {
               </table>
             ) : (
               <p className="empty-state">Nog geen gegevens</p>
+            )}
+
+            {!btwLoading && quarters.length > 0 && (
+              <div
+                style={{
+                  marginTop: "var(--space-lg)",
+                  padding: "20px 24px",
+                  border: "0.5px solid rgba(0, 0, 0, 0.08)",
+                  borderRadius: "var(--radius)",
+                  background: "rgba(45, 90, 123, 0.03)",
+                }}
+              >
+                <p
+                  className="label"
+                  style={{
+                    margin: "0 0 8px",
+                    opacity: 0.55,
+                    fontSize: 10,
+                  }}
+                >
+                  Volgende stap · Dien in
+                </p>
+                <p
+                  style={{
+                    margin: "0 0 14px",
+                    fontSize: 13,
+                    opacity: 0.7,
+                    lineHeight: 1.55,
+                    maxWidth: 560,
+                  }}
+                >
+                  Download de aangifte hierboven en neem de waarden over op
+                  <strong> Mijn Belastingdienst Zakelijk</strong>. VAT100 dient
+                  niet automatisch in — dat doe je zelf met DigiD of eHerkenning.
+                </p>
+                <a
+                  href="https://mijn.belastingdienst.nl/mbd-pmb/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+                >
+                  Open Mijn Belastingdienst →
+                </a>
+              </div>
             )}
           </div>
         </div>
@@ -350,13 +405,15 @@ export default function TaxContent() {
         height: 160,
         borderRadius: "var(--radius)",
         overflow: "hidden",
+        position: "relative",
       }}>
-        <img
+        <Image
           src="/images/office-corridor.png"
           alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
           style={{
-            width: "100%",
-            height: "100%",
             objectFit: "cover",
             objectPosition: "center 60%",
             opacity: 0.09,

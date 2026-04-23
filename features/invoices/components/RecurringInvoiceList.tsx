@@ -15,7 +15,6 @@ import {
   TableWrapper,
   ConfirmDialog,
   useToast,
-  EmptyState,
 } from "@/components/ui";
 import { RecurringInvoiceForm } from "./RecurringInvoiceForm";
 

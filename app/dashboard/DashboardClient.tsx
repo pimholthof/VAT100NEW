@@ -26,8 +26,19 @@ import {
   getOnboardingProgress,
   type OnboardingProgress,
 } from "@/features/onboarding/actions";
+import {
+  StatCard,
+  SkeletonTable,
+  EmptyState,
+} from "@/components/ui";
+import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
+import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
+import { HealthScore } from "@/features/dashboard/components/HealthScore";
+import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
+import { AiQuotaBanner } from "@/features/dashboard/components/AiQuotaBanner";
+import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
-import { useState } from "react";
+import { useState, useCallback, useSyncExternalStore } from "react";
 import TaxAgentChat from "@/components/ai/TaxAgentChat";
 import { Button } from "@/components/ui/Button";
 import { Bot, Settings2, RotateCcw } from "lucide-react";
@@ -37,8 +48,43 @@ import {
   WIDGET_META,
   type WidgetId,
 } from "@/features/dashboard/widget-registry";
+import { Bot } from "lucide-react";
+import MobileDashboard from "@/features/dashboard/MobileDashboard";
+
+function useIsMobile(breakpoint = 768) {
+  const subscribe = useCallback((cb: () => void) => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    mql.addEventListener("change", cb);
+    return () => mql.removeEventListener("change", cb);
+  }, [breakpoint]);
+  const getSnapshot = useCallback(
+    () => window.matchMedia(`(max-width: ${breakpoint}px)`).matches,
+    [breakpoint]
+  );
+  const getServerSnapshot = useCallback(() => false, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
 
 export default function DashboardClient({
+  initialResult,
+  initialOnboarding,
+}: {
+  initialResult?: ActionResult<DashboardData>;
+  initialOnboarding?: OnboardingProgress | null;
+}) {
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return <MobileDashboard initialResult={initialResult} />;
+  }
+  return (
+    <DesktopDashboard
+      initialResult={initialResult}
+      initialOnboarding={initialOnboarding}
+    />
+  );
+}
+
+function DesktopDashboard({
   initialResult,
   initialOnboarding,
 }: {
@@ -51,9 +97,7 @@ export default function DashboardClient({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
     initialData: initialResult,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
+    staleTime: 30_000,
   });
 
   const { data: onboardingResult } = useQuery({
@@ -118,6 +162,8 @@ export default function DashboardClient({
       y: 0,
       transition: { type: "spring", stiffness: 300, damping: 24 },
     },
+    hidden: { opacity: 0, y: 8 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }
   };
 
   const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
@@ -327,7 +373,7 @@ export default function DashboardClient({
         hidden: {},
         show: {
           transition: {
-            staggerChildren: 0.12,
+            staggerChildren: 0.04,
           },
         },
       }}
@@ -350,6 +396,10 @@ export default function DashboardClient({
         )}
 
       {/* ── HERO (fixed, not draggable) ── */}
+      {/* ── AI QUOTA BANNER (alleen bij >80% verbruik) ── */}
+      <AiQuotaBanner />
+
+      {/* ── HERO ── */}
       {!isLoading && (
         <div className="dashboard-home-hero">
           <motion.div

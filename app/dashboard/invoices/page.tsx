@@ -57,8 +57,10 @@ function InvoicesTab() {
   const { t } = useLocale();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const initialStatus = searchParams.get("status") ?? "";
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
@@ -141,6 +143,7 @@ function InvoicesTab() {
         filters={[
           { key: "status", label: t.invoices.allStatuses, options: invoiceStatusOptions },
         ]}
+        initialFilters={initialStatus ? { status: initialStatus } : undefined}
         onSearch={handleSearch}
         onFilterChange={handleFilter}
       />
@@ -206,9 +209,46 @@ function InvoicesTab() {
                   </Td>
                   <Td>{invoice.client?.name ?? "—"}</Td>
                   <Td>
-                    <span style={{ fontSize: 12, opacity: 0.4, fontVariantNumeric: "tabular-nums" }}>
-                      {formatDate(invoice.issue_date)}
-                    </span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ fontSize: 12, opacity: 0.4, fontVariantNumeric: "tabular-nums" }}>
+                        {formatDate(invoice.issue_date)}
+                      </span>
+                      {(() => {
+                        if (!invoice.due_date) return null;
+                        if (invoice.status === "paid" || invoice.status === "draft") return null;
+                        const due = new Date(invoice.due_date).setHours(0, 0, 0, 0);
+                        const today = new Date().setHours(0, 0, 0, 0);
+                        const days = Math.round((due - today) / 86400000);
+                        if (days < 0) {
+                          return (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 500,
+                                color: "var(--color-accent)",
+                                letterSpacing: "0.02em",
+                              }}
+                            >
+                              {Math.abs(days)} {Math.abs(days) === 1 ? "dag" : "dagen"} te laat
+                            </span>
+                          );
+                        }
+                        if (days <= 7) {
+                          return (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                opacity: 0.55,
+                                letterSpacing: "0.02em",
+                              }}
+                            >
+                              Vervalt {days === 0 ? "vandaag" : days === 1 ? "morgen" : `over ${days} dagen`}
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
                   </Td>
                   <Td>
                     <StatusBadge

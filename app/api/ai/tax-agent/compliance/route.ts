@@ -3,7 +3,7 @@ import { requireAuth, createClient } from '@/lib/supabase/server';
 
 type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const auth = await requireAuth();
     if (auth.error !== null) {

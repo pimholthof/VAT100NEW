@@ -49,8 +49,9 @@ export async function register(formData: FormData): Promise<AuthResult> {
   const password = formData.get("password") as string;
   const fullName = formData.get("full_name") as string;
   const studioName = formData.get("studio_name") as string;
+  const referralCode = (formData.get("referral_code") as string | null)?.trim() || null;
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -63,6 +64,18 @@ export async function register(formData: FormData): Promise<AuthResult> {
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Registreer referral (async, foutvrij — referral mag registratie niet blokkeren)
+  if (referralCode && data.user?.id) {
+    try {
+      const { registerReferralFromCode } = await import(
+        "@/features/referrals/actions"
+      );
+      await registerReferralFromCode(data.user.id, referralCode);
+    } catch {
+      // stil falen: referral is bonus, geen blocker
+    }
   }
 
   const plan = formData.get("plan") as string | null;

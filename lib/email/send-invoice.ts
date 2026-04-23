@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { fetchInvoiceData } from "@/lib/invoice/fetch";
 import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionResult } from "@/lib/types";
 import { escapeHtml } from "@/lib/format";
 import { buildInvoiceEmailHtml } from "./template";
@@ -34,10 +35,29 @@ export async function sendInvoiceEmail(
     return { error: "Conceptfacturen kunnen niet worden verzonden." };
   }
 
-  // Generate PDF buffer
-  const element = createElement(InvoicePDF, { data });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfBuffer = await renderToBuffer(element as any);
+  // White-label check: Plus-abonnees krijgen een onbranded PDF.
+  const svc = createServiceClient();
+  const { data: sub } = await svc
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("user_id", profile.id)
+    .in("status", ["active", "past_due"])
+    .maybeSingle();
+  const branded = !(sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly");
+
+  // Generate PDF buffer. Omwille van niet-matchende react-pdf types tussen
+  // deze Resend-pipeline en het component blijft de cast nodig, maar we
+  // vangen de render-fout af zodat een corrupte factuur niet de hele
+  // e-mail-pipeline laat crashen.
+  let pdfBuffer: Buffer;
+  try {
+    const element = createElement(InvoicePDF, { data, branded });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pdfBuffer = await renderToBuffer(element as any);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Kon factuur-PDF niet genereren: ${msg}` };
+  }
 
   const senderName = escapeHtml(profile.studio_name || profile.full_name);
   const invoiceNum = escapeHtml(invoice.invoice_number);

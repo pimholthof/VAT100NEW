@@ -657,6 +657,7 @@ a {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+  padding-top: env(safe-area-inset-top);
 }
 
 .dashboard-nav-inner {
@@ -666,7 +667,8 @@ a {
   height: 64px;
   max-width: var(--content-max-width);
   margin: 0 auto;
-  padding: 0 var(--page-gutter);
+  padding-left: max(var(--page-gutter), env(safe-area-inset-left));
+  padding-right: max(var(--page-gutter), env(safe-area-inset-right));
 }
 
 .dashboard-nav-header {
@@ -796,6 +798,50 @@ a {
   .drawer-link {
     font-size: 1.5rem;
   }
+}
+
+/* ── Mobile Dashboard ── */
+.mobile-dashboard {
+  position: relative;
+  padding: 16px 0 24px;
+  max-width: 100%;
+}
+
+.mobile-dashboard-hero {
+  padding: 8px 20px 24px;
+}
+
+.mobile-dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 0 20px;
+  margin-bottom: 20px;
+}
+
+.mobile-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 0 20px;
+}
+
+.mobile-dashboard-fab {
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  right: 20px;
+  z-index: 850;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-black);
+  color: var(--color-white);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
 }
 
 /* ── Mobile Bottom Nav ── */
@@ -2495,4 +2541,135 @@ a {
   .brutalist-secondary-grid {
     break-inside: avoid;
   }
+}
+
+/* ─── Button spinner ─── */
+@keyframes vat100-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Chat typing dots — three dots fading in sequence ─── */
+@keyframes vat100-typing-dot {
+  0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-1px); }
+}
+.vat100-typing-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 6px;
+  align-items: center;
+}
+.vat100-typing-dots > span {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: vat100-typing-dot 1.2s infinite ease-in-out;
+}
+.vat100-typing-dots > span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.vat100-typing-dots > span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* ─── Reduced motion — respect user OS preference ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Breadcrumb — desktop full trail vs mobile compact ─── */
+.breadcrumb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-body-sm);
+  letter-spacing: 0.02em;
+  align-items: center;
+  gap: 6px;
+}
+
+.breadcrumb-list--full {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.breadcrumb-list--compact {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .breadcrumb-list--full {
+    display: none;
+  }
+  .breadcrumb-list--compact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    min-width: 0;
+  }
+}
+
+/* ─── Invoice edit layout — split form + live preview ─── */
+.invoice-edit-layout {
+  display: block;
+}
+
+.invoice-edit-layout__form {
+  min-width: 0;
+}
+
+.invoice-edit-layout__preview {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .invoice-edit-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    gap: 64px;
+    align-items: start;
+  }
+
+  .invoice-edit-layout__preview {
+    display: block;
+  }
+}
+
+.invoice-mobile-preview-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin: 16px 0 0;
+  background: transparent;
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.invoice-mobile-preview-toggle[aria-expanded="true"] {
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+.invoice-mobile-preview-wrapper {
+  margin-top: 16px;
 }

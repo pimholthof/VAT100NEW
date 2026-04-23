@@ -7,6 +7,7 @@ import { useLocale } from "@/lib/i18n/context";
 import { StepIndicator } from "@/components/ui/StepIndicator";
 import { InstitutionSelector } from "@/features/dashboard/components/InstitutionSelector";
 import { initiateBankConnection } from "@/features/banking/actions";
+import { ButtonPrimary, ButtonSecondary, ErrorMessage } from "@/components/ui";
 import type { VatFrequency } from "@/lib/types";
 
 const textInputStyle: React.CSSProperties = {
@@ -242,30 +243,68 @@ export default function OnboardingPage() {
   const isLastFormStep = step === TOTAL_STEPS - 1; // Step 4 is last form step
   const isBankStep = step === TOTAL_STEPS; // Step 5 is bank connection
 
+  const stepContext: Record<number, { title: string; sub: string }> = {
+    1: { title: "Je bedrijf", sub: "KVK en BTW — we zoeken de rest op." },
+    2: { title: "Je adres", sub: "Komt op je facturen te staan." },
+    3: { title: "Fiscaal profiel", sub: "Zodat VAT100 je aangiftes correct berekent." },
+    4: { title: "Bankgegevens", sub: "IBAN voor op je facturen." },
+    5: { title: "Bank koppelen", sub: "Optioneel. Voor automatische reconciliatie." },
+  };
+  const current = stepContext[step];
+
   return (
     <div style={{ minHeight: "100vh", display: "grid", alignItems: "center", justifyItems: "center", padding: 24 }}>
-      <div style={{ width: "100%", maxWidth: 400 }}>
+      <div style={{ width: "100%", maxWidth: 440 }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
+          <span
+            className="label"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              opacity: 0.5,
+              fontWeight: 500,
+            }}
+          >
+            Stap {step} van {TOTAL_STEPS}
+          </span>
+          {plan && (
+            <span
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                opacity: 0.6,
+                fontWeight: 500,
+                padding: "3px 8px",
+                border: "0.5px solid rgba(0,0,0,0.12)",
+                borderRadius: 999,
+              }}
+            >
+              Plan: {plan}
+            </span>
+          )}
+        </div>
         <h1
           style={{
-            fontSize: "var(--text-display-lg)",
+            fontSize: "var(--text-display-md)",
             fontWeight: 700,
             letterSpacing: "-0.03em",
-            lineHeight: 0.9,
-            margin: 0,
+            lineHeight: 1,
+            margin: "0 0 6px",
           }}
         >
-          {t.auth.welcome}
+          {current.title}
         </h1>
         <p
-          className="label"
           style={{
-            marginTop: 24,
-            marginBottom: 40,
-            letterSpacing: "var(--tracking-caps)",
-            opacity: 0.4,
+            fontSize: 13,
+            opacity: 0.55,
+            margin: "0 0 28px",
+            lineHeight: 1.5,
           }}
         >
-          {t.auth.fillCompanyDetails}
+          {current.sub}
         </p>
 
         <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS} labels={stepLabels} />
@@ -495,6 +534,22 @@ export default function OnboardingPage() {
                       <span>{t.common.yes}</span>
                     </label>
                   </div>
+                  {usesKor && (
+                    <p
+                      style={{
+                        fontSize: 11,
+                        opacity: 0.7,
+                        margin: "12px 0 0",
+                        lineHeight: 1.55,
+                        padding: "10px 12px",
+                        background: "rgba(0, 0, 0, 0.025)",
+                        borderRadius: "var(--radius-sm)",
+                      }}
+                    >
+                      Je rekent geen BTW op facturen en dient geen BTW-aangiften in.
+                      Houd wel je omzet bij — boven €20.000 vervalt de regeling.
+                    </p>
+                  )}
                 </div>
 
                 {/* Urencriterium */}
@@ -527,6 +582,21 @@ export default function OnboardingPage() {
                       <span>{t.common.no}</span>
                     </label>
                   </div>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      opacity: 0.7,
+                      margin: "12px 0 0",
+                      lineHeight: 1.55,
+                      padding: "10px 12px",
+                      background: "rgba(0, 0, 0, 0.025)",
+                      borderRadius: "var(--radius-sm)",
+                    }}
+                  >
+                    {meetsUrencriterium
+                      ? "Recht op zelfstandigenaftrek. VAT100 rekent dit automatisch mee in je IB-projectie."
+                      : "Zonder urencriterium vervalt de zelfstandigenaftrek. Houd je uren bij via de Uren-tab om dit aan te kunnen tonen."}
+                  </p>
                 </div>
 
                 {/* Boekhouding startdatum */}
@@ -609,32 +679,43 @@ export default function OnboardingPage() {
               <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 8, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
                 {t.auth.connectBank}
               </p>
-              <p style={{ fontSize: "13px", fontWeight: 300, opacity: 0.6, margin: "0 0 28px" }}>
+              <p style={{ fontSize: "13px", fontWeight: 300, opacity: 0.6, margin: "0 0 20px", lineHeight: 1.55 }}>
                 {t.auth.connectBankDesc}
               </p>
-
-              <button
-                type="button"
-                onClick={() => setShowBankSelector(true)}
-                disabled={bankPending}
+              <ul
                 style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-label)",
-                  fontWeight: 500,
-                  letterSpacing: "0.10em",
-                  textTransform: "uppercase",
-                  padding: 24,
-                  border: "none",
-                  background: "var(--foreground)",
-                  color: "var(--background)",
-                  cursor: bankPending ? "default" : "pointer",
-                  width: "100%",
-                  transition: "opacity 0.15s ease",
-                  opacity: bankPending ? 0.5 : 1,
+                  listStyle: "none",
+                  margin: "0 0 24px",
+                  padding: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                  fontSize: 12,
+                  opacity: 0.7,
                 }}
               >
-                {bankPending ? t.common.busy : t.auth.connectBank}
-              </button>
+                <li style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
+                  <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>
+                  <span>Automatische reconciliatie van bij- en afschrijvingen</span>
+                </li>
+                <li style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
+                  <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>
+                  <span>Cashflow-forecast met echte banksaldi</span>
+                </li>
+                <li style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
+                  <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>
+                  <span>Read-only via PSD2 — VAT100 kan nooit geld verplaatsen</span>
+                </li>
+              </ul>
+
+              <ButtonPrimary
+                type="button"
+                onClick={() => setShowBankSelector(true)}
+                loading={bankPending}
+                style={{ width: "100%" }}
+              >
+                {t.auth.connectBank}
+              </ButtonPrimary>
 
               <InstitutionSelector
                 isOpen={showBankSelector}
@@ -645,107 +726,34 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {error && (
-            <div
-              role="alert"
-              style={{
-                padding: 16,
-                background: "rgba(13,13,11,0.02)",
-                fontSize: "11px",
-              }}
-            >
-              {error}
-            </div>
-          )}
+          {error && <ErrorMessage>{error}</ErrorMessage>}
 
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
             {step > 1 && (
-              <button
-                type="button"
+              <ButtonSecondary
                 onClick={handleBack}
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-label)",
-                  fontWeight: 500,
-                  letterSpacing: "0.10em",
-                  textTransform: "uppercase",
-                  padding: 24,
-                  border: "0.5px solid rgba(0,0,0,0.12)",
-                  background: "transparent",
-                  color: "var(--foreground)",
-                  cursor: "pointer",
-                  flex: 1,
-                  transition: "opacity 0.15s ease",
-                }}
+                disabled={pending || bankPending}
+                style={{ flex: 1 }}
               >
                 {t.common.back}
-              </button>
+              </ButtonSecondary>
             )}
             {isBankStep ? (
-              /* Step 5: Skip bank connection → submit form */
-              <button
+              <ButtonSecondary
                 type="submit"
-                disabled={pending}
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-label)",
-                  fontWeight: 500,
-                  letterSpacing: "0.10em",
-                  textTransform: "uppercase",
-                  padding: 24,
-                  border: "0.5px solid rgba(0,0,0,0.12)",
-                  background: "transparent",
-                  color: "var(--foreground)",
-                  cursor: "pointer",
-                  flex: 1,
-                  transition: "opacity 0.15s ease",
-                }}
+                loading={pending}
+                style={{ flex: 1 }}
               >
-                {pending ? t.common.busy : t.auth.skipBank}
-              </button>
-            ) : isLastFormStep ? (
-              /* Step 4: Next goes to bank step */
-              <button
+                {t.auth.skipBank}
+              </ButtonSecondary>
+            ) : isLastFormStep || step < TOTAL_STEPS - 1 ? (
+              <ButtonPrimary
                 type="button"
                 onClick={handleNext}
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-label)",
-                  fontWeight: 500,
-                  letterSpacing: "0.10em",
-                  textTransform: "uppercase",
-                  padding: 24,
-                  border: "none",
-                  background: "var(--foreground)",
-                  color: "var(--background)",
-                  cursor: "pointer",
-                  flex: 1,
-                  transition: "opacity 0.15s ease",
-                }}
+                style={{ flex: 2 }}
               >
                 {t.common.next}
-              </button>
-            ) : step < TOTAL_STEPS - 1 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                style={{
-                  fontFamily: "var(--font-body), sans-serif",
-                  fontSize: "var(--text-label)",
-                  fontWeight: 500,
-                  letterSpacing: "0.10em",
-                  textTransform: "uppercase",
-                  padding: 24,
-                  border: "none",
-                  background: "var(--foreground)",
-                  color: "var(--background)",
-                  cursor: "pointer",
-                  flex: 1,
-                  transition: "opacity 0.15s ease",
-                }}
-              >
-                {t.common.next}
-              </button>
+              </ButtonPrimary>
             ) : null}
           </div>
         </form>

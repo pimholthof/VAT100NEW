@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { autoBookInvoice, autoBookReceipt } from "@/features/ledger/actions";
 import { Agent, SystemEventRow } from "../types";
+import { todayIso } from "@/lib/utils/date-helpers";
 
 type SupabaseServiceClient = ReturnType<typeof createServiceClient>;
 
@@ -505,7 +506,7 @@ async function linkTransactionToInvoice(supabase: SupabaseServiceClient, transac
           await autoBookInvoice({
             invoiceId: invoice.id,
             userId: invoice.user_id,
-            entryDate: transaction.booking_date ?? new Date().toISOString().split("T")[0],
+            entryDate: transaction.booking_date ?? todayIso(),
             description: `Factuur betaling: ${invoice.invoice_number}`,
             subtotalExVat: invoice.subtotal_ex_vat,
             vatAmount: invoice.vat_amount ?? 0,
@@ -561,7 +562,7 @@ async function linkTransactionToReceipt(supabase: SupabaseServiceClient, transac
           await autoBookReceipt({
             receiptId: receipt.id,
             userId: receipt.user_id,
-            entryDate: transaction.booking_date ?? new Date().toISOString().split("T")[0],
+            entryDate: transaction.booking_date ?? todayIso(),
             description: receipt.vendor_name ?? "Onbekende leverancier",
             costCode: receipt.cost_code ?? 4999,
             amountExVat: receipt.amount_ex_vat ?? 0,

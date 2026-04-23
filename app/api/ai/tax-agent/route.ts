@@ -24,9 +24,35 @@ export async function POST(request: NextRequest) {
     );
 
     if (!isTaxQuestion) {
+      // Geen deterministische tax-vraag → probeer een Claude-antwoord
+      // (Complete of hoger, wordt afgetrokken van maandelijkse chat-quota).
+      const { invokeChat } = await import("@/lib/ai/chat");
+      const chatResult = await invokeChat({
+        systemPrompt: `Je bent de slimme boekhouder van VAT100. Je antwoordt beknopt en in het Nederlands.
+
+Rol & grenzen:
+- Je helpt Nederlandse ZZP'ers (freelancers creatieve sector) met fiscale, boekhoudkundige en administratieve vragen.
+- Je geeft nooit juridisch advies. Bij onzekerheid verwijs je naar een belastingadviseur of de Belastingdienst.
+- Specifieke bedragen vertel je alleen op basis van data uit VAT100; gok niets.
+- Bij vragen buiten het fiscale/boekhoudkundige domein stuur je de gebruiker beleefd terug.
+
+Stijl: kort, zakelijk, geen emoji. Maximaal 5 zinnen tenzij de vraag expliciet om detail vraagt.`,
+        messages: [{ role: "user", content: message }],
+        maxTokens: 512,
+      });
+
+      if (chatResult.error !== null) {
+        // Plan-gate of quota-fout → geef een vriendelijke canned reply i.p.v. 500
+        return NextResponse.json({
+          response: chatResult.error,
+          isTaxResponse: false,
+        });
+      }
+
       return NextResponse.json({
-        response: "Ik ben gespecialiseerd in fiscale vragen. Stel gerust een vraag over belastingen, BTW, aftrekposten of andere fiscale onderwerpen.",
-        isTaxResponse: false
+        response: chatResult.data?.text ?? "",
+        isTaxResponse: false,
+        remainingQuota: chatResult.data?.remainingQuota ?? null,
       });
     }
 

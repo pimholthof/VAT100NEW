@@ -14,7 +14,6 @@
 import {
   calculateKIA,
   calculateBox1Tax,
-  getMarginalRate,
   TAX_CONSTANTS,
 } from "./dutch-tax-2026";
 import { formatCurrency } from "@/lib/format";

@@ -14,11 +14,14 @@ export function verifyCronSecret(request: Request): boolean {
 
   const expected = getRequiredEnv("CRON_SECRET");
 
-  // Use timing-safe comparison to prevent timing attacks
-  // Always compare using the same length to avoid leaking secret length
-  const maxLength = Math.max(secret.length, expected.length);
-  const secretBuffer = Buffer.alloc(maxLength, secret);
-  const expectedBuffer = Buffer.alloc(maxLength, expected);
+  const secretBuffer = Buffer.from(secret, "utf8");
+  const expectedBuffer = Buffer.from(expected, "utf8");
+
+  // timingSafeEqual throws on unequal length. Compare lengths first in a
+  // way that still returns quickly for obvious mismatches — length is not
+  // a real secret (the secret value is). After length match, compare bytes
+  // in constant time.
+  if (secretBuffer.length !== expectedBuffer.length) return false;
 
   return crypto.timingSafeEqual(secretBuffer, expectedBuffer);
 }

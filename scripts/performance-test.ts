@@ -352,7 +352,6 @@ function printResults(metrics: PerformanceMetrics): void {
   
   metrics.results.forEach(result => {
     const status = result.success ? "✅" : "❌";
-    const color = result.success ? "" : ""; // Would use chalk in real terminal
     const rows = result.rows !== undefined ? ` (${result.rows} rows)` : "";
     const warning = result.duration > 1000 ? " ⚠️ SLOW" : "";
     

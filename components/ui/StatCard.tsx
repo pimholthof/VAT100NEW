@@ -8,6 +8,7 @@ export function StatCard({
   label,
   value,
   sub,
+  hint,
   numericValue,
   isCurrency = true,
   compact = false,
@@ -15,6 +16,7 @@ export function StatCard({
   label: string;
   value: string | number;
   sub?: string;
+  hint?: string;
   numericValue?: number;
   isCurrency?: boolean;
   compact?: boolean;
@@ -38,19 +40,34 @@ export function StatCard({
         )}
       </p>
 
-      {sub && (
+      {(sub || hint) && (
         <div>
           <div className="stat-card__rule" />
-          <p
-            className="label"
-            style={{
-              margin: 0,
-              opacity: 0.35,
-              fontSize: 10,
-            }}
-          >
-            {sub}
-          </p>
+          {sub && (
+            <p
+              className="label"
+              style={{
+                margin: 0,
+                opacity: 0.35,
+                fontSize: 10,
+              }}
+            >
+              {sub}
+            </p>
+          )}
+          {hint && (
+            <p
+              style={{
+                margin: sub ? "2px 0 0" : 0,
+                opacity: 0.45,
+                fontSize: 11,
+                lineHeight: 1.4,
+                fontStyle: "italic",
+              }}
+            >
+              {hint}
+            </p>
+          )}
         </div>
       )}
     </motion.div>

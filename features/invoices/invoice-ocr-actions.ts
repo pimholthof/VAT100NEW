@@ -4,6 +4,8 @@ import { z } from "zod";
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, ClientInput, VatRate, VatScheme, InvoiceUnit } from "@/lib/types";
 import type { InvoiceOCRData, ExtractedClientData } from "./types/invoice-ocr";
+import { modelFor } from "@/lib/ai/models";
+import { consumeAiQuota } from "@/lib/ai/quota";
 
 // ─── Scan Invoice with AI (accepts file directly, no storage needed) ───
 
@@ -81,6 +83,10 @@ export async function scanInvoiceWithAI(
     const planCheck = await requirePlan("studio");
     if (planCheck.error !== null) return { error: planCheck.error };
 
+    // Hard-quota: voorkom marge-erosie door extreme power-users.
+    const quotaCheck = await consumeAiQuota(planCheck.user.id, "ocr");
+    if (quotaCheck.error !== null) return { error: quotaCheck.error };
+
     const file = formData.get("file") as File | null;
     if (!file) return { error: "Geen bestand geselecteerd." };
 
@@ -146,9 +152,18 @@ export async function scanInvoiceWithAI(
         };
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+      model: modelFor("OCR"),
       max_tokens: 2048,
-      system: INVOICE_OCR_SYSTEM_PROMPT,
+      // Prompt caching: systeemprompt is statisch en wordt bij iedere scan
+      // opnieuw verzonden. Met cache_control betaal je na de eerste hit nog
+      // slechts ~10% van de input-token kosten op dit deel.
+      system: [
+        {
+          type: "text",
+          text: INVOICE_OCR_SYSTEM_PROMPT,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
       messages: [
         {
           role: "user",

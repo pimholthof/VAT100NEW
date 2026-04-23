@@ -1,6 +1,7 @@
 import { getAdminOverview } from "@/features/admin/actions/users";
 import { getSubscriptionAnalytics } from "@/features/admin/actions/analytics";
 import { getAdminDashboardData } from "@/features/admin/actions/stats";
+import { getChatKpis } from "@/features/admin/actions/chat";
 import { AdminAlertList } from "@/features/admin/AdminAlertList";
 import { AdminQuickActions } from "@/features/admin/AdminQuickActions";
 import StrategicBriefing from "@/features/admin/StrategicBriefing";
@@ -16,11 +17,13 @@ function formatCurrency(amount: number): string {
 }
 
 export default async function AdminDashboardPage() {
-  const [overviewResult, analyticsResult, dashboardResult] = await Promise.all([
-    getAdminOverview(),
-    getSubscriptionAnalytics(),
-    getAdminDashboardData(),
-  ]);
+  const [overviewResult, analyticsResult, dashboardResult, chatKpisResult] =
+    await Promise.all([
+      getAdminOverview(),
+      getSubscriptionAnalytics(),
+      getAdminDashboardData(),
+      getChatKpis(),
+    ]);
 
   if (overviewResult.error || !overviewResult.data) {
     return (
@@ -36,6 +39,9 @@ export default async function AdminDashboardPage() {
   const { stats } = overviewResult.data;
   const analytics = analyticsResult.data;
   const dashboard = dashboardResult.data;
+  const unansweredChats = Number(
+    chatKpisResult.data?.items.find((i) => i.label === "Onbeantwoord")?.value ?? 0
+  );
 
   return (
     <div className="admin-layout">
@@ -87,7 +93,10 @@ export default async function AdminDashboardPage() {
           <span className="label">Systeem operationeel</span>
         </Link>
         <Link href="/admin/klanten/feedback" className="admin-health-strip-item">
-          <span className="label">Klant-feedback</span>
+          <span className="label">Gesprekken</span>
+          {unansweredChats > 0 && (
+            <span className="admin-badge admin-badge-critical">{unansweredChats}</span>
+          )}
         </Link>
         <Link href="/admin/klanten/facturen" className="admin-health-strip-item">
           <span className="label">Achterstallige facturen</span>

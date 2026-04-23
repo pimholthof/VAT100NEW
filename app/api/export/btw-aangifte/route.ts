@@ -1,40 +1,43 @@
-import { generateBtwAangifte } from "@/features/tax/btw-aangifte";
-import { generateCSV, csvResponse } from "@/lib/export/csv";
 import { NextRequest, NextResponse } from "next/server";
+import { renderToBuffer } from "@react-pdf/renderer";
+import { createElement } from "react";
+import { generateBtwAangifte } from "@/features/tax/btw-aangifte";
+import { BtwAangiftePDF } from "@/features/tax/components/BtwAangiftePDF";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const year = Number(searchParams.get("year")) || new Date().getFullYear();
-  const quarter = Number(searchParams.get("quarter")) || Math.ceil((new Date().getMonth() + 1) / 3);
+  const quarter =
+    Number(searchParams.get("quarter")) ||
+    Math.ceil((new Date().getMonth() + 1) / 3);
 
   const result = await generateBtwAangifte(year, quarter);
-  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
+  if (result.error || !result.data) {
+    return NextResponse.json(
+      { error: result.error ?? "Er is een fout opgetreden" },
+      { status: 500 },
+    );
+  }
 
-  const data = result.data!;
+  try {
+    const element = createElement(BtwAangiftePDF, { data: result.data });
+    const buffer = await renderToBuffer(
+      element as unknown as Parameters<typeof renderToBuffer>[0],
+    );
 
-  const headers = [
-    "Rubriek",
-    "Omschrijving",
-    "Omzet",
-    "BTW",
-  ];
+    const filename = `btw-aangifte-Q${quarter}-${year}.pdf`;
 
-  const rows = [
-    ["1a", "Leveringen/diensten belast met hoog tarief (21%)", String(data.rubriek1a.omzet), String(data.rubriek1a.btw)],
-    ["1b", "Leveringen/diensten belast met laag tarief (9%)", String(data.rubriek1b.omzet), String(data.rubriek1b.btw)],
-    ["1c", "Leveringen/diensten belast met overige tarieven (0%)", String(data.rubriek1c.omzet), String(data.rubriek1c.btw)],
-    ["2a", "Intracommunautaire leveringen (ICP)", String(data.rubriek2a?.omzet ?? 0), String(data.rubriek2a?.btw ?? 0)],
-    ["3b", "Verleggingsregelingen diensten binnen EU", String(data.rubriek3b?.omzet ?? 0), String(data.rubriek3b?.btw ?? 0)],
-    ["4a", "Leveringen naar landen buiten de EU", String(data.rubriek4a?.omzet ?? 0), String(data.rubriek4a?.btw ?? 0)],
-    ["4b", "Diensten naar landen buiten de EU", String(data.rubriek4b?.omzet ?? 0), String(data.rubriek4b?.btw ?? 0)],
-    ["", "", "", ""],
-    ["5b", "Voorbelasting", "", String(data.rubriek5b)],
-    ["", "", "", ""],
-    ["", "Totaal verschuldigde BTW", "", String(data.totaalBtw)],
-    ["", "Totaal voorbelasting", "", String(data.voorbelasting)],
-    ["5g", "Te betalen / terug te ontvangen", "", String(data.rubriek5g)],
-  ];
-
-  const csv = generateCSV(headers, rows);
-  return csvResponse(csv, `btw-aangifte-Q${quarter}-${year}.csv`);
+    return new NextResponse(Buffer.from(buffer) as unknown as BodyInit, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="${filename}"`,
+        "Cache-Control": "private, no-cache",
+      },
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Er is een fout opgetreden";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

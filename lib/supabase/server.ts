@@ -60,8 +60,13 @@ type PlanResult =
 
 const planHierarchy = {
   basis: 0,
+  basis_yearly: 0,
   studio: 1,
+  studio_yearly: 1,
   compleet: 2,
+  compleet_yearly: 2,
+  plus: 3,
+  plus_yearly: 3,
 } as const;
 
 type RequiredPlanId = keyof typeof planHierarchy;
@@ -109,11 +114,14 @@ export async function requirePlan(
   }
 
   if (currentRank < requiredRank) {
-    const upgradeLabel = requiredPlanId === "basis"
-      ? "Start"
-      : requiredPlanId === "studio"
-        ? "Studio"
-        : "Complete";
+    const upgradeLabel =
+      requiredPlanId === "basis" || requiredPlanId === "basis_yearly"
+        ? "Start"
+        : requiredPlanId === "studio" || requiredPlanId === "studio_yearly"
+          ? "Studio"
+          : requiredPlanId === "compleet" || requiredPlanId === "compleet_yearly"
+            ? "Complete"
+            : "Plus";
     return { error: `Upgrade naar ${upgradeLabel} om deze functie te gebruiken.`, planId: null, status: 403, supabase: null, user: null };
   }
 

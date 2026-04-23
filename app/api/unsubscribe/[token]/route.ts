@@ -1,19 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { escapeHtml } from "@/lib/format";
+import { isRateLimited } from "@/lib/rate-limit";
+
+// Unsubscribe tokens zijn 32+ hex/base64url-achtige tekens. Strengere
+// validatie hier voorkomt dat we onzinnige lookups tegen de DB doen en
+// maakt enumeratie via timing onmogelijk.
+const TOKEN_PATTERN = /^[A-Za-z0-9_-]{24,128}$/;
+
+function isValidToken(token: string): boolean {
+  return TOKEN_PATTERN.test(token);
+}
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
+
+  // Rate limit per IP om token-enumeratie te stoppen.
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (await isRateLimited(`unsubscribe-get:${ip}`, 30, 60_000)) {
+    return new NextResponse("Te veel verzoeken.", { status: 429 });
+  }
+
+  if (!isValidToken(token)) {
+    return new NextResponse("Ongeldige link.", { status: 404 });
+  }
+
   const supabase = createServiceClient();
 
   const { data: prefs } = await supabase
     .from("email_preferences")
     .select("marketing_emails, reminder_emails")
     .eq("unsubscribe_token", token)
-    .single();
+    .maybeSingle();
 
   if (!prefs) {
     return new NextResponse("Ongeldige link.", { status: 404 });
@@ -82,6 +103,16 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (await isRateLimited(`unsubscribe-post:${ip}`, 30, 60_000)) {
+    return NextResponse.json({ error: "Te veel verzoeken" }, { status: 429 });
+  }
+
+  if (!isValidToken(token)) {
+    return NextResponse.json({ error: "Ongeldige link" }, { status: 404 });
+  }
+
   const supabase = createServiceClient();
 
   let body: { marketing_emails?: boolean; reminder_emails?: boolean };
@@ -91,17 +122,22 @@ export async function POST(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("email_preferences")
     .update({
       marketing_emails: body.marketing_emails ?? false,
       reminder_emails: body.reminder_emails ?? false,
       updated_at: new Date().toISOString(),
     })
-    .eq("unsubscribe_token", token);
+    .eq("unsubscribe_token", token)
+    .select("id");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!data || data.length === 0) {
+    return NextResponse.json({ error: "Ongeldige link" }, { status: 404 });
   }
 
   return NextResponse.json({ status: "ok" });

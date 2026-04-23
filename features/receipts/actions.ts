@@ -8,6 +8,8 @@ import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, Receipt, ReceiptInput, VatRate } from "@/lib/types";
 import { receiptSchema, uuidSchema, validate } from "@/lib/validation";
 import { calculateVat } from "@/lib/format";
+import { modelFor } from "@/lib/ai/models";
+import { consumeAiQuota } from "@/lib/ai/quota";
 
 export async function getReceipts(filters?: {
   search?: string;
@@ -441,6 +443,9 @@ export async function scanReceiptWithAI(
     if (planCheck.error !== null) return { error: planCheck.error };
     const { supabase, user } = planCheck;
 
+    const quotaCheck = await consumeAiQuota(user.id, "ocr");
+    if (quotaCheck.error !== null) return { error: quotaCheck.error };
+
     // Get receipt to find storage_path
     const { data: receipt, error: receiptError } = await supabase
       .from("receipts")
@@ -518,9 +523,15 @@ confidence: hoe zeker je bent van de totale extractie. Gebruik null als een veld
         };
 
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+      model: modelFor("OCR"),
       max_tokens: 1024,
-      system: systemPrompt,
+      system: [
+        {
+          type: "text",
+          text: systemPrompt,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
       messages: [
         {
           role: "user",

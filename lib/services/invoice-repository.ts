@@ -8,6 +8,7 @@ import {
   calculateInvoiceLineAmount,
   calculateInvoiceTotals,
 } from "@/lib/logic/invoice-calculations";
+import { todayIso } from "@/lib/utils/date-helpers";
 
 export type InvoiceWithClientName = {
   id: string;
@@ -351,7 +352,7 @@ export async function createCreditNote(
   if (numError) throw new Error(numError.message);
 
   const creditNoteNumber = `CN-${(nextNumber as string).replace(/^0+/, "") || nextNumber}`;
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIso();
 
   const linesJson = original.lines.map((line) => ({
     description: line.description,

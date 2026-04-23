@@ -97,11 +97,28 @@ export default function AbonnementSettingsPage() {
               <div>
                 <p className="label" style={{ margin: 0, opacity: 0.5, letterSpacing: "0.12em", textTransform: "uppercase" }}>
                   {subscription.plan.name}
+                  {subscription.is_founding_member && (
+                    <span style={{ marginLeft: 8, fontSize: 9, opacity: 0.6 }}>
+                      · FOUNDING MEMBER
+                    </span>
+                  )}
                 </p>
-                <p style={{ fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.03em", margin: "8px 0 0", lineHeight: 1 }}>
-                  &euro;{subscription.plan.price_cents / 100}
-                  <span style={{ fontSize: "14px", fontWeight: 400, opacity: 0.5, marginLeft: 4 }}>/mnd</span>
-                </p>
+                {(() => {
+                  const monthly = (subscription.plan.interval_months ?? 1) > 1;
+                  const effectiveCents =
+                    subscription.price_lock_cents ?? subscription.plan.price_cents;
+                  const perMonth = monthly
+                    ? Math.round(effectiveCents / (subscription.plan.interval_months ?? 12)) / 100
+                    : effectiveCents / 100;
+                  return (
+                    <p style={{ fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.03em", margin: "8px 0 0", lineHeight: 1 }}>
+                      &euro;{perMonth}
+                      <span style={{ fontSize: "14px", fontWeight: 400, opacity: 0.5, marginLeft: 4 }}>
+                        {monthly ? "/mnd (jaarlijks)" : "/mnd"}
+                      </span>
+                    </p>
+                  );
+                })()}
               </div>
               <span
                 className="label"

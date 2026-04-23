@@ -6,22 +6,21 @@ import type { UpcomingInvoice } from "@/features/dashboard/actions";
 import { sendReminder } from "@/features/invoices/actions";
 import { formatCurrency } from "@/lib/format";
 import { playSound } from "@/lib/utils/sound";
-import { ErrorMessage } from "@/components/ui";
+import { useToast } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
 
 export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[] }) {
   const { t } = useLocale();
+  const { toast } = useToast();
   const [sendingId, setSendingId] = useState<string | null>(null);
-  const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   const handleSendReminder = async (invoiceId: string) => {
     setSendingId(invoiceId);
-    setStatusMsg(null);
     const res = await sendReminder(invoiceId);
     if (res.error) {
-      setStatusMsg(res.error);
+      toast(res.error, "error");
     } else {
-      setStatusMsg(t.dashboard.reminderSent);
+      toast(t.dashboard.reminderSent);
       playSound("glass-ping");
     }
     setSendingId(null);
@@ -29,8 +28,6 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
 
   return (
     <div style={{ position: "relative" }}>
-      {statusMsg && <ErrorMessage>{statusMsg}</ErrorMessage>}
-
       <div style={{
         display: "flex",
         flexDirection: "column",
@@ -103,18 +100,19 @@ export function UpcomingInvoiceTable({ invoices }: { invoices: UpcomingInvoice[]
                   <button
                     onClick={() => handleSendReminder(inv.id)}
                     disabled={sendingId === inv.id}
+                    aria-busy={sendingId === inv.id || undefined}
                     className="label-strong"
                     style={{
                       background: "transparent",
                       border: "none",
-                      cursor: "pointer",
+                      cursor: sendingId === inv.id ? "not-allowed" : "pointer",
                       padding: "4px 0",
-                      opacity: sendingId === inv.id ? 0.2 : 0.45,
+                      opacity: sendingId === inv.id ? 0.3 : 0.55,
                       transition: "opacity 0.15s ease",
                       fontSize: 10,
                     }}
                   >
-                    {sendingId === inv.id ? "..." : t.dashboard.remind}
+                    {sendingId === inv.id ? "Versturen…" : t.dashboard.remind}
                   </button>
                 ) : (
                   <span className="label" style={{ opacity: 0.12, fontSize: 10 }}>

@@ -16,6 +16,7 @@ interface FilterConfig {
 interface SearchFilterProps {
   placeholder?: string;
   filters?: FilterConfig[];
+  initialFilters?: Record<string, string>;
   onSearch: (query: string) => void;
   onFilterChange?: (filters: Record<string, string>) => void;
 }
@@ -23,11 +24,14 @@ interface SearchFilterProps {
 export function SearchFilter({
   placeholder = "Zoeken...",
   filters = [],
+  initialFilters,
   onSearch,
   onFilterChange,
 }: SearchFilterProps) {
   const [search, setSearch] = useState("");
-  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [filterValues, setFilterValues] = useState<Record<string, string>>(
+    initialFilters ?? {}
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => onSearch(search), 300);
