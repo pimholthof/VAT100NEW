@@ -7,6 +7,11 @@ export type VatScheme = "standard" | "eu_reverse_charge" | "export_outside_eu";
 
 export type VatFrequency = "monthly" | "quarterly" | "yearly";
 
+export interface DashboardLayout {
+  order: string[];
+  hidden: string[];
+}
+
 export interface Profile {
   id: string;
   full_name: string;
@@ -26,6 +31,7 @@ export interface Profile {
   uses_kor: boolean;
   estimated_annual_income: number | null;
   meets_urencriterium: boolean;
+  dashboard_layout: DashboardLayout | null;
   created_at: string;
 }
 

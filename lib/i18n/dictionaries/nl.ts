@@ -290,6 +290,24 @@ const nl = {
     incorrect: "Klopt niet",
     processingError: "Fout bij verwerking",
     aiScanUnavailable: "AI-scan niet beschikbaar — vul de gegevens handmatig in via \"Bewerken\".",
+    // Widget customization
+    widgets: {
+      customize: "Aanpassen",
+      done: "Klaar",
+      resetToDefault: "Standaard herstellen",
+      kpiGrid: "Kerncijfers",
+      healthScore: "Financiele gezondheid",
+      cashflowForecast: "Cashflow prognose",
+      aiAssistant: "AI Fiscale Assistent",
+      openInvoices: "Openstaande facturen",
+      quickReceipt: "Snel bonnetje uploaden",
+      quickLog: "Snelle registratie",
+      actionFeed: "Nog te doen",
+      hiddenWidget: "Verborgen",
+      dragToReorder: "Versleep om te herschikken",
+      showWidget: "Widget tonen",
+      hideWidget: "Widget verbergen",
+    },
   },
 
   // ─── Invoices ───
