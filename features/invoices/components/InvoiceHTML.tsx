@@ -494,7 +494,7 @@ function PosterHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TEMPLATE 5: EDITORIAAL — Black sidebar, per-line VAT split
+// TEMPLATE 5: EDITORIAAL — Full white, per-line VAT split
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 function EditoriaalHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
@@ -506,9 +506,7 @@ function EditoriaalHTML({ data, locale }: { data: InvoiceData; locale: Locale })
 
   const INK = "#000000";
   const F = '"Helvetica Neue", Helvetica, Arial, sans-serif';
-  const SIDE = 56;
   const senderName = profile.studio_name || profile.full_name;
-  const initial = (senderName || "·").trim().charAt(0).toUpperCase();
   const rate = invoice.vat_rate ?? 0;
   const vatLabel = `${t.invoiceDoc.vat} ${rate}%`;
 
@@ -516,98 +514,87 @@ function EditoriaalHTML({ data, locale }: { data: InvoiceData; locale: Locale })
   const meta: React.CSSProperties = { display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 9, color: INK };
 
   return (
-    <div style={{ width: 595, minHeight: 842, fontFamily: F, color: INK, background: "#FFFFFF", display: "flex", position: "relative", boxSizing: "border-box" }}>
-      {/* Black sidebar */}
-      <div style={{ width: SIDE, background: INK, position: "relative", flexShrink: 0 }}>
-        <div style={{ position: "absolute", top: 32, left: 0, right: 0, fontSize: 11, color: "#FFFFFF", textAlign: "center", fontWeight: 700 }}>{initial}</div>
-        <div style={{ position: "absolute", bottom: 80, left: -160, width: 320, transform: "rotate(-90deg)", textAlign: "center" }}>
-          <span style={{ fontSize: 8, color: "#FFFFFF", letterSpacing: "0.15em" }}>{senderName.toUpperCase()}</span>
+    <div style={{ width: 595, minHeight: 842, padding: "48px 56px 28px 56px", fontFamily: F, color: INK, background: "#FFFFFF", position: "relative", boxSizing: "border-box" }}>
+      {/* Top row */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 32 }}>
+        <div style={{ width: "48%" }}>
+          <div style={{ fontSize: 10, color: INK, marginBottom: 8 }}>{senderName}</div>
+          {profile.kvk_number && <div style={cellLine}>KVK {profile.kvk_number}</div>}
+          {profile.btw_number && <div style={cellLine}>BTW {profile.btw_number}</div>}
+          {profile.address && <div style={cellLine}>{profile.address}</div>}
+          {(profile.postal_code || profile.city) && <div style={cellLine}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</div>}
+        </div>
+        <div style={{ width: "48%" }}>
+          <div style={meta}>
+            <span>{isCreditNote ? t.invoiceDoc.creditNote : t.invoiceDoc.invoiceNumber}</span>
+            <span>{invoice.invoice_number}</span>
+          </div>
+          <div style={meta}>
+            <span>{t.invoiceDoc.date}</span>
+            <span>{fmtDate(invoice.issue_date, locale)}</span>
+          </div>
+          {invoice.due_date && (
+            <div style={meta}>
+              <span>{t.invoiceDoc.dueDate}</span>
+              <span>{fmtDate(invoice.due_date, locale)}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main */}
-      <div style={{ flex: 1, padding: "36px 36px 24px 32px", position: "relative" }}>
-        {/* Top row */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 32 }}>
-          <div style={{ width: "48%" }}>
-            <div style={{ fontSize: 10, color: INK, marginBottom: 8 }}>{senderName}</div>
-            {profile.kvk_number && <div style={cellLine}>KVK {profile.kvk_number}</div>}
-            {profile.btw_number && <div style={cellLine}>BTW {profile.btw_number}</div>}
-            {profile.address && <div style={cellLine}>{profile.address}</div>}
-            {(profile.postal_code || profile.city) && <div style={cellLine}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</div>}
-          </div>
-          <div style={{ width: "48%" }}>
-            <div style={meta}>
-              <span>{isCreditNote ? t.invoiceDoc.creditNote : t.invoiceDoc.invoiceNumber}</span>
-              <span>{invoice.invoice_number}</span>
-            </div>
-            <div style={meta}>
-              <span>{t.invoiceDoc.date}</span>
-              <span>{fmtDate(invoice.issue_date, locale)}</span>
-            </div>
-            {invoice.due_date && (
-              <div style={meta}>
-                <span>{t.invoiceDoc.dueDate}</span>
-                <span>{fmtDate(invoice.due_date, locale)}</span>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Recipient */}
+      <div style={{ marginTop: 18, marginBottom: 18 }}>
+        <div style={{ fontSize: 9, color: INK, marginBottom: 2 }}>{t.invoiceDoc.to} :</div>
+        <div style={{ ...cellLine, fontWeight: 700 }}>{client.name}</div>
+        {showContact && <div style={cellLine}>{client.contact_name}</div>}
+        {client.address && <div style={cellLine}>{client.address}</div>}
+        {(client.postal_code || client.city) && <div style={cellLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</div>}
+        {client.kvk_number && <div style={cellLine}>KVK {client.kvk_number}</div>}
+      </div>
 
-        {/* Recipient */}
-        <div style={{ marginTop: 18, marginBottom: 18 }}>
-          <div style={{ fontSize: 9, color: INK, marginBottom: 2 }}>{t.invoiceDoc.to} :</div>
-          <div style={{ ...cellLine, fontWeight: 700 }}>{client.name}</div>
-          {showContact && <div style={cellLine}>{client.contact_name}</div>}
-          {client.address && <div style={cellLine}>{client.address}</div>}
-          {(client.postal_code || client.city) && <div style={cellLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</div>}
-          {client.kvk_number && <div style={cellLine}>KVK {client.kvk_number}</div>}
+      {/* Subject */}
+      {invoice.notes && (
+        <div style={{ marginTop: 18, marginBottom: 26 }}>
+          <div style={{ fontSize: 9, color: INK, marginBottom: 2 }}>{t.invoiceDoc.notes} :</div>
+          <div style={cellLine}>{invoice.notes}</div>
         </div>
+      )}
 
-        {/* Subject */}
-        {invoice.notes && (
-          <div style={{ marginTop: 18, marginBottom: 26 }}>
-            <div style={{ fontSize: 9, color: INK, marginBottom: 2 }}>{t.invoiceDoc.notes} :</div>
-            <div style={cellLine}>{invoice.notes}</div>
+      {/* Per-line VAT split table */}
+      <div style={{ display: "flex", borderBottom: `0.5px solid ${INK}`, paddingBottom: 6, marginBottom: 8 }}>
+        <div style={{ width: "36%", fontSize: 9 }}></div>
+        <div style={{ width: "21%", fontSize: 9, textAlign: "right" }}>Excl.</div>
+        <div style={{ width: "21%", fontSize: 9, textAlign: "right" }}>{vatLabel}</div>
+        <div style={{ width: "22%", fontSize: 9, textAlign: "right" }}>Incl.</div>
+      </div>
+      {lines.map((l) => {
+        const lvat = +(l.amount * rate / 100).toFixed(2);
+        const lttc = l.amount + lvat;
+        return (
+          <div key={l.id} style={{ display: "flex", padding: "4px 0" }}>
+            <div style={{ width: "36%", fontSize: 9 }}>{l.description}</div>
+            <div style={{ width: "21%", fontSize: 9, textAlign: "right" }}>{fmtEur(l.amount)}</div>
+            <div style={{ width: "21%", fontSize: 9, textAlign: "right" }}>{rate > 0 ? fmtEur(lvat) : "—"}</div>
+            <div style={{ width: "22%", fontSize: 9, textAlign: "right" }}>{fmtEur(lttc)}</div>
           </div>
-        )}
+        );
+      })}
+      <div style={{ borderBottom: `0.5px solid ${INK}`, margin: "6px 0" }} />
+      <div style={{ display: "flex", padding: "4px 0" }}>
+        <div style={{ width: "36%", fontSize: 9, fontWeight: 700 }}>{t.invoiceDoc.total}</div>
+        <div style={{ width: "21%", fontSize: 9, fontWeight: 700, textAlign: "right" }}>{fmtEur(invoice.subtotal_ex_vat)}</div>
+        <div style={{ width: "21%", fontSize: 9, fontWeight: 700, textAlign: "right" }}>{rate > 0 ? fmtEur(invoice.vat_amount) : "—"}</div>
+        <div style={{ width: "22%", fontSize: 9, fontWeight: 700, textAlign: "right" }}>{fmtEur(invoice.total_inc_vat)}</div>
+      </div>
 
-        {/* Per-line VAT split table */}
-        <div style={{ display: "flex", borderBottom: `0.5px solid ${INK}`, paddingBottom: 6, marginBottom: 8 }}>
-          <div style={{ width: "40%", fontSize: 9 }}></div>
-          <div style={{ width: "20%", fontSize: 9 }}>{t.invoiceDoc.subtotalExVat}</div>
-          <div style={{ width: "20%", fontSize: 9 }}>{vatLabel}</div>
-          <div style={{ width: "20%", fontSize: 9, textAlign: "right" }}>{t.invoiceDoc.total}</div>
-        </div>
-        {lines.map((l) => {
-          const lvat = +(l.amount * rate / 100).toFixed(2);
-          const lttc = l.amount + lvat;
-          return (
-            <div key={l.id} style={{ display: "flex", padding: "4px 0" }}>
-              <div style={{ width: "40%", fontSize: 9 }}>{l.description}</div>
-              <div style={{ width: "20%", fontSize: 9 }}>{fmtEur(l.amount)}</div>
-              <div style={{ width: "20%", fontSize: 9 }}>{rate > 0 ? fmtEur(lvat) : "—"}</div>
-              <div style={{ width: "20%", fontSize: 9, textAlign: "right" }}>{fmtEur(lttc)}</div>
-            </div>
-          );
-        })}
-        <div style={{ borderBottom: `0.5px solid ${INK}`, margin: "6px 0" }} />
-        <div style={{ display: "flex", padding: "4px 0" }}>
-          <div style={{ width: "40%", fontSize: 9, fontWeight: 700 }}>{t.invoiceDoc.total}</div>
-          <div style={{ width: "20%", fontSize: 9, fontWeight: 700 }}>{fmtEur(invoice.subtotal_ex_vat)}</div>
-          <div style={{ width: "20%", fontSize: 9, fontWeight: 700 }}>{rate > 0 ? fmtEur(invoice.vat_amount) : "—"}</div>
-          <div style={{ width: "20%", fontSize: 9, fontWeight: 700, textAlign: "right" }}>{fmtEur(invoice.total_inc_vat)}</div>
-        </div>
-
-        {/* Footer */}
-        <div style={{ position: "absolute", bottom: 24, left: 32, right: 36 }}>
-          {profile.iban && <div style={{ fontSize: 6.5, lineHeight: 1.55 }}>IBAN {profile.iban}{profile.bic ? `  ·  BIC ${profile.bic}` : ""}</div>}
-          <div style={{ fontSize: 6.5, lineHeight: 1.55 }}>{t.invoiceDoc.paymentTerms}: {days} {t.invoiceDoc.daysNet}. Bij niet tijdige betaling is de wettelijke handelsrente verschuldigd, vermeerderd met €40 incassokosten conform art. 6:96 BW.</div>
-          {rate === 0 && <div style={{ fontSize: 6.5, lineHeight: 1.55 }}>BTW verlegd / vrijgesteld conform geldende regelgeving.</div>}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-            <span style={{ fontSize: 6.5 }}>Gemaakt met VAT100</span>
-            <span style={{ fontSize: 6.5 }}>{senderName}{profile.kvk_number ? ` · KVK ${profile.kvk_number}` : ""}</span>
-          </div>
+      {/* Footer */}
+      <div style={{ position: "absolute", bottom: 28, left: 56, right: 56 }}>
+        {profile.iban && <div style={{ fontSize: 6.5, lineHeight: 1.55 }}>IBAN {profile.iban}{profile.bic ? `  ·  BIC ${profile.bic}` : ""}</div>}
+        <div style={{ fontSize: 6.5, lineHeight: 1.55 }}>{t.invoiceDoc.paymentTerms}: {days} {t.invoiceDoc.daysNet}. Bij niet tijdige betaling is de wettelijke handelsrente verschuldigd, vermeerderd met €40 incassokosten conform art. 6:96 BW.</div>
+        {rate === 0 && <div style={{ fontSize: 6.5, lineHeight: 1.55 }}>BTW verlegd / vrijgesteld conform geldende regelgeving.</div>}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+          <span style={{ fontSize: 6.5 }}>Gemaakt met VAT100</span>
+          <span style={{ fontSize: 6.5 }}>{senderName}{profile.kvk_number ? ` · KVK ${profile.kvk_number}` : ""}</span>
         </div>
       </div>
     </div>

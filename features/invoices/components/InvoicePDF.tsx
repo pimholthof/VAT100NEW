@@ -600,19 +600,14 @@ function PosterPDF({ data, locale, branded }: { data: InvoiceData; locale: Local
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TEMPLATE 5: EDITORIAAL — Black sidebar, per-line VAT split
+// TEMPLATE 5: EDITORIAAL — Full white, per-line VAT split
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const INK5 = "#000000";
-const SIDE5 = 56;
+const M5 = 56;
 
 const s5 = StyleSheet.create({
-  page: { fontFamily: "Helvetica", color: INK5, backgroundColor: "#FFFFFF", flexDirection: "row" },
-  sidebar: { width: SIDE5, backgroundColor: INK5, position: "relative" },
-  mark: { position: "absolute", top: 32, left: 0, right: 0, fontSize: 11, color: "#FFFFFF", textAlign: "center", fontWeight: 700 },
-  spineWrap: { position: "absolute", bottom: 80, left: -160, width: 320, transform: "rotate(-90deg)" },
-  spineText: { fontSize: 8, color: "#FFFFFF", letterSpacing: 1.2, textAlign: "center" },
-  main: { flex: 1, paddingTop: 36, paddingBottom: 24, paddingLeft: 32, paddingRight: 36 },
+  page: { paddingTop: 48, paddingBottom: 28, paddingLeft: M5, paddingRight: M5, fontFamily: "Helvetica", color: INK5, backgroundColor: "#FFFFFF" },
   topRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 32 },
   block: { width: "48%" },
   metaBlock: { width: "48%" },
@@ -631,14 +626,14 @@ const s5 = StyleSheet.create({
   th: { fontSize: 9, color: INK5 },
   tr: { flexDirection: "row", paddingVertical: 4 },
   td: { fontSize: 9, color: INK5 },
-  cDesc: { width: "40%" },
-  cHt: { width: "20%" },
-  cVat: { width: "20%" },
-  cTtc: { width: "20%", textAlign: "right" },
+  cDesc: { width: "36%" },
+  cHt: { width: "21%", textAlign: "right" },
+  cVat: { width: "21%", textAlign: "right" },
+  cTtc: { width: "22%", textAlign: "right" },
   rule: { borderBottomWidth: 0.5, borderBottomColor: INK5, marginVertical: 6 },
   totRow: { flexDirection: "row", paddingVertical: 4 },
   totLbl: { fontSize: 9, color: INK5 },
-  foot: { position: "absolute", bottom: 24, left: 32, right: 36 },
+  foot: { position: "absolute", bottom: 28, left: M5, right: M5 },
   footLine: { fontSize: 6.5, color: INK5, lineHeight: 1.55 },
   footRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
   footLeft: { fontSize: 6.5, color: INK5 },
@@ -652,97 +647,86 @@ function EditoriaalPDF({ data, locale, branded }: { data: InvoiceData; locale: L
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
   const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
   const senderName = profile.studio_name || profile.full_name;
-  const initial = (senderName || "·").trim().charAt(0).toUpperCase();
   const rate = invoice.vat_rate ?? 0;
-  const vatLabel = `${t.invoiceDoc.vat} ${rate}%`;
 
   return (
     <Document>
       <Page size="A4" style={s5.page}>
-        <View style={s5.sidebar}>
-          <Text style={s5.mark}>{initial}</Text>
-          <View style={s5.spineWrap}>
-            <Text style={s5.spineText}>{senderName.toUpperCase()}</Text>
+        <View style={s5.topRow}>
+          <View style={s5.block}>
+            <Text style={s5.name}>{senderName}</Text>
+            {profile.kvk_number && <Text style={s5.line}>KVK {profile.kvk_number}</Text>}
+            {profile.btw_number && <Text style={s5.line}>BTW {profile.btw_number}</Text>}
+            {profile.address && <Text style={s5.line}>{profile.address}</Text>}
+            {(profile.postal_code || profile.city) && <Text style={s5.line}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</Text>}
+          </View>
+          <View style={s5.metaBlock}>
+            <View style={s5.metaPair}>
+              <Text style={s5.metaLbl}>{cr ? t.invoiceDoc.creditNote : t.invoiceDoc.invoiceNumber}</Text>
+              <Text style={s5.metaVal}>{invoice.invoice_number}</Text>
+            </View>
+            <View style={s5.metaPair}>
+              <Text style={s5.metaLbl}>{t.invoiceDoc.date}</Text>
+              <Text style={s5.metaVal}>{formatDate(invoice.issue_date)}</Text>
+            </View>
+            {invoice.due_date && (
+              <View style={s5.metaPair}>
+                <Text style={s5.metaLbl}>{t.invoiceDoc.dueDate}</Text>
+                <Text style={s5.metaVal}>{formatDate(invoice.due_date)}</Text>
+              </View>
+            )}
           </View>
         </View>
 
-        <View style={s5.main}>
-          <View style={s5.topRow}>
-            <View style={s5.block}>
-              <Text style={s5.name}>{senderName}</Text>
-              {profile.kvk_number && <Text style={s5.line}>KVK {profile.kvk_number}</Text>}
-              {profile.btw_number && <Text style={s5.line}>BTW {profile.btw_number}</Text>}
-              {profile.address && <Text style={s5.line}>{profile.address}</Text>}
-              {(profile.postal_code || profile.city) && <Text style={s5.line}>{[profile.postal_code, profile.city].filter(Boolean).join(" ")}</Text>}
-            </View>
-            <View style={s5.metaBlock}>
-              <View style={s5.metaPair}>
-                <Text style={s5.metaLbl}>{cr ? t.invoiceDoc.creditNote : t.invoiceDoc.invoiceNumber}</Text>
-                <Text style={s5.metaVal}>{invoice.invoice_number}</Text>
-              </View>
-              <View style={s5.metaPair}>
-                <Text style={s5.metaLbl}>{t.invoiceDoc.date}</Text>
-                <Text style={s5.metaVal}>{formatDate(invoice.issue_date)}</Text>
-              </View>
-              {invoice.due_date && (
-                <View style={s5.metaPair}>
-                  <Text style={s5.metaLbl}>{t.invoiceDoc.dueDate}</Text>
-                  <Text style={s5.metaVal}>{formatDate(invoice.due_date)}</Text>
-                </View>
-              )}
-            </View>
-          </View>
+        <View style={s5.cli}>
+          <Text style={s5.cliLbl}>{t.invoiceDoc.to} :</Text>
+          <Text style={[s5.cliLine, { fontWeight: 700 }]}>{client.name}</Text>
+          {showContact && <Text style={s5.cliLine}>{client.contact_name}</Text>}
+          {client.address && <Text style={s5.cliLine}>{client.address}</Text>}
+          {(client.postal_code || client.city) && <Text style={s5.cliLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</Text>}
+          {client.kvk_number && <Text style={s5.cliLine}>KVK {client.kvk_number}</Text>}
+        </View>
 
-          <View style={s5.cli}>
-            <Text style={s5.cliLbl}>{t.invoiceDoc.to} :</Text>
-            <Text style={[s5.cliLine, { fontWeight: 700 }]}>{client.name}</Text>
-            {showContact && <Text style={s5.cliLine}>{client.contact_name}</Text>}
-            {client.address && <Text style={s5.cliLine}>{client.address}</Text>}
-            {(client.postal_code || client.city) && <Text style={s5.cliLine}>{[client.postal_code, client.city].filter(Boolean).join(" ")}</Text>}
-            {client.kvk_number && <Text style={s5.cliLine}>KVK {client.kvk_number}</Text>}
+        {invoice.notes && (
+          <View style={s5.obj}>
+            <Text style={s5.objLbl}>{t.invoiceDoc.notes} :</Text>
+            <Text style={s5.objBody}>{invoice.notes}</Text>
           </View>
+        )}
 
-          {invoice.notes && (
-            <View style={s5.obj}>
-              <Text style={s5.objLbl}>{t.invoiceDoc.notes} :</Text>
-              <Text style={s5.objBody}>{invoice.notes}</Text>
+        <View style={s5.thead}>
+          <Text style={[s5.th, s5.cDesc]}></Text>
+          <Text style={[s5.th, s5.cHt]}>Excl.</Text>
+          <Text style={[s5.th, s5.cVat]}>{`${t.invoiceDoc.vat} ${rate}%`}</Text>
+          <Text style={[s5.th, s5.cTtc]}>Incl.</Text>
+        </View>
+        {lines.map((l) => {
+          const lvat = +(l.amount * rate / 100).toFixed(2);
+          const lttc = l.amount + lvat;
+          return (
+            <View style={s5.tr} key={l.id}>
+              <Text style={[s5.td, s5.cDesc]}>{l.description}</Text>
+              <Text style={[s5.td, s5.cHt]}>{formatCurrency(l.amount)}</Text>
+              <Text style={[s5.td, s5.cVat]}>{rate > 0 ? formatCurrency(lvat) : "—"}</Text>
+              <Text style={[s5.td, s5.cTtc]}>{formatCurrency(lttc)}</Text>
             </View>
-          )}
+          );
+        })}
+        <View style={s5.rule} />
+        <View style={s5.totRow}>
+          <Text style={[s5.totLbl, s5.cDesc, { fontWeight: 700 }]}>{t.invoiceDoc.total}</Text>
+          <Text style={[s5.td, s5.cHt, { fontWeight: 700 }]}>{formatCurrency(invoice.subtotal_ex_vat)}</Text>
+          <Text style={[s5.td, s5.cVat, { fontWeight: 700 }]}>{rate > 0 ? formatCurrency(invoice.vat_amount) : "—"}</Text>
+          <Text style={[s5.td, s5.cTtc, { fontWeight: 700 }]}>{formatCurrency(invoice.total_inc_vat)}</Text>
+        </View>
 
-          <View style={s5.thead}>
-            <Text style={[s5.th, s5.cDesc]}></Text>
-            <Text style={[s5.th, s5.cHt]}>{t.invoiceDoc.subtotalExVat}</Text>
-            <Text style={[s5.th, s5.cVat]}>{vatLabel}</Text>
-            <Text style={[s5.th, s5.cTtc]}>{t.invoiceDoc.total}</Text>
-          </View>
-          {lines.map((l) => {
-            const lvat = +(l.amount * rate / 100).toFixed(2);
-            const lttc = l.amount + lvat;
-            return (
-              <View style={s5.tr} key={l.id}>
-                <Text style={[s5.td, s5.cDesc]}>{l.description}</Text>
-                <Text style={[s5.td, s5.cHt]}>{formatCurrency(l.amount)}</Text>
-                <Text style={[s5.td, s5.cVat]}>{rate > 0 ? formatCurrency(lvat) : "—"}</Text>
-                <Text style={[s5.td, s5.cTtc]}>{formatCurrency(lttc)}</Text>
-              </View>
-            );
-          })}
-          <View style={s5.rule} />
-          <View style={s5.totRow}>
-            <Text style={[s5.totLbl, s5.cDesc, { fontWeight: 700 }]}>{t.invoiceDoc.total}</Text>
-            <Text style={[s5.td, s5.cHt, { fontWeight: 700 }]}>{formatCurrency(invoice.subtotal_ex_vat)}</Text>
-            <Text style={[s5.td, s5.cVat, { fontWeight: 700 }]}>{rate > 0 ? formatCurrency(invoice.vat_amount) : "—"}</Text>
-            <Text style={[s5.td, s5.cTtc, { fontWeight: 700 }]}>{formatCurrency(invoice.total_inc_vat)}</Text>
-          </View>
-
-          <View style={s5.foot}>
-            {profile.iban && <Text style={s5.footLine}>IBAN {profile.iban}{profile.bic ? `  ·  BIC ${profile.bic}` : ""}</Text>}
-            <Text style={s5.footLine}>{t.invoiceDoc.paymentTerms}: {days} {t.invoiceDoc.daysNet}. Bij niet tijdige betaling is de wettelijke handelsrente verschuldigd, vermeerderd met €40 incassokosten conform art. 6:96 BW.</Text>
-            {rate === 0 && <Text style={s5.footLine}>BTW verlegd / vrijgesteld conform geldende regelgeving.</Text>}
-            <View style={s5.footRow}>
-              <Text style={s5.footLeft}>{branded ? "Gemaakt met VAT100" : ""}</Text>
-              <Text style={s5.footRight}>{senderName}{profile.kvk_number ? ` · KVK ${profile.kvk_number}` : ""}</Text>
-            </View>
+        <View style={s5.foot}>
+          {profile.iban && <Text style={s5.footLine}>IBAN {profile.iban}{profile.bic ? `  ·  BIC ${profile.bic}` : ""}</Text>}
+          <Text style={s5.footLine}>{t.invoiceDoc.paymentTerms}: {days} {t.invoiceDoc.daysNet}. Bij niet tijdige betaling is de wettelijke handelsrente verschuldigd, vermeerderd met €40 incassokosten conform art. 6:96 BW.</Text>
+          {rate === 0 && <Text style={s5.footLine}>BTW verlegd / vrijgesteld conform geldende regelgeving.</Text>}
+          <View style={s5.footRow}>
+            <Text style={s5.footLeft}>{branded ? "Gemaakt met VAT100" : ""}</Text>
+            <Text style={s5.footRight}>{senderName}{profile.kvk_number ? ` · KVK ${profile.kvk_number}` : ""}</Text>
           </View>
         </View>
       </Page>
