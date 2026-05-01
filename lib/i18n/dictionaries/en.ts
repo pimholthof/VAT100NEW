@@ -383,6 +383,8 @@ const en = {
     templateModernDesc: "Ultra minimal",
     templatePoster: "Poster",
     templatePosterDesc: "Maximum VAT100 branding",
+    templateEditorial: "Editorial",
+    templateEditorialDesc: "Black sidebar, per-line VAT",
     backToOverview: "Overview",
     editInvoice: "Edit",
     backToInvoices: "Back to invoices",

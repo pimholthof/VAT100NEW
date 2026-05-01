@@ -13,7 +13,7 @@ export function PdfDownloadButton({ invoiceId }: { invoiceId: string }) {
   useEffect(() => {
     function syncTemplate() {
       const t = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
-      if (t && ["minimaal", "klassiek", "strak", "poster"].includes(t)) {
+      if (t && ["minimaal", "klassiek", "strak", "poster", "editoriaal"].includes(t)) {
         setTemplate(t);
       }
     }

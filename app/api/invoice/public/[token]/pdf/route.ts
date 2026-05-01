@@ -6,7 +6,7 @@ import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
 import type { InvoiceTemplate } from "@/lib/types";
 import { createServiceClient } from "@/lib/supabase/service";
 
-const VALID_TEMPLATES = ["poster", "minimaal", "klassiek", "strak"];
+const VALID_TEMPLATES = ["poster", "minimaal", "klassiek", "strak", "editoriaal"];
 
 export async function GET(
   request: NextRequest,

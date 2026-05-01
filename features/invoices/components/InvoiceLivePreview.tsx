@@ -79,7 +79,7 @@ export function InvoiceLivePreview({
   const [template, setTemplate] = useState<InvoiceTemplate>(() => {
     if (typeof window === "undefined") return "poster";
     const saved = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
-    if (saved && ["minimaal", "klassiek", "strak", "poster"].includes(saved)) {
+    if (saved && ["minimaal", "klassiek", "strak", "poster", "editoriaal"].includes(saved)) {
       return saved;
     }
     return "poster";

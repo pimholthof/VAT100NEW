@@ -5,7 +5,7 @@ import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
 import { formatCurrency } from "@/lib/format";
 import type { InvoiceTemplate } from "@/lib/types";
 
-const VALID_TEMPLATES = ["poster", "klassiek", "strak", "poster"];
+const VALID_TEMPLATES = ["poster", "minimaal", "klassiek", "strak", "editoriaal"];
 
 export async function generateMetadata({
   params,
