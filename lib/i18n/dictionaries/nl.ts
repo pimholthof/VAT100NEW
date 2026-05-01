@@ -383,6 +383,8 @@ const nl = {
     templateModernDesc: "Ultra minimal",
     templatePoster: "Poster",
     templatePosterDesc: "Maximale VAT100-branding",
+    templateEditorial: "Editoriaal",
+    templateEditorialDesc: "Zwarte zijbalk, BTW per regel",
     backToOverview: "Overzicht",
     editInvoice: "Bewerken",
     backToInvoices: "Terug naar facturen",

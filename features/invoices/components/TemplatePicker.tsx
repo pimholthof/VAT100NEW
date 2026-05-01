@@ -17,6 +17,7 @@ export function TemplatePicker({
     { id: "minimaal", label: t.invoices.templateMinimal, desc: t.invoices.templateMinimalDesc },
     { id: "klassiek", label: t.invoices.templateClassic, desc: t.invoices.templateClassicDesc },
     { id: "strak", label: t.invoices.templateModern, desc: t.invoices.templateModernDesc },
+    { id: "editoriaal", label: t.invoices.templateEditorial, desc: t.invoices.templateEditorialDesc },
   ];
 
   return (
