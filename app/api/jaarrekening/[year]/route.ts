@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { getJaarrekeningData } from "@/features/tax/jaarrekening";
 import { JaarrekeningPDF } from "@/features/tax/components/JaarrekeningPDF";
 import { requirePlan } from "@/lib/supabase/server";
+import { actionErrorStatus } from "@/lib/errors";
 
 export async function GET(
   _request: NextRequest,
@@ -27,7 +28,7 @@ export async function GET(
   if (result.error || !result.data) {
     return NextResponse.json(
       { error: result.error ?? "Er is een fout opgetreden" },
-      { status: 500 },
+      { status: result.error ? actionErrorStatus(result.error) : 500 },
     );
   }
 

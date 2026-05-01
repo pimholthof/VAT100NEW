@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { generateBtwAangifte } from "@/features/tax/btw-aangifte";
 import { BtwAangiftePDF } from "@/features/tax/components/BtwAangiftePDF";
+import { actionErrorStatus } from "@/lib/errors";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
   if (result.error || !result.data) {
     return NextResponse.json(
       { error: result.error ?? "Er is een fout opgetreden" },
-      { status: 500 },
+      { status: result.error ? actionErrorStatus(result.error) : 500 },
     );
   }
 

@@ -1,12 +1,13 @@
 import { generateIBAangifteData } from "@/features/tax/ib-aangifte";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
+import { actionErrorStatus } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const year = Number(request.nextUrl.searchParams.get("year")) || new Date().getFullYear() - 1;
 
   const result = await generateIBAangifteData(year);
-  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
+  if (result.error) return NextResponse.json({ error: result.error }, { status: actionErrorStatus(result.error) });
 
   const data = result.data!;
 

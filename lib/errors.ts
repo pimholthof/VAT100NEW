@@ -95,3 +95,24 @@ export function sanitizeSupabaseError(
 
   return GENERIC_ERROR;
 }
+
+/**
+ * Map a Server Action error string back to the appropriate HTTP status when
+ * surfacing it from an API route. Server Actions used by API handlers
+ * (e.g. generateBtwAangifte) call requireAuth/requirePlan/requireAdmin
+ * internally and return a Dutch error string — without this helper the
+ * route would have to fall back to a generic 500 even when the real
+ * cause is "not logged in" or "no active subscription".
+ */
+export function actionErrorStatus(error: string): 401 | 403 | 500 {
+  if (error === "Niet ingelogd.") return 401;
+  if (
+    error === "Geen toegang." ||
+    error === "Geen actief abonnement." ||
+    error === "Onbekend abonnement." ||
+    error.startsWith("Upgrade naar ")
+  ) {
+    return 403;
+  }
+  return 500;
+}
