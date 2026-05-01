@@ -35,9 +35,17 @@ export async function GET(
       .eq("user_id", data.profile.id)
       .in("status", ["active", "past_due"])
       .single();
-    const branded = !(sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly");
+    const isPlus = sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly";
+    const branded = !isPlus;
+    let logoUrl: string | null = null;
+    if (isPlus && data.profile.logo_path) {
+      const { data: signed } = await svc.storage
+        .from("receipts")
+        .createSignedUrl(data.profile.logo_path, 3600);
+      logoUrl = signed?.signedUrl ?? null;
+    }
 
-    const element = createElement(InvoicePDF, { data, template, branded });
+    const element = createElement(InvoicePDF, { data, template, branded, logoUrl });
     const buffer = await renderToBuffer(
       element as unknown as Parameters<typeof renderToBuffer>[0]
     );

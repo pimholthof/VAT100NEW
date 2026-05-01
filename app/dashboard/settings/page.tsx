@@ -6,6 +6,7 @@ import { getProfile, updateProfile } from "@/features/profile/actions";
 import type { Profile } from "@/lib/types";
 import { FieldGroup, ButtonPrimary, ErrorMessage } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
+import { LogoUploadSection } from "@/features/profile/components/LogoUploadSection";
 
 export default function SettingsPage() {
   const { t } = useLocale();
@@ -244,6 +245,9 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
             </FieldGroup>
           </div>
         </div>
+
+        {/* Logo & witlabel — Plus-tier */}
+        <LogoUploadSection />
 
         {/* Bankgegevens */}
         <div style={{ marginBottom: "var(--space-block)" }}>

@@ -4,6 +4,7 @@ import { fetchInvoiceByToken } from "@/lib/invoice/fetch-public";
 import { InvoiceHTML } from "@/features/invoices/components/InvoiceHTML";
 import { formatCurrency } from "@/lib/format";
 import type { InvoiceTemplate } from "@/lib/types";
+import { createServiceClient } from "@/lib/supabase/service";
 
 const VALID_TEMPLATES = ["poster", "minimaal", "klassiek", "strak", "editoriaal"];
 
@@ -49,6 +50,24 @@ export default async function PublicInvoicePage({
   const templateParam = typeof sp.template === "string" ? sp.template : "poster";
   const template = (VALID_TEMPLATES.includes(templateParam) ? templateParam : "poster") as InvoiceTemplate;
 
+  // Witlabel + logo voor Plus-tier verzenders.
+  const svc = createServiceClient();
+  const { data: sub } = await svc
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("user_id", result.data.profile.id)
+    .in("status", ["active", "past_due"])
+    .single();
+  const isPlus = sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly";
+  const branded = !isPlus;
+  let logoUrl: string | null = null;
+  if (isPlus && result.data.profile.logo_path) {
+    const { data: signed } = await svc.storage
+      .from("receipts")
+      .createSignedUrl(result.data.profile.logo_path, 3600);
+    logoUrl = signed?.signedUrl ?? null;
+  }
+
   const pdfUrl = `/api/invoice/public/${token}/pdf?template=${template}`;
   const { invoice } = result.data;
   const showPayButton = invoice.payment_link && invoice.status !== "paid";
@@ -66,7 +85,7 @@ export default async function PublicInvoicePage({
         </a>
       </div>
       <div style={{ width: "100%", maxWidth: "595px", overflowX: "auto" }}>
-        <InvoiceHTML data={result.data} template={template} />
+        <InvoiceHTML data={result.data} template={template} branded={branded} logoUrl={logoUrl} />
       </div>
     </div>
   );

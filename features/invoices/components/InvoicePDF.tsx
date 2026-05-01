@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { InvoiceData, InvoiceTemplate } from "@/lib/types";
@@ -27,6 +28,7 @@ export function InvoicePDF({
   template = "poster",
   locale = "nl",
   branded = true,
+  logoUrl = null,
 }: {
   data: InvoiceData;
   template?: InvoiceTemplate;
@@ -34,13 +36,15 @@ export function InvoicePDF({
   /** Virale K-factor: subtiele "Gemaakt met VAT100" footer.
    *  Plus-tier zet dit uit. */
   branded?: boolean;
+  /** Plus-tier eigen logo. Vervangt de "VAT100"-wordmark in templates die er een hebben. */
+  logoUrl?: string | null;
 }) {
   switch (template) {
     case "minimaal": return <MinimaalPDF data={data} locale={locale} branded={branded} />;
-    case "klassiek": return <KlassiekPDF data={data} locale={locale} branded={branded} />;
-    case "strak": return <StrakPDF data={data} locale={locale} branded={branded} />;
+    case "klassiek": return <KlassiekPDF data={data} locale={locale} branded={branded} logoUrl={logoUrl} />;
+    case "strak": return <StrakPDF data={data} locale={locale} branded={branded} logoUrl={logoUrl} />;
     case "editoriaal": return <EditoriaalPDF data={data} locale={locale} branded={branded} />;
-    default: return <PosterPDF data={data} locale={locale} branded={branded} />;
+    default: return <PosterPDF data={data} locale={locale} branded={branded} logoUrl={logoUrl} />;
   }
 }
 
@@ -224,19 +228,23 @@ const s2 = StyleSheet.create({
   footRight: { fontSize: 7, color: GREY2, alignSelf: "flex-end" },
 });
 
-function KlassiekPDF({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
+function KlassiekPDF({ data, locale, branded, logoUrl }: { data: InvoiceData; locale: Locale; branded: boolean; logoUrl: string | null }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const cr = invoice.is_credit_note;
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
   const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
+  const senderName = profile.studio_name || profile.full_name;
+  const wordmark = logoUrl
+    ? <Image src={logoUrl} style={{ height: 48, objectFit: "contain" }} />
+    : <Text style={s2.title}>{branded ? "VAT100" : senderName}</Text>;
 
   return (
     <Document>
       <Page size="A4" style={s2.page}>
         <View style={s2.header}>
           <View>
-            <Text style={s2.title}>VAT100</Text>
+            {wordmark}
             <Text style={{ fontSize: 8, letterSpacing: 1, color: GREY2, textTransform: "uppercase", marginTop: 8 }}>{cr ? t.invoiceDoc.creditNote : t.invoiceDoc.invoice}</Text>
           </View>
           <View style={s2.headerRight}>
@@ -357,18 +365,21 @@ const s3 = StyleSheet.create({
   footVal: { fontSize: 7.5, color: INK3 },
 });
 
-function StrakPDF({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
+function StrakPDF({ data, locale, branded, logoUrl }: { data: InvoiceData; locale: Locale; branded: boolean; logoUrl: string | null }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const cr = invoice.is_credit_note;
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
   const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
+  const senderName = profile.studio_name || profile.full_name;
 
   return (
     <Document>
       <Page size="A4" style={s3.page}>
         <View style={s3.studio}>
-          <Text style={s3.studioName}>VAT100</Text>
+          {logoUrl
+            ? <Image src={logoUrl} style={{ height: 40, objectFit: "contain" }} />
+            : <Text style={s3.studioName}>{branded ? "VAT100" : senderName}</Text>}
         </View>
 
         <View style={s3.metaRow}>
@@ -489,17 +500,19 @@ const s4 = StyleSheet.create({
   footCompany: { fontSize: 6.5, color: INK4 },
 });
 
-function PosterPDF({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
+function PosterPDF({ data, locale, branded, logoUrl }: { data: InvoiceData; locale: Locale; branded: boolean; logoUrl: string | null }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
   const showContact = client.contact_name && client.contact_name.toLowerCase() !== client.name.toLowerCase();
+  const senderName = profile.studio_name || profile.full_name;
 
   return (
     <Document>
       <Page size="A4" style={s4.page}>
-        {/* VAT100 — massive poster logo */}
-        <Text style={s4.logo}>VAT100</Text>
+        {logoUrl
+          ? <Image src={logoUrl} style={{ height: 110, objectFit: "contain", marginBottom: 28 }} />
+          : <Text style={s4.logo}>{branded ? "VAT100" : senderName}</Text>}
 
         {/* Sender left + Meta right */}
         <View style={s4.infoRow}>

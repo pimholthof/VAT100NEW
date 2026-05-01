@@ -6,6 +6,7 @@ import { SendEmailButton } from "@/features/invoices/components/SendEmailButton"
 import { PaymentLinkButton } from "@/features/invoices/components/PaymentLinkButton";
 import { PdfDownloadButton } from "@/features/invoices/components/PdfDownloadButton";
 import { getDictionary, getLocaleFromCookie } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function InvoicePreviewPage({
   params,
@@ -58,6 +59,30 @@ export default async function InvoicePreviewPage({
   }
 
   const data = result.data;
+
+  // Witlabel + logo voor Plus-tier.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let branded = true;
+  let logoUrl: string | null = null;
+  if (user) {
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("plan_id")
+      .eq("user_id", user.id)
+      .in("status", ["active", "past_due"])
+      .single();
+    const isPlus = sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly";
+    if (isPlus) {
+      branded = false;
+      if (data.profile.logo_path) {
+        const { data: signed } = await supabase.storage
+          .from("receipts")
+          .createSignedUrl(data.profile.logo_path, 3600);
+        logoUrl = signed?.signedUrl ?? null;
+      }
+    }
+  }
 
   return (
     <div
@@ -146,7 +171,7 @@ export default async function InvoicePreviewPage({
       </div>
 
       {/* Invoice Preview with Template Picker */}
-      <InvoicePreviewClient data={data} />
+      <InvoicePreviewClient data={data} branded={branded} logoUrl={logoUrl} />
     </div>
   );
 }

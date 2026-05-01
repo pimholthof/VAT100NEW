@@ -29,13 +29,25 @@ function unitLabel(u: string, t: ReturnType<typeof getDictionary>): string {
 
 // ─── Dispatcher ───
 
-export function InvoiceHTML({ data, template = "poster", locale = "nl" }: { data: InvoiceData; template?: InvoiceTemplate; locale?: Locale }) {
+export function InvoiceHTML({
+  data,
+  template = "poster",
+  locale = "nl",
+  branded = true,
+  logoUrl = null,
+}: {
+  data: InvoiceData;
+  template?: InvoiceTemplate;
+  locale?: Locale;
+  branded?: boolean;
+  logoUrl?: string | null;
+}) {
   switch (template) {
-    case "minimaal": return <MinimaalHTML data={data} locale={locale} />;
-    case "klassiek": return <KlassiekHTML data={data} locale={locale} />;
-    case "strak": return <StrakHTML data={data} locale={locale} />;
-    case "editoriaal": return <EditoriaalHTML data={data} locale={locale} />;
-    default: return <PosterHTML data={data} locale={locale} />;
+    case "minimaal": return <MinimaalHTML data={data} locale={locale} branded={branded} />;
+    case "klassiek": return <KlassiekHTML data={data} locale={locale} branded={branded} logoUrl={logoUrl} />;
+    case "strak": return <StrakHTML data={data} locale={locale} branded={branded} logoUrl={logoUrl} />;
+    case "editoriaal": return <EditoriaalHTML data={data} locale={locale} branded={branded} />;
+    default: return <PosterHTML data={data} locale={locale} branded={branded} logoUrl={logoUrl} />;
   }
 }
 
@@ -43,7 +55,7 @@ export function InvoiceHTML({ data, template = "poster", locale = "nl" }: { data
 // TEMPLATE 1: MINIMAAL — Current VAT100 style, refined
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function MinimaalHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function MinimaalHTML({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const isCreditNote = invoice.is_credit_note;
@@ -61,9 +73,11 @@ function MinimaalHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
 
   return (
     <div style={{ width: 595, minHeight: 842, padding: 48, fontFamily: F, color: INK, background: "#fff", position: "relative", boxSizing: "border-box" }}>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontWeight: 700, fontSize: 120, letterSpacing: "-0.04em", color: INK, opacity: 0.045, lineHeight: 0.78 }}>VAT100</div>
-      </div>
+      {branded && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontWeight: 700, fontSize: 120, letterSpacing: "-0.04em", color: INK, opacity: 0.045, lineHeight: 0.78 }}>VAT100</div>
+        </div>
+      )}
       <div style={{ display: "flex", marginBottom: 28 }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 4 }}>{profile.studio_name || profile.full_name}</div>
@@ -143,7 +157,7 @@ function MinimaalHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
 // TEMPLATE 2: KLASSIEK — Bold title, clean professional
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function KlassiekHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function KlassiekHTML({ data, locale, branded, logoUrl }: { data: InvoiceData; locale: Locale; branded: boolean; logoUrl: string | null }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const isCreditNote = invoice.is_credit_note;
@@ -164,9 +178,13 @@ function KlassiekHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
       {/* Header — Big title + meta right */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 48 }}>
         <div>
-          <div style={{ fontSize: 56, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.9, marginBottom: 8 }}>
-            VAT100
-          </div>
+          {logoUrl ? (
+            <img src={logoUrl} alt="" style={{ height: 48, objectFit: "contain", display: "block", marginBottom: 8 }} />
+          ) : (
+            <div style={{ fontSize: 56, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.9, marginBottom: 8 }}>
+              {branded ? "VAT100" : (profile.studio_name || profile.full_name)}
+            </div>
+          )}
           <div style={{ fontSize: 8, letterSpacing: "0.12em", color: GREY, textTransform: "uppercase", marginTop: 8 }}>
             {isCreditNote ? t.invoiceDoc.creditNote : t.invoiceDoc.invoice}
           </div>
@@ -267,7 +285,7 @@ function KlassiekHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
 // TEMPLATE 3: STRAK — Jil Sander inspired, ultra minimal
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function StrakHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function StrakHTML({ data, locale, branded, logoUrl }: { data: InvoiceData; locale: Locale; branded: boolean; logoUrl: string | null }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const isCreditNote = invoice.is_credit_note;
@@ -286,9 +304,13 @@ function StrakHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
     <div style={{ width: 595, minHeight: 842, padding: "64px 56px 56px", fontFamily: F, color: INK, background: "#FAF9F6", position: "relative", boxSizing: "border-box" }}>
       {/* Brand — large and bold like Jil Sander */}
       <div style={{ marginBottom: 64 }}>
-        <div style={{ fontSize: 48, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.85 }}>
-          VAT100
-        </div>
+        {logoUrl ? (
+          <img src={logoUrl} alt="" style={{ height: 40, objectFit: "contain", display: "block" }} />
+        ) : (
+          <div style={{ fontSize: 48, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.85 }}>
+            {branded ? "VAT100" : (profile.studio_name || profile.full_name)}
+          </div>
+        )}
       </div>
 
       {/* Minimal meta row */}
@@ -379,7 +401,7 @@ function StrakHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
 // TEMPLATE 4: POSTER — Massive VAT100 logo, clean layout
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function PosterHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function PosterHTML({ data, locale, branded, logoUrl }: { data: InvoiceData; locale: Locale; branded: boolean; logoUrl: string | null }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const days = calculatePaymentDays({ issueDate: invoice.issue_date, dueDate: invoice.due_date, defaultDays: 30 });
@@ -391,10 +413,13 @@ function PosterHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
 
   return (
     <div style={{ width: 595, minHeight: 842, padding: "28px 44px 44px", fontFamily: F, color: INK, background: "#FFFFFF", position: "relative", boxSizing: "border-box" }}>
-      {/* VAT100 — massive poster logo */}
-      <div style={{ fontSize: 130, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 0.82, marginBottom: 28 }}>
-        VAT100
-      </div>
+      {logoUrl ? (
+        <img src={logoUrl} alt="" style={{ height: 110, objectFit: "contain", display: "block", marginBottom: 28 }} />
+      ) : (
+        <div style={{ fontSize: 130, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 0.82, marginBottom: 28 }}>
+          {branded ? "VAT100" : (profile.studio_name || profile.full_name)}
+        </div>
+      )}
 
       {/* Sender left + Meta right */}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
@@ -497,7 +522,7 @@ function PosterHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
 // TEMPLATE 5: EDITORIAAL — Full white, per-line VAT split
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function EditoriaalHTML({ data, locale }: { data: InvoiceData; locale: Locale }) {
+function EditoriaalHTML({ data, locale, branded }: { data: InvoiceData; locale: Locale; branded: boolean }) {
   const t = getDictionary(locale);
   const { invoice, lines, client, profile } = data;
   const isCreditNote = invoice.is_credit_note;
@@ -593,7 +618,7 @@ function EditoriaalHTML({ data, locale }: { data: InvoiceData; locale: Locale })
         <div style={{ fontSize: 6.5, lineHeight: 1.55 }}>{t.invoiceDoc.paymentTerms}: {days} {t.invoiceDoc.daysNet}. Bij niet tijdige betaling is de wettelijke handelsrente verschuldigd, vermeerderd met €40 incassokosten conform art. 6:96 BW.</div>
         {rate === 0 && <div style={{ fontSize: 6.5, lineHeight: 1.55 }}>BTW verlegd / vrijgesteld conform geldende regelgeving.</div>}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-          <span style={{ fontSize: 6.5 }}>Gemaakt met VAT100</span>
+          <span style={{ fontSize: 6.5 }}>{branded ? "Gemaakt met VAT100" : ""}</span>
           <span style={{ fontSize: 6.5 }}>{senderName}{profile.kvk_number ? ` · KVK ${profile.kvk_number}` : ""}</span>
         </div>
       </div>

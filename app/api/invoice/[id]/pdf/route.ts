@@ -30,6 +30,7 @@ export async function GET(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   let branded = true;
+  let logoUrl: string | null = null;
   if (user) {
     const { data: sub } = await supabase
       .from("subscriptions")
@@ -37,11 +38,20 @@ export async function GET(
       .eq("user_id", user.id)
       .in("status", ["active", "past_due"])
       .single();
-    if (sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly") branded = false;
+    const isPlus = sub?.plan_id === "plus" || sub?.plan_id === "plus_yearly";
+    if (isPlus) {
+      branded = false;
+      if (data.profile.logo_path) {
+        const { data: signed } = await supabase.storage
+          .from("receipts")
+          .createSignedUrl(data.profile.logo_path, 3600);
+        logoUrl = signed?.signedUrl ?? null;
+      }
+    }
   }
 
   try {
-    const element = createElement(InvoicePDF, { data, template, branded });
+    const element = createElement(InvoicePDF, { data, template, branded, logoUrl });
     const buffer = await renderToBuffer(
       element as unknown as Parameters<typeof renderToBuffer>[0]
     );

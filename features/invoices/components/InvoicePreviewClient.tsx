@@ -8,7 +8,7 @@ import { useLocale } from "@/lib/i18n/context";
 
 const STORAGE_KEY = "vat100-invoice-template";
 
-export function InvoicePreviewClient({ data }: { data: InvoiceData }) {
+export function InvoicePreviewClient({ data, branded = true, logoUrl = null }: { data: InvoiceData; branded?: boolean; logoUrl?: string | null }) {
   const { locale } = useLocale();
   const [template, setTemplate] = useState<InvoiceTemplate>(() => {
     if (typeof window === "undefined") return "poster";
@@ -45,7 +45,7 @@ export function InvoicePreviewClient({ data }: { data: InvoiceData }) {
           overflowX: "auto",
         }}
       >
-        <InvoiceHTML data={data} template={template} locale={locale} />
+        <InvoiceHTML data={data} template={template} locale={locale} branded={branded} logoUrl={logoUrl} />
       </div>
       {/* Hidden link with template param for PDF download */}
       <input type="hidden" id="invoice-template" value={template} />

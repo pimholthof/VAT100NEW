@@ -4,7 +4,8 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import { getClients } from "@/features/clients/actions";
-import { getProfile } from "@/features/profile/actions";
+import { getProfile, getLogoUrl } from "@/features/profile/actions";
+import { getActiveSubscription } from "@/features/subscriptions/actions";
 import { useLocale } from "@/lib/i18n/context";
 import { calculateInvoiceTotals } from "@/lib/logic/invoice-calculations";
 import { InvoiceHTML } from "./InvoiceHTML";
@@ -108,6 +109,21 @@ export function InvoiceLivePreview({
     queryKey: ["clients"],
     queryFn: () => getClients(),
   });
+  const { data: subscription } = useQuery({
+    queryKey: ["active-subscription"],
+    queryFn: () => getActiveSubscription(),
+    staleTime: 5 * 60_000,
+  });
+  const isPlus =
+    subscription?.plan_id === "plus" || subscription?.plan_id === "plus_yearly";
+  const { data: logoResult } = useQuery({
+    queryKey: ["profile-logo-url"],
+    queryFn: () => getLogoUrl(),
+    enabled: isPlus,
+    staleTime: 5 * 60_000,
+  });
+  const branded = !isPlus;
+  const logoUrl = isPlus ? (logoResult?.data ?? null) : null;
 
   const profile = profileResult?.data ?? PLACEHOLDER_PROFILE;
   const clients = clientsResult?.data ?? [];
@@ -221,7 +237,7 @@ export function InvoiceLivePreview({
             pointerEvents: "none",
           }}
         >
-          <InvoiceHTML data={deferredData} template={template} locale={locale} />
+          <InvoiceHTML data={deferredData} template={template} locale={locale} branded={branded} logoUrl={logoUrl} />
         </div>
       </div>
     </div>
