@@ -2,6 +2,7 @@
 
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
+import { calculateBtwRubrieken } from "@/lib/tax/btw-rubrieken";
 
 // ─── OB-formulier rubrieken (Omzetbelasting aangifte) ───
 
@@ -84,67 +85,9 @@ export async function generateBtwAangifte(
   if (invoiceLinesRes.error) return { error: invoiceLinesRes.error.message };
   if (receiptsRes.error) return { error: receiptsRes.error.message };
 
-  const round2 = (v: number) => Math.round(v * 100) / 100;
-
-  // Calculate per rubriek
-  const rubrieken = {
-    "1a": { omzet: 0, btw: 0 },
-    "1b": { omzet: 0, btw: 0 },
-    "1c": { omzet: 0, btw: 0 },
-    "2a": { omzet: 0, btw: 0 },
-    "3b": { omzet: 0, btw: 0 },
-    "4a": { omzet: 0, btw: 0 },
-    "4b": { omzet: 0, btw: 0 },
-  };
-
-  for (const inv of invoiceLinesRes.data ?? []) {
-    const sign = inv.is_credit_note ? -1 : 1;
-    const scheme = (inv as { vat_scheme?: string }).vat_scheme ?? "standard";
-    const lines = (inv as { invoice_lines?: { amount: number; vat_rate: number | null }[] }).invoice_lines;
-
-    // Route to correct rubriek based on vat_scheme
-    if (scheme === "eu_reverse_charge") {
-      // Rubriek 3b: verlegging diensten binnen EU
-      // Also count towards 2a for ICP listing
-      const amount = Number(inv.subtotal_ex_vat) || 0;
-      rubrieken["3b"].omzet += sign * amount;
-      rubrieken["2a"].omzet += sign * amount;
-      continue;
-    }
-
-    if (scheme === "export_outside_eu") {
-      // Rubriek 4b: diensten buiten EU (default for ZZP dienstverleners)
-      const amount = Number(inv.subtotal_ex_vat) || 0;
-      rubrieken["4b"].omzet += sign * amount;
-      continue;
-    }
-
-    // Standard: categorize by VAT rate
-    if (lines && lines.length > 0) {
-      for (const line of lines) {
-        const rate = line.vat_rate ?? inv.vat_rate ?? 21;
-        const key = rate === 21 ? "1a" : rate === 9 ? "1b" : "1c";
-        const amount = Number(line.amount) || 0;
-        rubrieken[key].omzet += sign * amount;
-        rubrieken[key].btw += sign * round2(amount * (rate / 100));
-      }
-    } else {
-      const rate = inv.vat_rate ?? 21;
-      const key = rate === 21 ? "1a" : rate === 9 ? "1b" : "1c";
-      rubrieken[key].omzet += sign * (Number(inv.subtotal_ex_vat) || 0);
-      rubrieken[key].btw += sign * (Number(inv.vat_amount) || 0);
-    }
-  }
-
-  // Voorbelasting
-  let voorbelasting = 0;
-  for (const rec of receiptsRes.data ?? []) {
-    const pct = (rec.business_percentage ?? 100) / 100;
-    voorbelasting += (Number(rec.vat_amount) || 0) * pct;
-  }
-
-  const totaalBtw = round2(
-    rubrieken["1a"].btw + rubrieken["1b"].btw + rubrieken["1c"].btw
+  const r = calculateBtwRubrieken(
+    invoiceLinesRes.data ?? [],
+    receiptsRes.data ?? [],
   );
 
   return {
@@ -153,17 +96,17 @@ export async function generateBtwAangifte(
       jaar: year,
       kwartaal: quarter,
       periode: `Q${quarter} ${year}`,
-      rubriek1a: { omzet: round2(rubrieken["1a"].omzet), btw: round2(rubrieken["1a"].btw) },
-      rubriek1b: { omzet: round2(rubrieken["1b"].omzet), btw: round2(rubrieken["1b"].btw) },
-      rubriek1c: { omzet: round2(rubrieken["1c"].omzet), btw: round2(rubrieken["1c"].btw) },
-      rubriek2a: { omzet: round2(rubrieken["2a"].omzet), btw: round2(rubrieken["2a"].btw) },
-      rubriek3b: { omzet: round2(rubrieken["3b"].omzet), btw: round2(rubrieken["3b"].btw) },
-      rubriek4a: { omzet: round2(rubrieken["4a"].omzet), btw: round2(rubrieken["4a"].btw) },
-      rubriek4b: { omzet: round2(rubrieken["4b"].omzet), btw: round2(rubrieken["4b"].btw) },
-      rubriek5b: round2(voorbelasting),
-      totaalBtw,
-      voorbelasting: round2(voorbelasting),
-      rubriek5g: round2(totaalBtw - voorbelasting),
+      rubriek1a: r["1a"],
+      rubriek1b: r["1b"],
+      rubriek1c: r["1c"],
+      rubriek2a: r["2a"],
+      rubriek3b: r["3b"],
+      rubriek4a: r["4a"],
+      rubriek4b: r["4b"],
+      rubriek5b: r.voorbelasting,
+      totaalBtw: r.totaalBtw,
+      voorbelasting: r.voorbelasting,
+      rubriek5g: r.rubriek5g,
       btwNummer: profileRes.data?.btw_number ?? null,
       naam: profileRes.data?.studio_name ?? profileRes.data?.full_name ?? null,
     },

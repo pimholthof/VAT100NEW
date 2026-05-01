@@ -9,6 +9,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { formatCurrency } from "@/lib/format";
+import { calculateBtwRubrieken } from "@/lib/tax/btw-rubrieken";
 
 interface VatPrepResult {
   usersProcessed: number;
@@ -101,54 +102,35 @@ export async function prepareVatReturns(): Promise<VatPrepResult> {
 
       if (existing) continue; // Al aangemaakt
 
-      // Bereken BTW-bedragen voor het kwartaal
+      // Bereken BTW-bedragen voor het kwartaal — gedeelde calculator zodat
+      // cron en UI nooit driften.
       const [invoicesRes, receiptsRes] = await Promise.all([
         supabase
           .from("invoices")
-          .select("subtotal_ex_vat, vat_amount, vat_scheme")
+          .select(
+            "subtotal_ex_vat, vat_amount, vat_rate, vat_scheme, is_credit_note, invoice_lines(amount, vat_rate)",
+          )
           .eq("user_id", user.id)
           .in("status", ["sent", "paid"])
           .gte("issue_date", startDate)
           .lte("issue_date", endDate),
         supabase
           .from("receipts")
-          .select("amount_ex_vat, vat_amount, business_percentage")
+          .select("vat_amount, business_percentage")
           .eq("user_id", user.id)
           .gte("receipt_date", startDate)
-          .lte("receipt_date", endDate),
+          .lte("receipt_date", endDate)
+          .is("archived_at", null),
       ]);
 
       const invoices = invoicesRes.data ?? [];
       const receipts = receiptsRes.data ?? [];
 
-      // Rubriek 1a: binnenlandse leveringen/diensten
-      const rubriek1a = invoices
-        .filter((i) => i.vat_scheme === "standard" || !i.vat_scheme)
-        .reduce((sum, i) => sum + (Number(i.subtotal_ex_vat) || 0), 0);
-
-      // Rubriek 3b: intracommunautaire leveringen
-      const rubriek3b = invoices
-        .filter((i) => i.vat_scheme === "eu_reverse_charge")
-        .reduce((sum, i) => sum + (Number(i.subtotal_ex_vat) || 0), 0);
-
-      // Output BTW (rubriek 5a)
-      const outputVat = invoices.reduce(
-        (sum, i) => sum + (Number(i.vat_amount) || 0),
-        0
-      );
-
-      // Input BTW (rubriek 5b)
-      const inputVat = receipts.reduce(
-        (sum, r) =>
-          sum +
-          (Number(r.vat_amount) || 0) * ((r.business_percentage ?? 100) / 100),
-        0
-      );
-
-      const netVat = Math.round((outputVat - inputVat) * 100) / 100;
-
       // Skip als er geen activiteit was
       if (invoices.length === 0 && receipts.length === 0) continue;
+
+      const r = calculateBtwRubrieken(invoices, receipts);
+      const netVat = r.rubriek5g;
 
       // Maak concept-aangifte aan
       const { error: insertError } = await supabase
@@ -158,10 +140,21 @@ export async function prepareVatReturns(): Promise<VatPrepResult> {
           year,
           quarter,
           status: "draft",
-          rubriek_1a: Math.round(rubriek1a * 100) / 100,
-          rubriek_3b: Math.round(rubriek3b * 100) / 100,
-          rubriek_5a: Math.round(outputVat * 100) / 100,
-          rubriek_5b: Math.round(inputVat * 100) / 100,
+          rubriek_1a_omzet: r["1a"].omzet,
+          rubriek_1a_btw: r["1a"].btw,
+          rubriek_1b_omzet: r["1b"].omzet,
+          rubriek_1b_btw: r["1b"].btw,
+          rubriek_1c_omzet: r["1c"].omzet,
+          rubriek_1c_btw: r["1c"].btw,
+          rubriek_2a_omzet: r["2a"].omzet,
+          rubriek_2a_btw: r["2a"].btw,
+          rubriek_3b_omzet: r["3b"].omzet,
+          rubriek_3b_btw: r["3b"].btw,
+          rubriek_4a_omzet: r["4a"].omzet,
+          rubriek_4a_btw: r["4a"].btw,
+          rubriek_4b_omzet: r["4b"].omzet,
+          rubriek_4b_btw: r["4b"].btw,
+          rubriek_5b: r.voorbelasting,
         });
 
       if (insertError) {
