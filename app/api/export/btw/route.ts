@@ -1,10 +1,11 @@
 import { getBtwOverview } from "@/features/tax/actions";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
+import { actionErrorStatus } from "@/lib/errors";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   const result = await getBtwOverview();
-  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
+  if (result.error) return NextResponse.json({ error: result.error }, { status: actionErrorStatus(result.error) });
 
   const headers = [
     "Kwartaal",

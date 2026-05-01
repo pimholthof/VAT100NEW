@@ -1,12 +1,13 @@
 import { getActivastaat } from "@/features/assets/actions";
 import { generateCSV, csvResponse } from "@/lib/export/csv";
+import { actionErrorStatus } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const year = Number(request.nextUrl.searchParams.get("year")) || new Date().getFullYear();
 
   const result = await getActivastaat(year);
-  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
+  if (result.error) return NextResponse.json({ error: result.error }, { status: actionErrorStatus(result.error) });
 
   const data = result.data!;
 

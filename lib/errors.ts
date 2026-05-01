@@ -1,5 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
+const SENTRY_ENABLED = !!process.env.NEXT_PUBLIC_SENTRY_DSN;
+
 /**
  * Known Supabase/PostgreSQL error codes mapped to Dutch user messages.
  */
@@ -48,10 +50,14 @@ export function sanitizeError(
     }
   }
 
-  // Unknown error — log to Sentry and return generic message
-  Sentry.captureException(error, {
-    extra: context,
-  });
+  // Unknown error — log to Sentry and return generic message.
+  // When Sentry is not configured (no DSN), fall back to console.error so the
+  // error still surfaces in server logs (Vercel) instead of vanishing silently.
+  if (SENTRY_ENABLED) {
+    Sentry.captureException(error, { extra: context });
+  } else {
+    console.error("[unhandled error]", error, context);
+  }
 
   return GENERIC_ERROR;
 }
@@ -77,11 +83,36 @@ export function sanitizeSupabaseError(
     }
   }
 
-  // Unknown — log and return generic
-  Sentry.captureMessage(`Supabase error: ${error.message}`, {
-    level: "error",
-    extra: { code: error.code, ...context },
-  });
+  // Unknown — log and return generic. Console fallback when Sentry is disabled.
+  if (SENTRY_ENABLED) {
+    Sentry.captureMessage(`Supabase error: ${error.message}`, {
+      level: "error",
+      extra: { code: error.code, ...context },
+    });
+  } else {
+    console.error("[supabase error]", error.message, { code: error.code, ...context });
+  }
 
   return GENERIC_ERROR;
+}
+
+/**
+ * Map a Server Action error string back to the appropriate HTTP status when
+ * surfacing it from an API route. Server Actions used by API handlers
+ * (e.g. generateBtwAangifte) call requireAuth/requirePlan/requireAdmin
+ * internally and return a Dutch error string — without this helper the
+ * route would have to fall back to a generic 500 even when the real
+ * cause is "not logged in" or "no active subscription".
+ */
+export function actionErrorStatus(error: string): 401 | 403 | 500 {
+  if (error === "Niet ingelogd.") return 401;
+  if (
+    error === "Geen toegang." ||
+    error === "Geen actief abonnement." ||
+    error === "Onbekend abonnement." ||
+    error.startsWith("Upgrade naar ")
+  ) {
+    return 403;
+  }
+  return 500;
 }
