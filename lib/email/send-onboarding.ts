@@ -32,8 +32,8 @@ export async function sendWelcomeEmail(options: {
 
     <p style="margin-bottom:24px;">Wat is je volgende zet?</p>
     <ul style="margin-bottom:32px;padding-left:20px;">
-      <li style="margin-bottom:12px;"><strong>Stel je bankkoppeling in</strong> voor real-time inzicht.</li>
-      <li style="margin-bottom:12px;"><strong>Upload je eerste factuur</strong> en ervaar de snelheid.</li>
+      <li style="margin-bottom:12px;"><strong>Maak je eerste factuur</strong> en ervaar de snelheid.</li>
+      <li style="margin-bottom:12px;"><strong>Scan je eerste bon</strong> en zie de AI aan het werk.</li>
       <li><strong>Check je Radar</strong> voor je fiscale gezondheid.</li>
     </ul>
     

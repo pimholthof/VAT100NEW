@@ -51,7 +51,6 @@ export default function LandingPage() {
       features: [
         t.landing.allFromBasis,
         t.landing.manualReceipts,
-        t.landing.bankConnection,
         t.landing.aiClassificationApproval,
         t.landing.paymentLinks,
         t.landing.emailReminders,

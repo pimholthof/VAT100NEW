@@ -5,8 +5,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/lib/i18n/context";
 import { StepIndicator } from "@/components/ui/StepIndicator";
-import { InstitutionSelector } from "@/features/dashboard/components/InstitutionSelector";
-import { initiateBankConnection } from "@/features/banking/actions";
 import { ButtonPrimary, ButtonSecondary, ErrorMessage } from "@/components/ui";
 import type { VatFrequency } from "@/lib/types";
 
@@ -39,7 +37,7 @@ const radioStyle: React.CSSProperties = {
   fontWeight: 300,
 };
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 type BookkeepingStartOption = "current_year" | "today" | "custom";
 
@@ -62,7 +60,6 @@ export default function OnboardingPage() {
     t.auth.address,
     t.auth.fiscalProfile,
     t.auth.bankDetails,
-    t.auth.connectBank,
   ];
 
   // Field state for step navigation
@@ -87,10 +84,6 @@ export default function OnboardingPage() {
   const [estimatedIncome, setEstimatedIncome] = useState("");
   const [usesKor, setUsesKor] = useState(false);
   const [meetsUrencriterium, setMeetsUrencriterium] = useState(true);
-
-  // Bank connection state (step 5)
-  const [showBankSelector, setShowBankSelector] = useState(false);
-  const [bankPending, setBankPending] = useState(false);
 
   // Inline validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
@@ -159,7 +152,6 @@ export default function OnboardingPage() {
     }
     // Step 3 (fiscal) — defaults are always valid
     // Step 4 (bank details) — no blocking validation
-    // Step 5 (bank connection) — optional
 
     setFieldErrors(errors);
     return Object.values(errors).every((e) => !e);
@@ -221,34 +213,13 @@ export default function OnboardingPage() {
     }
   }
 
-  async function handleBankSelect(institutionId: string) {
-    setBankPending(true);
-    try {
-      const result = await initiateBankConnection(institutionId);
-      if (result.error) {
-        setError(result.error);
-        setBankPending(false);
-        return;
-      }
-      if (result.data?.redirectUrl) {
-        window.location.href = result.data.redirectUrl;
-      }
-    } catch {
-      setError("Er ging iets mis bij het verbinden met je bank.");
-      setBankPending(false);
-    }
-  }
-
-  // Steps 1–4 submit the form; step 5 either connects bank or skips
-  const isLastFormStep = step === TOTAL_STEPS - 1; // Step 4 is last form step
-  const isBankStep = step === TOTAL_STEPS; // Step 5 is bank connection
+  const isLastFormStep = step === TOTAL_STEPS;
 
   const stepContext: Record<number, { title: string; sub: string }> = {
     1: { title: "Je bedrijf", sub: "KVK en BTW — we zoeken de rest op." },
     2: { title: "Je adres", sub: "Komt op je facturen te staan." },
     3: { title: "Fiscaal profiel", sub: "Zodat VAT100 je aangiftes correct berekent." },
     4: { title: "Bankgegevens", sub: "IBAN voor op je facturen." },
-    5: { title: "Bank koppelen", sub: "Optioneel. Voor automatische reconciliatie." },
   };
   const current = stepContext[step];
 
@@ -673,80 +644,27 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Stap 5: Bank koppelen via Tink */}
-          {step === 5 && (
-            <div>
-              <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 8, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
-                {t.auth.connectBank}
-              </p>
-              <p style={{ fontSize: "13px", fontWeight: 300, opacity: 0.6, margin: "0 0 20px", lineHeight: 1.55 }}>
-                {t.auth.connectBankDesc}
-              </p>
-              <ul
-                style={{
-                  listStyle: "none",
-                  margin: "0 0 24px",
-                  padding: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 6,
-                  fontSize: 12,
-                  opacity: 0.7,
-                }}
-              >
-                <li style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
-                  <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>
-                  <span>Automatische reconciliatie van bij- en afschrijvingen</span>
-                </li>
-                <li style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
-                  <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>
-                  <span>Cashflow-forecast met echte banksaldi</span>
-                </li>
-                <li style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
-                  <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>
-                  <span>Read-only via PSD2 — VAT100 kan nooit geld verplaatsen</span>
-                </li>
-              </ul>
-
-              <ButtonPrimary
-                type="button"
-                onClick={() => setShowBankSelector(true)}
-                loading={bankPending}
-                style={{ width: "100%" }}
-              >
-                {t.auth.connectBank}
-              </ButtonPrimary>
-
-              <InstitutionSelector
-                isOpen={showBankSelector}
-                onClose={() => setShowBankSelector(false)}
-                onSelect={handleBankSelect}
-                isPending={bankPending}
-              />
-            </div>
-          )}
-
           {error && <ErrorMessage>{error}</ErrorMessage>}
 
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
             {step > 1 && (
               <ButtonSecondary
                 onClick={handleBack}
-                disabled={pending || bankPending}
+                disabled={pending}
                 style={{ flex: 1 }}
               >
                 {t.common.back}
               </ButtonSecondary>
             )}
-            {isBankStep ? (
-              <ButtonSecondary
+            {isLastFormStep ? (
+              <ButtonPrimary
                 type="submit"
                 loading={pending}
-                style={{ flex: 1 }}
+                style={{ flex: 2 }}
               >
-                {t.auth.skipBank}
-              </ButtonSecondary>
-            ) : isLastFormStep || step < TOTAL_STEPS - 1 ? (
+                Klaar
+              </ButtonPrimary>
+            ) : (
               <ButtonPrimary
                 type="button"
                 onClick={handleNext}
@@ -754,7 +672,7 @@ export default function OnboardingPage() {
               >
                 {t.common.next}
               </ButtonPrimary>
-            ) : null}
+            )}
           </div>
         </form>
       </div>

@@ -53,7 +53,6 @@ export default function PrivacyPage() {
           <ul>
             <li><strong>Accountgegevens:</strong> naam, e-mailadres, studio-naam, KvK-nummer, BTW-nummer, IBAN, adresgegevens.</li>
             <li><strong>Factuur- en financiële gegevens:</strong> facturen, bonnen, transacties, urendeclaraties, ritten — alles wat je zelf invoert.</li>
-            <li><strong>Bankgegevens:</strong> via Tink (Open Banking) ontvangen wij transactie-informatie. Wij slaan geen bankwachtwoorden op.</li>
             <li><strong>Gebruiksgegevens:</strong> IP-adres, browser, apparaattype, paginabezoeken (via Sentry voor foutopsporing).</li>
             <li><strong>Betalingsgegevens:</strong> betalingen lopen via Mollie. Wij slaan geen creditcard- of IBAN-gegevens op van betalingen.</li>
           </ul>
@@ -72,9 +71,8 @@ export default function PrivacyPage() {
           <ul>
             <li><strong>Supabase</strong> (EU) — database en authenticatie</li>
             <li><strong>Mollie</strong> (NL) — betalingsverwerking</li>
-            <li><strong>Tink / GoCardless</strong> (EU) — Open Banking verbinding</li>
             <li><strong>Resend</strong> — e-mailverzending</li>
-            <li><strong>Anthropic</strong> (VS) — AI-bonherkenning (alleen bij Compleet-plan, afbeeldingen worden niet opgeslagen door Anthropic)</li>
+            <li><strong>Anthropic</strong> (VS) — AI-bonherkenning (afbeeldingen worden niet opgeslagen door Anthropic)</li>
             <li><strong>Sentry</strong> — foutmonitoring (geen persoonlijke data, alleen technische foutmeldingen)</li>
           </ul>
           <p>
