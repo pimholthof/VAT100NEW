@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const updated = "4 april 2026";
+  const updated = "5 mei 2026";
 
   return (
     <div
@@ -53,7 +53,6 @@ export default function PrivacyPage() {
           <ul>
             <li><strong>Accountgegevens:</strong> naam, e-mailadres, studio-naam, KvK-nummer, BTW-nummer, IBAN, adresgegevens.</li>
             <li><strong>Factuur- en financiële gegevens:</strong> facturen, bonnen, transacties, urendeclaraties, ritten — alles wat je zelf invoert.</li>
-            <li><strong>Bankgegevens:</strong> via Tink (Open Banking) ontvangen wij transactie-informatie. Wij slaan geen bankwachtwoorden op.</li>
             <li><strong>Gebruiksgegevens:</strong> IP-adres, browser, apparaattype, paginabezoeken (via Sentry voor foutopsporing).</li>
             <li><strong>Betalingsgegevens:</strong> betalingen lopen via Mollie. Wij slaan geen creditcard- of IBAN-gegevens op van betalingen.</li>
           </ul>
@@ -72,9 +71,8 @@ export default function PrivacyPage() {
           <ul>
             <li><strong>Supabase</strong> (EU) — database en authenticatie</li>
             <li><strong>Mollie</strong> (NL) — betalingsverwerking</li>
-            <li><strong>Tink / GoCardless</strong> (EU) — Open Banking verbinding</li>
             <li><strong>Resend</strong> — e-mailverzending</li>
-            <li><strong>Anthropic</strong> (VS) — AI-bonherkenning (alleen bij Compleet-plan, afbeeldingen worden niet opgeslagen door Anthropic)</li>
+            <li><strong>Anthropic</strong> (VS) — AI-bonherkenning (afbeeldingen worden niet opgeslagen door Anthropic)</li>
             <li><strong>Sentry</strong> — foutmonitoring (geen persoonlijke data, alleen technische foutmeldingen)</li>
           </ul>
           <p>
@@ -107,19 +105,50 @@ export default function PrivacyPage() {
         <Section title="7. Beveiliging">
           <p>
             Wij nemen passende technische en organisatorische maatregelen: versleutelde verbindingen (TLS),
-            Row-Level Security op databaseniveau, rate limiting, security headers, en regelmatige audits.
-            Toegang tot productiedata is beperkt tot geautoriseerde beheerders.
+            Row-Level Security op databaseniveau, rate limiting, strikte Content-Security-Policy met per-request
+            nonces voor scripts, en regelmatige audits. Toegang tot productiedata is beperkt tot
+            geautoriseerde beheerders.
           </p>
         </Section>
 
-        <Section title="8. Cookies">
+        <Section title="8. Datalekken">
+          <p>
+            Een datalek is iedere inbreuk op de beveiliging die per ongeluk of onrechtmatig leidt tot
+            vernietiging, verlies, wijziging of ongeoorloofde verstrekking van persoonsgegevens. Wij behandelen
+            elk vermoeden serieus en volgen de procedure uit artikel 33 en 34 AVG.
+          </p>
+          <ul>
+            <li>
+              <strong>Een datalek vermoeden?</strong> Mail per direct naar
+              {" "}<strong>security@vat100.nl</strong> met een omschrijving van wat je hebt waargenomen, het
+              tijdstip, en waar mogelijk schermafbeeldingen. Vermijd het delen van wachtwoorden of
+              accountgegevens in de melding zelf.
+            </li>
+            <li>
+              <strong>Onze reactie:</strong> wij bevestigen je melding binnen 24 uur en starten direct
+              onderzoek. Indien er sprake is van een meldingsplichtig datalek melden wij dit binnen 72 uur
+              na ontdekking aan de Autoriteit Persoonsgegevens.
+            </li>
+            <li>
+              <strong>Communicatie naar betrokkenen:</strong> bij waarschijnlijk hoog risico voor jouw rechten
+              en vrijheden informeren wij jou zonder onnodige vertraging direct, met informatie over de aard
+              van het lek, de mogelijke gevolgen en de maatregelen die je zelf kunt nemen.
+            </li>
+            <li>
+              <strong>Logging:</strong> elke incidentmelding wordt vastgelegd in ons interne register, ook
+              wanneer het lek niet meldingsplichtig blijkt. Dit register voldoet aan artikel 33 lid 5 AVG.
+            </li>
+          </ul>
+        </Section>
+
+        <Section title="9. Cookies">
           <p>
             VAT100 gebruikt alleen strikt noodzakelijke cookies voor authenticatie (Supabase session).
             Wij gebruiken geen tracking-, analytics- of advertentiecookies. Er is daarom geen cookiebanner nodig.
           </p>
         </Section>
 
-        <Section title="9. Wijzigingen">
+        <Section title="10. Wijzigingen">
           <p>
             Wij kunnen dit privacybeleid aanpassen. Bij substantiële wijzigingen informeren wij je per e-mail.
             De laatste versie is altijd beschikbaar op deze pagina.

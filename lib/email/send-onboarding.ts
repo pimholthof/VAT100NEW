@@ -21,35 +21,37 @@ export async function sendWelcomeEmail(options: {
   const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://vat100.nl'}/login`;
 
   const contentHtml = `
-    <p style="margin-bottom:24px;">Welkom bij het elite-netwerk van VAT100, <strong>${fullName}</strong>.</p>
-    <p style="margin-bottom:24px;">Je account voor <strong>${studioName || 'je studio'}</strong> is zojuist geactiveerd op de Founder Hub. Vanaf nu heb je de volledige controle over je financiële koers.</p>
-    
-    <div style="background:#F5F5F5;padding:24px;border-left:4px solid #000000;margin-bottom:32px;">
-      <p style="margin:0 0 8px;font-size:12px;font-weight:bold;text-transform:uppercase;opacity:0.4;">Inloggegevens</p>
-      <p style="margin:0 0 12px;font-size:16px;">Email: <strong>${email}</strong></p>
-      ${tempPassword ? `<p style="margin:0;font-size:16px;">Tijdelijk wachtwoord: <strong>${tempPassword}</strong></p>` : ''}
+    <p style="margin:0 0 24px;font-size:16px;line-height:1.6;">Welkom bij VAT100, ${fullName}.</p>
+
+    <p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#333;">
+      Je account voor ${studioName ? `<strong>${studioName}</strong>` : 'je studio'} staat klaar.
+    </p>
+
+    <div style="background:#FAFAFA;padding:24px;border:1px solid #E0E0E0;margin-bottom:32px;">
+      <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.5;">Inloggegevens</p>
+      <p style="margin:0 0 ${tempPassword ? '12px' : '0'};font-size:14px;">E-mail: <strong>${email}</strong></p>
+      ${tempPassword ? `<p style="margin:0;font-size:14px;">Tijdelijk wachtwoord: <strong>${tempPassword}</strong></p>` : ''}
     </div>
 
-    <p style="margin-bottom:24px;">Wat is je volgende zet?</p>
-    <ul style="margin-bottom:32px;padding-left:20px;">
-      <li style="margin-bottom:12px;"><strong>Stel je bankkoppeling in</strong> voor real-time inzicht.</li>
-      <li style="margin-bottom:12px;"><strong>Upload je eerste factuur</strong> en ervaar de snelheid.</li>
-      <li><strong>Check je Radar</strong> voor je fiscale gezondheid.</li>
+    <p style="margin:0 0 16px;font-size:13px;line-height:1.7;color:#666;">Eerste stappen:</p>
+    <ul style="margin:0 0 32px;padding-left:20px;font-size:13px;line-height:1.8;color:#333;">
+      <li>Maak je eerste factuur in minder dan 30 seconden.</li>
+      <li>Scan je eerste bon — de AI classificeert hem voor je.</li>
+      <li>Bekijk je BTW-overzicht voor het lopende kwartaal.</li>
     </ul>
-    
-    <p style="font-size:14px;opacity:0.6;">Verander je wachtwoord direct na de eerste keer inloggen bij je instellingen.</p>
+
+    ${tempPassword ? '<p style="font-size:13px;opacity:0.55;">Verander je wachtwoord direct na de eerste keer inloggen bij je instellingen.</p>' : ''}
   `;
 
   try {
     const { error: sendError } = await getResend().emails.send({
       from: process.env.EMAIL_FROM || "welkom@vat100.nl",
       to: email,
-      subject: `Welkom bij de Founder Hub — ${studioName || 'VAT100'}`,
+      subject: `Welkom bij VAT100${studioName ? ` — ${studioName}` : ''}`,
       html: buildBaseEmailHtml({
-        title: "Welcome aboard",
+        title: "Welkom bij VAT100",
         contentHtml,
-        cta: { label: "Naar de Hub", url: loginUrl },
-        footerText: "Je bent nu onderdeel van de 100.",
+        cta: { label: "Open VAT100", url: loginUrl },
         unsubscribeToken: options.unsubscribeToken,
       }),
     });

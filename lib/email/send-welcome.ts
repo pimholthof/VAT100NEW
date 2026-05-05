@@ -55,9 +55,9 @@ export async function sendWelcomeEmail(options: {
 
     <p style="margin:32px 0 0;font-size:13px;line-height:1.6;color:#666;">
       Eerste stappen:<br>
-      · Voeg je bankrekening toe voor automatische reconciliatie<br>
+      · Stuur een factuur in minder dan 30 seconden<br>
       · Upload je eerste bon — de AI classificeert hem voor je<br>
-      · Stuur een factuur in minder dan 30 seconden
+      · Bekijk je BTW-overzicht voor het lopende kwartaal
     </p>
 
     <p style="margin:32px 0 0;">

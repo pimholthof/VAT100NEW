@@ -15,7 +15,6 @@ import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components
 import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 import { AangifteExplainer } from "@/features/tax/components/AangifteExplainer";
-import { DigipoortSubmitButton } from "@/features/tax/components/DigipoortSubmitButton";
 
 export default function TaxContent() {
   const { data: btwResult, isLoading: btwLoading } = useQuery({
@@ -328,7 +327,6 @@ export default function TaxContent() {
                           >
                             Aangifte &darr;
                           </a>
-                          <DigipoortSubmitButton quarter={q} />
                         </div>
                       </Td>
                     </tr>

@@ -70,8 +70,7 @@ export default function VoorwaardenPage() {
             <li>Abonnementen worden maandelijks gefactureerd via automatische incasso (Mollie/SEPA).</li>
             <li>Prijzen zijn exclusief BTW, tenzij anders aangegeven.</li>
             <li><strong>Start:</strong> €29/maand — facturen, BTW-overzicht en de kern van je administratie.</li>
-            <li><strong>Studio:</strong> €39/maand — alles van Start plus meer rust via bonnen, cashflow en belastinginzicht.</li>
-            <li><strong>Complete:</strong> €59/maand — alles van Studio plus AI-functies, bankkoppeling en jaarrekening.</li>
+            <li><strong>Studio:</strong> €39/maand — alles van Start plus bonnen scannen, cashflow, belastinginzicht en jaarrekening.</li>
             <li>VAT100 mag tarieven aanpassen met 30 dagen vooraankondiging per e-mail.</li>
           </ul>
         </Section>
