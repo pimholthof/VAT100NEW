@@ -77,24 +77,6 @@ export default function LandingPage() {
       ],
       highlighted: false,
     },
-    {
-      id: "plus",
-      name: "Plus",
-      price: "149",
-      period: t.landing.perMonth,
-      description: "Volledige fiscale infrastructuur — aangifte rechtstreeks bij de Belastingdienst.",
-      features: [
-        "Alles van Complete",
-        "Directe Digipoort BTW-aangifte",
-        "IB-aangifte via SBR",
-        "Onbeperkt bonnen scannen",
-        "Onbeperkt AI-chat",
-        "Accountant-review jaarrekening",
-        "Dedicated support",
-        "White-label facturen",
-      ],
-      highlighted: false,
-    },
   ];
 
   const faqs = [
