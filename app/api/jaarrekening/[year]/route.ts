@@ -10,8 +10,8 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ year: string }> },
 ) {
-  // Feature-gate: Jaarrekening is Compleet-only
-  const planCheck = await requirePlan("compleet");
+  // Feature-gate: Jaarrekening zit vanaf v1 in Studio.
+  const planCheck = await requirePlan("studio");
   if (planCheck.error) {
     return NextResponse.json({ error: planCheck.error }, { status: planCheck.status });
   }

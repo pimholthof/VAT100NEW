@@ -1,5 +1,5 @@
 /**
- * Automatische Jaarrekening Generatie (alleen Compleet abonnement)
+ * Automatische Jaarrekening Generatie (Studio en hoger).
  *
  * Draait automatisch op 2 januari via de agents cron.
  * Genereert een action feed item met link naar de jaarrekening PDF.
@@ -78,9 +78,9 @@ export async function generateAnnualReportNotifications(): Promise<AnnualReportR
 
     const planId = subscription?.plan_id ?? "basis";
     const planRank = PLAN_RANKS[planId] ?? 0;
-    const isCompleet = planRank >= 2;
+    const hasJaarrekening = planRank >= 1;
 
-    if (isCompleet) {
+    if (hasJaarrekening) {
       // Haal omzet op voor het vorige jaar
       const { data: yearInvoices } = await supabase
         .from("invoices")
@@ -108,12 +108,12 @@ export async function generateAnnualReportNotifications(): Promise<AnnualReportR
 
       result.reportsCreated++;
     } else {
-      // Upsell voor basis/studio gebruikers
+      // Upsell voor basis-gebruikers
       await supabase.from("action_feed").insert({
         user_id: user.id,
         type: "tax_alert",
-        title: `Jaarrekening ${previousYear} — Upgrade naar Compleet`,
-        description: `Met het Compleet abonnement wordt je jaarrekening automatisch voorbereid. Upgrade nu voor inzicht in je volledige fiscale positie.`,
+        title: `Jaarrekening ${previousYear} — Upgrade naar Studio`,
+        description: `Met het Studio abonnement wordt je jaarrekening automatisch voorbereid. Upgrade nu voor inzicht in je volledige fiscale positie.`,
         ai_confidence: 1.0,
       });
 

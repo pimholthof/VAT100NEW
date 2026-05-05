@@ -60,23 +60,6 @@ export default function LandingPage() {
       ],
       highlighted: true,
     },
-    {
-      id: "compleet",
-      name: t.landing.compleet,
-      price: "79",
-      period: t.landing.perMonth,
-      description: t.landing.compleetDesc,
-      features: [
-        t.landing.allFromStudio,
-        t.landing.aiReceipts,
-        t.landing.aiChat,
-        t.landing.aiAutoBooking,
-        t.landing.autoReconciliation,
-        t.landing.annualReport,
-        t.landing.prioritySupport,
-      ],
-      highlighted: false,
-    },
   ];
 
   const faqs = [
