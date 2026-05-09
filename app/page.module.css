@@ -401,8 +401,10 @@
 /* ─── Pricing Grid ─── */
 .pricingGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1px;
+  max-width: 1080px;
+  margin: 0 auto;
 }
 
 @media (max-width: 768px) {
