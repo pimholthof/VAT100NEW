@@ -116,9 +116,10 @@ export function AangifteExplainer() {
                   maxWidth: 560,
                 }}
               >
-                Elk kwartaal stuurt de Belastingdienst deze rubrieken door. VAT100
-                berekent ze uit jouw facturen en bonnen. Je vult ze handmatig in
-                op <strong>Mijn Belastingdienst Zakelijk</strong>.
+                De Belastingdienst werkt met deze rubrieken op het aangifteformulier.
+                VAT100 leidt elke waarde af uit je facturen en bonnen, zodat je ze
+                rechtstreeks kunt overnemen op <strong>Mijn Belastingdienst Zakelijk</strong>.
+                De aangifte zelf dien je daar zelf in.
               </p>
               <div style={{ display: "grid", gap: 16 }}>
                 {RUBRIEKEN.map((r) => (

@@ -531,8 +531,8 @@ export async function submitVatReturn(
   }
 
   if (!vatReturn) return { error: "BTW-aangifte niet gevonden." };
-  if (vatReturn.status === "submitted") return { error: "Aangifte is al ingediend." };
-  if (vatReturn.status === "draft") return { error: "Vergrendel de aangifte eerst voordat je indient." };
+  if (vatReturn.status === "submitted") return { error: "Deze aangifte is al gemarkeerd als ingediend." };
+  if (vatReturn.status === "draft") return { error: "Vergrendel de aangifte eerst voordat je hem als ingediend markeert." };
 
   const { data: submitted, error: submitError } = await supabase
     .from("vat_returns")

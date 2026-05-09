@@ -15,7 +15,6 @@ import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components
 import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 import { AangifteExplainer } from "@/features/tax/components/AangifteExplainer";
-import { DigipoortSubmitButton } from "@/features/tax/components/DigipoortSubmitButton";
 
 export default function TaxContent() {
   const { data: btwResult, isLoading: btwLoading } = useQuery({
@@ -57,6 +56,7 @@ export default function TaxContent() {
           <h1 className="display-title">Belasting</h1>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
+          <a href="/dashboard/tax/help" className="btn-secondary">Hoe dien ik in</a>
           <a href="/api/export/btw" download className="btn-secondary">Download lijst</a>
           <a href="/dashboard/tax/opening-balance" className="btn-secondary">Openingsbalans</a>
         </div>
@@ -324,11 +324,10 @@ export default function TaxContent() {
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{ fontSize: 12, opacity: 0.5, textDecoration: "none", color: "inherit" }}
-                            title="BTW aangifte PDF"
+                            title="BTW-aangifte als PDF — om te gebruiken bij Mijn Belastingdienst Zakelijk"
                           >
-                            Aangifte &darr;
+                            Overzicht &darr;
                           </a>
-                          <DigipoortSubmitButton quarter={q} />
                         </div>
                       </Td>
                     </tr>

@@ -64,8 +64,8 @@ export async function runBtwDeadlineAlert(
     let description: string;
 
     if (isLocked) {
-      title = `BTW-aangifte Q${nextDeadline.quarter} klaar voor indiening`;
-      description = `Je BTW-aangifte is vergrendeld en klaar. Dien deze in bij de Belastingdienst vóór ${nextDeadline.deadline.toLocaleDateString("nl-NL")} (${daysUntil} dagen).`;
+      title = `BTW-aangifte Q${nextDeadline.quarter} klaar om over te nemen`;
+      description = `Je aangifte is vergrendeld. Neem de bedragen over op Mijn Belastingdienst Zakelijk vóór ${nextDeadline.deadline.toLocaleDateString("nl-NL")} (${daysUntil} dagen).`;
     } else if (hasDraft) {
       title = `BTW-aangifte Q${nextDeadline.quarter} reviewen`;
       description = `Je concept BTW-aangifte staat klaar. Review en vergrendel deze vóór ${nextDeadline.deadline.toLocaleDateString("nl-NL")} (${daysUntil} dagen).`;
