@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { isRateLimited } from "@/lib/rate-limit";
 import { isBetaMode } from "@/lib/config/features";
+import { trackUserEvent } from "@/lib/analytics/tracking";
 import { headers } from "next/headers";
 
 export interface AuthResult {
@@ -89,6 +90,10 @@ export async function register(formData: FormData): Promise<AuthResult> {
     } catch {
       // stil falen: referral is bonus, geen blocker
     }
+  }
+
+  if (data.user?.id) {
+    trackUserEvent(data.user.id, "registered");
   }
 
   const plan = formData.get("plan") as string | null;
@@ -183,6 +188,8 @@ export async function completeOnboarding(
   if (error) {
     return { error: error.message };
   }
+
+  trackUserEvent(user.id, "onboarding_completed");
 
   // Bèta: geen paywall — direct door naar het dashboard. Buiten de bèta
   // kiest de gebruiker eerst een abonnement.
