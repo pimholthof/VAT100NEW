@@ -124,6 +124,16 @@ const en = {
     annualReport: "Annual report PDF",
     cashflowAnalysis: "Cashflow analysis",
     prioritySupport: "Priority support",
+    // Plus plan
+    plusDesc: "Complete fiscal infrastructure — prepare returns through to filing.",
+    allFromCompleet: "Everything from Complete",
+    btwReturnPrepare: "Prepare & export VAT returns",
+    ibReturnPrepare: "Prepare income tax return",
+    unlimitedReceipts: "Unlimited receipt scanning",
+    unlimitedAiChat: "Unlimited AI chat",
+    accountantReview: "Accountant review of annual report",
+    dedicatedSupport: "Dedicated support",
+    whiteLabelInvoices: "White-label invoices",
     // FAQ
     faqSectionTitle: "Questions",
     faq1Q: "Is my data safe?",

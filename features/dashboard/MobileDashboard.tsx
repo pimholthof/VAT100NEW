@@ -547,7 +547,7 @@ function SwipeableInvoiceCard({
           </p>
           <p style={{ margin: "4px 0 0", fontSize: 11, opacity: 0.5 }}>
             {invoice.invoice_number}
-            {isOverdue && ` · ${invoice.days_overdue}d achterstallig`}
+            {isOverdue && ` · ${invoice.days_overdue}d te laat`}
           </p>
         </div>
         <p
