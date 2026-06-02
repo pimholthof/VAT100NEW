@@ -77,17 +77,14 @@ export function OnboardingChecklist({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        className="glass"
         style={{
           display: "flex",
           alignItems: "center",
           gap: 12,
           padding: "10px 14px 10px 18px",
-          border: "0.5px solid rgba(0,0,0,0.08)",
           borderRadius: 999,
           marginBottom: 24,
-          background: "rgba(255,255,255,0.85)",
-          backdropFilter: "blur(40px)",
-          WebkitBackdropFilter: "blur(40px)",
           width: "fit-content",
         }}
       >
@@ -146,15 +143,12 @@ export function OnboardingChecklist({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
+        className="glass"
         style={{
           padding: "28px 32px",
-          border: "0.5px solid rgba(0,0,0,0.08)",
           borderRadius: "var(--radius)",
           marginBottom: 32,
           position: "relative",
-          background: "rgba(255,255,255,0.85)",
-          backdropFilter: "blur(40px)",
-          WebkitBackdropFilter: "blur(40px)",
         }}
       >
         <div
