@@ -228,7 +228,7 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
         </button>
       </div>
 
-      {/* AI scan unavailable hint */}
+      {/* Scan unavailable hint */}
       {result.aiError && !editing && (
         <p
           style={{

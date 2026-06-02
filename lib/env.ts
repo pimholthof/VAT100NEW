@@ -22,7 +22,7 @@ const requiredEnvVars = {
   RESEND_API_KEY: { required: true, public: false },
   EMAIL_FROM: { required: true, public: false },
   
-  // AI (Anthropic)
+  // Anthropic (tekstherkenning bonnen/facturen)
   ANTHROPIC_API_KEY: { required: true, public: false },
   
   // Security

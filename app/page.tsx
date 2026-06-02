@@ -71,7 +71,6 @@ export default function LandingPage() {
       features: [
         t.landing.allFromStudio,
         t.landing.aiReceipts,
-        t.landing.aiChat,
         t.landing.aiAutoBooking,
         t.landing.autoReconciliation,
         t.landing.annualReport,
@@ -90,7 +89,6 @@ export default function LandingPage() {
         "BTW-aangifte voorbereiden & exporteren",
         "IB-aangifte voorbereiden",
         "Onbeperkt bonnen scannen",
-        "Onbeperkt AI-chat",
         "Accountant-review jaarrekening",
         "Dedicated support",
         "White-label facturen",

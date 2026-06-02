@@ -110,7 +110,7 @@ export async function runReconciliationAgent(userId: string, externalSupabase?: 
             user_id: userId,
             type: "autonomous_match",
             title: `Autonome Match: ${matchingReceipt.vendor_name}`,
-            description: `AI heeft deze transactie automatisch gekoppeld aan een bon (${Math.round(confidence * 100)}% zekerheid).`,
+            description: `Transactie automatisch gekoppeld aan een bon (${Math.round(confidence * 100)}% zekerheid).`,
             amount: txAmount,
             related_transaction_id: tx.id,
             related_receipt_id: matchingReceipt.id,

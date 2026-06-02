@@ -19,7 +19,7 @@ export function LeadCard({ lead, onClick }: LeadCardProps) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
         <div 
           className={`score-badge ${isHighFit ? "high" : ""}`}
-          title="AI Score: Fit for VAT100"
+          title="Fit-score voor VAT100"
         >
           FIT: {Math.round(lead.score_fit * 100)}%
         </div>

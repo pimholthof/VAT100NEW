@@ -8,7 +8,7 @@ import { Camera, FileText, Clock } from "lucide-react";
 
 import { getDashboardData, type DashboardData, type UpcomingInvoice } from "@/features/dashboard/actions";
 import { updateInvoiceStatus, sendReminder } from "@/features/invoices/actions";
-import { uploadReceiptImage, scanReceiptWithAI, createReceipt, updateReceipt, markReceiptAiProcessed } from "@/features/receipts/actions";
+import { uploadReceiptImage, scanReceipt, createReceipt, updateReceipt, markReceiptProcessed } from "@/features/receipts/actions";
 import { createHoursEntry } from "@/features/hours/actions";
 import { createTrip } from "@/features/trips/actions";
 import type { ActionResult } from "@/lib/types";
@@ -575,7 +575,7 @@ function ScanReceiptSheet({ onDone }: { onDone: () => void }) {
       if (uploadResult.error) throw new Error(uploadResult.error);
 
       setProcessing("scanning");
-      const scanResult = await scanReceiptWithAI(receiptId);
+      const scanResult = await scanReceipt(receiptId);
       if (scanResult.data) {
         await updateReceipt(receiptId, {
           vendor_name: scanResult.data.vendor_name ?? null,
@@ -585,7 +585,7 @@ function ScanReceiptSheet({ onDone }: { onDone: () => void }) {
           cost_code: scanResult.data.cost_code ?? null,
           receipt_date: scanResult.data.receipt_date ?? null,
         });
-        await markReceiptAiProcessed(receiptId);
+        await markReceiptProcessed(receiptId);
       }
       return scanResult.data;
     },
@@ -651,7 +651,7 @@ function ScanReceiptSheet({ onDone }: { onDone: () => void }) {
             >
               <Camera size={32} strokeWidth={1.2} />
               <span style={{ fontSize: 14, fontWeight: 500 }}>Maak foto of kies bestand</span>
-              <span style={{ fontSize: 11, opacity: 0.5 }}>AI verwerkt de bon automatisch</span>
+              <span style={{ fontSize: 11, opacity: 0.5 }}>De bon wordt automatisch ingevuld</span>
             </motion.div>
           ) : (
             <motion.div

@@ -6,7 +6,7 @@ import type { ActionResult, ClientInput, VatRate, VatScheme, InvoiceUnit } from 
 import type { InvoiceOCRData, ExtractedClientData } from "./types/invoice-ocr";
 import { modelFor } from "@/lib/ai/models";
 
-// ─── Scan Invoice with AI (accepts file directly, no storage needed) ───
+// ─── Scan Invoice (OCR — accepts file directly, no storage needed) ───
 
 const INVOICE_OCR_SYSTEM_PROMPT = `Je bent een OCR-specialist voor Nederlandse uitgaande facturen.
 Retourneer UITSLUITEND valide JSON — geen markdown, geen toelichting.
@@ -74,7 +74,7 @@ const aiInvoiceSchema = z.object({
   confidence: z.number().min(0).max(1).optional(),
 });
 
-export async function scanInvoiceWithAI(
+export async function scanInvoice(
   formData: FormData
 ): Promise<ActionResult<InvoiceOCRData>> {
   try {
@@ -176,7 +176,7 @@ export async function scanInvoiceWithAI(
     const textContent = response.content.find((c) => c.type === "text");
     if (!textContent || textContent.type !== "text") {
       return {
-        error: "Geen tekst gevonden in AI-antwoord.",
+        error: "Geen tekst gevonden in het antwoord.",
       };
     }
 
@@ -189,7 +189,7 @@ export async function scanInvoiceWithAI(
     const raw = JSON.parse(cleanedText);
     const validated = aiInvoiceSchema.safeParse(raw);
     if (!validated.success) {
-      return { error: "AI-antwoord heeft een onverwacht formaat." };
+      return { error: "Het antwoord heeft een onverwacht formaat." };
     }
 
     const data = validated.data;
