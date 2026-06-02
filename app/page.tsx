@@ -141,7 +141,7 @@ export default function LandingPage() {
             {t.landing.features}
           </a>
           <a href="#prijzen" className={styles.navLink} onClick={() => setMenuOpen(false)}>
-            {t.landing.pricing}
+            {beta ? "Gratis bèta" : t.landing.pricing}
           </a>
           <button
             onClick={() => setLocale(locale === "nl" ? "en" : "nl")}
@@ -177,13 +177,17 @@ export default function LandingPage() {
                 {beta ? "Gratis aanmelden" : t.landing.heroCta}
               </Link>
               <a
-                href="#prijzen"
+                href={beta ? "#functies" : "#prijzen"}
                 className={`btn-secondary ${styles.btnSecondary}`}
               >
-                {t.landing.heroCtaSecondary}
+                {beta ? "Bekijk functies" : t.landing.heroCtaSecondary}
               </a>
             </div>
-            <p className={styles.heroReassurance}>{t.landing.heroReassurance}</p>
+            <p className={styles.heroReassurance}>
+              {beta
+                ? "Gratis tijdens de bèta · Geen creditcard · Stop wanneer je wilt"
+                : t.landing.heroReassurance}
+            </p>
           </div>
 
           <div>
