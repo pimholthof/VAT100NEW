@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { m as motion, AnimatePresence } from "framer-motion";
-import { Bot, Camera, FileText, Clock } from "lucide-react";
+import { Camera, FileText, Clock } from "lucide-react";
 
 import { getDashboardData, type DashboardData, type UpcomingInvoice } from "@/features/dashboard/actions";
 import { updateInvoiceStatus, sendReminder } from "@/features/invoices/actions";
@@ -18,9 +18,8 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useToast } from "@/components/ui/Toast";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
-import TaxAgentChat from "@/components/ai/TaxAgentChat";
 
-type SheetType = "scan" | "invoice" | "hours" | "ai" | null;
+type SheetType = "scan" | "invoice" | "hours" | null;
 
 export default function MobileDashboard({
   initialResult,
@@ -220,16 +219,6 @@ export default function MobileDashboard({
         )}
       </section>
 
-      {/* AI Floating Action Button */}
-      <button
-        type="button"
-        onClick={() => setActiveSheet("ai")}
-        aria-label="Open AI assistent"
-        className="mobile-dashboard-fab"
-      >
-        <Bot size={22} strokeWidth={1.5} />
-      </button>
-
       {/* Bottom Sheets */}
       <BottomSheet
         open={activeSheet === "scan"}
@@ -247,14 +236,6 @@ export default function MobileDashboard({
         <QuickLogSheet onDone={() => setActiveSheet(null)} />
       </BottomSheet>
 
-      <BottomSheet
-        open={activeSheet === "ai"}
-        onClose={() => setActiveSheet(null)}
-        title="AI fiscale assistent"
-        maxHeight="90dvh"
-      >
-        <TaxAgentChat />
-      </BottomSheet>
     </div>
   );
 }

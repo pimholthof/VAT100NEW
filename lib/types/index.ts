@@ -346,8 +346,6 @@ export interface Plan {
   sort_order: number;
   created_at: string;
   billing_interval?: "monthly" | "yearly";
-  ai_ocr_quota?: number | null;
-  ai_chat_quota?: number | null;
   includes_digipoort?: boolean;
 }
 

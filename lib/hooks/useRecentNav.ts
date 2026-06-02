@@ -31,7 +31,6 @@ const LABEL_RULES: Array<{ match: RegExp; label: string }> = [
   { match: /^\/dashboard\/report\/?$/, label: "Rapporten" },
   { match: /^\/dashboard\/berichten\/?$/, label: "Berichten" },
   { match: /^\/dashboard\/settings/, label: "Instellingen" },
-  { match: /^\/dashboard\/ai-assistant$/, label: "AI assistent" },
 ];
 
 function labelFor(path: string): string | null {

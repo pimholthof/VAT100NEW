@@ -9,7 +9,6 @@ import type { ActionResult, Receipt, ReceiptInput, VatRate } from "@/lib/types";
 import { receiptSchema, uuidSchema, validate } from "@/lib/validation";
 import { calculateVat } from "@/lib/format";
 import { modelFor } from "@/lib/ai/models";
-import { consumeAiQuota } from "@/lib/ai/quota";
 
 export async function getReceipts(filters?: {
   search?: string;
@@ -442,9 +441,6 @@ export async function scanReceiptWithAI(
     const planCheck = await requirePlan("studio");
     if (planCheck.error !== null) return { error: planCheck.error };
     const { supabase, user } = planCheck;
-
-    const quotaCheck = await consumeAiQuota(user.id, "ocr");
-    if (quotaCheck.error !== null) return { error: quotaCheck.error };
 
     // Get receipt to find storage_path
     const { data: receipt, error: receiptError } = await supabase

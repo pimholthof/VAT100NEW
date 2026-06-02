@@ -5,7 +5,6 @@ import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, ClientInput, VatRate, VatScheme, InvoiceUnit } from "@/lib/types";
 import type { InvoiceOCRData, ExtractedClientData } from "./types/invoice-ocr";
 import { modelFor } from "@/lib/ai/models";
-import { consumeAiQuota } from "@/lib/ai/quota";
 
 // ─── Scan Invoice with AI (accepts file directly, no storage needed) ───
 
@@ -82,10 +81,6 @@ export async function scanInvoiceWithAI(
     const { requirePlan } = await import("@/lib/supabase/server");
     const planCheck = await requirePlan("studio");
     if (planCheck.error !== null) return { error: planCheck.error };
-
-    // Hard-quota: voorkom marge-erosie door extreme power-users.
-    const quotaCheck = await consumeAiQuota(planCheck.user.id, "ocr");
-    if (quotaCheck.error !== null) return { error: quotaCheck.error };
 
     const file = formData.get("file") as File | null;
     if (!file) return { error: "Geen bestand geselecteerd." };
