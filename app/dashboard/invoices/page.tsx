@@ -165,6 +165,8 @@ function InvoicesTab() {
           description={!search && !statusFilter ? "Maak je eerste factuur aan om te beginnen." : undefined}
           actionLabel={!search && !statusFilter ? t.invoices.newInvoiceBtn : undefined}
           actionHref={!search && !statusFilter ? "/dashboard/invoices/new" : undefined}
+          secondaryLabel={!search && !statusFilter ? "Bekijk een voorbeeld" : undefined}
+          secondaryHref={!search && !statusFilter ? "/dashboard/voorbeeld" : undefined}
         />
       ) : (
         <TableWrapper>
