@@ -29,3 +29,14 @@ export function isDigipoortEnabled(): boolean {
 export function isBetaMode(): boolean {
   return process.env.NEXT_PUBLIC_BETA_MODE === "true";
 }
+
+/**
+ * Groei-/community-extra's: het referral-programma en het publieke netwerk.
+ *
+ * Niet-fiscale features die los van de kern staan. Standaard UIT — de kern
+ * van VAT100 is de fiscale tool, niet een community. Zet aan via
+ * `NEXT_PUBLIC_GROWTH_ENABLED=true` wanneer je deze wilt tonen.
+ */
+export function isGrowthEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_GROWTH_ENABLED === "true";
+}
