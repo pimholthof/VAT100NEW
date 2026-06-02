@@ -648,6 +648,26 @@ a {
   font-size: var(--text-body-lg);
 }
 
+/* ─── Glass Surface (Turrell-inspired warm depth) ─── */
+/* Luminous, slightly-raised panel over the warm paper background.
+   Degrades gracefully where backdrop-filter is unsupported (the rgba
+   background alone still reads as an elevated surface). */
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 2px rgba(26, 26, 25, 0.02),
+    0 12px 32px rgba(26, 26, 25, 0.04);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: rgba(255, 255, 255, 0.85);
+  }
+}
+
 /* ─── Top Navigation ─── */
 .dashboard-nav {
   position: sticky;
