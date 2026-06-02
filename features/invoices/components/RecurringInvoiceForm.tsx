@@ -15,6 +15,7 @@ import type {
 } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
 import { useToast, ButtonPrimary, ButtonSecondary } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/context";
 
 const FREQ_OPTIONS: { value: RecurringFrequency; label: string }[] = [
   { value: "weekly", label: "Wekelijks" },
@@ -51,6 +52,7 @@ export function RecurringInvoiceForm({
   onCancel,
 }: RecurringInvoiceFormProps) {
   const { toast } = useToast();
+  const { t } = useLocale();
 
   const [clientId, setClientId] = useState(existing?.client_id ?? "");
   const [frequency, setFrequency] = useState<RecurringFrequency>(
@@ -303,7 +305,7 @@ export function RecurringInvoiceForm({
             className="input"
             rows={2}
             style={{ width: "100%", resize: "vertical" }}
-            placeholder="Optionele notitie op de factuur"
+            placeholder={t.invoices.notesPlaceholder}
           />
         </div>
       </div>
@@ -335,7 +337,7 @@ export function RecurringInvoiceForm({
               value={line.description}
               onChange={(e) => updateLine(i, "description", e.target.value)}
               className="input"
-              placeholder="Omschrijving"
+              placeholder={t.invoices.lineDescription}
             />
             <input
               type="number"
@@ -346,7 +348,7 @@ export function RecurringInvoiceForm({
               className="input"
               min={0}
               step={0.5}
-              placeholder="Aantal"
+              placeholder={t.invoices.quantity}
             />
             <select
               value={line.unit}
@@ -366,7 +368,7 @@ export function RecurringInvoiceForm({
               className="input"
               min={0}
               step={0.01}
-              placeholder="Tarief"
+              placeholder={t.invoices.rate}
             />
             {lines.length > 1 && (
               <button
