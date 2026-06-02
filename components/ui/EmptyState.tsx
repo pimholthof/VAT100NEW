@@ -87,7 +87,7 @@ export function EmptyState({
             opacity: 0.5,
             color: "var(--foreground)",
             textDecoration: "none",
-            borderBottom: "0.5px solid rgba(0,0,0,0.2)",
+            borderBottom: "var(--border-light)",
             paddingBottom: 1,
           }}
         >

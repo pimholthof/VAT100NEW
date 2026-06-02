@@ -1,7 +1,7 @@
 import React from "react";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline";
+  variant?: "primary" | "secondary";
   loading?: boolean;
 }
 
@@ -23,13 +23,8 @@ function Spinner({ size = 14 }: { size?: number }) {
   );
 }
 
-function buttonClass(variant: "primary" | "secondary" | "outline", extra?: string) {
-  const base =
-    variant === "primary"
-      ? "btn-primary"
-      : variant === "secondary"
-      ? "btn-secondary"
-      : "btn-outline";
+function buttonClass(variant: "primary" | "secondary", extra?: string) {
+  const base = variant === "primary" ? "btn-primary" : "btn-secondary";
   return `${base}${extra ? ` ${extra}` : ""}`;
 }
 

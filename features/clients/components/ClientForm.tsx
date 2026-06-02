@@ -210,7 +210,7 @@ export function ClientForm({ client }: ClientFormProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onBlur={() => validateField("email", email)}
-          placeholder="email@voorbeeld.nl"
+          placeholder={t.clients.emailPlaceholder}
           className="form-input"
         />
       </FieldGroup>
