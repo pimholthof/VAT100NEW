@@ -6,6 +6,7 @@ import { getProfile, updateProfile } from "@/features/profile/actions";
 import type { Profile } from "@/lib/types";
 import { FieldGroup, ButtonPrimary, ErrorMessage } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
+import Link from "next/link";
 
 export default function SettingsPage() {
   const { t } = useLocale();
@@ -391,6 +392,17 @@ function SettingsForm({ profile }: { profile: Profile | null }) {
           >
             {mutation.isPending ? t.common.busy : t.common.save}
           </ButtonPrimary>
+        </div>
+
+        {/* Privacy & gegevens */}
+        <div style={{ paddingTop: 24, marginTop: 24, borderTop: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
+          <Link
+            href="/dashboard/settings/privacy"
+            className="label"
+            style={{ color: "var(--foreground)", textDecoration: "none", opacity: 0.6 }}
+          >
+            Privacy &amp; gegevens — download of verwijder je account →
+          </Link>
         </div>
       </div>
     </div>
