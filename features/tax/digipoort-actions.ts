@@ -2,6 +2,7 @@
 
 import { requirePlan } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { isDigipoortEnabled } from "@/lib/config/features";
 import type { ActionResult } from "@/lib/types";
 import {
   submitToDigipoort,
@@ -24,6 +25,16 @@ export interface FileDigipoortInput {
 export async function fileBtwViaDigipoort(
   input: FileDigipoortInput,
 ): Promise<ActionResult<{ reference: string | null; status: string }>> {
+  // Tot de Digipoort-productie-integratie gecertificeerd is, weigeren we de
+  // actie volledig — geen draft, geen nep-referentie. De gebruiker exporteert
+  // de aangifte als PDF en dient die in via Mijn Belastingdienst Zakelijk.
+  if (!isDigipoortEnabled()) {
+    return {
+      error:
+        "Rechtstreeks indienen via Digipoort is nog niet beschikbaar. Exporteer je aangifte als PDF en dien deze in via Mijn Belastingdienst Zakelijk.",
+    };
+  }
+
   const planCheck = await requirePlan("plus");
   if (planCheck.error !== null) return { error: planCheck.error };
 

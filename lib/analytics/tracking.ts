@@ -8,6 +8,9 @@
 import { createServiceClient } from "@/lib/supabase/service";
 
 export type UserEventType =
+  | "registered"
+  | "onboarding_completed"
+  | "vat_viewed"
   | "invoice_created"
   | "invoice_sent"
   | "invoice_paid"

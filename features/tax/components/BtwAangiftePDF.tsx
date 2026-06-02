@@ -247,26 +247,28 @@ export function BtwAangiftePDF({ data }: { data: BtwAangifteData }) {
       rows: [
         { code: "1a", label: "Leveringen/diensten belast met hoog tarief (21%)", omzet: data.rubriek1a.omzet, btw: data.rubriek1a.btw },
         { code: "1b", label: "Leveringen/diensten belast met laag tarief (9%)", omzet: data.rubriek1b.omzet, btw: data.rubriek1b.btw },
-        { code: "1c", label: "Leveringen/diensten belast met overige tarieven (0%)", omzet: data.rubriek1c.omzet, btw: data.rubriek1c.btw },
+        { code: "1c", label: "Leveringen/diensten belast met overige tarieven", omzet: data.rubriek1c.omzet, btw: data.rubriek1c.btw },
+        { code: "1e", label: "Leveringen/diensten belast met 0% of niet bij u belast", omzet: data.rubriek1e.omzet, btw: data.rubriek1e.btw },
       ],
     },
     {
-      title: "2. Intracommunautaire prestaties",
+      title: "2. Verleggingsregelingen binnenland",
       rows: [
-        { code: "2a", label: "Intracommunautaire leveringen", omzet: data.rubriek2a.omzet, btw: data.rubriek2a.btw },
+        { code: "2a", label: "Leveringen/diensten waarbij de btw naar u is verlegd", omzet: data.rubriek2a.omzet, btw: data.rubriek2a.btw },
       ],
     },
     {
-      title: "3. Verleggingsregelingen",
+      title: "3. Prestaties naar of in het buitenland",
       rows: [
-        { code: "3b", label: "Verlegging van omzetbelasting (diensten binnen EU)", omzet: data.rubriek3b.omzet, btw: data.rubriek3b.btw },
+        { code: "3a", label: "Leveringen naar landen buiten de EU (uitvoer)", omzet: data.rubriek3a.omzet, btw: data.rubriek3a.btw },
+        { code: "3b", label: "Leveringen naar / diensten in landen binnen de EU", omzet: data.rubriek3b.omzet, btw: data.rubriek3b.btw },
       ],
     },
     {
-      title: "4. Buitenlandse prestaties",
+      title: "4. Prestaties vanuit het buitenland aan u",
       rows: [
-        { code: "4a", label: "Leveringen naar landen buiten de EU", omzet: data.rubriek4a.omzet, btw: data.rubriek4a.btw },
-        { code: "4b", label: "Diensten naar landen buiten de EU", omzet: data.rubriek4b.omzet, btw: data.rubriek4b.btw },
+        { code: "4a", label: "Verwerving van goederen/diensten uit landen buiten de EU", omzet: data.rubriek4a.omzet, btw: data.rubriek4a.btw },
+        { code: "4b", label: "Verwerving van goederen/diensten uit landen binnen de EU", omzet: data.rubriek4b.omzet, btw: data.rubriek4b.btw },
       ],
     },
   ];

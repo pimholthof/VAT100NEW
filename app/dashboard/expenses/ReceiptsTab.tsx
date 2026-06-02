@@ -178,6 +178,8 @@ export default function ReceiptsTab() {
           }
           actionLabel={!search && !categoryFilter ? t.receipts.addFirst : undefined}
           actionHref={!search && !categoryFilter ? "/dashboard/receipts/new" : undefined}
+          secondaryLabel={!search && !categoryFilter ? "Bekijk een voorbeeld" : undefined}
+          secondaryHref={!search && !categoryFilter ? "/dashboard/voorbeeld" : undefined}
         />
       ) : (
         <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>

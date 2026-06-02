@@ -5,6 +5,11 @@
  * - Belastingdienst: Box 1 tarieven, heffingskortingen, KIA, afschrijving
  * - Rijksoverheid: Belastingplan 2026
  *
+ * Verificatiestatus van alle constanten: zie docs/fiscal-constants-2026.md.
+ * Geverifieerd 2026: Box 1-schijven, MKB 12,7%, zelfstandigenaftrek €1.200,
+ * AHK max/percentage/nulpunt, arbeidskorting-afbouw. Te bevestigen door een
+ * fiscalist: arbeidskorting-maximum en AHK-afbouwgrens (zie inline-noten).
+ *
  * Alle bedragen in euro's. Alle tarieven als decimaal (0.3575 = 35,75%).
  */
 
@@ -24,10 +29,14 @@ const MKB_VRIJSTELLING_RATE = 0.127; // 12,7% van (winst - ondernemersaftrek)
 // ─── Algemene heffingskorting 2026 ───
 
 const AHK_MAX = 3_115;
+// Te bevestigen door fiscalist: secundaire bron noemt €29.736 (verschil €3).
 const AHK_AFBOUW_START = 29_739;
 const AHK_AFBOUW_RATE = 0.06398; // €0 bij ≥ €78.426
 
 // ─── Arbeidskorting 2026 (sleuteltabel: €996 / €5.325 / €5.712) ───
+// Te bevestigen door fiscalist: secundaire bron noemt een maximum van €5.685
+// (verschil €27). Het maximum volgt uit de drie opbouwtrajecten hieronder;
+// pas die aan, niet alleen TAX_CONSTANTS.akMax. Zie docs/fiscal-constants-2026.md.
 
 const AK_TRAJECT1_END = 11_691;
 const AK_TRAJECT1_RATE = 0.08521; // → max €996
@@ -467,16 +476,18 @@ export function calculateZZPTaxProjection(input: {
     Math.max(0, jaarOmzetExBtw - jaarKostenExBtw - totalAfschrijvingen - kilometerAftrek),
   );
 
-  // Aftrekposten
-  const zelfstandigenaftrek = Math.min(ZELFSTANDIGENAFTREK, brutoWinst);
-  const winstNaAftrek = Math.max(0, brutoWinst - zelfstandigenaftrek);
-  const mkbVrijstelling = round2(winstNaAftrek * MKB_VRIJSTELLING_RATE);
+  // Volgorde conform IB-winstberekening:
+  //  1. investeringsaftrek (KIA) verlaagt de winst
+  //  2. ondernemersaftrek (zelfstandigenaftrek)
+  //  3. MKB-winstvrijstelling over het bedrag ná ondernemersaftrek
   const kia = calculateKIA(totalInvestments);
+  const winstNaKia = Math.max(0, brutoWinst - kia);
+  const zelfstandigenaftrek = Math.min(ZELFSTANDIGENAFTREK, winstNaKia);
+  const winstNaAftrek = Math.max(0, winstNaKia - zelfstandigenaftrek);
+  const mkbVrijstelling = round2(winstNaAftrek * MKB_VRIJSTELLING_RATE);
 
   // Belastbaar inkomen
-  const belastbaarInkomen = round2(
-    Math.max(0, winstNaAftrek - mkbVrijstelling - kia),
-  );
+  const belastbaarInkomen = round2(Math.max(0, winstNaAftrek - mkbVrijstelling));
 
   // Inkomstenbelasting
   const inkomstenbelasting = calculateBox1Tax(belastbaarInkomen);
@@ -503,13 +514,12 @@ export function calculateZZPTaxProjection(input: {
     0,
     prognoseJaarOmzet - prognoseJaarKosten - totalAfschrijvingen - prognoseKmAftrek,
   );
-  const prognoseZA = Math.min(ZELFSTANDIGENAFTREK, prognoseWinst);
-  const prognoseNaAftrek = Math.max(0, prognoseWinst - prognoseZA);
-  const prognoseMKB = round2(prognoseNaAftrek * MKB_VRIJSTELLING_RATE);
   const prognoseKIA = calculateKIA(totalInvestments); // KIA is niet geannualiseerd
-  const prognoseBelastbaar = round2(
-    Math.max(0, prognoseNaAftrek - prognoseMKB - prognoseKIA),
-  );
+  const prognoseNaKia = Math.max(0, prognoseWinst - prognoseKIA);
+  const prognoseZA = Math.min(ZELFSTANDIGENAFTREK, prognoseNaKia);
+  const prognoseNaAftrek = Math.max(0, prognoseNaKia - prognoseZA);
+  const prognoseMKB = round2(prognoseNaAftrek * MKB_VRIJSTELLING_RATE);
+  const prognoseBelastbaar = round2(Math.max(0, prognoseNaAftrek - prognoseMKB));
   const prognoseIB = calculateBox1Tax(prognoseBelastbaar);
   const prognoseAHK = calculateAlgemeneHeffingskorting(prognoseBelastbaar);
   const prognoseAK = calculateArbeidskorting(prognoseBelastbaar);

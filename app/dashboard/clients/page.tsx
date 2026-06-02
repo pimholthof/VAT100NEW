@@ -84,6 +84,8 @@ export default function ClientsPage() {
           description={!search.trim() ? "Voeg je eerste klant toe om facturen te kunnen sturen." : undefined}
           actionLabel={!search.trim() ? t.clients.newClientBtn : undefined}
           actionHref={!search.trim() ? "/dashboard/clients/new" : undefined}
+          secondaryLabel={!search.trim() ? "Bekijk een voorbeeld" : undefined}
+          secondaryHref={!search.trim() ? "/dashboard/voorbeeld" : undefined}
         />
       ) : (
         <TableWrapper>

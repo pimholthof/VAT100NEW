@@ -16,6 +16,9 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 import { AangifteExplainer } from "@/features/tax/components/AangifteExplainer";
 import { DigipoortSubmitButton } from "@/features/tax/components/DigipoortSubmitButton";
+import { FiscalDisclaimer } from "@/components/ui/FiscalDisclaimer";
+import { InlineFeedback } from "@/components/feedback/InlineFeedback";
+import { isBetaMode } from "@/lib/config/features";
 
 export default function TaxContent() {
   const { data: btwResult, isLoading: btwLoading } = useQuery({
@@ -162,6 +165,14 @@ export default function TaxContent() {
               <BreakdownLine label="Belastingkorting (arbeid)" value={-projection.arbeidskorting} negative />
               <BreakdownTotal label="Geschatte inkomstenbelasting" value={projection.nettoIB} highlight />
             </BreakdownSection>
+
+            <div style={{ marginTop: 20 }}>
+              <FiscalDisclaimer>
+                Indicatie van je inkomstenbelasting op basis van de tarieven {TAX_CONSTANTS.year},
+                je facturen, bonnen en ingevulde gegevens. Geen belastingadvies — je
+                definitieve aanslag kan afwijken. Twijfel je? Leg het voor aan een boekhouder.
+              </FiscalDisclaimer>
+            </div>
           </div>
         </div>
       )}
@@ -422,6 +433,12 @@ export default function TaxContent() {
         />
       </div>
 
+      {isBetaMode() && (
+        <div style={{ marginTop: "var(--space-section)", display: "flex", justifyContent: "center" }}>
+          <InlineFeedback context="Belasting-cijfers" />
+        </div>
+      )}
+
       {/* ══ DISCLAIMER ══ */}
       <div style={{
         padding: "20px 0",
@@ -433,6 +450,7 @@ export default function TaxContent() {
         opacity: 0.4,
       }}>
         Dit is een schatting op basis van je facturen en bonnetjes.
+        Deze cijfers zijn indicaties, geen belastingadvies.
         Doe je officiële BTW-aangifte via de Belastingdienst.
         Bewaar je administratie minimaal 7 jaar.
         Berekeningen op basis van belastingtarieven {TAX_CONSTANTS.year}.

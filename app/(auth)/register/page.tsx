@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, Suspense, useEffect } from "react";
 import { useLocale } from "@/lib/i18n/context";
+import { isBetaMode } from "@/lib/config/features";
 
 const inputStyle: React.CSSProperties = {
   fontSize: "14px",
@@ -29,6 +30,7 @@ function RegisterForm() {
   const { t } = useLocale();
   const [leadData, setLeadData] = useState<{ id: string, email: string, full_name: string, company_name: string, plan_id: string | null } | null>(null);
   const [isLoadingToken, setIsLoadingToken] = useState(!!token);
+  const beta = isBetaMode();
 
   useEffect(() => {
     if (token) {
@@ -167,6 +169,12 @@ function RegisterForm() {
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             {plan && <input type="hidden" name="plan" value={plan} />}
             {referralCode && <input type="hidden" name="referral_code" value={referralCode} />}
+            {beta && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label htmlFor="invite_code" className="label">Uitnodigingscode (bèta)</label>
+                <input id="invite_code" name="invite_code" type="text" required autoComplete="off" placeholder="Ontvangen van VAT100" style={inputStyle} />
+              </div>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label htmlFor="full_name" className="label">{t.auth.fullName}</label>
               <input id="full_name" name="full_name" type="text" required autoComplete="name" style={inputStyle} defaultValue={leadData?.full_name || ""} />
@@ -182,7 +190,7 @@ function RegisterForm() {
               <input id="email" name="email" type="email" required autoComplete="email" style={inputStyle} defaultValue={leadData?.email || ""} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label htmlFor="password" className="label">{t.auth.password}</label>
                 <input id="password" name="password" type="password" required minLength={6} autoComplete="new-password" style={inputStyle} />
@@ -214,7 +222,9 @@ function RegisterForm() {
               className="label"
               style={{ margin: 0, opacity: 0.35, lineHeight: 1.6 }}
             >
-              Na registratie rond je eerst je basisgegevens af en kies je daarna het abonnement dat bij je past.
+              {beta
+                ? "Gratis tijdens de bèta — geen betaalgegevens nodig. Na registratie rond je je basisgegevens af en kun je meteen aan de slag."
+                : "Na registratie rond je eerst je basisgegevens af en kies je daarna het abonnement dat bij je past."}
             </p>
           </form>
 

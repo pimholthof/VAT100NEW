@@ -4,6 +4,8 @@ import { DashboardNav } from "@/components/layout/DashboardNav";
 import { DashboardTransition } from "@/components/layout/DashboardTransition";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
+import { BetaBanner } from "@/components/feedback/BetaBanner";
 import { getUnreadCount } from "@/features/chat/actions";
 import { todayIso as getTodayIso } from "@/lib/utils/date-helpers";
 
@@ -46,11 +48,13 @@ export default async function DashboardLayout({
       />
       <DashboardTransition>
         <main id="main" className="dashboard-content">
+          <BetaBanner />
           <Breadcrumb />
           {children}
         </main>
       </DashboardTransition>
       <MobileBottomNav />
+      <FeedbackWidget />
     </div>
   );
 }

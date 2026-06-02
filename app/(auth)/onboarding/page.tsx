@@ -144,11 +144,10 @@ export default function OnboardingPage() {
     const errors: Record<string, string | null> = {};
 
     if (step === 1) {
-      if (!kvk || !/^[0-9]{8}$/.test(kvk)) {
+      // KVK/BTW zijn optioneel in de bèta — alleen het formaat checken als ze
+      // zijn ingevuld. Zo komt iedereen snel binnen en vult de rest later aan.
+      if (kvk && !/^[0-9]{8}$/.test(kvk)) {
         errors.kvk = t.auth.eightDigits;
-      }
-      if (!btw) {
-        errors.btw = "BTW-nummer is verplicht";
       }
     } else if (step === 2) {
       if (!address.trim()) errors.address = "Straat + nummer is verplicht";
@@ -221,6 +220,36 @@ export default function OnboardingPage() {
     }
   }
 
+  // Onboarding overslaan: profiel met wat er nu staat opslaan en meteen door
+  // naar het dashboard. Profiel bestaat al (signup-trigger), dus dit is veilig.
+  async function handleSkip() {
+    setError(null);
+    setPending(true);
+
+    const formData = new FormData();
+    formData.append("kvk_number", kvk);
+    formData.append("btw_number", btw);
+    formData.append("studio_name", studioName);
+    formData.append("address", address);
+    formData.append("postal_code", postalCode);
+    formData.append("city", city);
+    formData.append("iban", iban);
+    formData.append("bic", bic);
+    formData.append("vat_frequency", vatFrequency);
+    formData.append("bookkeeping_start_date", getBookkeepingStartDate());
+    formData.append("estimated_annual_income", estimatedIncome);
+    formData.append("uses_kor", String(usesKor));
+    formData.append("meets_urencriterium", String(meetsUrencriterium));
+    if (plan) formData.append("plan", plan);
+
+    const result = await completeOnboarding(formData);
+
+    if (result?.error) {
+      setError(result.error);
+      setPending(false);
+    }
+  }
+
   async function handleBankSelect(institutionId: string) {
     setBankPending(true);
     try {
@@ -244,7 +273,7 @@ export default function OnboardingPage() {
   const isBankStep = step === TOTAL_STEPS; // Step 5 is bank connection
 
   const stepContext: Record<number, { title: string; sub: string }> = {
-    1: { title: "Je bedrijf", sub: "KVK en BTW — we zoeken de rest op." },
+    1: { title: "Je bedrijf", sub: "KVK en BTW zijn optioneel — vul later aan." },
     2: { title: "Je adres", sub: "Komt op je facturen te staan." },
     3: { title: "Fiscaal profiel", sub: "Zodat VAT100 je aangiftes correct berekent." },
     4: { title: "Bankgegevens", sub: "IBAN voor op je facturen." },
@@ -316,7 +345,7 @@ export default function OnboardingPage() {
               <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 8, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
                 {t.auth.registration}
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 24 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <label htmlFor="kvk_number" className="label">{t.auth.kvkNumber}</label>
                   <input
@@ -324,7 +353,6 @@ export default function OnboardingPage() {
                     type="text"
                     value={kvk}
                     onChange={(e) => setKvk(e.target.value)}
-                    required
                     pattern="[0-9]{8}"
                     title={t.auth.eightDigits}
                     autoComplete="off"
@@ -341,7 +369,6 @@ export default function OnboardingPage() {
                     type="text"
                     value={btw}
                     onChange={(e) => setBtw(e.target.value)}
-                    required
                     placeholder="NL000000000B01"
                     autoComplete="off"
                     style={monoInputStyle}
@@ -351,6 +378,10 @@ export default function OnboardingPage() {
                   )}
                 </div>
               </div>
+
+              <p style={{ fontSize: 11, opacity: 0.4, marginTop: 12 }}>
+                Optioneel — je kunt dit later in je instellingen aanvullen.
+              </p>
 
               {/* KVK auto-lookup result */}
               {kvkLookupLoading && (
@@ -409,7 +440,7 @@ export default function OnboardingPage() {
                     <span style={{ fontSize: 11, color: "var(--color-accent)" }}>{fieldErrors.address}</span>
                   )}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 24 }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     <label htmlFor="postal_code" className="label">{t.auth.postalCode}</label>
                     <input
@@ -650,7 +681,6 @@ export default function OnboardingPage() {
                     type="text"
                     value={iban}
                     onChange={(e) => setIban(e.target.value)}
-                    required
                     placeholder="NL00BANK0000000000"
                     pattern="[A-Z]{2}[0-9]{2}[A-Z]{4}[0-9]{10}"
                     title="e.g. NL00BANK0000000000"
@@ -756,6 +786,24 @@ export default function OnboardingPage() {
               </ButtonPrimary>
             ) : null}
           </div>
+
+          <button
+            type="button"
+            onClick={handleSkip}
+            disabled={pending || bankPending}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 12,
+              opacity: 0.45,
+              color: "var(--foreground)",
+              alignSelf: "center",
+              padding: 4,
+            }}
+          >
+            Sla over voor nu — ik vul dit later aan
+          </button>
         </form>
       </div>
     </div>

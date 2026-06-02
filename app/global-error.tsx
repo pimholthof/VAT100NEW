@@ -3,6 +3,11 @@
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
+// Let op: global-error vervangt de root-layout volledig, dus hier geen
+// app-CSS/tokens — alleen inline styles met letterlijke kleuren uit het palet.
+const INK = "#1a1a19";
+const PAPER = "#f4f3f1";
+
 export default function GlobalError({
   error,
   reset,
@@ -13,9 +18,10 @@ export default function GlobalError({
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
+
   return (
     <html lang="nl">
-      <body>
+      <body style={{ margin: 0 }}>
         <div
           style={{
             minHeight: "100vh",
@@ -23,35 +29,69 @@ export default function GlobalError({
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
+            textAlign: "center",
+            background: PAPER,
+            color: INK,
             fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
             padding: 40,
           }}
         >
-          <div
+          <span
             style={{
-              padding: "12px 16px",
-              borderLeft: "2px solid #0D0D0B",
-              fontSize: "14px",
-              marginBottom: 24,
+              fontFamily: "'Geist Mono', monospace",
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              fontSize: 12,
+              opacity: 0.35,
+              marginBottom: 28,
             }}
           >
-            {error.message || "Er is een fout opgetreden."}
+            VAT100
+          </span>
+          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 10px" }}>
+            Er ging iets onverwachts mis
+          </h1>
+          <p style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.6, maxWidth: 360, margin: "0 0 28px" }}>
+            We zijn automatisch op de hoogte gebracht en kijken ernaar. Probeer het
+            opnieuw — meestal is het zo opgelost.
+          </p>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+            <button
+              onClick={reset}
+              style={{
+                fontSize: 14,
+                fontWeight: 500,
+                padding: "11px 20px",
+                border: "none",
+                borderRadius: 8,
+                background: INK,
+                color: PAPER,
+                cursor: "pointer",
+              }}
+            >
+              Probeer opnieuw
+            </button>
+            <button
+              onClick={() => {
+                window.location.href = "/";
+              }}
+              style={{
+                fontSize: 14,
+                fontWeight: 500,
+                padding: "11px 20px",
+                border: "1px solid rgba(26,26,25,0.2)",
+                borderRadius: 8,
+                background: "transparent",
+                color: INK,
+                cursor: "pointer",
+              }}
+            >
+              Naar VAT100
+            </button>
           </div>
-          <button
-            onClick={reset}
-            style={{
-              fontSize: "14px",
-              fontWeight: 500,
-              padding: "10px 16px",
-              border: "1px solid rgba(13, 13, 11, 0.2)",
-              borderRadius: 4,
-              background: "transparent",
-              color: "#0D0D0B",
-              cursor: "pointer",
-            }}
-          >
-            Probeer opnieuw
-          </button>
+          {error.digest && (
+            <p style={{ fontSize: 12, opacity: 0.3, marginTop: 28 }}>Foutcode: {error.digest}</p>
+          )}
         </div>
       </body>
     </html>

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { fileBtwViaDigipoort } from "@/features/tax/digipoort-actions";
+import { isDigipoortEnabled } from "@/lib/config/features";
 import type { QuarterStats } from "@/features/tax/actions";
 
 interface DigipoortSubmitButtonProps {
@@ -10,7 +11,8 @@ interface DigipoortSubmitButtonProps {
 
 /**
  * Plus-tier knop: BTW-aangifte rechtstreeks indienen bij de Belastingdienst
- * via Digipoort. Lagere tiers krijgen een upgrade-prompt terug.
+ * via Digipoort. Verborgen zolang de productie-integratie (PKIoverheid) nog
+ * niet is gecertificeerd — zie isDigipoortEnabled().
  */
 export function DigipoortSubmitButton({ quarter }: DigipoortSubmitButtonProps) {
   const [pending, startTransition] = useTransition();
@@ -40,6 +42,8 @@ export function DigipoortSubmitButton({ quarter }: DigipoortSubmitButtonProps) {
       }
     });
   }
+
+  if (!isDigipoortEnabled()) return null;
 
   return (
     <div style={{ display: "inline-flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>

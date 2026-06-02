@@ -8,9 +8,19 @@ interface EmptyStateProps {
   description?: string;
   actionLabel?: string;
   actionHref?: string;
+  secondaryLabel?: string;
+  secondaryHref?: string;
 }
 
-export function EmptyState({ icon, title, description, actionLabel, actionHref }: EmptyStateProps) {
+export function EmptyState({
+  icon,
+  title,
+  description,
+  actionLabel,
+  actionHref,
+  secondaryLabel,
+  secondaryHref,
+}: EmptyStateProps) {
   return (
     <div
       style={{
@@ -66,6 +76,22 @@ export function EmptyState({ icon, title, description, actionLabel, actionHref }
           style={{ marginTop: 24 }}
         >
           {actionLabel}
+        </Link>
+      )}
+      {secondaryLabel && secondaryHref && (
+        <Link
+          href={secondaryHref}
+          style={{
+            marginTop: 14,
+            fontSize: "var(--text-body-sm)",
+            opacity: 0.5,
+            color: "var(--foreground)",
+            textDecoration: "none",
+            borderBottom: "0.5px solid rgba(0,0,0,0.2)",
+            paddingBottom: 1,
+          }}
+        >
+          {secondaryLabel}
         </Link>
       )}
     </div>

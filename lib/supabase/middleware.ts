@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isBetaMode } from "@/lib/config/features";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -59,8 +60,10 @@ export async function updateSession(request: NextRequest) {
 
   // Profile checks: admin role + suspended status + subscription
   if (user && !isPublicRoute && !isAuthOnlyRoute) {
+    // Tijdens de bèta is er geen paywall: iedereen die (met uitnodigingscode)
+    // is geregistreerd, krijgt volledige toegang zonder abonnement.
     const needsSubscription =
-      pathname.startsWith("/dashboard");
+      pathname.startsWith("/dashboard") && !isBetaMode();
 
     const profilePromise = supabase
       .from("profiles")

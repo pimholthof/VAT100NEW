@@ -7,9 +7,13 @@ describe("calculateBtwRubrieken", () => {
     expect(r["1a"]).toEqual({ omzet: 0, btw: 0 });
     expect(r["1b"]).toEqual({ omzet: 0, btw: 0 });
     expect(r["1c"]).toEqual({ omzet: 0, btw: 0 });
+    expect(r["1e"]).toEqual({ omzet: 0, btw: 0 });
+    expect(r["3a"]).toEqual({ omzet: 0, btw: 0 });
+    expect(r["3b"]).toEqual({ omzet: 0, btw: 0 });
     expect(r.voorbelasting).toBe(0);
     expect(r.totaalBtw).toBe(0);
     expect(r.rubriek5g).toBe(0);
+    expect(r.rubriek5gAfgerond).toBe(0);
   });
 
   it("routes 21% standard invoice to rubriek 1a", () => {
@@ -49,7 +53,7 @@ describe("calculateBtwRubrieken", () => {
     expect(r["1a"].omzet).toBe(0);
   });
 
-  it("routes 0% standard invoice to rubriek 1c", () => {
+  it("routes 0% standard invoice to rubriek 1e (niet 1c)", () => {
     const r = calculateBtwRubrieken(
       [
         {
@@ -63,10 +67,12 @@ describe("calculateBtwRubrieken", () => {
       ],
       [],
     );
-    expect(r["1c"]).toEqual({ omzet: 500, btw: 0 });
+    expect(r["1e"]).toEqual({ omzet: 500, btw: 0 });
+    expect(r["1c"]).toEqual({ omzet: 0, btw: 0 });
+    expect(r.totaalBtw).toBe(0);
   });
 
-  it("routes EU reverse-charge invoice to 3b and 2a", () => {
+  it("routes EU reverse-charge invoice to 3b only (niet 2a)", () => {
     const r = calculateBtwRubrieken(
       [
         {
@@ -81,12 +87,12 @@ describe("calculateBtwRubrieken", () => {
       [],
     );
     expect(r["3b"].omzet).toBe(800);
-    expect(r["2a"].omzet).toBe(800);
+    expect(r["2a"].omzet).toBe(0); // verlegging náár ons, niet ván ons
     expect(r["1a"].omzet).toBe(0);
     expect(r.totaalBtw).toBe(0);
   });
 
-  it("routes export-outside-EU invoice to 4b", () => {
+  it("routes export-outside-EU invoice to 3a (uitvoer, niet 4b)", () => {
     const r = calculateBtwRubrieken(
       [
         {
@@ -100,7 +106,9 @@ describe("calculateBtwRubrieken", () => {
       ],
       [],
     );
-    expect(r["4b"].omzet).toBe(1500);
+    expect(r["3a"].omzet).toBe(1500);
+    expect(r["4b"].omzet).toBe(0);
+    expect(r.totaalBtw).toBe(0);
   });
 
   it("subtracts credit notes (is_credit_note: true)", () => {
@@ -128,7 +136,7 @@ describe("calculateBtwRubrieken", () => {
     expect(r["1a"]).toEqual({ omzet: 800, btw: 168 });
   });
 
-  it("uses invoice_lines per-rate when present", () => {
+  it("uses invoice_lines per-rate when present (mixed 21% + 9% + 0%)", () => {
     const r = calculateBtwRubrieken(
       [
         {
@@ -140,6 +148,7 @@ describe("calculateBtwRubrieken", () => {
           invoice_lines: [
             { amount: 100, vat_rate: 21 },
             { amount: 50, vat_rate: 9 },
+            { amount: 80, vat_rate: 0 },
           ],
         },
       ],
@@ -147,6 +156,8 @@ describe("calculateBtwRubrieken", () => {
     );
     expect(r["1a"]).toEqual({ omzet: 100, btw: 21 });
     expect(r["1b"]).toEqual({ omzet: 50, btw: 4.5 });
+    expect(r["1e"]).toEqual({ omzet: 80, btw: 0 });
+    expect(r.totaalBtw).toBe(25.5);
   });
 
   it("computes voorbelasting weighted by business_percentage", () => {
@@ -179,6 +190,25 @@ describe("calculateBtwRubrieken", () => {
     expect(r.totaalBtw).toBe(210);
     expect(r.voorbelasting).toBe(60);
     expect(r.rubriek5g).toBe(150);
+  });
+
+  it("rounds the te-betalen figure (5g) to whole euros", () => {
+    const r = calculateBtwRubrieken(
+      [
+        {
+          subtotal_ex_vat: 1000,
+          vat_amount: 210.45,
+          vat_rate: 21,
+          vat_scheme: "standard",
+          is_credit_note: false,
+          invoice_lines: null,
+        },
+      ],
+      [{ vat_amount: 60.6, business_percentage: 100 }],
+    );
+    // 5a 210.45 → 210, 5b 60.60 → 61, saldo 149
+    expect(r.rubriek5g).toBe(149.85);
+    expect(r.rubriek5gAfgerond).toBe(149);
   });
 
   it("treats null vat_scheme as standard", () => {

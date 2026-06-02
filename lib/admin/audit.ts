@@ -16,6 +16,7 @@ export type AuditAction =
   | "lead.payment_initiated"
   | "settings.update"
   | "impersonation.start"
+  | "impersonation.stop"
   | "data.export"
   | "agent.classification"
   | "agent.tax_alert"
@@ -40,7 +41,8 @@ export async function logAdminAction(
   action: AuditAction,
   targetType: AuditTargetType,
   targetId: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
+  ipAddress?: string | null
 ): Promise<void> {
   try {
     const supabase = createServiceClient();
@@ -50,6 +52,7 @@ export async function logAdminAction(
       target_type: targetType,
       target_id: targetId,
       metadata: metadata ?? {},
+      ip_address: ipAddress ?? null,
     });
   } catch (e) {
     // Audit logging should never break the main operation

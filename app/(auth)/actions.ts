@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { isRateLimited } from "@/lib/rate-limit";
+import { isBetaMode } from "@/lib/config/features";
+import { trackUserEvent } from "@/lib/analytics/tracking";
 import { headers } from "next/headers";
 
 export interface AuthResult {
@@ -43,6 +45,18 @@ export async function register(formData: FormData): Promise<AuthResult> {
     return { error: "Te veel pogingen. Probeer het over een minuut opnieuw." };
   }
 
+  // Bèta: registratie is afgeschermd met een gedeelde uitnodigingscode.
+  if (isBetaMode()) {
+    const inviteCode = (formData.get("invite_code") as string | null)?.trim() ?? "";
+    const expected = process.env.BETA_INVITE_CODE?.trim() ?? "";
+    if (!expected) {
+      return { error: "De bèta is nog niet opengesteld." };
+    }
+    if (inviteCode !== expected) {
+      return { error: "Ongeldige uitnodigingscode voor de bèta." };
+    }
+  }
+
   const supabase = await createClient();
 
   const email = formData.get("email") as string;
@@ -76,6 +90,10 @@ export async function register(formData: FormData): Promise<AuthResult> {
     } catch {
       // stil falen: referral is bonus, geen blocker
     }
+  }
+
+  if (data.user?.id) {
+    trackUserEvent(data.user.id, "registered");
   }
 
   const plan = formData.get("plan") as string | null;
@@ -171,6 +189,12 @@ export async function completeOnboarding(
     return { error: error.message };
   }
 
-  const planParam = plan ? `?plan=${plan}` : "";
-  redirect(`/abonnement/kies${planParam}`);
+  trackUserEvent(user.id, "onboarding_completed");
+
+  // Bèta: geen paywall — direct door naar het dashboard. Buiten de bèta
+  // kiest de gebruiker eerst een abonnement.
+  const destination = isBetaMode()
+    ? "/dashboard"
+    : `/abonnement/kies${plan ? `?plan=${plan}` : ""}`;
+  redirect(destination);
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAuth } from "@/lib/supabase/server";
+import { trackUserEvent } from "@/lib/analytics/tracking";
 import type { ActionResult } from "@/lib/types";
 import {
   calculateZZPTaxProjection,
@@ -114,6 +115,7 @@ export async function getBtwOverview(): Promise<ActionResult<QuarterStats[]>> {
     return bq - aq;
   });
 
+  trackUserEvent(user.id, "vat_viewed");
   return { error: null, data: sorted.slice(0, 8) };
 }
 
