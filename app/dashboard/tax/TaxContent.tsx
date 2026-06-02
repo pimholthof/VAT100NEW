@@ -17,6 +17,8 @@ import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 import { AangifteExplainer } from "@/features/tax/components/AangifteExplainer";
 import { DigipoortSubmitButton } from "@/features/tax/components/DigipoortSubmitButton";
 import { FiscalDisclaimer } from "@/components/ui/FiscalDisclaimer";
+import { InlineFeedback } from "@/components/feedback/InlineFeedback";
+import { isBetaMode } from "@/lib/config/features";
 
 export default function TaxContent() {
   const { data: btwResult, isLoading: btwLoading } = useQuery({
@@ -430,6 +432,12 @@ export default function TaxContent() {
           }}
         />
       </div>
+
+      {isBetaMode() && (
+        <div style={{ marginTop: "var(--space-section)", display: "flex", justifyContent: "center" }}>
+          <InlineFeedback context="Belasting-cijfers" />
+        </div>
+      )}
 
       {/* ══ DISCLAIMER ══ */}
       <div style={{
