@@ -1,0 +1,56 @@
+# VAT100 — Launch readiness (bèta)
+
+Single source of truth voor de status richting de gratis bèta-lancering.
+Bijgewerkt: 2026-06-02.
+
+## Gereed (op de bèta-branch)
+
+**Fiscaal**
+- BTW-rubrieken gecorrigeerd naar het officiële OB-model (0%→1e, uitvoer→3a,
+  geen dubbeltelling 2a, hele-euro-afronding).
+- IB-projectie: KIA wordt vóór de MKB-winstvrijstelling afgetrokken.
+- 2026-constanten geverifieerd (zie `fiscal-constants-2026.md`).
+- Fiscale disclaimers ("indicatie, geen belastingadvies") op BTW/IB.
+
+**Bèta & activatie**
+- Gratis bèta via uitnodigingscode (één vlag `NEXT_PUBLIC_BETA_MODE`).
+- Onboarding-frictie weg (KVK/BTW optioneel + overslaan).
+- Voorbeeld-showcase + activerende lege staten.
+- Wrijvingsloze feedback (widget + in-context "kloppen de cijfers?") + admin-inbox.
+- Activatie-funnel (`/admin/analytics`).
+
+**Security & compliance**
+- Digipoort veilig uit (feature-flag + productie-guard tegen nep-"accepted").
+- Impersonation-auditspoor (tamper-proof, IP/duur, `/admin/impersonation`).
+- AVG: data-export (`/api/export/my-data`) + verwijderverzoek.
+- Bestaand: RLS breed, timing-safe cron-secret, Mollie-webhook-verificatie,
+  security-headers (HSTS, X-Frame-Options, nosniff, frame-ancestors).
+
+**Kwaliteit**
+- `npm run build`, typecheck, lint groen; 418 unit tests groen; CI-gate actief.
+- Mobiel geverifieerd (landing/register/login op 390px).
+
+## Bekende follow-ups
+
+| Item | Status | Toelichting |
+|------|--------|-------------|
+| CSP `script-src 'unsafe-inline'` weg (nonces) | **Uitgesteld (bèta-WONTFIX)** | Vereist per-request nonce in middleware + runtime-verificatie; breekt-risico op Next/Mollie/Sentry-scripts. Gemitigeerd door strakke `connect/frame/script`-allowlist + HSTS/X-Frame/nosniff/frame-ancestors. Oppakken vóór schaal/betaald. |
+| `style-src 'unsafe-inline'` weg | Geblokkeerd door inline-styles | Vereist de grote inline-style→tokens refactor (B2). Laag risico (style-injectie < script-injectie). |
+| Arbeidskorting-max / AHK-afbouwgrens | Fiscalist-akkoord nodig | Kleine afwijkingen, inline gemarkeerd; zie `fiscal-constants-2026.md`. |
+| Inline-style-opschoning (B2) | Uitgesteld | Cosmetisch/maintainability; visueel al strak. |
+| Mobiele verificatie auth-schermen | Uitgesteld | Dashboard/onboarding/voorbeeld op de preview met bèta-account. |
+| Volledige wissing na bewaartermijn | Processtap | `deletion_requested_at` gevuld; admin/cron voert de wissing uit. |
+
+## Operationeel — vóór livegang
+
+1. **Migraties draaien** op Supabase (o.a. `feedback`, `impersonation_sessions`,
+   `account_deletion_request`, en de eerdere).
+2. **Env-vars** zetten (productie): `NEXT_PUBLIC_BETA_MODE=true`,
+   `BETA_INVITE_CODE`, `NEXT_PUBLIC_DIGIPOORT_ENABLED=false`, plus de
+   verplichte keys (Supabase, Mollie, Resend, Anthropic, `CRON_SECRET`,
+   `EMAIL_FROM`).
+3. **Fiscalist/RB** laat de BTW-rubrieken en de IB-constanten één keer aftekenen.
+4. **Verwerkersovereenkomsten** sluiten (zie `subverwerkers.md`); Supabase in
+   EU-regio; privacyverklaring aanvullen met alle sub-verwerkers.
+5. **Monitoring/backups** aan (zie `monitoring.md`); Sentry-alerts live; PITR aan.
+6. Optioneel: `npm run security:audit`, E2E tegen staging.
