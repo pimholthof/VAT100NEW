@@ -46,6 +46,21 @@ export async function submitToDigipoort(
   submission: DigipoortSubmission,
 ): Promise<DigipoortResponse> {
   if (MOCK_MODE) {
+    // Veiligheidsnet: in productie NOOIT een nep-"accepted" teruggeven. Dat
+    // zou een gebruiker laten geloven dat de aangifte is ingediend terwijl er
+    // niets naar de Belastingdienst is verzonden — met een verzuimboete als
+    // gevolg. Mock blijft alleen toegestaan buiten productie (dev/staging/test).
+    if (process.env.NODE_ENV === "production") {
+      return {
+        status: "error",
+        reference: null,
+        acceptedAt: null,
+        errors: [
+          "Digipoort-productie-integratie is niet geconfigureerd (geen PKIoverheid-certificaat). De aangifte is NIET verzonden.",
+        ],
+        rawResponse: { mock: true, blockedInProduction: true },
+      };
+    }
     return {
       status: "accepted",
       reference: `MOCK-${submission.filingType}-${submission.period}-${Date.now()}`,
