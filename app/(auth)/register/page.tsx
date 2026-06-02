@@ -190,7 +190,7 @@ function RegisterForm() {
               <input id="email" name="email" type="email" required autoComplete="email" style={inputStyle} defaultValue={leadData?.email || ""} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label htmlFor="password" className="label">{t.auth.password}</label>
                 <input id="password" name="password" type="password" required minLength={6} autoComplete="new-password" style={inputStyle} />

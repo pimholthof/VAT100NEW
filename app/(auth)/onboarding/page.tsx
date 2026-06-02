@@ -345,7 +345,7 @@ export default function OnboardingPage() {
               <p className="label-strong" style={{ margin: "0 0 24px", paddingTop: 8, borderTop: "0.5px solid rgba(13,13,11,0.15)" }}>
                 {t.auth.registration}
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 24 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <label htmlFor="kvk_number" className="label">{t.auth.kvkNumber}</label>
                   <input
@@ -440,7 +440,7 @@ export default function OnboardingPage() {
                     <span style={{ fontSize: 11, color: "var(--color-accent)" }}>{fieldErrors.address}</span>
                   )}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 24 }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     <label htmlFor="postal_code" className="label">{t.auth.postalCode}</label>
                     <input
