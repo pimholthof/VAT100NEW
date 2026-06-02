@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/service";
+import { isGrowthEnabled } from "@/lib/config/features";
 import Link from "next/link";
 
 async function getResources() {
@@ -13,6 +15,8 @@ async function getResources() {
 }
 
 export default async function ResourcesPage() {
+  if (!isGrowthEnabled()) redirect("/dashboard");
+
   const resources = await getResources();
   
   const categories = ["Fiscaal", "Business", "Growth", "Community"];
