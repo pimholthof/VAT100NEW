@@ -46,15 +46,15 @@ describe("Belastingdienst rekenvoorbeelden 2026", () => {
     expect(result.brutoWinst).toBe(41_000);
     // KIA = 5000 * 0.28 = 1400
     expect(result.kia).toBe(1_400);
-    // Zelfstandigenaftrek = 1200 (< brutowinst)
+    // Zelfstandigenaftrek = 1200 (< winst na KIA)
     expect(result.zelfstandigenaftrek).toBe(1_200);
-    // Winst na aftrek = 41000 - 1200 = 39800
-    // MKB-vrijstelling = 39800 * 0.127 = 5054.60
-    expect(result.mkbVrijstelling).toBe(5_054.6);
-    // Belastbaar = 39800 - 5054.60 - 1400 = 33345.40
-    expect(result.belastbaarInkomen).toBe(33_345.4);
-    // Box1 belasting: 33345.40 * 0.3575 = 11920.98 (afgerond)
-    expect(result.inkomstenbelasting).toBe(round2(33_345.4 * 0.3575));
+    // Volgorde: winst − KIA = 41000 − 1400 = 39600; − zelfstandigenaftrek = 38400
+    // MKB-vrijstelling = 38400 * 0.127 = 4876.80
+    expect(result.mkbVrijstelling).toBe(4_876.8);
+    // Belastbaar = 38400 − 4876.80 = 33523.20
+    expect(result.belastbaarInkomen).toBe(33_523.2);
+    // Box1 belasting: 33523.20 * 0.3575 (afgerond)
+    expect(result.inkomstenbelasting).toBe(round2(33_523.2 * 0.3575));
     // NettoIB > 0
     expect(result.nettoIB).toBeGreaterThan(0);
     // Effectief tarief < 50%

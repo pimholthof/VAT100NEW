@@ -264,6 +264,32 @@ describe("calculateZZPTaxProjection", () => {
     expect(result.afschrijvingDetails).toHaveLength(1);
   });
 
+  it("trekt KIA af vóór de MKB-winstvrijstelling", () => {
+    const result = calculateZZPTaxProjection({
+      jaarOmzetExBtw: 50_000,
+      jaarKostenExBtw: 10_000,
+      investeringen: [
+        {
+          id: "1",
+          omschrijving: "Apparatuur",
+          aanschafprijs: 5000,
+          aanschafDatum: "2026-01-01",
+          levensduur: 5,
+          restwaarde: 0,
+        },
+      ],
+      maandenVerstreken: 12,
+      huidigJaar: 2026,
+    });
+
+    // brutoWinst = 50000 - 10000 - 1000 (afschrijving) = 39000
+    expect(result.brutoWinst).toBe(39_000);
+    expect(result.kia).toBe(1_400); // 28% van 5000
+    // Correcte volgorde: (winst - KIA - zelfstandigenaftrek) * (1 - 12,7%)
+    // = (39000 - 1400 - 1200) * 0,873 = 31.777,20
+    expect(result.belastbaarInkomen).toBe(31_777.2);
+  });
+
   it("filtert investeringen onder €450 voor KIA", () => {
     const result = calculateZZPTaxProjection({
       jaarOmzetExBtw: 50_000,
