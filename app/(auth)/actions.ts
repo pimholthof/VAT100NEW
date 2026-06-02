@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { isRateLimited } from "@/lib/rate-limit";
+import { isBetaMode } from "@/lib/config/features";
 import { headers } from "next/headers";
 
 export interface AuthResult {
@@ -41,6 +42,18 @@ export async function register(formData: FormData): Promise<AuthResult> {
   const ip = await getClientIp();
   if (await isRateLimited(`auth-register:${ip}`, 5, 60_000)) {
     return { error: "Te veel pogingen. Probeer het over een minuut opnieuw." };
+  }
+
+  // Bèta: registratie is afgeschermd met een gedeelde uitnodigingscode.
+  if (isBetaMode()) {
+    const inviteCode = (formData.get("invite_code") as string | null)?.trim() ?? "";
+    const expected = process.env.BETA_INVITE_CODE?.trim() ?? "";
+    if (!expected) {
+      return { error: "De bèta is nog niet opengesteld." };
+    }
+    if (inviteCode !== expected) {
+      return { error: "Ongeldige uitnodigingscode voor de bèta." };
+    }
   }
 
   const supabase = await createClient();
@@ -171,6 +184,10 @@ export async function completeOnboarding(
     return { error: error.message };
   }
 
-  const planParam = plan ? `?plan=${plan}` : "";
-  redirect(`/abonnement/kies${planParam}`);
+  // Bèta: geen paywall — direct door naar het dashboard. Buiten de bèta
+  // kiest de gebruiker eerst een abonnement.
+  const destination = isBetaMode()
+    ? "/dashboard"
+    : `/abonnement/kies${plan ? `?plan=${plan}` : ""}`;
+  redirect(destination);
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { joinWaitlist } from "@/features/waitlist/actions";
 import { useLocale } from "@/lib/i18n/context";
+import { isBetaMode } from "@/lib/config/features";
 import DashboardMockup from "@/components/landing/DashboardMockup";
 import InvoiceMockup from "@/components/landing/InvoiceMockup";
 import VatMockup from "@/components/landing/VatMockup";
@@ -18,6 +19,7 @@ export default function LandingPage() {
   const [pending, setPending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { locale, t, setLocale } = useLocale();
+  const beta = isBetaMode();
 
   const features = [
     { title: t.landing.featureInvoices, description: t.landing.featureInvoicesDesc },
@@ -169,10 +171,10 @@ export default function LandingPage() {
             <p className={styles.heroSubtitle}>{t.landing.heroSubtitleNew}</p>
             <div className={styles.heroActions}>
               <Link
-                href={`/register?plan=${primaryPlanId}`}
+                href={beta ? "/register" : `/register?plan=${primaryPlanId}`}
                 className={`btn-primary ${styles.btnPrimary}`}
               >
-                {t.landing.heroCta}
+                {beta ? "Gratis aanmelden" : t.landing.heroCta}
               </Link>
               <a
                 href="#prijzen"
@@ -235,6 +237,20 @@ export default function LandingPage() {
 
       {/* ─── Pricing ─── */}
       <section id="prijzen" className={styles.section}>
+        {beta ? (
+          <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
+            <h2 className={styles.sectionTitle}>Gratis tijdens de bèta</h2>
+            <p style={{ fontSize: 15, lineHeight: 1.7, opacity: 0.6, margin: "0 0 32px" }}>
+              VAT100 is gratis zolang we in bèta zijn. Geen betaalgegevens nodig.
+              Jouw feedback bepaalt mee hoe het product wordt — vandaar dat we
+              met een kleine groep starten.
+            </p>
+            <Link href="/register" className="btn-primary">
+              Gratis aanmelden
+            </Link>
+          </div>
+        ) : (
+        <>
         <h2 className={styles.sectionTitle}>{t.landing.pricingTitle}</h2>
         <div className={styles.pricingGrid}>
           {pricingPlans.map((plan) => (
@@ -269,6 +285,8 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+        </>
+        )}
       </section>
 
       {/* ─── FAQ ─── */}
