@@ -72,8 +72,8 @@ export async function sendAuditReport(options: AuditReportOptions) {
       title: "Audit Rapport",
       contentHtml,
       cta: {
-        label: "BEKIJK AUDIT LOG",
-        url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/audit`
+        label: "BEKIJK FISCAAL OVERZICHT",
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/tax`
       }
     }),
   });
