@@ -125,7 +125,7 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            placeholder="Stad"
+            placeholder="Plaats"
             className="form-input"
           />
         </div>
