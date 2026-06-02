@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { previewImportCSV, importInvoices, importReceipts } from "@/features/import/actions";
 import type { ImportPreview } from "@/features/import/actions";
 import { Th, Td } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/context";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -31,6 +32,7 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
 type ImportType = "invoices" | "receipts";
 
 export default function ImportPage() {
+  const { t } = useLocale();
   const [tab, setTab] = useState<ImportType>("invoices");
   const [csvText, setCsvText] = useState("");
   const [preview, setPreview] = useState<ImportPreview | null>(null);
@@ -88,20 +90,20 @@ export default function ImportPage() {
     : ["vendor_name", "receipt_date", "amount_ex_vat", "vat_amount", "amount_inc_vat", "category"];
 
   const targetLabels: Record<string, string> = {
-    invoice_number: "Factuurnummer",
-    client_name: "Klantnaam",
-    issue_date: "Factuurdatum",
-    due_date: "Vervaldatum",
-    subtotal_ex_vat: "Bedrag excl. BTW",
-    vat_amount: "BTW bedrag",
-    total_inc_vat: "Bedrag incl. BTW",
-    description: "Omschrijving",
-    status: "Status",
-    vendor_name: "Leverancier",
-    receipt_date: "Bondatum",
-    amount_ex_vat: "Bedrag excl. BTW",
-    amount_inc_vat: "Bedrag incl. BTW",
-    category: "Categorie",
+    invoice_number: t.import.fieldInvoiceNumber,
+    client_name: t.import.fieldClientName,
+    issue_date: t.import.fieldIssueDate,
+    due_date: t.import.fieldDueDate,
+    subtotal_ex_vat: t.import.fieldAmountExVat,
+    vat_amount: t.import.fieldVatAmount,
+    total_inc_vat: t.import.fieldAmountIncVat,
+    description: t.import.fieldDescription,
+    status: t.import.fieldStatus,
+    vendor_name: t.import.fieldVendorName,
+    receipt_date: t.import.fieldReceiptDate,
+    amount_ex_vat: t.import.fieldAmountExVat,
+    amount_inc_vat: t.import.fieldAmountIncVat,
+    category: t.import.fieldCategory,
   };
 
   return (
@@ -109,40 +111,39 @@ export default function ImportPage() {
       {/* Header */}
       <div className="page-header" style={{ marginBottom: 48 }}>
         <div>
-          <h1 className="display-title">Importeren</h1>
+          <h1 className="display-title">{t.import.title}</h1>
           <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5 }}>
-            Importeer voorgaande boekhouding via CSV
+            {t.import.subtitleCSV}
           </p>
         </div>
       </div>
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: "24px", marginBottom: "40px", borderBottom: "0.5px solid rgba(13,13,11,0.12)" }}>
-        <button onClick={() => handleTabChange("invoices")} style={tabStyle(tab === "invoices")}>Facturen</button>
-        <button onClick={() => handleTabChange("receipts")} style={tabStyle(tab === "receipts")}>Bonnen / Uitgaven</button>
+        <button onClick={() => handleTabChange("invoices")} style={tabStyle(tab === "invoices")}>{t.import.invoicesTab}</button>
+        <button onClick={() => handleTabChange("receipts")} style={tabStyle(tab === "receipts")}>{t.import.receiptsTab}</button>
       </div>
 
       {/* Success */}
       {result && (
-        <div className="glass" style={{ padding: 24, borderRadius: "var(--radius-md)", marginBottom: 32, border: "1px solid #2E7D32" }}>
-          <p style={{ fontWeight: 600, color: "#2E7D32" }}>
-            Import voltooid: {result.imported} {tab === "invoices" ? "facturen" : "bonnen"} geïmporteerd
-            {result.skipped > 0 && `, ${result.skipped} overgeslagen`}
+        <div className="glass" style={{ padding: 24, borderRadius: "var(--radius-md)", marginBottom: 32, border: "1px solid var(--color-success)" }}>
+          <p style={{ fontWeight: 600, color: "var(--color-success)" }}>
+            {t.import.importComplete} {result.imported} {t.import.imported}
+            {result.skipped > 0 && `, ${result.skipped} ${t.import.skipped}`}
           </p>
         </div>
       )}
 
-      {error && <p style={{ color: "#A51C30", marginBottom: 16 }}>{error}</p>}
+      {error && <p style={{ color: "var(--color-accent)", marginBottom: 16 }}>{error}</p>}
 
       {/* Stap 1: Upload */}
       {!preview && !result && (
         <div className="glass" style={{ padding: 32, borderRadius: "var(--radius-md)" }}>
           <h3 style={{ fontSize: "var(--text-body)", fontWeight: 600, marginBottom: 8 }}>
-            Stap 1: Upload CSV
+            {t.import.step1}
           </h3>
           <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 16 }}>
-            Ondersteunt exports van Moneybird, e-Boekhouden, Excel en andere boekhoudprogramma&apos;s.
-            Zorg dat de eerste rij kolomnamen bevat.
+            {t.import.step1Desc}
           </p>
 
           <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -165,17 +166,17 @@ export default function ImportPage() {
                   cursor: "pointer",
                 }}
               >
-                KIES BESTAND
+                {t.import.chooseFile}
               </button>
             </div>
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 8 }}>Of plak CSV hier:</p>
+            <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 8 }}>{t.import.pasteCSV}</p>
             <textarea
               value={csvText}
               onChange={(e) => setCsvText(e.target.value)}
-              placeholder="Plak hier je CSV data..."
+              placeholder={t.import.pastePlaceholder}
               style={{ ...inputStyle, height: 120, fontFamily: "var(--font-mono)", fontSize: 13 }}
             />
             <button
@@ -193,7 +194,7 @@ export default function ImportPage() {
                 opacity: csvText.trim() ? 1 : 0.3,
               }}
             >
-              {previewMut.isPending ? "VERWERKEN..." : "VOLGENDE"}
+              {previewMut.isPending ? t.import.processing : t.import.nextStep}
             </button>
           </div>
         </div>
@@ -204,10 +205,10 @@ export default function ImportPage() {
         <>
           <div className="glass" style={{ padding: 32, borderRadius: "var(--radius-md)", marginBottom: 32 }}>
             <h3 style={{ fontSize: "var(--text-body)", fontWeight: 600, marginBottom: 8 }}>
-              Stap 2: Controleer kolom-mapping
+              {t.import.step2}
             </h3>
             <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 16 }}>
-              {preview.totalRows} rijen gevonden. Pas de mapping aan indien nodig.
+              {preview.totalRows} {t.import.rowsFound}
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -220,7 +221,7 @@ export default function ImportPage() {
                     onChange={(e) => setMapping({ ...mapping, [header]: e.target.value })}
                     style={{ ...inputStyle, flex: 1, fontSize: 13 }}
                   >
-                    <option value="">— Overslaan —</option>
+                    <option value="">{t.import.skipColumn}</option>
                     {targetFields.map((f) => (
                       <option key={f} value={f}>{targetLabels[f] ?? f}</option>
                     ))}
@@ -233,7 +234,7 @@ export default function ImportPage() {
           {/* Preview tabel */}
           <div className="glass" style={{ padding: 24, borderRadius: "var(--radius-md)", marginBottom: 32 }}>
             <h3 style={{ fontSize: "var(--text-body)", fontWeight: 600, marginBottom: 16 }}>
-              Stap 3: Preview (eerste 5 rijen)
+              {t.import.step3}
             </h3>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -269,7 +270,7 @@ export default function ImportPage() {
                 opacity: importMut.isPending ? 0.5 : 1,
               }}
             >
-              {importMut.isPending ? "IMPORTEREN..." : `IMPORTEER ${preview.totalRows} RIJEN`}
+              {importMut.isPending ? t.import.importing : t.import.importRows.replace("{count}", String(preview.totalRows))}
             </button>
             <button
               onClick={() => { setPreview(null); setCsvText(""); }}
@@ -282,7 +283,7 @@ export default function ImportPage() {
                 cursor: "pointer",
               }}
             >
-              TERUG
+              {t.import.back}
             </button>
           </div>
         </>
