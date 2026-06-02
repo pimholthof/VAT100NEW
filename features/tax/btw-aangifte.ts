@@ -14,25 +14,28 @@ export interface BtwAangifteData {
   // Rubriek 1: Prestaties binnenland
   rubriek1a: { omzet: number; btw: number }; // 21% (hoog tarief)
   rubriek1b: { omzet: number; btw: number }; // 9% (laag tarief)
-  rubriek1c: { omzet: number; btw: number }; // 0% / overige tarieven
+  rubriek1c: { omzet: number; btw: number }; // overige tarieven (niet 0%)
+  rubriek1e: { omzet: number; btw: number }; // 0% / niet bij u belast
 
-  // Rubriek 2: Intracommunautaire prestaties (ICP)
-  rubriek2a: { omzet: number; btw: number }; // Leveringen naar EU-landen
+  // Rubriek 2: Verleggingsregelingen binnenland
+  rubriek2a: { omzet: number; btw: number }; // btw naar u verlegd (ontvangen)
 
-  // Rubriek 3: Verleggingsregelingen
-  rubriek3b: { omzet: number; btw: number }; // Diensten EU reverse charge
+  // Rubriek 3: Prestaties naar/in het buitenland
+  rubriek3a: { omzet: number; btw: number }; // Uitvoer naar buiten de EU
+  rubriek3b: { omzet: number; btw: number }; // Leveringen/diensten binnen de EU (ICP)
 
-  // Rubriek 4: Buitenlandse prestaties
-  rubriek4a: { omzet: number; btw: number }; // Leveringen buiten EU
-  rubriek4b: { omzet: number; btw: number }; // Diensten buiten EU
+  // Rubriek 4: Prestaties vanuit het buitenland aan u
+  rubriek4a: { omzet: number; btw: number }; // Verwerving van buiten de EU
+  rubriek4b: { omzet: number; btw: number }; // Verwerving van binnen de EU
 
   // Rubriek 5: Voorbelasting
   rubriek5b: number; // Voorbelasting (input BTW)
 
-  // Rubriek 5g: Totaal
-  totaalBtw: number; // Totaal verschuldigde BTW (1a+1b+1c btw)
+  // Rubriek 5: Totaal
+  totaalBtw: number; // 5a — totaal verschuldigde BTW (som rubriek 1 t/m 4)
   voorbelasting: number; // Totaal voorbelasting (5b)
-  rubriek5g: number; // Te betalen (+) of terug te ontvangen (-)
+  rubriek5g: number; // Te betalen (+) of terug te ontvangen (-), centniveau
+  rubriek5gAfgerond: number; // Idem, afgerond op hele euro's voor de aangifte
 
   // Profiel
   btwNummer: string | null;
@@ -99,7 +102,9 @@ export async function generateBtwAangifte(
       rubriek1a: r["1a"],
       rubriek1b: r["1b"],
       rubriek1c: r["1c"],
+      rubriek1e: r["1e"],
       rubriek2a: r["2a"],
+      rubriek3a: r["3a"],
       rubriek3b: r["3b"],
       rubriek4a: r["4a"],
       rubriek4b: r["4b"],
@@ -107,6 +112,7 @@ export async function generateBtwAangifte(
       totaalBtw: r.totaalBtw,
       voorbelasting: r.voorbelasting,
       rubriek5g: r.rubriek5g,
+      rubriek5gAfgerond: r.rubriek5gAfgerond,
       btwNummer: profileRes.data?.btw_number ?? null,
       naam: profileRes.data?.studio_name ?? profileRes.data?.full_name ?? null,
     },
