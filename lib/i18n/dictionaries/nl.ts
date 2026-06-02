@@ -382,7 +382,7 @@ const nl = {
     referenceLabel: "REFERENTIE",
     dateLabel: "DATUM",
     totalLabel: "TOTAAL",
-    lastSavedAt: "Laatst opgeslagen /",
+    lastSavedAt: "Automatisch opgeslagen om",
     // Templates
     templateClassic: "Klassiek",
     templateModern: "Modern",

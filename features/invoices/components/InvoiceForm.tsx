@@ -67,7 +67,9 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
   const setVatScheme = useInvoiceStore((s) => s.setVatScheme);
   const setVatRate = useInvoiceStore((s) => s.setVatRate);
   const setDueDate = useInvoiceStore((s) => s.setDueDate);
+  const vatRate = useInvoiceStore((s) => s.vatRate);
   const [vatReason, setVatReason] = useState<string | null>(null);
+  const [savingDraft, setSavingDraft] = useState(false);
 
   const { data: clientsResult, isLoading: clientsLoading, isError: clientsError } = useQuery({
     queryKey: ["clients"],
@@ -116,17 +118,20 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
     }
   }, [invoiceId, invoiceNumber, setInvoiceNumber]);
 
-  // Auto-save draft every 30 seconds
+  // Auto-save draft every 30 seconds (existing invoices only — a new
+  // invoice is only persisted on an explicit save, to avoid stray drafts).
   const handleAutoSave = useCallback(async () => {
     const s = useInvoiceStore.getState();
     if (!s.isDirty || !s.clientId || !s.invoiceNumber) return;
+    if (!invoiceId) return;
 
-    if (invoiceId) {
+    setSavingDraft(true);
+    try {
       await updateInvoice(invoiceId, s.toInput("draft"));
-    } else {
-      return;
+      useInvoiceStore.getState().markSaved();
+    } finally {
+      setSavingDraft(false);
     }
-    useInvoiceStore.getState().markSaved();
   }, [invoiceId]);
 
   useEffect(() => {
@@ -210,16 +215,24 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
         removeLine={removeLine}
       />
 
-      {/* ── VAT auto-detection feedback ── */}
+      {/* ── VAT auto-detection feedback ──
+           Reverse-charge / export (0%) is fiscally significant: surface it
+           clearly with a Judd accent line instead of as opacity-0.5 fine print. */}
       {vatReason && (
         <div
+          role="status"
           style={{
-            padding: "12px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: vatRate === 0 ? "10px 0 10px 14px" : "12px 0",
             marginBottom: 16,
             fontSize: "var(--text-body-sm)",
-            opacity: 0.5,
-            fontWeight: 500,
-            letterSpacing: "0.02em",
+            fontWeight: vatRate === 0 ? 600 : 500,
+            letterSpacing: "0.01em",
+            color: vatRate === 0 ? "var(--color-info)" : "var(--foreground)",
+            opacity: vatRate === 0 ? 1 : 0.55,
+            borderLeft: vatRate === 0 ? "2px solid var(--color-info)" : "none",
           }}
         >
           {vatReason}
@@ -240,9 +253,11 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
         recipientName={clients.find((c) => c.id === clientId)?.name ?? null}
       />
 
-      {lastSavedAt && (
-        <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, marginTop: 40, textAlign: "center" }}>
-          {t.invoices.lastSavedAt} {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
+      {(savingDraft || lastSavedAt) && (
+        <p className="mono-amount" style={{ fontSize: 10, opacity: 0.4, marginTop: 40, textAlign: "center", letterSpacing: "0.04em" }}>
+          {savingDraft
+            ? t.common.saving
+            : `${t.invoices.lastSavedAt} ${new Date(lastSavedAt!).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}`}
         </p>
       )}
     </motion.div>

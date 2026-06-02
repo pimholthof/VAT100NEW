@@ -382,7 +382,7 @@ const en = {
     referenceLabel: "REFERENCE",
     dateLabel: "DATE",
     totalLabel: "TOTAL",
-    lastSavedAt: "Last saved /",
+    lastSavedAt: "Auto-saved at",
     // Templates
     templateClassic: "Classic",
     templateModern: "Modern",
