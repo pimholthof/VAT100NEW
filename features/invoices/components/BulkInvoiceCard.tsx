@@ -320,7 +320,7 @@ export function BulkInvoiceCard({
         </button>
       </div>
 
-      {/* AI scan unavailable hint */}
+      {/* Scan unavailable hint */}
       {result.aiError && result.aiError !== "manual" && !editing && (
         <p
           style={{
@@ -331,7 +331,7 @@ export function BulkInvoiceCard({
             paddingLeft: 26,
           }}
         >
-          AI-scan niet beschikbaar — vul de gegevens handmatig in.
+          Scannen niet beschikbaar — vul de gegevens handmatig in.
         </p>
       )}
 

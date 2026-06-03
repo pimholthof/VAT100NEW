@@ -6,12 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { AdminGlobalSearch } from "@/features/admin/AdminGlobalSearch";
+import { isGrowthEnabled } from "@/lib/config/features";
 
-const primaryItems = [
+const primaryItems: { href: string; label: string; match: string; growth?: boolean }[] = [
   { href: "/admin", label: "Overzicht", match: "/admin" },
   { href: "/admin/klanten", label: "Klanten", match: "/admin/klanten" },
-  { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline" },
-  { href: "/admin/groei", label: "Groei", match: "/admin/groei" },
+  { href: "/admin/pipeline", label: "Pipeline", match: "/admin/pipeline", growth: true },
+  { href: "/admin/groei", label: "Groei", match: "/admin/groei", growth: true },
   { href: "/admin/financials", label: "Financieel", match: "/admin/financials" },
   { href: "/admin/systeem", label: "Systeem", match: "/admin/systeem" },
 ];
@@ -20,6 +21,9 @@ export function AdminNav() {
   const router = useRouter();
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  // Groei-tools (Pipeline, Groei) horen bij de groei-laag — verberg ze uit
+  // de admin-nav tenzij de groei-flag aanstaat. Routes blijven bestaan.
+  const navItems = primaryItems.filter((item) => isGrowthEnabled() || !item.growth);
 
   function isActive(match: string) {
     if (match === "/admin") return pathname === "/admin";
@@ -46,7 +50,7 @@ export function AdminNav() {
 
           <div className="dashboard-nav-actions">
             <nav className="admin-nav-links-desktop" aria-label="Admin navigatie">
-              {primaryItems.map((item) => (
+              {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -82,7 +86,7 @@ export function AdminNav() {
           >
             <div className="dashboard-drawer-inner">
               <div className="dashboard-drawer-col">
-                {primaryItems.map((item) => (
+                {navItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}

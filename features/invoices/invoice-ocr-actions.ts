@@ -5,9 +5,8 @@ import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, ClientInput, VatRate, VatScheme, InvoiceUnit } from "@/lib/types";
 import type { InvoiceOCRData, ExtractedClientData } from "./types/invoice-ocr";
 import { modelFor } from "@/lib/ai/models";
-import { consumeAiQuota } from "@/lib/ai/quota";
 
-// ─── Scan Invoice with AI (accepts file directly, no storage needed) ───
+// ─── Scan Invoice (OCR — accepts file directly, no storage needed) ───
 
 const INVOICE_OCR_SYSTEM_PROMPT = `Je bent een OCR-specialist voor Nederlandse uitgaande facturen.
 Retourneer UITSLUITEND valide JSON — geen markdown, geen toelichting.
@@ -75,17 +74,13 @@ const aiInvoiceSchema = z.object({
   confidence: z.number().min(0).max(1).optional(),
 });
 
-export async function scanInvoiceWithAI(
+export async function scanInvoice(
   formData: FormData
 ): Promise<ActionResult<InvoiceOCRData>> {
   try {
     const { requirePlan } = await import("@/lib/supabase/server");
     const planCheck = await requirePlan("studio");
     if (planCheck.error !== null) return { error: planCheck.error };
-
-    // Hard-quota: voorkom marge-erosie door extreme power-users.
-    const quotaCheck = await consumeAiQuota(planCheck.user.id, "ocr");
-    if (quotaCheck.error !== null) return { error: quotaCheck.error };
 
     const file = formData.get("file") as File | null;
     if (!file) return { error: "Geen bestand geselecteerd." };
@@ -181,7 +176,7 @@ export async function scanInvoiceWithAI(
     const textContent = response.content.find((c) => c.type === "text");
     if (!textContent || textContent.type !== "text") {
       return {
-        error: "Geen tekst gevonden in AI-antwoord.",
+        error: "Geen tekst gevonden in het antwoord.",
       };
     }
 
@@ -194,7 +189,7 @@ export async function scanInvoiceWithAI(
     const raw = JSON.parse(cleanedText);
     const validated = aiInvoiceSchema.safeParse(raw);
     if (!validated.success) {
-      return { error: "AI-antwoord heeft een onverwacht formaat." };
+      return { error: "Het antwoord heeft een onverwacht formaat." };
     }
 
     const data = validated.data;

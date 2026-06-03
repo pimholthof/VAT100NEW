@@ -8,9 +8,9 @@ import {
   createReceipt,
   updateReceipt,
   uploadReceiptImage,
-  scanReceiptWithAI,
+  scanReceipt,
   getReceiptImageUrl,
-  markReceiptAiProcessed,
+  markReceiptProcessed,
 } from "@/features/receipts/actions";
 import {
   KOSTENSOORTEN,
@@ -204,7 +204,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
     setScanError(null);
 
     try {
-      const result = await scanReceiptWithAI(receiptId);
+      const result = await scanReceipt(receiptId);
 
       if (result.error) {
         setScanError(result.error);
@@ -239,7 +239,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
             cost_code: result.data.cost_code ?? null,
             receipt_date: result.data.receipt_date ?? today,
           });
-          await markReceiptAiProcessed(receiptId);
+          await markReceiptProcessed(receiptId);
           await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 
           setStep("done");
@@ -284,7 +284,7 @@ export function ReceiptForm({ receipt, onSaved }: ReceiptFormProps) {
 
     const finalId = workingReceiptId ?? result.data?.id;
     if (finalId && imageUrl) {
-      await markReceiptAiProcessed(finalId);
+      await markReceiptProcessed(finalId);
     }
 
     // Invalidate dashboard cache so the receipt count updates

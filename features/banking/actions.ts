@@ -653,7 +653,7 @@ ${JSON.stringify(input)}`;
         const newActions = await Promise.all(
           lowConfidence.map(async (item: { id: string; category: string; is_income: boolean; confidence?: number }) => {
             const tx = txMap.get(item.id);
-            let description = `AI suggestie: ${item.category} (${Math.round((item.confidence ?? 0) * 100)}% zeker). Controleer en bevestig.`;
+            let description = `Voorgestelde categorie: ${item.category} (${Math.round((item.confidence ?? 0) * 100)}% zeker). Controleer en bevestig.`;
 
             // Verrijk met KvK data als tegenpartijnaam beschikbaar is
             if (tx?.counterpart_name) {

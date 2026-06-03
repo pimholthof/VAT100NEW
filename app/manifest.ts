@@ -44,7 +44,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: 'Bon scannen',
         short_name: 'Bon',
-        description: 'Scan een bon met AI-herkenning',
+        description: 'Scan een bon — automatisch ingevuld',
         url: '/dashboard/expenses',
         icons: [{ src: '/icon-192x192.png', sizes: '192x192' }],
       },

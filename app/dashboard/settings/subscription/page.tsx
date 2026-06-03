@@ -75,7 +75,7 @@ export default async function SubscriptionPage() {
             <div className="py-12 text-center italic opacity-40 border-2 border-dashed border-black">
               Geen actief abonnement gevonden.
               <div className="mt-4">
-                <Link href="/dashboard/settings/subscription/choose" className="btn-primary inline-block">Bekijk Plannen</Link>
+                <Link href="/dashboard/settings/abonnement" className="btn-primary inline-block">Bekijk plannen</Link>
               </div>
             </div>
           )}
@@ -108,10 +108,10 @@ export default async function SubscriptionPage() {
 
       <div className="mt-16 pt-8 border-t-4 border-black flex flex-col md:flex-row justify-between items-center gap-8">
         <div className="text-xs opacity-40 max-w-md">
-          Abonnementen worden maandelijks automatisch verlengd via Mollie. Heb je vragen over je factuur of wil je opzeggen? Neem contact op via de support knop.
+          Abonnementen worden maandelijks automatisch verlengd via Mollie. Van plan wisselen of opzeggen doe je zelf via Beheer abonnement. Vragen over je factuur? Neem contact op met support.
         </div>
         <div className="flex gap-4">
-          <Link href="/dashboard" className="text-sm font-bold border-b-2 border-black hover:border-transparent transition-all">Dashboard Overzicht</Link>
+          <Link href="/dashboard/settings/abonnement" className="text-sm font-bold border-b-2 border-black hover:border-transparent transition-all">Beheer abonnement</Link>
           <a href="mailto:support@vat100.nl" className="text-sm font-bold border-b-2 border-black hover:border-transparent transition-all">Contact Ondersteuning</a>
         </div>
       </div>

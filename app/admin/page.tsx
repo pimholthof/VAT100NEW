@@ -8,6 +8,7 @@ import StrategicBriefing from "@/features/admin/StrategicBriefing";
 import Link from "next/link";
 import { AdminStatePanel } from "./AdminStatePanel";
 import { AdminActivityFeed } from "@/features/admin/AdminActivityFeed";
+import { isGrowthEnabled } from "@/lib/config/features";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("nl-NL", {
@@ -52,7 +53,9 @@ export default async function AdminDashboardPage() {
           <h1 className="admin-hero-title">Goedemorgen</h1>
           <p className="admin-hero-description">Strategisch overzicht van je platform.</p>
           <div className="admin-inline-actions">
-            <Link href="/admin/groei" className="admin-button-link">Groei bekijken</Link>
+            {isGrowthEnabled() && (
+              <Link href="/admin/groei" className="admin-button-link">Groei bekijken</Link>
+            )}
             <Link href="/admin/klanten" className="admin-button-link admin-button-link-secondary">Klanten openen</Link>
           </div>
         </div>
@@ -115,8 +118,12 @@ export default async function AdminDashboardPage() {
         <AdminQuickActions
           items={[
             { label: "Klanten beoordelen", href: "/admin/klanten", count: stats.usersThisWeek },
-            { label: "Pipeline opvolgen", href: "/admin/pipeline", count: stats.waitlistCount },
-            { label: "Groei-analyse", href: "/admin/groei" },
+            ...(isGrowthEnabled()
+              ? [
+                  { label: "Pipeline opvolgen", href: "/admin/pipeline", count: stats.waitlistCount },
+                  { label: "Groei-analyse", href: "/admin/groei" },
+                ]
+              : []),
             { label: "Financieel overzicht", href: "/admin/financials" },
             { label: "Systeem", href: "/admin/systeem" },
           ]}

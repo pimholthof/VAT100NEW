@@ -3,7 +3,7 @@
 import { useRef, useState, useCallback } from "react";
 import { m as motion  } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { uploadReceiptImage, scanReceiptWithAI, createReceipt } from "@/features/receipts/actions";
+import { uploadReceiptImage, scanReceipt, createReceipt } from "@/features/receipts/actions";
 import { useLocale } from "@/lib/i18n/context";
 
 /**
@@ -50,7 +50,7 @@ export function QuickReceiptUpload() {
       // 3. Scan with AI
       setStatus("scanning");
       setMessage(t.receipts.scanning);
-      const scanResult = await scanReceiptWithAI(receiptId);
+      const scanResult = await scanReceipt(receiptId);
 
       if (scanResult.error) {
         // Receipt is still saved, just not AI-enriched
@@ -71,8 +71,8 @@ export function QuickReceiptUpload() {
           receipt_date: scanResult.data.receipt_date ?? null,
         });
 
-        const { markReceiptAiProcessed } = await import("@/features/receipts/actions");
-        await markReceiptAiProcessed(receiptId);
+        const { markReceiptProcessed } = await import("@/features/receipts/actions");
+        await markReceiptProcessed(receiptId);
       }
 
       setStatus("done");

@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  scanInvoiceWithAI,
+  scanInvoice,
   findOrCreateClient,
 } from "@/features/invoices/invoice-ocr-actions";
 import {
@@ -135,7 +135,7 @@ export function BulkInvoiceUpload() {
         // 1. Send file directly to AI for OCR (no storage upload needed)
         const formData = new FormData();
         formData.append("file", file);
-        const scanResult = await scanInvoiceWithAI(formData);
+        const scanResult = await scanInvoice(formData);
         const aiData = scanResult.data ?? undefined;
         const aiError = scanResult.error ?? undefined;
 

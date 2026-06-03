@@ -4,11 +4,11 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { m as motion, AnimatePresence } from "framer-motion";
-import { Bot, Camera, FileText, Clock } from "lucide-react";
+import { Camera, FileText, Clock } from "lucide-react";
 
 import { getDashboardData, type DashboardData, type UpcomingInvoice } from "@/features/dashboard/actions";
 import { updateInvoiceStatus, sendReminder } from "@/features/invoices/actions";
-import { uploadReceiptImage, scanReceiptWithAI, createReceipt, updateReceipt, markReceiptAiProcessed } from "@/features/receipts/actions";
+import { uploadReceiptImage, scanReceipt, createReceipt, updateReceipt, markReceiptProcessed } from "@/features/receipts/actions";
 import { createHoursEntry } from "@/features/hours/actions";
 import { createTrip } from "@/features/trips/actions";
 import type { ActionResult } from "@/lib/types";
@@ -18,9 +18,8 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useToast } from "@/components/ui/Toast";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
-import TaxAgentChat from "@/components/ai/TaxAgentChat";
 
-type SheetType = "scan" | "invoice" | "hours" | "ai" | null;
+type SheetType = "scan" | "invoice" | "hours" | null;
 
 export default function MobileDashboard({
   initialResult,
@@ -220,16 +219,6 @@ export default function MobileDashboard({
         )}
       </section>
 
-      {/* AI Floating Action Button */}
-      <button
-        type="button"
-        onClick={() => setActiveSheet("ai")}
-        aria-label="Open AI assistent"
-        className="mobile-dashboard-fab"
-      >
-        <Bot size={22} strokeWidth={1.5} />
-      </button>
-
       {/* Bottom Sheets */}
       <BottomSheet
         open={activeSheet === "scan"}
@@ -247,14 +236,6 @@ export default function MobileDashboard({
         <QuickLogSheet onDone={() => setActiveSheet(null)} />
       </BottomSheet>
 
-      <BottomSheet
-        open={activeSheet === "ai"}
-        onClose={() => setActiveSheet(null)}
-        title="AI fiscale assistent"
-        maxHeight="90dvh"
-      >
-        <TaxAgentChat />
-      </BottomSheet>
     </div>
   );
 }
@@ -594,7 +575,7 @@ function ScanReceiptSheet({ onDone }: { onDone: () => void }) {
       if (uploadResult.error) throw new Error(uploadResult.error);
 
       setProcessing("scanning");
-      const scanResult = await scanReceiptWithAI(receiptId);
+      const scanResult = await scanReceipt(receiptId);
       if (scanResult.data) {
         await updateReceipt(receiptId, {
           vendor_name: scanResult.data.vendor_name ?? null,
@@ -604,7 +585,7 @@ function ScanReceiptSheet({ onDone }: { onDone: () => void }) {
           cost_code: scanResult.data.cost_code ?? null,
           receipt_date: scanResult.data.receipt_date ?? null,
         });
-        await markReceiptAiProcessed(receiptId);
+        await markReceiptProcessed(receiptId);
       }
       return scanResult.data;
     },
@@ -670,7 +651,7 @@ function ScanReceiptSheet({ onDone }: { onDone: () => void }) {
             >
               <Camera size={32} strokeWidth={1.2} />
               <span style={{ fontSize: 14, fontWeight: 500 }}>Maak foto of kies bestand</span>
-              <span style={{ fontSize: 11, opacity: 0.5 }}>AI verwerkt de bon automatisch</span>
+              <span style={{ fontSize: 11, opacity: 0.5 }}>De bon wordt automatisch ingevuld</span>
             </motion.div>
           ) : (
             <motion.div

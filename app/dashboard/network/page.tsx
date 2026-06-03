@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/service";
+import { isGrowthEnabled } from "@/lib/config/features";
 import Link from "next/link";
 
 async function getPublicProfiles() {
@@ -13,6 +15,8 @@ async function getPublicProfiles() {
 }
 
 export default async function NetworkPage() {
+  if (!isGrowthEnabled()) redirect("/dashboard");
+
   const profiles = await getPublicProfiles();
 
   return (

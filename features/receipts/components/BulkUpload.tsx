@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import {
   createReceipt,
   uploadReceiptImage,
-  scanReceiptWithAI,
+  scanReceipt,
   updateReceipt,
-  markReceiptAiProcessed,
+  markReceiptProcessed,
 } from "@/features/receipts/actions";
 import {
   ButtonPrimary,
@@ -170,7 +170,7 @@ export function BulkUpload() {
         }
 
         // 3. AI scan (non-fatal: receipt is already saved)
-        const scanResult = await scanReceiptWithAI(receiptId);
+        const scanResult = await scanReceipt(receiptId);
         const aiData = scanResult.data ?? undefined;
 
         if (!scanResult.error && aiData) {
@@ -255,7 +255,7 @@ export function BulkUpload() {
             receipt_date: editData.receipt_date ?? null,
           });
         }
-        await markReceiptAiProcessed(result.receiptId);
+        await markReceiptProcessed(result.receiptId);
       }
 
       router.push("/dashboard/receipts");

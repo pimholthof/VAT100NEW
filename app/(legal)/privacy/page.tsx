@@ -74,7 +74,7 @@ export default function PrivacyPage() {
             <li><strong>Mollie</strong> (NL) — betalingsverwerking</li>
             <li><strong>Tink / GoCardless</strong> (EU) — Open Banking verbinding</li>
             <li><strong>Resend</strong> — e-mailverzending</li>
-            <li><strong>Anthropic</strong> (VS) — AI-bonherkenning (alleen bij Compleet-plan, afbeeldingen worden niet opgeslagen door Anthropic)</li>
+            <li><strong>Anthropic</strong> (VS) — automatische tekstherkenning op bonnen en facturen (afbeeldingen worden niet opgeslagen door Anthropic)</li>
             <li><strong>Sentry</strong> — foutmonitoring (geen persoonlijke data, alleen technische foutmeldingen)</li>
           </ul>
           <p>

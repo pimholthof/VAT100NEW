@@ -71,7 +71,6 @@ export default function LandingPage() {
       features: [
         t.landing.allFromStudio,
         t.landing.aiReceipts,
-        t.landing.aiChat,
         t.landing.aiAutoBooking,
         t.landing.autoReconciliation,
         t.landing.annualReport,
@@ -90,7 +89,6 @@ export default function LandingPage() {
         t.landing.btwReturnPrepare,
         t.landing.ibReturnPrepare,
         t.landing.unlimitedReceipts,
-        t.landing.unlimitedAiChat,
         t.landing.accountantReview,
         t.landing.dedicatedSupport,
         t.landing.whiteLabelInvoices,

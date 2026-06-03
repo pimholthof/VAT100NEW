@@ -9,7 +9,6 @@ import type { ActionResult, Receipt, ReceiptInput, VatRate } from "@/lib/types";
 import { receiptSchema, uuidSchema, validate } from "@/lib/validation";
 import { calculateVat } from "@/lib/format";
 import { modelFor } from "@/lib/ai/models";
-import { consumeAiQuota } from "@/lib/ai/quota";
 
 export async function getReceipts(filters?: {
   search?: string;
@@ -430,21 +429,18 @@ export async function getReceiptImageUrl(
   return { error: null, data: data.signedUrl };
 }
 
-export async function scanReceiptWithAI(
+export async function scanReceipt(
   receiptId: string
 ): Promise<ActionResult<Partial<ReceiptInput & { cost_code: number | null; confidence: number; amount_inc_vat: number | null }>>> {
   try {
     const idCheck = uuidSchema.safeParse(receiptId);
     if (!idCheck.success) return { error: "Ongeldig bon-ID." };
 
-    // Feature-gate: AI scan beschikbaar vanaf Studio (net als bankkoppeling)
+    // Feature-gate: scan beschikbaar vanaf Studio (net als bankkoppeling)
     const { requirePlan } = await import("@/lib/supabase/server");
     const planCheck = await requirePlan("studio");
     if (planCheck.error !== null) return { error: planCheck.error };
     const { supabase, user } = planCheck;
-
-    const quotaCheck = await consumeAiQuota(user.id, "ocr");
-    if (quotaCheck.error !== null) return { error: quotaCheck.error };
 
     // Get receipt to find storage_path
     const { data: receipt, error: receiptError } = await supabase
@@ -566,7 +562,7 @@ confidence: hoe zeker je bent van de totale extractie. Gebruik null als een veld
     });
     const validated = aiReceiptSchema.safeParse(raw);
     if (!validated.success) {
-      return { error: "AI-antwoord heeft een onverwacht formaat." };
+      return { error: "Het antwoord heeft een onverwacht formaat." };
     }
 
     const data = validated.data;
@@ -593,7 +589,7 @@ confidence: hoe zeker je bent van de totale extractie. Gebruik null als een veld
   }
 }
 
-export async function markReceiptAiProcessed(
+export async function markReceiptProcessed(
   id: string
 ): Promise<ActionResult> {
   try {
@@ -613,7 +609,7 @@ export async function markReceiptAiProcessed(
     if (error) {
       return {
         error: sanitizeSupabaseError(error, {
-          area: "markReceiptAiProcessed",
+          area: "markReceiptProcessed",
           receiptId: id,
           userId: user.id,
         }),

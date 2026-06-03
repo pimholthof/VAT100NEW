@@ -105,7 +105,7 @@ export default function ReceiptDetailPage() {
             marginBottom: 32,
           }}
         >
-          AI verwerkt
+          Automatisch verwerkt
         </p>
       )}
 

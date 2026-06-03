@@ -59,7 +59,7 @@ export async function sendBillingAlert(options: {
   const contentHtml = `
     <p style="margin-bottom:24px;">Beste ${fullName},</p>
     <p style="margin-bottom:24px;">De automatische incasso voor je VAT100 abonnement (<strong>${amount}</strong>) is helaas niet gelukt.</p>
-    <p style="margin-bottom:32px;color:#D0021B;font-weight:bold;">Om onderbreking van je dienstverlening en AI-insights te voorkomen, vragen we je om de betaling handmatig uit te voeren via je dashboard.</p>
+    <p style="margin-bottom:32px;color:#D0021B;font-weight:bold;">Om onderbreking van je dienstverlening te voorkomen, vragen we je om de betaling handmatig uit te voeren via je dashboard.</p>
   `;
 
   try {
