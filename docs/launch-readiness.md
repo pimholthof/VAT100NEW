@@ -1,7 +1,7 @@
 # VAT100 — Launch readiness (bèta)
 
 Single source of truth voor de status richting de gratis bèta-lancering.
-Bijgewerkt: 2026-06-02.
+Bijgewerkt: 2026-06-03.
 
 ## Gereed (op de bèta-branch)
 
@@ -27,8 +27,16 @@ Bijgewerkt: 2026-06-02.
   security-headers (HSTS, X-Frame-Options, nosniff, frame-ancestors).
 
 **Kwaliteit**
-- `npm run build`, typecheck, lint groen; 418 unit tests groen; CI-gate actief.
+- `npm run build`, typecheck, lint groen; 405 unit tests groen; CI-gate actief.
 - Mobiel geverifieerd (landing/register/login op 390px).
+
+**Minimalisatie (juni 2026)**
+- Expliciete AI verwijderd (assistent/chat/quota/managed-agent in de UI);
+  OCR + bank-categorisatie blijven onder de motorkap. Geen "AI" meer in UI,
+  copy of prijzen.
+- Routes geconsolideerd, admin-nav geslankt, groei-extra's achter
+  `NEXT_PUBLIC_GROWTH_ENABLED` (default uit).
+- Self-service abonnementsbeheer (wijzigen/opzeggen) aangesloten.
 
 ## Bekende follow-ups
 
@@ -43,12 +51,16 @@ Bijgewerkt: 2026-06-02.
 
 ## Operationeel — vóór livegang
 
-1. **Migraties draaien** op Supabase (o.a. `feedback`, `impersonation_sessions`,
-   `account_deletion_request`, en de eerdere).
+1. **Migraties draaien** op Supabase — álle in `supabase/migrations/`, incl.
+   `20260602_001_feedback`, `20260602_002_impersonation_sessions` en
+   `20260602_003_account_deletion_request`. De AI-opruim-migraties
+   `20260602_001_remove_ai_quota` en `20260602_002_debrand_plan_features`
+   zijn gedraaid.
 2. **Env-vars** zetten (productie): `NEXT_PUBLIC_BETA_MODE=true`,
-   `BETA_INVITE_CODE`, `NEXT_PUBLIC_DIGIPOORT_ENABLED=false`, plus de
-   verplichte keys (Supabase, Mollie, Resend, Anthropic, `CRON_SECRET`,
-   `EMAIL_FROM`).
+   `BETA_INVITE_CODE`, `NEXT_PUBLIC_DIGIPOORT_ENABLED=false`,
+   `NEXT_PUBLIC_GROWTH_ENABLED=false` (groei-extra's verborgen), plus de
+   verplichte keys (Supabase, Mollie, Resend, **Anthropic** — nog steeds nodig
+   voor bon/factuur-OCR —, `CRON_SECRET`, `EMAIL_FROM`).
 3. **Fiscalist/RB** laat de BTW-rubrieken en de IB-constanten één keer aftekenen.
 4. **Verwerkersovereenkomsten** sluiten (zie `subverwerkers.md`); Supabase in
    EU-regio; privacyverklaring aanvullen met alle sub-verwerkers.
