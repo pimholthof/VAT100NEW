@@ -243,7 +243,7 @@ export default function ClientDetailPage() {
                 className="form-input"
               />
             </FieldGroup>
-            <FieldGroup label="Stad">
+            <FieldGroup label="Plaats">
               <input
                 type="text"
                 value={city}

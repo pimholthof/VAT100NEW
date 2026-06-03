@@ -8,6 +8,7 @@ import {
   ButtonPrimary,
   ButtonSecondary,
 } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/context";
 
 const quickLabelStyle: React.CSSProperties = {
   display: "block",
@@ -26,6 +27,7 @@ interface ClientQuickCreateProps {
 export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
   const queryClient = useQueryClient();
   const setClientId = useInvoiceStore((s) => s.setClientId);
+  const { t } = useLocale();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -76,41 +78,41 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
           opacity: 0.4,
         }}
       >
-        Nieuwe klant aanmaken
+        {t.clients.addQuickClient}
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div style={{ gridColumn: "1 / -1" }}>
-          <label style={quickLabelStyle}>Bedrijfsnaam *</label>
+          <label style={quickLabelStyle}>{t.clients.companyName} *</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Bedrijfsnaam"
+            placeholder={t.clients.companyName}
             className="form-input"
           />
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
-          <label style={quickLabelStyle}>E-mailadres</label>
+          <label style={quickLabelStyle}>{t.clients.email}</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="email@voorbeeld.nl"
+            placeholder={t.clients.emailPlaceholder}
             className="form-input"
           />
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
-          <label style={quickLabelStyle}>Adres</label>
+          <label style={quickLabelStyle}>{t.clients.address}</label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Straatnaam en huisnummer"
+            placeholder={t.clients.addressPlaceholder}
             className="form-input"
           />
         </div>
         <div>
-          <label style={quickLabelStyle}>Postcode</label>
+          <label style={quickLabelStyle}>{t.clients.postalCode}</label>
           <input
             type="text"
             value={postalCode}
@@ -120,31 +122,31 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
           />
         </div>
         <div>
-          <label style={quickLabelStyle}>Stad</label>
+          <label style={quickLabelStyle}>{t.clients.city}</label>
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            placeholder="Stad"
+            placeholder={t.clients.city}
             className="form-input"
           />
         </div>
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
         <ButtonPrimary type="button" onClick={handleCreate}>
-          Klant aanmaken
+          {t.clients.createClient}
         </ButtonPrimary>
         <ButtonSecondary
           type="button"
           onClick={onClose}
           style={{ opacity: 0.4 }}
         >
-          Annuleer
+          {t.common.cancel}
         </ButtonSecondary>
       </div>
       {errorMsg && (
         <p style={{ color: "var(--foreground)", opacity: 0.8, marginTop: 12, fontSize: "var(--text-body-sm)" }}>
-          Fout: {errorMsg}
+          {errorMsg}
         </p>
       )}
     </div>

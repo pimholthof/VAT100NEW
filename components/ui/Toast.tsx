@@ -113,7 +113,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {toasts.map((t) => {
             const background =
               t.type === "error"
-                ? "rgba(165, 28, 48, 0.95)"
+                ? "var(--color-accent)"
                 : "var(--foreground)";
             return (
               <motion.div

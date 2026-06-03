@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ChatMessage } from "@/lib/types";
 import { getChatMessages, sendChatMessage, markMessagesRead } from "./actions";
 import { ButtonPrimary, useToast } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/context";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("nl-NL", {
@@ -29,6 +30,7 @@ function formatDayHeader(iso: string): string {
 
 export function BerichtenPage() {
   const [input, setInput] = useState("");
+  const { t } = useLocale();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
@@ -226,7 +228,7 @@ export function BerichtenPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Schrijf een bericht…"
+          placeholder={t.chat.placeholder}
           aria-label="Schrijf een bericht aan VAT100 support"
           rows={1}
           disabled={isPending}
