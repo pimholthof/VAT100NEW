@@ -5,6 +5,21 @@ creatieve ZZP'er écht nodig heeft. Simpeler en clean, conform de
 `CLAUDE.md`-belofte *"If an element doesn't solve a fiscal problem, it
 should not exist."*
 
+## Status — uitgevoerd ✅
+
+Alle fasen afgerond op branch `claude/brave-wozniak-rFwYh`; elke fase met
+groene typecheck, lint, 405 unit-tests en `next build`.
+
+- [x] **Fase 1** — expliciete AI verwijderd (`d060637`)
+- [x] **Fase 2** — de-branding van AI onder de motorkap (`2b41db6`)
+- [x] **Fase 3** — redundante routes geconsolideerd (`10240c9`)
+- [x] **Fase 4** — groei-extra's achter `NEXT_PUBLIC_GROWTH_ENABLED` (`c038aba`)
+- [x] **Fase 5** — admin-nav slank + resources verborgen (`e5085e2`)
+- [x] Sluitstuk — abonnementskenmerken (DB `plan.features`) ge-de-brand (`a8a68ad`)
+
+**Vóór deploy:** draai de migraties `20260602_001_remove_ai_quota.sql` en
+`20260602_002_debrand_plan_features.sql` op Supabase.
+
 ## Uitgangspunten (vastgesteld)
 
 1. **Slanke SaaS.** Auth, abonnementen (Mollie) en een *minimale* admin
