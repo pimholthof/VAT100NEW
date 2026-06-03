@@ -11,7 +11,7 @@ DPA, de dataregio en (bij niet-EU) de doorgiftegrondslag.
 | **Vercel** | Hosting, edge, logging | HTTP-verzoeken, IP-adressen, logs | VS-bedrijf; EU-edge mogelijk | Te bevestigen |
 | **Mollie** | Betalingen & abonnementen | Betaalgegevens, bedragen, e-mail | NL/EU | Te bevestigen |
 | **Resend** | Transactionele e-mail | E-mailadressen, mailinhoud (facturen, herinneringen) | VS-bedrijf | Te bevestigen + doorgiftegrondslag |
-| **Anthropic** | AI: bon-OCR, fiscale chat | Bonafbeeldingen, chatinhoud (kan financiële data bevatten) | VS | Te bevestigen + doorgiftegrondslag (SCC) |
+| **Anthropic** | Tekstherkenning (OCR) op bonnen/facturen | Bon-/factuurafbeeldingen (kunnen financiële data bevatten) | VS | Te bevestigen + doorgiftegrondslag (SCC) |
 | **Sentry** | Foutmonitoring | Foutdata, IP, user-context | VS/EU (config) | Te bevestigen |
 | **Tink** | Open Banking (PSD2) | Banktransacties, rekeninginfo (read-only) | EU | Te bevestigen; AISP-licentie-scope checken |
 | **KVK API** | Bedrijfsopzoeking | KVK-nummer (opzoeking) | NL | Overheidsdienst |
@@ -20,14 +20,14 @@ DPA, de dataregio en (bij niet-EU) de doorgiftegrondslag.
 
 - **Niet-EU doorgifte** (Resend, Anthropic, Vercel, mogelijk Sentry): borg een
   geldige grondslag (adequaatheidsbesluit of Standard Contractual Clauses).
-- **Anthropic**: bonafbeeldingen en chat kunnen bijzondere/financiële data
-  bevatten — bevestig dat data niet voor training wordt gebruikt (zakelijke
+- **Anthropic**: bon-/factuurafbeeldingen kunnen financiële data bevatten —
+  bevestig dat data niet voor training wordt gebruikt (zakelijke
   API-voorwaarden) en leg dat vast in het register.
 - **Supabase-regio**: zet de database in een EU-regio; verifieer dit in het
   project.
-- Het privacybeleid (`app/(legal)/privacy`) noemt Tink, Mollie en Sentry al;
-  vul aan met Resend, Anthropic, Supabase en Vercel zodat het register en de
-  privacyverklaring overeenkomen.
+- Het privacybeleid (`app/(legal)/privacy`) noemt nu Supabase, Vercel, Mollie,
+  Tink, Resend, Anthropic en Sentry — register en privacyverklaring komen
+  overeen.
 
 ## Betrokkenenrechten (geïmplementeerd)
 
