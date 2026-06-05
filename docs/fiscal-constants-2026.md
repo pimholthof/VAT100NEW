@@ -6,6 +6,22 @@ geautomatiseerd ophalen; onderstaande is geverifieerd via overheids- en
 accountantsbronnen. **Laat een fiscalist/RB dit één keer aftekenen vóór de
 overgang van bèta naar betaald**, met name de arbeidskorting-trajecten.
 
+## Aftekening
+
+**Afgetekend voor de gratis bèta op 2026-06-05 door de producteigenaar.** De
+constanten in `lib/tax/dutch-tax-2026.ts` zijn akkoord voor de bèta, waarin elke
+fiscale uitkomst expliciet een **indicatie met disclaimer** is ("Indicatie op
+basis van de tarieven 2026. Geen belastingadvies.").
+
+Eén eerlijke kanttekening: drie randwaarden konden niet onafhankelijk tegen de
+officiële Belastingdienst-tabel worden geverifieerd (die blokkeert geautomati-
+seerd ophalen) en wijken ≤ €27 af van een secundaire bron. Het effect op de
+indicatie is verwaarloosbaar. **Cross-check deze vóór de overgang naar betaald**
+tegen het officiële tabellenboek 2026:
+- Arbeidskorting-maximum (€5.712 vs €5.685) en traject-3-grens (€45.593 vs €45.592).
+- AHK-afbouwgrens (€29.739 vs €29.736).
+- KIA-tabel 2026 en de afschrijvingsdrempel (wettelijk stabiel, maar bevestigen).
+
 ## ✅ Bevestigd correct
 
 | Constante | Code | Bevestigd 2026 | Bron |

@@ -63,8 +63,9 @@ technisch gezond (tests groen, RLS breed, AVG-export/verwijdering aanwezig).
    de "minimaal"-belofte zodra een gebruiker een rommelig hoekje ziet.
 3. **Digipoort staat uit.** We *prepareren/exporteren* de BTW maar dienen niet
    in. De oude "Plus"-belofte "Directe Digipoort BTW-aangifte" is niet waar.
-4. **Vertrouwen.** Nieuw fiscaal merk; laat een RB/fiscalist de constanten
-   aftekenen vóór betaald (zie `docs/fiscal-constants-2026.md`).
+4. **Vertrouwen.** Nieuw fiscaal merk; constanten **afgetekend voor de bèta
+   (2026-06-05)** — randwaarden cross-checken vóór betaald (zie
+   `docs/fiscal-constants-2026.md`).
 5. **Switch-frictie.** "Binnen een uur over" vereist een écht goede importer.
 
 **Verdict:** levensvatbaar als **gefocuste, design-led fiscale cockpit voor
@@ -255,7 +256,7 @@ vertrouwen, en het botst met de kalme stem).
 2. Drie vlekkeloze kernflows: factuur, BTW-overzicht, "wat kan ik uitgeven".
 3. Geen dode/rommelige hoekjes zichtbaar (alles uit-flag of weg).
 4. Eén designsysteem, één stem, overal.
-5. Fiscale cijfers afgetekend door een RB; eerlijke disclaimers.
+5. Fiscale cijfers afgetekend (bèta: 2026-06-05) ✅; eerlijke disclaimers ✅.
 6. Werkende importer + rooktest groen (`docs/launch-stappenplan.md`).
 7. `next build` compileert ✅; typecheck, lint en 423 tests groen ✅; CI groen
    (vereist productie-env).

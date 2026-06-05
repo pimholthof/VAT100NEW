@@ -38,8 +38,9 @@ Werk van boven naar beneden af. Zie ook `launch-readiness.md` (status) en
 - [ ] **6. DPA's sluiten** met Supabase, Vercel, Mollie, Resend, Anthropic,
   Sentry en Tink (lijst in `subverwerkers.md`). Borg SCC voor de niet-EU-
   partijen (Resend, Anthropic, Sentry, Vercel).
-- [ ] **7. Fiscalist/RB** laat de **BTW-rubrieken** + de **IB-constanten 2026**
-  één keer aftekenen (zie `fiscal-constants-2026.md`).
+- [x] **7. Fiscalist/RB** — **BTW-rubrieken** + **IB-constanten 2026** afgetekend
+  voor de bèta (2026-06-05). Cross-check de ≤ €27-randwaarden vóór betaald
+  (zie `fiscal-constants-2026.md`).
 
 ## 🟨 Monitoring
 

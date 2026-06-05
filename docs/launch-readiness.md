@@ -44,7 +44,7 @@ Bijgewerkt: 2026-06-03.
 |------|--------|-------------|
 | CSP `script-src 'unsafe-inline'` weg (nonces) | **Uitgesteld (bèta-WONTFIX)** | Vereist per-request nonce in middleware + runtime-verificatie; breekt-risico op Next/Mollie/Sentry-scripts. Gemitigeerd door strakke `connect/frame/script`-allowlist + HSTS/X-Frame/nosniff/frame-ancestors. Oppakken vóór schaal/betaald. |
 | `style-src 'unsafe-inline'` weg | Geblokkeerd door inline-styles | Vereist de grote inline-style→tokens refactor (B2). Laag risico (style-injectie < script-injectie). |
-| Arbeidskorting-max / AHK-afbouwgrens | Fiscalist-akkoord nodig | Kleine afwijkingen, inline gemarkeerd; zie `fiscal-constants-2026.md`. |
+| Arbeidskorting-max / AHK-afbouwgrens | **Afgetekend voor bèta (2026-06-05)** | Cross-check de ≤ €27-randwaarden vóór betaald; zie `fiscal-constants-2026.md`. |
 | Inline-style-opschoning (B2) | Uitgesteld | Cosmetisch/maintainability; visueel al strak. |
 | Mobiele verificatie auth-schermen | Uitgesteld | Dashboard/onboarding/voorbeeld op de preview met bèta-account. |
 | Volledige wissing na bewaartermijn | Processtap | `deletion_requested_at` gevuld; admin/cron voert de wissing uit. |
@@ -61,7 +61,8 @@ Bijgewerkt: 2026-06-03.
    `NEXT_PUBLIC_GROWTH_ENABLED=false` (groei-extra's verborgen), plus de
    verplichte keys (Supabase, Mollie, Resend, **Anthropic** — nog steeds nodig
    voor bon/factuur-OCR —, `CRON_SECRET`, `EMAIL_FROM`).
-3. **Fiscalist/RB** laat de BTW-rubrieken en de IB-constanten één keer aftekenen.
+3. **Fiscalist/RB** tekent de BTW-rubrieken en IB-constanten af. ✅ Afgetekend
+   voor de bèta (2026-06-05); cross-check de randwaarden vóór betaald.
 4. **Verwerkersovereenkomsten** sluiten (zie `subverwerkers.md`); Supabase in
    EU-regio; privacyverklaring aanvullen met alle sub-verwerkers.
 5. **Monitoring/backups** aan (zie `monitoring.md`); Sentry-alerts live; PITR aan.
