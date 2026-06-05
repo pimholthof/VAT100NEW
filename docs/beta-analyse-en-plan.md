@@ -202,6 +202,11 @@ zeker; precies boven gezellig; één idee per zin; geen hype-woorden
 10. Slimme kolomherkenning — "Kolommen automatisch herkennen" gebruikt Claude
     (Haiku) stil onder de motorkap, met nette fallback naar handmatig mappen.
 11. Importer vindbaar gemaakt vanaf de klantenpagina.
+12. Dashboard-hero: "Vrij te besteden" is nu de visuele held (criterium 1).
+13. Facturen-import neemt status + vervaldatum over; importer ook in de
+    dashboard-lege-staat ("Importeer uit Moneybird").
+14. **`next build` lokaal geverifieerd** (met dummy-env): compileert schoon —
+    naast typecheck, lint en 423 tests.
 
 > Bewust **niet** verwijderd: `network`/`resources` — `scope-minimaal.md` markeert
 > die als VERBERGEN (achter de groei-flag, code blijft), niet schrappen. Ze staan
@@ -243,4 +248,5 @@ vertrouwen, en het botst met de kalme stem).
 4. Eén designsysteem, één stem, overal.
 5. Fiscale cijfers afgetekend door een RB; eerlijke disclaimers.
 6. Werkende importer + rooktest groen (`docs/launch-stappenplan.md`).
-7. `npm run build`, typecheck, lint en tests groen; CI groen.
+7. `next build` compileert ✅; typecheck, lint en 423 tests groen ✅; CI groen
+   (vereist productie-env).

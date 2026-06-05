@@ -32,24 +32,40 @@ iemand in (of doe je het samen met een technische partner).
 > Je hebt **geen** team nodig. Eén goede freelance Next.js-ontwikkelaar (een
 > paar dagen) en één fiscalist (een paar uur) volstaan voor de beta.
 
-## Wat ik in deze sessie al voor je heb gedaan
+## Wat ik al voor je heb gedaan
 
-Vijf zichtbare verbeteringen, allemaal getest (de build-controles staan groen):
+Alles getest en op de werkbranch — typecheck, lint, **423 tests** én een
+volledige `next build` staan groen.
 
-1. **Landing opgeruimd** — de "meld je aan op de wachtlijst" verdwijnt tijdens
-   de gratis beta, zodat bezoekers niet tegelijk "schrijf je in" én "wacht even"
-   zien. Eén duidelijke boodschap.
+**Zichtbaar netter:**
+1. **Landing opgeruimd** — de wachtlijst verdwijnt tijdens de gratis beta, zodat
+   bezoekers niet tegelijk "schrijf je in" én "wacht even" zien.
 2. **Prijzen versimpeld** — van vier verwarrende pakketten naar **één all-in
-   abonnement** (nu ingesteld op €24/maand). Tijdens de beta is alles nog gratis.
-3. **Mockups op de landing gefixt** — een verkeerde blauwtint is vervangen door
-   de juiste huiskleur, en een vast jaartal ("2024") past zich nu vanzelf aan.
-4. **Factuur maken is rustiger** — de technische details (nummer, datum, BTW)
-   staan nu ingeklapt. Je ziet: bedrag + ontvanger. Precies de belofte.
-5. **De setup-checklist gedraagt zich** — zodra je je eerste stap hebt gezet,
-   vouwt hij zichzelf op tot een klein balkje, zodat je je cijfers ziet en niet
-   je huiswerk.
+   abonnement** (nu €24/maand). Tijdens de beta is alles nog gratis.
+3. **Mockups gefixt** — verkeerde blauwtint → huiskleur; vast jaartal → past
+   zich vanzelf aan.
+4. **Factuur maken is rustiger** — nummer/datum/BTW staan ingeklapt. Je ziet:
+   bedrag + ontvanger.
+5. **Setup-checklist gedraagt zich** — vouwt zichzelf op zodra je begint.
+6. **Belastingpagina rustiger** — bovenaan alleen "Geschatte IB" en "Te
+   reserveren"; de hele berekening zit achter "Toon berekening".
+7. **Onboarding korter** — de zware fiscale stap is nu een kalme intro met de
+   fijn-instellingen achter "Geavanceerd". Overslaan kan.
+8. **Dashboard-held** — "Vrij te besteden" is nu het grootste, rustigste getal
+   op je dashboard. Precies je wig.
 
-Deze vijf staan op de werkbranch en zijn klaar om te bekijken.
+**Onder de motorkap:**
+9. **Importer afgemaakt** — je kunt nu je **klanten** importeren (de hoeksteen
+   om snel over te stappen), met herkenning van Moneybird- en Engelstalige
+   kolommen en dedup zodat er geen dubbelen ontstaan. Vindbaar vanaf de
+   klantenpagina en de lege staat ("Importeer uit Moneybird").
+10. **Slimme kolomherkenning** — komt je bestand uit een onbekend systeem? Dan
+    herkent de "Kolommen automatisch herkennen"-knop de kolommen voor je
+    (Claude onder de motorkap), met terugval op handmatig.
+11. **Opgeschoond** — ongebruikt lettertype uit de stijl; facturen-import neemt
+    nu status en vervaldatum over.
+
+Dit staat allemaal op de werkbranch, klaar om te bekijken.
 
 ## Stap-voor-stap: van nu naar een live beta
 
