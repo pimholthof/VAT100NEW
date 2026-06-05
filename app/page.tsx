@@ -28,72 +28,30 @@ export default function LandingPage() {
     { title: t.landing.featureCashflow, description: t.landing.featureCashflowDesc },
   ];
 
+  // Eén all-in abonnement (design-premie). Geen tiers, geen feature-gating —
+  // alles wat een creatieve zzp'er nodig heeft, in één rustig pakket.
   const pricingPlans = [
     {
-      id: "basis",
-      name: t.landing.basis,
-      price: "29",
+      id: "vat100",
+      name: "VAT100",
+      price: "24",
       period: t.landing.perMonth,
-      description: t.landing.basisDesc,
+      description: t.landing.allInDesc,
       features: [
         t.landing.unlimitedInvoices,
-        t.landing.vatOverview,
         t.landing.quotes,
+        t.landing.vatOverview,
+        t.landing.incomeTaxInsight,
+        t.landing.allInReceipts,
+        t.landing.bankConnection,
+        t.landing.cashflowAnalysis,
+        t.landing.paymentLinks,
+        t.landing.emailReminders,
+        t.landing.annualReport,
         t.landing.clientManagement,
         t.landing.csvExport,
       ],
-      highlighted: false,
-    },
-    {
-      id: "studio",
-      name: t.landing.studio,
-      price: "39",
-      period: t.landing.perMonth,
-      description: t.landing.studioDesc,
-      features: [
-        t.landing.allFromBasis,
-        t.landing.manualReceipts,
-        t.landing.bankConnection,
-        t.landing.aiClassificationApproval,
-        t.landing.paymentLinks,
-        t.landing.emailReminders,
-        t.landing.cashflowAnalysis,
-        t.landing.incomeTaxInsight,
-      ],
       highlighted: true,
-    },
-    {
-      id: "compleet",
-      name: t.landing.compleet,
-      price: "79",
-      period: t.landing.perMonth,
-      description: t.landing.compleetDesc,
-      features: [
-        t.landing.allFromStudio,
-        t.landing.aiReceipts,
-        t.landing.aiAutoBooking,
-        t.landing.autoReconciliation,
-        t.landing.annualReport,
-        t.landing.prioritySupport,
-      ],
-      highlighted: false,
-    },
-    {
-      id: "plus",
-      name: "Plus",
-      price: "149",
-      period: t.landing.perMonth,
-      description: t.landing.plusDesc,
-      features: [
-        t.landing.allFromCompleet,
-        t.landing.btwReturnPrepare,
-        t.landing.ibReturnPrepare,
-        t.landing.unlimitedReceipts,
-        t.landing.accountantReview,
-        t.landing.dedicatedSupport,
-        t.landing.whiteLabelInvoices,
-      ],
-      highlighted: false,
     },
   ];
 
@@ -254,11 +212,15 @@ export default function LandingPage() {
         ) : (
         <>
         <h2 className={styles.sectionTitle}>{t.landing.pricingTitle}</h2>
-        <div className={styles.pricingGrid}>
+        <p style={{ textAlign: "center", fontSize: 15, lineHeight: 1.7, opacity: 0.6, margin: "-8px auto 32px", maxWidth: 480 }}>
+          {t.landing.allInTagline}
+        </p>
+        <div style={{ display: "flex", justifyContent: "center" }}>
           {pricingPlans.map((plan) => (
             <div
               key={plan.name}
               className={`${styles.pricingCard} ${plan.highlighted ? styles.pricingCardHighlighted : ""}`}
+              style={{ maxWidth: 440, width: "100%" }}
             >
               <p className={styles.pricingName}>{plan.name}</p>
 
@@ -299,7 +261,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Waitlist ─── */}
+      {/* ─── Waitlist (alleen buiten bèta; in bèta is registratie open) ─── */}
+      {!beta && (
       <section id="wachtlijst" className={styles.section}>
         <div className={styles.waitlistContainer}>
           {submitted ? (
@@ -350,6 +313,7 @@ export default function LandingPage() {
           )}
         </div>
       </section>
+      )}
 
       {/* ─── Footer ─── */}
       <footer className={styles.footer}>

@@ -43,6 +43,9 @@ export default function TaxContent() {
 
   const now = new Date();
   const isLoading = btwLoading || taxLoading;
+  // De detailberekening is rustig ingeklapt — je ziet het antwoord, niet de
+  // worstenmakerij. Wie wil, klapt de volledige berekening uit.
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   return (
     <div>
@@ -124,8 +127,44 @@ export default function TaxContent() {
         </div>
       ) : null}
 
-      {/* Berekening — label links, inhoud rechts */}
+      {/* Indicatie + toggle — altijd zichtbaar; de berekening zelf is rustig ingeklapt */}
       {projection && (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+          marginBottom: "var(--space-xl)",
+        }}>
+          <button
+            type="button"
+            onClick={() => setShowBreakdown((v) => !v)}
+            aria-expanded={showBreakdown}
+            className="label"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px 0",
+              color: "var(--foreground)",
+              opacity: 0.55,
+            }}
+          >
+            {showBreakdown ? "Verberg berekening" : "Toon berekening"}
+            <span style={{ display: "inline-block", transition: "transform 0.2s ease", transform: showBreakdown ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+          </button>
+          <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.35, margin: 0 }}>
+            Indicatie op basis van de tarieven {TAX_CONSTANTS.year}. Geen belastingadvies.
+          </p>
+        </div>
+      )}
+
+      {/* Berekening — label links, inhoud rechts (achter toggle) */}
+      {projection && showBreakdown && (
         <div style={{
           display: "grid",
           gridTemplateColumns: "160px 1fr",
@@ -177,8 +216,8 @@ export default function TaxContent() {
         </div>
       )}
 
-      {/* Investeringen & afschrijvingen — zelfde grid rhythm */}
-      {projection && projection.afschrijvingDetails.length > 0 && (
+      {/* Investeringen & afschrijvingen — zelfde grid rhythm (bij de berekening) */}
+      {projection && showBreakdown && projection.afschrijvingDetails.length > 0 && (
         <div style={{
           display: "grid",
           gridTemplateColumns: "160px 1fr",

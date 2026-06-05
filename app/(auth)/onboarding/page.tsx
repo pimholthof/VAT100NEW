@@ -87,6 +87,10 @@ export default function OnboardingPage() {
   const [estimatedIncome, setEstimatedIncome] = useState("");
   const [usesKor, setUsesKor] = useState(false);
   const [meetsUrencriterium, setMeetsUrencriterium] = useState(true);
+  // Stap 3 toont standaard alleen een rustige intro; de fiscale fijn-
+  // instellingen (BTW-frequentie, KOR, urencriterium, startdatum, inkomen)
+  // zitten achter "Geavanceerd". De defaults kloppen voor de meeste zzp'ers.
+  const [showAdvancedFiscal, setShowAdvancedFiscal] = useState(false);
 
   // Bank connection state (step 5)
   const [showBankSelector, setShowBankSelector] = useState(false);
@@ -485,6 +489,27 @@ export default function OnboardingPage() {
                 {t.auth.fiscalProfile}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                <p style={{ fontSize: 13, opacity: 0.55, lineHeight: 1.6, margin: 0 }}>
+                  We hebben de gangbare instellingen al voor je gekozen: BTW per
+                  kwartaal, boekhouding vanaf dit jaar, recht op zelfstandigenaftrek.
+                  Klopt dat? Sla deze stap dan gerust over. Wil je iets aanpassen —
+                  bijvoorbeeld je geschatte jaarinkomen voor een scherpere
+                  reservering — open dan Geavanceerd.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedFiscal((v) => !v)}
+                  aria-expanded={showAdvancedFiscal}
+                  className="label"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: "4px 0", color: "var(--foreground)", opacity: 0.55, alignSelf: "flex-start" }}
+                >
+                  Geavanceerd
+                  <span style={{ display: "inline-block", transition: "transform 0.2s ease", transform: showAdvancedFiscal ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+                </button>
+
+                {showAdvancedFiscal && (
+                <>
                 {/* BTW frequentie */}
                 <div>
                   <label className="label" style={{ display: "block", marginBottom: 12 }}>
@@ -663,6 +688,8 @@ export default function OnboardingPage() {
                     )}
                   </div>
                 </div>
+                </>
+                )}
               </div>
             </div>
           )}

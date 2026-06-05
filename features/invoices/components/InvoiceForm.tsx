@@ -239,8 +239,8 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
         </div>
       )}
 
-      {/* ── Metadata: Precision lines ── */}
-      <InvoiceMetadata defaultCollapsed={!!invoiceId} />
+      {/* ── Metadata: Precision lines (ingeklapt — factuur = bedrag + ontvanger) ── */}
+      <InvoiceMetadata defaultCollapsed />
 
       {/* ── The Monolith: Total ── */}
       <InvoiceTotals />

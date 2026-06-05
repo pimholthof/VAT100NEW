@@ -43,12 +43,22 @@ export default function ClientsPage() {
         <h1 className="display-title">
           {t.clients.title}
         </h1>
-        <Link
-          href="/dashboard/clients/new"
-          className="btn-secondary"
-        >
-          {t.clients.newClientBtn}
-        </Link>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link
+            href="/dashboard/import"
+            className="table-action"
+            style={{ textDecoration: "none" }}
+            title="Kom je van Moneybird? Importeer je klanten uit een CSV-export."
+          >
+            {t.import.title}
+          </Link>
+          <Link
+            href="/dashboard/clients/new"
+            className="btn-secondary"
+          >
+            {t.clients.newClientBtn}
+          </Link>
+        </div>
       </div>
 
       {/* Search */}

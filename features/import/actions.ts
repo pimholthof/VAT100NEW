@@ -1,130 +1,24 @@
 "use server";
 
+import { z } from "zod";
 import { requireAuth } from "@/lib/supabase/server";
+import { modelFor } from "@/lib/ai/models";
 import type { ActionResult } from "@/lib/types";
-
-// ─── CSV parsing ───
-
-function parseCSV(text: string): string[][] {
-  const lines = text.trim().split("\n");
-  return lines.map((line) => {
-    const fields: string[] = [];
-    let current = "";
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (inQuotes) {
-        if (char === '"' && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else if (char === '"') {
-          inQuotes = false;
-        } else {
-          current += char;
-        }
-      } else {
-        if (char === '"') {
-          inQuotes = true;
-        } else if (char === "," || char === ";") {
-          fields.push(current.trim());
-          current = "";
-        } else {
-          current += char;
-        }
-      }
-    }
-    fields.push(current.trim());
-    return fields;
-  });
-}
-
-// ─── Kolom-detectie ───
-
-const INVOICE_COLUMN_MAP: Record<string, string> = {
-  factuurnummer: "invoice_number",
-  nummer: "invoice_number",
-  invoice_number: "invoice_number",
-  klant: "client_name",
-  client: "client_name",
-  klantnaam: "client_name",
-  debiteur: "client_name",
-  datum: "issue_date",
-  factuurdatum: "issue_date",
-  date: "issue_date",
-  issue_date: "issue_date",
-  vervaldatum: "due_date",
-  due_date: "due_date",
-  bedrag: "subtotal_ex_vat",
-  "bedrag excl": "subtotal_ex_vat",
-  "bedrag excl. btw": "subtotal_ex_vat",
-  amount: "subtotal_ex_vat",
-  subtotal: "subtotal_ex_vat",
-  btw: "vat_amount",
-  "btw bedrag": "vat_amount",
-  vat: "vat_amount",
-  totaal: "total_inc_vat",
-  "bedrag incl": "total_inc_vat",
-  "bedrag incl. btw": "total_inc_vat",
-  total: "total_inc_vat",
-  omschrijving: "description",
-  description: "description",
-  status: "status",
-};
-
-const RECEIPT_COLUMN_MAP: Record<string, string> = {
-  leverancier: "vendor_name",
-  vendor: "vendor_name",
-  crediteur: "vendor_name",
-  naam: "vendor_name",
-  bedrag: "amount_ex_vat",
-  "bedrag excl": "amount_ex_vat",
-  "bedrag excl. btw": "amount_ex_vat",
-  amount: "amount_ex_vat",
-  btw: "vat_amount",
-  "btw bedrag": "vat_amount",
-  vat: "vat_amount",
-  totaal: "amount_inc_vat",
-  "bedrag incl": "amount_inc_vat",
-  "bedrag incl. btw": "amount_inc_vat",
-  total: "amount_inc_vat",
-  datum: "receipt_date",
-  date: "receipt_date",
-  bondatum: "receipt_date",
-  categorie: "category",
-  category: "category",
-  omschrijving: "vendor_name",
-};
-
-function detectColumns(
-  headers: string[],
-  type: "invoices" | "receipts",
-): Record<string, string> {
-  const map = type === "invoices" ? INVOICE_COLUMN_MAP : RECEIPT_COLUMN_MAP;
-  const mapping: Record<string, string> = {};
-
-  for (const header of headers) {
-    const normalized = header.toLowerCase().trim();
-    if (map[normalized]) {
-      mapping[header] = map[normalized];
-    }
-  }
-
-  return mapping;
-}
+import {
+  parseCSV,
+  detectColumns,
+  parseDate,
+  parseNumber,
+  TARGET_FIELDS,
+  type ImportType,
+  type ImportPreview,
+} from "./parse";
 
 // ─── Preview ───
 
-export interface ImportPreview {
-  headers: string[];
-  mapping: Record<string, string>;
-  preview: Record<string, string>[];
-  totalRows: number;
-}
-
 export async function previewImportCSV(
   csvText: string,
-  type: "invoices" | "receipts",
+  type: ImportType,
 ): Promise<ActionResult<ImportPreview>> {
   const rows = parseCSV(csvText);
   if (rows.length < 2) return { error: "CSV bevat geen data." };
@@ -143,34 +37,24 @@ export async function previewImportCSV(
 
   return {
     error: null,
-    data: {
-      headers,
-      mapping,
-      preview,
-      totalRows: dataRows.length,
-    },
+    data: { headers, mapping, preview, totalRows: dataRows.length },
+  };
+}
+
+/** Lees de waarde van het eerste kolom dat op `targetField` is afgebeeld. */
+function makeGetMapped(headers: string[], mapping: Record<string, string>) {
+  return (row: string[], targetField: string): string => {
+    for (const [header, mapped] of Object.entries(mapping)) {
+      if (mapped === targetField) {
+        const idx = headers.indexOf(header);
+        if (idx >= 0) return (row[idx] ?? "").trim();
+      }
+    }
+    return "";
   };
 }
 
 // ─── Import facturen ───
-
-function parseDate(value: string): string | null {
-  if (!value) return null;
-  // Try ISO format first
-  if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
-  // Try DD-MM-YYYY or DD/MM/YYYY
-  const match = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
-  if (match) return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}`;
-  return null;
-}
-
-function parseNumber(value: string): number | null {
-  if (!value) return null;
-  // Handle Dutch number format: 1.234,56
-  const cleaned = value.replace(/[€\s]/g, "").replace(/\./g, "").replace(",", ".");
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? null : num;
-}
 
 export async function importInvoices(
   csvText: string,
@@ -185,17 +69,7 @@ export async function importInvoices(
 
   const headers = rows[0];
   const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.length > 0));
-
-  // Helper to get mapped value
-  const getMapped = (row: string[], targetField: string): string => {
-    for (const [header, mapped] of Object.entries(mapping)) {
-      if (mapped === targetField) {
-        const idx = headers.indexOf(header);
-        if (idx >= 0) return row[idx] ?? "";
-      }
-    }
-    return "";
-  };
+  const getMapped = makeGetMapped(headers, mapping);
 
   // Get or create a default client for imported invoices
   let defaultClientId: string | null = null;
@@ -206,10 +80,19 @@ export async function importInvoices(
   for (const row of dataRows) {
     const invoiceNumber = getMapped(row, "invoice_number") || `IMP-${imported + 1}`;
     const issueDate = parseDate(getMapped(row, "issue_date"));
+    const dueDate = parseDate(getMapped(row, "due_date"));
     const subtotal = parseNumber(getMapped(row, "subtotal_ex_vat"));
     const vatAmount = parseNumber(getMapped(row, "vat_amount"));
     const total = parseNumber(getMapped(row, "total_inc_vat"));
     const clientName = getMapped(row, "client_name");
+    const description = getMapped(row, "description");
+
+    // Status overnemen uit de export indien aanwezig; anders gaan we ervan uit
+    // dat geïmporteerde historie betaald is.
+    const statusRaw = getMapped(row, "status").toLowerCase();
+    const status: "paid" | "sent" = /open|verstuur|verzond|sent|concept|draft|onbetaald/.test(statusRaw)
+      ? "sent"
+      : "paid";
 
     if (!issueDate || (subtotal === null && total === null)) {
       skipped++;
@@ -275,16 +158,16 @@ export async function importInvoices(
       user_id: user.id,
       client_id: clientId,
       invoice_number: invoiceNumber,
-      status: "paid" as const,
+      status,
       issue_date: issueDate,
-      due_date: null,
+      due_date: dueDate,
       subtotal_ex_vat: computedSubtotal,
       vat_rate: computedVat > 0 && computedSubtotal > 0
         ? Math.round((computedVat / computedSubtotal) * 100)
         : 21,
       vat_amount: computedVat,
       total_inc_vat: computedTotal,
-      notes: "Geïmporteerd",
+      notes: description || "Geïmporteerd",
     });
 
     if (error) {
@@ -312,16 +195,7 @@ export async function importReceipts(
 
   const headers = rows[0];
   const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.length > 0));
-
-  const getMapped = (row: string[], targetField: string): string => {
-    for (const [header, mapped] of Object.entries(mapping)) {
-      if (mapped === targetField) {
-        const idx = headers.indexOf(header);
-        if (idx >= 0) return row[idx] ?? "";
-      }
-    }
-    return "";
-  };
+  const getMapped = makeGetMapped(headers, mapping);
 
   let imported = 0;
   let skipped = 0;
@@ -363,4 +237,159 @@ export async function importReceipts(
   }
 
   return { error: null, data: { imported, skipped } };
+}
+
+// ─── Import klanten ───
+
+export async function importClients(
+  csvText: string,
+  mapping: Record<string, string>,
+): Promise<ActionResult<{ imported: number; skipped: number }>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+  const { supabase, user } = auth;
+
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return { error: "Geen data gevonden." };
+
+  const headers = rows[0];
+  const dataRows = rows.slice(1).filter((r) => r.some((cell) => cell.length > 0));
+  const getMapped = makeGetMapped(headers, mapping);
+
+  let imported = 0;
+  let skipped = 0;
+
+  for (const row of dataRows) {
+    const name = getMapped(row, "name");
+    if (!name) {
+      skipped++;
+      continue;
+    }
+
+    const email = getMapped(row, "email");
+
+    // Dedup: bestaat er al een klant met dit e-mailadres (of, zonder e-mail,
+    // met dezelfde naam)? Zo ja, overslaan — geen dubbelen aanmaken.
+    const dupBase = supabase.from("clients").select("id").eq("user_id", user.id);
+    const { data: dupes } = await (email
+      ? dupBase.ilike("email", email)
+      : dupBase.ilike("name", name)
+    ).limit(1);
+    if (dupes && dupes.length > 0) {
+      skipped++;
+      continue;
+    }
+
+    const record: Record<string, unknown> = { user_id: user.id, name };
+    const contactName = getMapped(row, "contact_name");
+    const address = getMapped(row, "address");
+    const postalCode = getMapped(row, "postal_code");
+    const city = getMapped(row, "city");
+    const country = getMapped(row, "country");
+    const kvk = getMapped(row, "kvk_number");
+    const btw = getMapped(row, "btw_number");
+    const paymentTerms = parseNumber(getMapped(row, "payment_terms_days"));
+    if (email) record.email = email;
+    if (contactName) record.contact_name = contactName;
+    if (address) record.address = address;
+    if (postalCode) record.postal_code = postalCode;
+    if (city) record.city = city;
+    if (country) record.country = country;
+    if (kvk) record.kvk_number = kvk;
+    if (btw) record.btw_number = btw;
+    if (paymentTerms !== null) record.payment_terms_days = Math.round(paymentTerms);
+
+    const { error } = await supabase.from("clients").insert(record);
+    if (error) {
+      skipped++;
+    } else {
+      imported++;
+    }
+  }
+
+  return { error: null, data: { imported, skipped } };
+}
+
+// ─── Slimme kolom-herkenning (onder de motorkap) ───
+
+/**
+ * Stelt een kolom-mapping voor wanneer de standaard-detectie kolommen mist —
+ * handig bij onbekende of Engelstalige exports. Werkt stil onder de motorkap
+ * (zelfde subverwerker als de bon-scan); faalt netjes terug op handmatig
+ * mappen als de dienst niet beschikbaar is.
+ */
+export async function suggestColumnMapping(
+  headers: string[],
+  type: ImportType,
+  sampleRows: string[][],
+): Promise<ActionResult<Record<string, string>>> {
+  const auth = await requireAuth();
+  if (auth.error !== null) return { error: auth.error };
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return { error: "Automatisch herkennen is nu niet beschikbaar. Map de kolommen handmatig." };
+  }
+  if (headers.length === 0) return { error: "Geen kolommen gevonden." };
+
+  const fields = TARGET_FIELDS[type];
+
+  try {
+    const Anthropic = (await import("@anthropic-ai/sdk")).default;
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+    const fieldList = fields.map((f) => `- ${f.field}: ${f.desc}`).join("\n");
+    const sample = [headers, ...sampleRows.slice(0, 3)]
+      .map((r) => r.join(" | "))
+      .join("\n");
+
+    const systemPrompt = `Je koppelt kolomkoppen uit een CSV-export (Moneybird, e-Boekhouden, Excel) aan vaste doelvelden.
+Retourneer UITSLUITEND valide JSON — geen markdown, geen toelichting: een object dat élke kolomkop afbeeldt op een doelveld of op null.
+Doelvelden:
+${fieldList}
+Regels:
+- Gebruik alleen de exacte doelveld-namen hierboven, of null als geen veld past.
+- Eén doelveld hooguit één keer; kies bij twijfel de best passende kolom.
+- Baseer je op de kolomkop én de voorbeeldwaarden.`;
+
+    const userText = `Kolommen en voorbeeldrijen (eerste rij = koppen):
+${sample}
+
+Geef JSON met een sleutel voor elke kolomkop: {"<kolomkop>":"<doelveld of null>", ...}`;
+
+    const response = await anthropic.messages.create({
+      model: modelFor("CLASSIFIER"),
+      max_tokens: 512,
+      system: [{ type: "text", text: systemPrompt }],
+      messages: [{ role: "user", content: [{ type: "text", text: userText }] }],
+    });
+
+    const textContent = response.content.find((c) => c.type === "text");
+    if (!textContent || textContent.type !== "text") {
+      return { error: "Kon de kolommen niet automatisch herkennen." };
+    }
+
+    const cleaned = textContent.text
+      .trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/i, "");
+    const raw: unknown = JSON.parse(cleaned);
+    const parsed = z.record(z.string(), z.string().nullable()).safeParse(raw);
+    if (!parsed.success) {
+      return { error: "Kon de kolommen niet automatisch herkennen." };
+    }
+
+    const allowed = new Set(fields.map((f) => f.field));
+    const mapping: Record<string, string> = {};
+    const used = new Set<string>();
+    for (const header of headers) {
+      const suggestion = parsed.data[header];
+      if (suggestion && allowed.has(suggestion) && !used.has(suggestion)) {
+        mapping[header] = suggestion;
+        used.add(suggestion);
+      }
+    }
+    return { error: null, data: mapping };
+  } catch {
+    return { error: "Kon de kolommen niet automatisch herkennen. Map ze handmatig." };
+  }
 }

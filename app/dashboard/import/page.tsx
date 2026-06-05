@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { previewImportCSV, importInvoices, importReceipts } from "@/features/import/actions";
-import type { ImportPreview } from "@/features/import/actions";
+import { previewImportCSV, importInvoices, importReceipts, importClients, suggestColumnMapping } from "@/features/import/actions";
+import { TARGET_FIELDS, type ImportPreview, type ImportType } from "@/features/import/parse";
 import { Th, Td } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
 
@@ -29,11 +29,9 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
   cursor: "pointer",
 });
 
-type ImportType = "invoices" | "receipts";
-
 export default function ImportPage() {
   const { t } = useLocale();
-  const [tab, setTab] = useState<ImportType>("invoices");
+  const [tab, setTab] = useState<ImportType>("clients");
   const [csvText, setCsvText] = useState("");
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
@@ -55,11 +53,26 @@ export default function ImportPage() {
   const importMut = useMutation({
     mutationFn: () => {
       if (tab === "invoices") return importInvoices(csvText, mapping);
+      if (tab === "clients") return importClients(csvText, mapping);
       return importReceipts(csvText, mapping);
     },
     onSuccess: (res) => {
       if (res.error) { setError(res.error); return; }
       setResult(res.data!);
+      setError(null);
+    },
+  });
+
+  // Slimme kolom-herkenning (onder de motorkap) voor onbekende exports.
+  const suggestMut = useMutation({
+    mutationFn: () => {
+      const p = preview!;
+      const sampleRows = p.preview.map((r) => p.headers.map((h) => r[h] ?? ""));
+      return suggestColumnMapping(p.headers, tab, sampleRows);
+    },
+    onSuccess: (res) => {
+      if (res.error) { setError(res.error); return; }
+      setMapping((m) => ({ ...m, ...res.data }));
       setError(null);
     },
   });
@@ -85,9 +98,8 @@ export default function ImportPage() {
     setCsvText("");
   }
 
-  const targetFields = tab === "invoices"
-    ? ["invoice_number", "client_name", "issue_date", "due_date", "subtotal_ex_vat", "vat_amount", "total_inc_vat", "description", "status"]
-    : ["vendor_name", "receipt_date", "amount_ex_vat", "vat_amount", "amount_inc_vat", "category"];
+  const targetFields = TARGET_FIELDS[tab].map((f) => f.field);
+  const unmappedCount = preview ? preview.headers.filter((h) => !mapping[h]).length : 0;
 
   const targetLabels: Record<string, string> = {
     invoice_number: t.import.fieldInvoiceNumber,
@@ -104,6 +116,16 @@ export default function ImportPage() {
     amount_ex_vat: t.import.fieldAmountExVat,
     amount_inc_vat: t.import.fieldAmountIncVat,
     category: t.import.fieldCategory,
+    name: t.import.fieldName,
+    contact_name: t.import.fieldContactName,
+    email: t.import.fieldEmail,
+    address: t.import.fieldAddress,
+    postal_code: t.import.fieldPostalCode,
+    city: t.import.fieldCity,
+    country: t.import.fieldCountry,
+    kvk_number: t.import.fieldKvkNumber,
+    btw_number: t.import.fieldBtwNumber,
+    payment_terms_days: t.import.fieldPaymentTerms,
   };
 
   return (
@@ -120,6 +142,7 @@ export default function ImportPage() {
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: "24px", marginBottom: "40px", borderBottom: "0.5px solid rgba(13,13,11,0.12)" }}>
+        <button onClick={() => handleTabChange("clients")} style={tabStyle(tab === "clients")}>{t.import.clientsTab}</button>
         <button onClick={() => handleTabChange("invoices")} style={tabStyle(tab === "invoices")}>{t.import.invoicesTab}</button>
         <button onClick={() => handleTabChange("receipts")} style={tabStyle(tab === "receipts")}>{t.import.receiptsTab}</button>
       </div>
@@ -210,6 +233,27 @@ export default function ImportPage() {
             <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.5, marginBottom: 16 }}>
               {preview.totalRows} {t.import.rowsFound}
             </p>
+
+            {unmappedCount > 0 && (
+              <button
+                onClick={() => suggestMut.mutate()}
+                disabled={suggestMut.isPending}
+                style={{
+                  marginBottom: 20,
+                  padding: "10px 16px",
+                  border: "0.5px solid rgba(13,13,11,0.25)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "transparent",
+                  cursor: suggestMut.isPending ? "default" : "pointer",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "var(--foreground)",
+                  opacity: suggestMut.isPending ? 0.5 : 1,
+                }}
+              >
+                {suggestMut.isPending ? t.import.smartMapPending : t.import.smartMap}
+              </button>
+            )}
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {preview.headers.map((header) => (
