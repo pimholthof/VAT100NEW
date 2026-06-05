@@ -199,7 +199,7 @@ export default function OpeningBalancePage() {
       </div>
 
       {error && <p style={{ color: "var(--color-accent)", marginBottom: 16 }}>{error}</p>}
-      {success && <p style={{ color: "var(--color-success)", marginBottom: 16 }}>Openingsbalans opgeslagen!</p>}
+      {success && <p style={{ color: "var(--color-success)", marginBottom: 16 }}>Openingsbalans opgeslagen.</p>}
 
       {/* Formulier */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: 32 }}>

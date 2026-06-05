@@ -20,36 +20,37 @@ export default async function SubscriptionPage() {
     .order("paid_at", { ascending: false });
 
   return (
-    <div className="max-w-4xl py-6 px-6">
-      <header className="mb-16">
-        <h1 className="text-6xl font-black italic tracking-tighter mb-4">ABONNEMENT</h1>
-        <p className="text-xl opacity-60">Beheer je VAT100 lidmaatschap en bekijk je factuurhistorie.</p>
-      </header>
+    <div style={{ maxWidth: 880 }}>
+      <div className="page-header">
+        <div>
+          <h1 className="display-title">Abonnement</h1>
+          <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: "16px 0 0", opacity: 0.5, maxWidth: "32rem" }}>
+            Beheer je VAT100-abonnement en bekijk je betaalhistorie.
+          </p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-        {/* Active Plan Card */}
-        <div className="border-4 border-black p-8 bg-white relative overflow-hidden group">
-          <div className="absolute top-0 right-0 bg-black text-white px-4 py-1 text-[10px] font-black uppercase tracking-widest translate-x-2 translate-y-2 rotate-45 group-hover:rotate-0 transition-transform">
-            {subscription?.status || "Geen actief plan"}
-          </div>
-          
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] mb-8 opacity-40">HUIDIG PAKKET</h2>
-          
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, alignItems: "start" }}>
+        {/* Huidig pakket */}
+        <div style={{ border: "var(--border-light)", borderRadius: "var(--radius)", padding: 28, background: "rgba(255,255,255,0.6)" }}>
+          <p className="label" style={{ margin: "0 0 20px" }}>Huidig pakket</p>
+
           {subscription ? (
             <>
-              <div className="text-4xl font-black mb-4 uppercase tracking-tighter italic">
+              <p style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>
                 {subscription.plan.name}
-              </div>
-              <div className="text-2xl font-bold mb-8">
-                €{(subscription.plan.price_cents / 100).toFixed(2)} <span className="text-base font-normal opacity-40">/ maand</span>
-              </div>
+              </p>
+              <p style={{ margin: "8px 0 24px" }}>
+                <span className="mono-amount" style={{ fontSize: "var(--text-body-lg)" }}>€{(subscription.plan.price_cents / 100).toFixed(2)}</span>
+                <span style={{ opacity: 0.4, fontSize: "var(--text-body-sm)" }}> / maand</span>
+              </p>
 
-              <div className="space-y-4 border-t-2 border-black pt-8">
-                <div className="flex justify-between text-sm">
-                  <span className="opacity-40">Status:</span>
+              <div style={{ borderTop: "var(--border-light)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--text-body-sm)" }}>
+                  <span style={{ opacity: 0.5 }}>Status</span>
                   <span
-                    className="font-bold uppercase"
                     style={{
+                      fontWeight: 600,
                       color:
                         subscription.status === 'past_due'
                           ? 'var(--color-accent)'
@@ -62,9 +63,9 @@ export default async function SubscriptionPage() {
                   </span>
                 </div>
                 {subscription.current_period_end && (
-                  <div className="flex justify-between text-sm">
-                    <span className="opacity-40">Volgende incasso:</span>
-                    <span className="font-bold">
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--text-body-sm)" }}>
+                    <span style={{ opacity: 0.5 }}>Volgende incasso</span>
+                    <span style={{ fontWeight: 500 }}>
                       {format(new Date(subscription.current_period_end), "d MMMM yyyy", { locale: nl })}
                     </span>
                   </div>
@@ -72,47 +73,49 @@ export default async function SubscriptionPage() {
               </div>
             </>
           ) : (
-            <div className="py-12 text-center italic opacity-40 border-2 border-dashed border-black">
-              Geen actief abonnement gevonden.
-              <div className="mt-4">
-                <Link href="/dashboard/settings/abonnement" className="btn-primary inline-block">Bekijk plannen</Link>
+            <div style={{ padding: "32px 0", textAlign: "center", opacity: 0.6, fontSize: "var(--text-body-sm)" }}>
+              Geen actief abonnement.
+              <div style={{ marginTop: 16 }}>
+                <Link href="/dashboard/settings/abonnement" className="btn-primary">Bekijk plannen</Link>
               </div>
             </div>
           )}
         </div>
 
-        {/* Payment History */}
-        <div className="space-y-8">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] opacity-40">BETAALHISTORIE</h2>
-          
-          <div className="space-y-2">
+        {/* Betaalhistorie */}
+        <div>
+          <p className="label" style={{ margin: "0 0 16px" }}>Betaalhistorie</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {payments?.map((payment) => (
-              <div key={payment.id} className="border-2 border-black p-4 flex justify-between items-center bg-white hover:bg-neutral-50 transition-colors">
+              <div
+                key={payment.id}
+                style={{ border: "var(--border-light)", borderRadius: "var(--radius-md)", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.6)" }}
+              >
                 <div>
-                  <div className="font-bold">€{(payment.amount_cents / 100).toFixed(2)}</div>
-                  <div className="text-[10px] opacity-40">
+                  <div className="mono-amount" style={{ fontWeight: 500 }}>€{(payment.amount_cents / 100).toFixed(2)}</div>
+                  <div style={{ fontSize: 11, opacity: 0.4 }}>
                     {payment.paid_at ? format(new Date(payment.paid_at), "d MMM yyyy", { locale: nl }) : "In afwachting"}
                   </div>
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                <span className="label" style={{ opacity: 0.5 }}>
                   {payment.status === 'paid' ? 'Voldaan' : payment.status}
-                </div>
+                </span>
               </div>
             ))}
             {(!payments || payments.length === 0) && (
-              <div className="text-xs italic opacity-40">Nog geen betalingen verwerkt.</div>
+              <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.4, margin: 0 }}>Nog geen betalingen verwerkt.</p>
             )}
           </div>
         </div>
       </div>
 
-      <div className="mt-16 pt-8 border-t-4 border-black flex flex-col md:flex-row justify-between items-center gap-8">
-        <div className="text-xs opacity-40 max-w-md">
-          Abonnementen worden maandelijks automatisch verlengd via Mollie. Van plan wisselen of opzeggen doe je zelf via Beheer abonnement. Vragen over je factuur? Neem contact op met support.
-        </div>
-        <div className="flex gap-4">
-          <Link href="/dashboard/settings/abonnement" className="text-sm font-bold border-b-2 border-black hover:border-transparent transition-all">Beheer abonnement</Link>
-          <a href="mailto:support@vat100.nl" className="text-sm font-bold border-b-2 border-black hover:border-transparent transition-all">Contact Ondersteuning</a>
+      <div style={{ marginTop: 48, paddingTop: 24, borderTop: "var(--border-light)", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 24 }}>
+        <p style={{ fontSize: 12, opacity: 0.4, maxWidth: "32rem", margin: 0, lineHeight: 1.6 }}>
+          Abonnementen verlengen maandelijks automatisch via Mollie. Wisselen of opzeggen doe je via Beheer abonnement. Vragen over je factuur? Neem contact op.
+        </p>
+        <div style={{ display: "flex", gap: 20 }}>
+          <Link href="/dashboard/settings/abonnement" className="table-action" style={{ textDecoration: "none" }}>Beheer abonnement</Link>
+          <a href="mailto:support@vat100.nl" className="table-action" style={{ textDecoration: "none" }}>Contact support</a>
         </div>
       </div>
     </div>
