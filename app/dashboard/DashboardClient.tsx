@@ -291,9 +291,11 @@ function DesktopDashboard({
           <EmptyState
             icon="○"
             title="Begin met een klant"
-            description="Voeg eerst een klant toe — daarna stuur je er een factuur naartoe."
+            description="Voeg eerst een klant toe — daarna stuur je er een factuur naartoe. Kom je van Moneybird? Importeer je klanten in een paar klikken."
             actionLabel="Voeg klant toe"
             actionHref="/dashboard/clients/new"
+            secondaryLabel="Importeer uit Moneybird"
+            secondaryHref="/dashboard/import"
           />
         ) : (
           <EmptyState

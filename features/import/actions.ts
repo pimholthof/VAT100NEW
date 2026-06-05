@@ -80,10 +80,19 @@ export async function importInvoices(
   for (const row of dataRows) {
     const invoiceNumber = getMapped(row, "invoice_number") || `IMP-${imported + 1}`;
     const issueDate = parseDate(getMapped(row, "issue_date"));
+    const dueDate = parseDate(getMapped(row, "due_date"));
     const subtotal = parseNumber(getMapped(row, "subtotal_ex_vat"));
     const vatAmount = parseNumber(getMapped(row, "vat_amount"));
     const total = parseNumber(getMapped(row, "total_inc_vat"));
     const clientName = getMapped(row, "client_name");
+    const description = getMapped(row, "description");
+
+    // Status overnemen uit de export indien aanwezig; anders gaan we ervan uit
+    // dat geïmporteerde historie betaald is.
+    const statusRaw = getMapped(row, "status").toLowerCase();
+    const status: "paid" | "sent" = /open|verstuur|verzond|sent|concept|draft|onbetaald/.test(statusRaw)
+      ? "sent"
+      : "paid";
 
     if (!issueDate || (subtotal === null && total === null)) {
       skipped++;
@@ -149,16 +158,16 @@ export async function importInvoices(
       user_id: user.id,
       client_id: clientId,
       invoice_number: invoiceNumber,
-      status: "paid" as const,
+      status,
       issue_date: issueDate,
-      due_date: null,
+      due_date: dueDate,
       subtotal_ex_vat: computedSubtotal,
       vat_rate: computedVat > 0 && computedSubtotal > 0
         ? Math.round((computedVat / computedSubtotal) * 100)
         : 21,
       vat_amount: computedVat,
       total_inc_vat: computedTotal,
-      notes: "Geïmporteerd",
+      notes: description || "Geïmporteerd",
     });
 
     if (error) {
