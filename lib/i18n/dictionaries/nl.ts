@@ -115,6 +115,10 @@ const nl = {
     allFromBasis: "Alles van Start",
     allFromStudio: "Alles van Studio",
     incomeTaxInsight: "Inzicht inkomstenbelasting",
+    // All-in plan (één prijs, design-premie)
+    allInTagline: "Eén abonnement. Alles inbegrepen.",
+    allInDesc: "Geen tiers, geen verrassingen. Alles wat een creatieve zzp'er nodig heeft, in één rustig pakket.",
+    allInReceipts: "Bonnen scannen — automatisch ingevuld",
     bankConnection: "Bankrekening koppelen",
     aiClassificationApproval: "Automatische transactie-classificatie",
     aiReceipts: "Automatisch bonnen scannen",

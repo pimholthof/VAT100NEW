@@ -4,7 +4,7 @@ import BrowserFrame from "./BrowserFrame";
 
 const text = {
   nl: {
-    title: "BTW-OVERZICHT 2024",
+    title: "BTW-OVERZICHT",
     headers: ["", "OMZET", "BTW AFDRACHT", "BTW AFTREK", "NETTO"],
     quarters: [
       { q: "Q1", revenue: "€ 12.400", vatOwed: "€ 2.604", vatDeductible: "€ 480", net: "€ 2.124", done: true },
@@ -19,7 +19,7 @@ const text = {
     totalNet: "€ 6.444",
   },
   en: {
-    title: "VAT OVERVIEW 2024",
+    title: "VAT OVERVIEW",
     headers: ["", "REVENUE", "VAT OWED", "VAT DEDUCT.", "NET"],
     quarters: [
       { q: "Q1", revenue: "€ 12,400", vatOwed: "€ 2,604", vatDeductible: "€ 480", net: "€ 2,124", done: true },
@@ -52,7 +52,7 @@ export default function VatMockup({ locale = "nl" }: { locale?: "nl" | "en" }) {
           marginBottom: 16,
         }}
       >
-        {t.title}
+        {t.title} {new Date().getFullYear()}
       </p>
 
       {/* Header row */}

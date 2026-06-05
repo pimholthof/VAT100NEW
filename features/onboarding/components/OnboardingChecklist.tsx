@@ -23,8 +23,6 @@ interface OnboardingChecklistProps {
   onboardingDismissed?: boolean;
 }
 
-const MINIMIZED_STORAGE_KEY = "vat100-onboarding-minimized";
-
 export function OnboardingChecklist({
   hasProfile,
   hasFiscalProfile,
@@ -35,10 +33,6 @@ export function OnboardingChecklist({
   onboardingDismissed = false,
 }: OnboardingChecklistProps) {
   const [dismissed, setDismissed] = useState(onboardingDismissed);
-  const [minimized, setMinimized] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(MINIMIZED_STORAGE_KEY) === "1";
-  });
   const { t } = useLocale();
 
   const steps: OnboardingStep[] = [
@@ -56,6 +50,11 @@ export function OnboardingChecklist({
   const remainingSteps = steps.filter((s) => !s.done);
   const nextStep = remainingSteps[0];
 
+  // Checklist start ingeklapt zodra je je eerste stap hebt gezet — je ziet
+  // je cijfers, niet je huiswerk. Deterministisch (server == client), dus
+  // geen hydration-mismatch. Binnen de sessie kun je 'm zelf uit-/inklappen.
+  const [minimized, setMinimized] = useState(completedCount > 0);
+
   if (dismissed || allDone) return null;
 
   async function handleDismiss() {
@@ -64,11 +63,7 @@ export function OnboardingChecklist({
   }
 
   function toggleMinimized() {
-    const next = !minimized;
-    setMinimized(next);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(MINIMIZED_STORAGE_KEY, next ? "1" : "0");
-    }
+    setMinimized((m) => !m);
   }
 
   if (minimized) {

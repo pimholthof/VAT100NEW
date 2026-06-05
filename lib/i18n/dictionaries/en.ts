@@ -115,6 +115,10 @@ const en = {
     allFromBasis: "Everything from Start",
     allFromStudio: "Everything from Studio",
     incomeTaxInsight: "Income tax insight",
+    // All-in plan (one price, design premium)
+    allInTagline: "One subscription. Everything included.",
+    allInDesc: "No tiers, no surprises. Everything a creative freelancer needs, in one calm plan.",
+    allInReceipts: "Receipt scanning — filled in automatically",
     bankConnection: "Bank account connection",
     aiClassificationApproval: "Automatic transaction classification",
     aiReceipts: "Automatic receipt scanning",

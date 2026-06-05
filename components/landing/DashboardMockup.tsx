@@ -12,8 +12,8 @@ const text = {
     ],
     upcoming: "OPENSTAANDE FACTUREN",
     invoices: [
-      { client: "Ace & Partners", amount: "€ 2.400", status: "Verzonden", days: "3 dagen geleden", color: "#2563eb" },
-      { client: "De Correspondent", amount: "€ 850", status: "Verzonden", days: "7 dagen geleden", color: "#2563eb" },
+      { client: "Ace & Partners", amount: "€ 2.400", status: "Verzonden", days: "3 dagen geleden", color: "#2D5A7B" },
+      { client: "De Correspondent", amount: "€ 850", status: "Verzonden", days: "7 dagen geleden", color: "#2D5A7B" },
       { client: "Foam Amsterdam", amount: "€ 1.200", status: "Te laat", days: "12 dagen geleden", color: "#C44D2A" },
     ],
   },
@@ -26,8 +26,8 @@ const text = {
     ],
     upcoming: "OUTSTANDING INVOICES",
     invoices: [
-      { client: "Ace & Partners", amount: "€ 2,400", status: "Sent", days: "3 days ago", color: "#2563eb" },
-      { client: "De Correspondent", amount: "€ 850", status: "Sent", days: "7 days ago", color: "#2563eb" },
+      { client: "Ace & Partners", amount: "€ 2,400", status: "Sent", days: "3 days ago", color: "#2D5A7B" },
+      { client: "De Correspondent", amount: "€ 850", status: "Sent", days: "7 days ago", color: "#2D5A7B" },
       { client: "Foam Amsterdam", amount: "€ 1,200", status: "Overdue", days: "12 days ago", color: "#C44D2A" },
     ],
   },
@@ -35,6 +35,11 @@ const text = {
 
 export default function DashboardMockup({ locale = "nl" }: { locale?: "nl" | "en" }) {
   const t = text[locale];
+  const now = new Date();
+  const periodLabel = `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}`;
+  const stats = t.stats.map((s) =>
+    s.label === "BTW DEADLINE" || s.label === "VAT DEADLINE" ? { ...s, sub: periodLabel } : s,
+  );
 
   return (
     <BrowserFrame
@@ -79,7 +84,7 @@ export default function DashboardMockup({ locale = "nl" }: { locale?: "nl" | "en
           marginTop: 20,
         }}
       >
-        {t.stats.map((s) => (
+        {stats.map((s) => (
           <div
             key={s.label}
             style={{
