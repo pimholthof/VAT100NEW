@@ -106,14 +106,16 @@ gratis (`NEXT_PUBLIC_BETA_MODE=true`); de prijs verschijnt pas ná de beta.
 - **Factuur-metadata** standaard inklappen. *(Uitgevoerd — desktop.)*
 
 ### Wat ontbreekt (en past bij de doelgroep)
-1. **Echte importer** (Moneybird/CSV → klanten + facturen). *(Grotendeels
-   gebouwd: klanten-import + Moneybird/EN-kolomnamen + slimme kolomherkenning.
-   Resteert: facturen-import verfijnen + prominenter in de onboarding.)*
+1. **Echte importer** (Moneybird/CSV → klanten + facturen). *(Gebouwd: klanten-
+   import + Moneybird/EN-kolomnamen + slimme kolomherkenning + onboarding-hint.
+   Resteert: facturen-import op regelniveau.)*
 2. **Concrete reserveer-actie**: niet alleen "reserveren: € X" tónen, maar een
-   "zet opzij"-mechaniek.
-3. **Korting-veld** op facturen (nu omweg via negatieve regel).
-4. **OCR-vertrouwen tonen** ("herkend, controleer de gemarkeerde velden").
-5. **Mobiel: Berichten + Instellingen** ontbreken in de bottom-nav.
+   "zet opzij"-mechaniek. *(Vereist DB-migratie — buiten scope, `scope-minimaal.md`.)*
+3. **Korting-veld** op facturen. *(Vereist DB-migratie — buiten scope.)*
+4. **OCR-vertrouwen tonen** — ✅ al aanwezig: "Automatisch ingevuld — controleer
+   de velden" + lage-betrouwbaarheidswaarschuwing.
+5. **Mobiel: Berichten + Instellingen** — wel bereikbaar via het menu (drawer),
+   niet in de bottom-nav (5 items; bewust niet overvol).
 
 ## 6. UI/UX zo intuïtief mogelijk — met bijpassende copy
 
@@ -207,6 +209,9 @@ zeker; precies boven gezellig; één idee per zin; geen hype-woorden
     dashboard-lege-staat ("Importeer uit Moneybird").
 14. **`next build` lokaal geverifieerd** (met dummy-env): compileert schoon —
     naast typecheck, lint en 423 tests.
+15. Off-palette kleuren → tokens (cashflow-negatief, klant-validatie ✓/✗,
+    bank-/bon-foutmeldingen, openingsbalans, nav-badge).
+16. Moneybird-import-hint in de onboarding-checklist (activatie voor switchers).
 
 > Bewust **niet** verwijderd: `network`/`resources` — `scope-minimaal.md` markeert
 > die als VERBERGEN (achter de groei-flag, code blijft), niet schrappen. Ze staan

@@ -308,6 +308,23 @@ export function OnboardingChecklist({
             {t.onboarding.nextAction}: {nextStep.label}
           </Link>
         )}
+
+        {!hasClient && (
+          <Link
+            href="/dashboard/import"
+            style={{
+              display: "block",
+              marginTop: 16,
+              textAlign: "center",
+              fontSize: 12,
+              opacity: 0.5,
+              color: "var(--foreground)",
+              textDecoration: "none",
+            }}
+          >
+            Kom je van Moneybird? Importeer je klanten →
+          </Link>
+        )}
       </motion.div>
     </AnimatePresence>
   );

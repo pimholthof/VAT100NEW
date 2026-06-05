@@ -330,10 +330,10 @@ export function ClientForm({ client }: ClientFormProps) {
               style={{ paddingRight: 32 }}
             />
             {kvkLoading && (
-              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#888" }}>...</span>
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "rgba(0,0,0,0.4)" }}>...</span>
             )}
             {kvkFilled && !kvkLoading && (
-              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#16a34a" }}>✓</span>
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "var(--color-success)" }}>✓</span>
             )}
           </div>
         </FieldGroup>
@@ -361,13 +361,13 @@ export function ClientForm({ client }: ClientFormProps) {
               style={{ paddingRight: 32 }}
             />
             {viesStatus === "loading" && (
-              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#888" }}>...</span>
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "rgba(0,0,0,0.4)" }}>...</span>
             )}
             {viesStatus === "valid" && (
-              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#16a34a" }}>✓</span>
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "var(--color-success)" }}>✓</span>
             )}
             {viesStatus === "invalid" && (
-              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#dc2626" }}>✗</span>
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "var(--color-accent)" }}>✗</span>
             )}
           </div>
         </FieldGroup>
