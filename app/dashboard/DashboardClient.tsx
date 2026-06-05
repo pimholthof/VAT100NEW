@@ -159,24 +159,37 @@ function DesktopDashboard({
         />
       )}
 
-      {/* ── HERO ── */}
+      {/* ── HERO: de wig — wat kan ik echt uitgeven ── */}
       {!isLoading && (
         <div className="dashboard-home-hero">
           <motion.div variants={itemVariants} className="dashboard-home-hero-copy">
-            <p className="label" style={{ margin: 0 }}>{t.dashboard.today}</p>
-            <h1 className="dashboard-home-title">{t.dashboard.heroTitle}</h1>
-            <p className="dashboard-home-intro">{heroMessage}</p>
+            <p className="label" style={{ margin: 0 }}>{t.dashboard.freeToSpend}</p>
+            <p
+              style={{
+                fontSize: "clamp(2.75rem, 5vw, 4.5rem)",
+                fontWeight: 400,
+                letterSpacing: "-0.04em",
+                lineHeight: 1,
+                margin: "8px 0 0",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
+            </p>
+            <p className="dashboard-home-intro">
+              {t.dashboard.freeToSpendContext} {heroMessage}
+            </p>
           </motion.div>
 
           <motion.div variants={itemVariants}>
             <div className="dashboard-home-hero-stats">
               <div className="dashboard-home-meta-item">
-                <span className="label">{t.dashboard.freeToSpend}</span>
+                <span className="label">{t.dashboard.balance}</span>
                 <span className="dashboard-home-meta-value">
-                  {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
+                  {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "—"}
                 </span>
                 <p className="dashboard-home-meta-sub">
-                  {t.dashboard.balance} {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : t.dashboard.balanceNotAvailable}
+                  {safeToSpend ? t.dashboard.onAccountNow : t.dashboard.balanceNotAvailable}
                 </p>
               </div>
 
