@@ -226,7 +226,7 @@ export function DashboardNav({
                 <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} aria-current={linkAriaCurrent("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Berichten
                   {unreadMessages > 0 && (
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent, #E53E3E)", flexShrink: 0 }} />
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent)", flexShrink: 0 }} />
                   )}
                 </Link>
               </div>

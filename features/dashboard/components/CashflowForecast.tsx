@@ -82,7 +82,7 @@ export function CashflowForecast({
                       ...tdStyle,
                       textAlign: "right",
                       fontWeight: 600,
-                      color: isNegative ? "#DC2626" : "inherit",
+                      color: isNegative ? "var(--color-overdue)" : "inherit",
                     }}
                   >
                     {formatCurrency(week.runningBalance)}

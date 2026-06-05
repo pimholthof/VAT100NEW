@@ -137,7 +137,7 @@ export default function ReceiptsTab() {
               cursor: "pointer",
               fontSize: "var(--text-body-sm)",
               fontWeight: 500,
-              color: "#c00",
+              color: "var(--color-accent)",
             }}
           >
             {bulkDeleteMutation.isPending ? t.common.busy : t.common.delete}

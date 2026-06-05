@@ -247,7 +247,7 @@ export default function BankTab() {
             )}
             {completionStatus.error && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ margin: 0, color: "#e63946" }}>{t.bank.connectError.replace("{error}", completionStatus.error)}</p>
+                <p style={{ margin: 0, color: "var(--color-accent)" }}>{t.bank.connectError.replace("{error}", completionStatus.error)}</p>
                 <button
                   onClick={() => setCompletionStatus({ loading: false, error: null, success: false })}
                   style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5 }}
