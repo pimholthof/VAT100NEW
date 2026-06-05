@@ -972,6 +972,20 @@ const nl = {
     fieldVendorName: "Leverancier",
     fieldReceiptDate: "Bondatum",
     fieldCategory: "Categorie",
+    // Klanten-import + slimme herkenning
+    clientsTab: "Klanten",
+    fieldName: "Naam / bedrijf",
+    fieldContactName: "Contactpersoon",
+    fieldEmail: "E-mail",
+    fieldAddress: "Adres",
+    fieldPostalCode: "Postcode",
+    fieldCity: "Plaats",
+    fieldCountry: "Land",
+    fieldKvkNumber: "KvK-nummer",
+    fieldBtwNumber: "BTW-nummer",
+    fieldPaymentTerms: "Betaaltermijn (dagen)",
+    smartMap: "Kolommen automatisch herkennen",
+    smartMapPending: "Herkennen…",
   },
 
   // ─── Report ───

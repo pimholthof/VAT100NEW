@@ -971,6 +971,20 @@ const en = {
     fieldVendorName: "Vendor",
     fieldReceiptDate: "Receipt date",
     fieldCategory: "Category",
+    // Client import + smart detection
+    clientsTab: "Clients",
+    fieldName: "Name / company",
+    fieldContactName: "Contact person",
+    fieldEmail: "Email",
+    fieldAddress: "Address",
+    fieldPostalCode: "Postal code",
+    fieldCity: "City",
+    fieldCountry: "Country",
+    fieldKvkNumber: "Chamber of Commerce no.",
+    fieldBtwNumber: "VAT number",
+    fieldPaymentTerms: "Payment terms (days)",
+    smartMap: "Detect columns automatically",
+    smartMapPending: "Detecting…",
   },
 
   // ─── Report ───

@@ -106,8 +106,9 @@ gratis (`NEXT_PUBLIC_BETA_MODE=true`); de prijs verschijnt pas ná de beta.
 - **Factuur-metadata** standaard inklappen. *(Uitgevoerd — desktop.)*
 
 ### Wat ontbreekt (en past bij de doelgroep)
-1. **Echte importer** (Moneybird/CSV → klanten + facturen) als held van de
-   onboarding.
+1. **Echte importer** (Moneybird/CSV → klanten + facturen). *(Grotendeels
+   gebouwd: klanten-import + Moneybird/EN-kolomnamen + slimme kolomherkenning.
+   Resteert: facturen-import verfijnen + prominenter in de onboarding.)*
 2. **Concrete reserveer-actie**: niet alleen "reserveren: € X" tónen, maar een
    "zet opzij"-mechaniek.
 3. **Korting-veld** op facturen (nu omweg via negatieve regel).
@@ -195,10 +196,44 @@ zeker; precies boven gezellig; één idee per zin; geen hype-woorden
    "Toon berekening"; standaard alleen de samenvatting + indicatie-disclaimer.
 7. Onboarding stap 3 — vijf dichte fiscale keuzes → rustige intro + "Geavanceerd".
 8. Ongebruikte serif (`Cormorant Garamond`) uit de design-tokens (`globals.css`).
+9. Importer — klanten-import erbij (de hoeksteen voor "binnen een uur over"),
+   Moneybird- + Engelse kolomnamen, dedup op e-mail/naam. Pure parse-logica
+   afgesplitst (`features/import/parse.ts`) + 18 unit-tests.
+10. Slimme kolomherkenning — "Kolommen automatisch herkennen" gebruikt Claude
+    (Haiku) stil onder de motorkap, met nette fallback naar handmatig mappen.
+11. Importer vindbaar gemaakt vanaf de klantenpagina.
 
 > Bewust **niet** verwijderd: `network`/`resources` — `scope-minimaal.md` markeert
 > die als VERBERGEN (achter de groei-flag, code blijft), niet schrappen. Ze staan
 > al correct achter `isGrowthEnabled()` (default uit).
+
+## 11. Van Moneybird leren + de Claude-koppeling
+
+**Wat Moneybird goed doet (en wij van kunnen leren):**
+- **De bank-inbox is het hart** — transacties stromen binnen, je matcht ze in
+  één klik aan facturen/bonnen. Dagelijks ritueel. *(VAT100 heeft Tink al;
+  maak het matchen net zo licht.)*
+- **Wrijvingsloze import & onboarding** — contacten en producten in een paar
+  klikken erin. *(Hier hebben we nu op ingezet — zie §9.)*
+- **"Mijn accountant" als groeimotor** — je nodigt je boekhouder gratis uit; die
+  werkt in dezelfde omgeving en beveelt Moneybird aan. *(Sterke wig voor onze
+  €50–80k-doelgroep die een boekhouder houdt: een nette accountant-export of
+  -toegang.)*
+- **BTW direct indienen (Digipoort)** — wij prepareren/exporteren nog; eerlijk
+  blijven tot Digipoort live is.
+- **API + integraties** — een moat op termijn, niet voor de beta.
+
+**Onze wig blijft wat Moneybird *niet* vooropstelt:** "wat kan ik na de
+Belastingdienst echt uitgeven" (vrij te besteden + reservering).
+
+**De Claude-koppeling — onzichtbaar, in dienst van een fiscale klus.** VAT100
+gebruikt Claude al onder de motorkap (bon/factuur-OCR, bank-categorisatie). De
+minimalisatie haalde de zichtbare "AI" weg, niet de functie. De zinnigste nieuwe
+koppeling is dus geen chatbot, maar **slimme kolomherkenning in de importer**:
+bij een onbekende of Engelstalige export stelt Claude (Haiku, goedkoop) een
+kolom-mapping voor, met nette fallback naar handmatig. De-brand, stil, concreet.
+Een zichtbare "praat met je cijfers"-assistent raden we voor de beta af (scope,
+vertrouwen, en het botst met de kalme stem).
 
 ## 10. Definitie van "perfecte beta"
 
