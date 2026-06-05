@@ -212,6 +212,10 @@ zeker; precies boven gezellig; één idee per zin; geen hype-woorden
 15. Off-palette kleuren → tokens (cashflow-negatief, klant-validatie ✓/✗,
     bank-/bon-foutmeldingen, openingsbalans, nav-badge).
 16. Moneybird-import-hint in de onboarding-checklist (activatie voor switchers).
+17. Copy- & stijl-pass (8 principes): de activatie- (`register/callback`) en
+    abonnement-pagina van de oude donkere/luide brutalist-stijl + hype-copy
+    ("Oeps!", "AUTO-PILOT", italic uppercase) naar light-mode + kalme stem;
+    uitroep-bevestigingen genuanceerd.
 
 > Bewust **niet** verwijderd: `network`/`resources` — `scope-minimaal.md` markeert
 > die als VERBERGEN (achter de groei-flag, code blijft), niet schrappen. Ze staan

@@ -63,7 +63,10 @@ volledige `next build` staan groen.
     herkent de "Kolommen automatisch herkennen"-knop de kolommen voor je
     (Claude onder de motorkap), met terugval op handmatig.
 11. **Opgeschoond** — ongebruikt lettertype uit de stijl; facturen-import neemt
-    nu status en vervaldatum over.
+    nu status en vervaldatum over; off-palette kleuren naar de huiskleuren.
+12. **Laatste luide hoekjes weg** — de activatie- en abonnement-schermen stonden
+    nog in een oude donkere, schreeuwerige stijl ("Oeps!", hoofdletters). Nu
+    rustig, licht en in dezelfde stem als de rest.
 
 Dit staat allemaal op de werkbranch, klaar om te bekijken.
 

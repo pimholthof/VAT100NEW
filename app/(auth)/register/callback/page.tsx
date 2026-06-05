@@ -69,69 +69,77 @@ export default function RegisterCallbackPage() {
   }, [leadId, router]);
 
   const stages = {
-    verifying: { title: "Betaling Checken", subtitle: "We wachten op het seintje van Mollie" },
-    provisioning: { title: "Studio Inrichten", subtitle: "Papiertjes regelen, dashboard oppoetsen" },
-    ready: { title: "Klaar voor de Start!", subtitle: "Je account is live. Veel succes, ondernemer." },
-    error: { title: "Oeps!", subtitle: error || "Er ging iets mis met de activatie." }
+    verifying: { title: "Betaling controleren", subtitle: "We wachten op de bevestiging van Mollie." },
+    provisioning: { title: "Account klaarzetten", subtitle: "Nog een paar seconden." },
+    ready: { title: "Klaar", subtitle: "Je account staat klaar — we sturen je door naar inloggen." },
+    error: { title: "Er ging iets mis", subtitle: error || "We konden je account niet activeren. Probeer het opnieuw of neem contact op." },
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
-      {/* Editorial Brutalist Frame */}
-      <div className="max-w-xl w-full border-4 border-white p-12 relative overflow-hidden">
-        <div className="absolute top-0 left-0 bg-white text-black px-3 py-1 font-bold text-xs uppercase tracking-tighter">
-          VAT100 // AUTO-PILOT
-        </div>
-        
+    <div
+      style={{
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        textAlign: "center",
+        background: "var(--background)",
+        color: "var(--foreground)",
+      }}
+    >
+      <div
+        className="glass"
+        style={{ maxWidth: 460, width: "100%", padding: "48px 40px", borderRadius: "var(--radius)" }}
+      >
+        <p className="label" style={{ margin: "0 0 16px" }}>VAT100</p>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={status}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-8"
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold uppercase leading-none tracking-tighter italic">
+            {status === "ready" && (
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "50%",
+                  margin: "0 auto 20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "1px solid var(--color-success)",
+                  color: "var(--color-success)",
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+
+            <h1 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.05, margin: 0 }}>
               {stages[status].title}
-              {status !== "ready" && status !== "error" && <span>{dots}</span>}
+              {status !== "ready" && status !== "error" && <span style={{ opacity: 0.4 }}>{dots}</span>}
             </h1>
-            
-            <p className="text-xl md:text-2xl font-medium tracking-tight text-white/60">
+
+            <p style={{ fontSize: "var(--text-body-md)", lineHeight: 1.6, opacity: 0.55, margin: "12px 0 0" }}>
               {stages[status].subtitle}
             </p>
 
             {status === "error" && (
-              <button 
-                onClick={() => window.location.reload()}
-                className="btn-primary mt-8 inline-block"
-              >
-                Opnieuw Proberen
+              <button onClick={() => window.location.reload()} className="btn-primary" style={{ marginTop: 24 }}>
+                Opnieuw proberen
               </button>
-            )}
-
-            {status === "ready" && (
-              <motion.div 
-                initial={{ scale: 0.8 }}
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ repeat: Infinity, duration: 1 }}
-                className="w-16 h-16 bg-white rounded-full mx-auto flex items-center justify-center"
-              >
-                <svg className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="5 13l4 4L19 7" />
-                </svg>
-              </motion.div>
             )}
           </motion.div>
         </AnimatePresence>
-
-        {/* Decorative elements */}
-        <div className="absolute bottom-4 right-4 text-[10px] opacity-20 font-mono">
-          REF_ID: {leadId?.slice(0, 8)}...
-        </div>
-      </div>
-
-      <div className="mt-12 max-w-md opacity-40 text-sm italic">
-        {`"De beste manier om te voorspellen hoe je belasting gaat zijn, is door het zelf te automatiseren."`}
       </div>
     </div>
   );
