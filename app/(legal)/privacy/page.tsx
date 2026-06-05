@@ -71,6 +71,7 @@ export default function PrivacyPage() {
           <p>Wij delen gegevens alleen met partijen die noodzakelijk zijn voor de dienstverlening:</p>
           <ul>
             <li><strong>Supabase</strong> (EU) — database en authenticatie</li>
+            <li><strong>Vercel</strong> (VS; EU-edge) — hosting, logging en CDN</li>
             <li><strong>Mollie</strong> (NL) — betalingsverwerking</li>
             <li><strong>Tink / GoCardless</strong> (EU) — Open Banking verbinding</li>
             <li><strong>Resend</strong> — e-mailverzending</li>
@@ -78,7 +79,7 @@ export default function PrivacyPage() {
             <li><strong>Sentry</strong> — foutmonitoring (geen persoonlijke data, alleen technische foutmeldingen)</li>
           </ul>
           <p>
-            Met elke verwerker is een verwerkersovereenkomst (DPA) gesloten. Gegevens buiten de EU (Anthropic, Sentry) vallen onder
+            Met elke verwerker is een verwerkersovereenkomst (DPA) gesloten. Gegevens buiten de EU (Resend, Anthropic, Sentry, Vercel) vallen onder
             de EU Standard Contractual Clauses.
           </p>
         </Section>
