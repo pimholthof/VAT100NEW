@@ -94,13 +94,15 @@ gratis (`NEXT_PUBLIC_BETA_MODE=true`); de prijs verschijnt pas ná de beta.
 | 4-tier pricing (29/39/79/149) + "Plus" | Vervangen door één all-in prijs. *(Uitgevoerd.)* |
 
 ### Simpeler maken (behouden, maar inklappen/conditioneel)
-- **Belastingpagina** (`TaxContent.tsx`, 1065 r.) splitsen; de IB-detail­
-  berekening (schijven, AHK, arbeidskorting, KIA-trajecten) achter "Toon
-  berekening". Toon standaard alleen "Geschatte IB: € X" en "Reserveren: € Y".
-- **Conditioneel tonen** i.p.v. altijd: afschrijvingstabel (alleen bij activa),
-  ICP-opgave (alleen bij EU-klanten), suppletie, voorlopige aanslagen.
-- **Onboarding stap 3** (fiscaal profiel) splitsen in "Snelle setup" (default:
-  per kwartaal, huidig boekjaar) + "Geavanceerd".
+- **Belastingpagina** (`TaxContent.tsx`): de IB-detailberekening (schijven, AHK,
+  arbeidskorting, KIA-trajecten) + afschrijvingstabel achter "Toon berekening";
+  standaard alleen de samenvatting + een indicatie-disclaimer. *(Uitgevoerd.)*
+- **Conditioneel tonen** i.p.v. altijd: ICP-opgave en voorlopige aanslagen tonen
+  al nette lege staten; afschrijvingstabel zit nu bij de berekening (achter
+  toggle). Verder verfijnen kan later.
+- **Onboarding stap 3** (fiscaal profiel) → rustige intro + "Geavanceerd"-sectie
+  (BTW-frequentie, KOR, urencriterium, startdatum, inkomen). Defaults kloppen,
+  dus overslaan kan. *(Uitgevoerd.)*
 - **Factuur-metadata** standaard inklappen. *(Uitgevoerd — desktop.)*
 
 ### Wat ontbreekt (en past bij de doelgroep)
@@ -164,11 +166,13 @@ zeker; precies boven gezellig; één idee per zin; geen hype-woorden
 - **Fase 0 — Wig & prijs vastleggen.** ✅ Gedaan: design-premie, één all-in prijs.
 - **Fase 1 — Sloop & consolidatie.** Dode pagina's eruit; agent-laag stil op
   OCR/categorisatie; waitlist achter `!beta` (✅); pricing → één all-in (✅).
-- **Fase 2 — Designcoherentie.** Brutalist-resten + ongebruikte serif uit
-  `globals.css`; off-palette kleuren (mockups ✅); lege staten herontwerpen.
-- **Fase 3 — Kernflow-helderheid.** `TaxContent.tsx` splitsen + IB-detail achter
-  "Toon berekening"; conditioneel tonen; factuur-metadata inklappen (✅);
-  onboarding stap 3 → snelle/geavanceerde setup; checklist auto-inklappen (✅).
+- **Fase 2 — Designcoherentie.** Ongebruikte serif uit `globals.css` (✅);
+  off-palette kleuren (mockups ✅); `.brutalist-*` resten in `globals.css` blijven
+  (ze worden nog gebruikt door jaarrekening/report — migreren bij aanraking);
+  lege staten herontwerpen (open).
+- **Fase 3 — Kernflow-helderheid.** IB-detail achter "Toon berekening" (✅);
+  factuur-metadata inklappen (✅); onboarding stap 3 → intro + geavanceerd (✅);
+  checklist auto-inklappen (✅). Resteert: `TaxContent.tsx` echt opsplitsen.
 - **Fase 4 — Vertrouwen & fiscale de-risking.** RB/fiscalist tekent constanten
   af; OCR-confidence zichtbaar; eerlijk "indienen"-verhaal; importer als held.
 - **Fase 5 — Beta-ops.** Zie `docs/launch-stappenplan.md` (migraties, env-vars,
@@ -177,14 +181,24 @@ zeker; precies boven gezellig; één idee per zin; geen hype-woorden
   (eerste factuur verstuurd), **aha** (vrij-besteedbaar bekeken), **retentie**
   (week-2 terug).
 
-## 9. Reeds uitgevoerd in deze sessie (quick wins)
+## 9. Reeds uitgevoerd (build-gates groen: typecheck + lint + 405 tests)
 
-Veilig, build-gates groen (typecheck + lint + 405 tests):
+**Quick wins:**
 1. Wachtlijst alleen buiten bèta — einde tegenstrijdige landing-CTA.
 2. Pricing 4-tier → één all-in kaart (~€24), bijpassende copy.
 3. Landing-mockups: off-palette blauw → token; stale "2024" → dynamische periode.
 4. Factuur-metadata standaard ingeklapt (factuur = bedrag + ontvanger).
 5. Onboarding-checklist klapt zichzelf in zodra de eerste stap klaar is.
+
+**Grotere klussen:**
+6. Belastingpagina rustiger — IB-detailberekening + afschrijvingstabel achter
+   "Toon berekening"; standaard alleen de samenvatting + indicatie-disclaimer.
+7. Onboarding stap 3 — vijf dichte fiscale keuzes → rustige intro + "Geavanceerd".
+8. Ongebruikte serif (`Cormorant Garamond`) uit de design-tokens (`globals.css`).
+
+> Bewust **niet** verwijderd: `network`/`resources` — `scope-minimaal.md` markeert
+> die als VERBERGEN (achter de groei-flag, code blijft), niet schrappen. Ze staan
+> al correct achter `isGrowthEnabled()` (default uit).
 
 ## 10. Definitie van "perfecte beta"
 
