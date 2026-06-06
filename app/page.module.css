@@ -13,7 +13,8 @@
   min-height: 100dvh;
   position: relative;
   overflow: hidden;
-  background: var(--background);
+  background: transparent;
+  /* Let the body's atmospheric light field & paper grain read through. */
 }
 
 /* ─── Background Watermark ─── */
@@ -232,6 +233,7 @@
   letter-spacing: -0.03em;
   line-height: 1.1;
   margin: 0 0 clamp(32px, 5vw, 56px);
+  text-wrap: balance;
 }
 
 /* ─── Hero Section ─── */
@@ -269,6 +271,7 @@
   margin: 0;
   color: var(--color-black);
   white-space: pre-line;
+  text-wrap: balance;
 }
 
 .heroSubtitle {
@@ -349,6 +352,7 @@
   letter-spacing: -0.03em;
   line-height: 1.15;
   margin: 0 0 12px;
+  text-wrap: balance;
 }
 
 .showcaseDescription {
@@ -381,6 +385,15 @@
   border: 0.5px solid rgba(0, 0, 0, 0.06);
   border-radius: var(--lp-radius);
   background: var(--background);
+  transition: transform var(--duration-moderate, 350ms) var(--ease-out-expo),
+    box-shadow var(--duration-moderate, 350ms) var(--ease-out-expo);
+}
+
+.featureCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--edge-highlight), var(--shadow-md);
+  position: relative;
+  z-index: 1;
 }
 
 .featureTitle {
@@ -432,6 +445,15 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: var(--edge-highlight), var(--shadow-sm);
+  transition: transform var(--duration-moderate, 350ms) var(--ease-out-expo),
+    box-shadow var(--duration-moderate, 350ms) var(--ease-out-expo);
+}
+
+.pricingCard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--edge-highlight), var(--shadow-lg);
 }
 
 .pricingCardHighlighted {
@@ -511,6 +533,14 @@
 .pricingCtaPrimary {
   background: var(--color-black);
   color: var(--background);
+  box-shadow: var(--edge-highlight-ink), var(--shadow-sm);
+  transition: transform var(--duration-quick, 200ms) var(--ease-spring, ease),
+    box-shadow var(--duration-quick, 200ms) ease;
+}
+
+.pricingCtaPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--edge-highlight-ink), var(--shadow-md);
 }
 
 .pricingCtaSecondary {

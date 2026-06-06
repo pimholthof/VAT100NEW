@@ -88,7 +88,7 @@ export function BottomSheet({
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
               borderTop: "0.5px solid rgba(0, 0, 0, 0.08)",
-              boxShadow: "0 -8px 40px rgba(0, 0, 0, 0.08)",
+              boxShadow: "var(--edge-highlight), 0 -10px 44px rgba(28, 24, 20, 0.10)",
               maxHeight,
               display: "flex",
               flexDirection: "column",
