@@ -113,7 +113,7 @@ export function CommandMenu() {
           border: "1px solid var(--color-black)",
           borderRadius: "var(--radius)",
           overflow: "hidden",
-          boxShadow: "none",
+          boxShadow: "var(--edge-highlight), var(--shadow-xl)",
         }}
       >
         <Command
