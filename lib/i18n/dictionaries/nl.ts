@@ -49,6 +49,8 @@ const nl = {
     menu: "MENU",
     closeMenu: "SLUIT",
     overview: "Overzicht",
+    now: "Nu",
+    more: "Meer",
     invoices: "Facturen",
     clients: "Klanten",
     expenses: "Uitgaven",

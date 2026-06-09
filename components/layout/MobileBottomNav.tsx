@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/lib/i18n/context";
 
+// De twee kernen + de waarheid. Alles daarbuiten leeft in het menu ("Meer")
+// en in de snelle acties op het startscherm.
 const navItems = [
-  { href: "/dashboard", labelKey: "overview" as const, icon: "◉" },
+  { href: "/dashboard", labelKey: "now" as const, icon: "◉" },
   { href: "/dashboard/invoices", labelKey: "invoices" as const, icon: "□" },
-  { href: "/dashboard/expenses", labelKey: "expenses" as const, icon: "◇" },
-  { href: "/dashboard/clients", labelKey: "clients" as const, icon: "○" },
   { href: "/dashboard/tax", labelKey: "tax" as const, icon: "△" },
 ];
 

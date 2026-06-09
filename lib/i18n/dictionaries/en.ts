@@ -49,6 +49,8 @@ const en = {
     menu: "MENU",
     closeMenu: "CLOSE",
     overview: "Overview",
+    now: "Now",
+    more: "More",
     invoices: "Invoices",
     clients: "Clients",
     expenses: "Expenses",
