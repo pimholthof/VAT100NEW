@@ -13,6 +13,7 @@
 export type NextActionKind =
   | "overdue"
   | "vat"
+  | "reviewReceipts"
   | "collect"
   | "firstInvoice"
   | "allClear";
@@ -41,6 +42,12 @@ export interface NextActionsInput {
   hasAnyInvoice: boolean;
   /** Eerstvolgende BTW-aangifte, indien bekend. */
   vat?: { quarter: string; daysRemaining: number; amount: number } | null;
+  /**
+   * Aantal bon-bevindingen uit de controle-laag dat aandacht vraagt
+   * (mogelijke dubbele bonnen + onvolledige bonnen). Houdt je administratie
+   * waterdicht vóór de aangifte.
+   */
+  receiptIssues?: number;
 }
 
 /** Binnen hoeveel dagen een BTW-aangifte als "nu" telt op het canvas. */
@@ -77,6 +84,17 @@ export function deriveNextActions(input: NextActionsInput): NextAction[] {
       quarter: input.vat.quarter,
       days: Math.max(0, input.vat.daysRemaining),
       amount: input.vat.amount,
+    });
+  }
+
+  // Controle-laag: mogelijke dubbele of onvolledige bonnen — rustig opvolgen
+  // zodat de kosten (en dus de aangifte) kloppen.
+  if ((input.receiptIssues ?? 0) > 0) {
+    actions.push({
+      kind: "reviewReceipts",
+      tone: "attention",
+      href: "/dashboard/receipts",
+      count: input.receiptIssues,
     });
   }
 

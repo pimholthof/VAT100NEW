@@ -8,6 +8,7 @@ import {
   type TaxProjection,
   type Investment,
 } from "@/lib/tax/dutch-tax-2026";
+import { receiptCostExVat } from "@/lib/logic/receipt-cost";
 
 export interface QuarterStats {
   quarter: string;
@@ -148,7 +149,7 @@ export async function getTaxProjection(): Promise<
       // Reguliere kosten dit jaar (niet cost_code 4230)
       supabase
         .from("receipts")
-        .select("amount_ex_vat, cost_code")
+        .select("amount_ex_vat, amount_inc_vat, vat_amount, vat_rate, cost_code")
         .eq("user_id", user.id)
         .gte("receipt_date", yearStart)
         .lte("receipt_date", yearEnd)
@@ -178,9 +179,11 @@ export async function getTaxProjection(): Promise<
     0,
   );
 
-  // Reguliere kosten ex BTW (incl. kleine investeringen < €450 die direct aftrekbaar zijn)
+  // Reguliere kosten ex BTW (incl. kleine investeringen < €450 die direct aftrekbaar zijn).
+  // Bon zonder ex-bedrag? Dan leiden we het ex-bedrag af uit het inclusief bedrag
+  // of het BTW-tarief, zodat kosten nooit stilletjes wegvallen.
   const jaarKostenExBtw = (regularReceiptsRes.data ?? []).reduce(
-    (sum, rec) => sum + (Number(rec.amount_ex_vat) || 0),
+    (sum, rec) => sum + receiptCostExVat(rec),
     0,
   );
 

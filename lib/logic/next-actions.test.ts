@@ -51,6 +51,33 @@ describe("deriveNextActions", () => {
     expect(nothingDue.some((a) => a.kind === "vat")).toBe(false);
   });
 
+  it("toont bon-bevindingen uit de controle-laag (dubbel/onvolledig)", () => {
+    const actions = deriveNextActions({ ...base, receiptIssues: 2 });
+    const review = actions.find((a) => a.kind === "reviewReceipts");
+    expect(review).toBeDefined();
+    expect(review?.tone).toBe("attention");
+    expect(review?.count).toBe(2);
+    expect(review?.href).toBe("/dashboard/receipts");
+  });
+
+  it("toont geen bon-actie zonder bevindingen", () => {
+    expect(deriveNextActions({ ...base, receiptIssues: 0 }).some((a) => a.kind === "reviewReceipts")).toBe(false);
+    expect(deriveNextActions(base).some((a) => a.kind === "reviewReceipts")).toBe(false);
+  });
+
+  it("plaatst bon-bevindingen ná de BTW-aangifte, vóór te innen", () => {
+    const actions = deriveNextActions({
+      overdueCount: 1,
+      overdueAmount: 500,
+      collectCount: 2,
+      collectAmount: 2000,
+      hasAnyInvoice: true,
+      vat: { quarter: "Q2 2026", daysRemaining: 5, amount: 900 },
+      receiptIssues: 1,
+    });
+    expect(actions.map((a) => a.kind)).toEqual(["overdue", "vat", "reviewReceipts"]);
+  });
+
   it("nodigt nieuwe gebruikers uit hun eerste factuur te sturen", () => {
     const actions = deriveNextActions({ ...base, hasAnyInvoice: false });
     expect(actions.some((a) => a.kind === "firstInvoice")).toBe(true);

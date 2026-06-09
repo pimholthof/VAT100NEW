@@ -3,6 +3,7 @@
 import { requireAuth, requireAdmin } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
 import { computeReserve } from "@/lib/logic/reserve";
+import { receiptCostExVat } from "@/lib/logic/receipt-cost";
 import { calculateFinancialHealth, type FinancialHealth } from "@/lib/tax/financial-health";
 import * as Sentry from "@sentry/nextjs";
 
@@ -303,7 +304,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     const [kostenRes, investRes] = await Promise.all([
       supabase
         .from("receipts")
-        .select("amount_ex_vat")
+        .select("amount_ex_vat, amount_inc_vat, vat_amount, vat_rate")
         .eq("user_id", user.id)
         .gte("receipt_date", `${huidigJaar}-01-01`)
         .lte("receipt_date", `${huidigJaar}-12-31`)
@@ -317,7 +318,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         .not("receipt_date", "is", null),
     ]);
     const jaarKostenExBtw = (kostenRes.data ?? []).reduce(
-      (sum, rec) => sum + (Number(rec.amount_ex_vat) || 0),
+      (sum, rec) => sum + receiptCostExVat(rec),
       0,
     );
     const investeringen = (investRes.data ?? []).map((rec) => ({

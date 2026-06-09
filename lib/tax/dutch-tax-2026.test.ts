@@ -5,6 +5,7 @@ import {
   calculateArbeidskorting,
   calculateKIA,
   calculateYearlyDepreciation,
+  calculateZvwBijdrage,
   calculateZZPTaxProjection,
   TAX_CONSTANTS,
 } from "./dutch-tax-2026";
@@ -168,6 +169,30 @@ describe("calculateKIA", () => {
   });
 });
 
+// ─── Inkomensafhankelijke bijdrage Zvw ───
+
+describe("calculateZvwBijdrage", () => {
+  it("geeft 0 bij nul of negatief bijdrage-inkomen", () => {
+    expect(calculateZvwBijdrage(0)).toBe(0);
+    expect(calculateZvwBijdrage(-5000)).toBe(0);
+  });
+
+  it("rekent 4,85% onder het maximum bijdrage-inkomen", () => {
+    expect(calculateZvwBijdrage(40_000)).toBe(round2(40_000 * 0.0485));
+  });
+
+  it("maximeert op het bijdrage-inkomen (€79.409)", () => {
+    const max = round2(TAX_CONSTANTS.zvwMaxBijdrageInkomen * TAX_CONSTANTS.zvwRate);
+    expect(calculateZvwBijdrage(TAX_CONSTANTS.zvwMaxBijdrageInkomen)).toBe(max);
+    // Boven het maximum blijft de bijdrage gelijk (gecapt).
+    expect(calculateZvwBijdrage(120_000)).toBe(max);
+  });
+
+  it("blijft onder de wettelijke maximumbijdrage (~€3.851)", () => {
+    expect(calculateZvwBijdrage(500_000)).toBeLessThanOrEqual(3_852);
+  });
+});
+
 // ─── Afschrijving ───
 
 describe("calculateYearlyDepreciation", () => {
@@ -239,6 +264,22 @@ describe("calculateZZPTaxProjection", () => {
     expect(result.nettoIB).toBeGreaterThan(0);
     expect(result.effectiefTarief).toBeGreaterThan(0);
     expect(result.effectiefTarief).toBeLessThan(50);
+  });
+
+  it("neemt de Zvw mee in de totale heffing (havermelkelite, ~€80k winst)", () => {
+    const result = calculateZZPTaxProjection({
+      jaarOmzetExBtw: 80_000,
+      jaarKostenExBtw: 0,
+      investeringen: [],
+      maandenVerstreken: 12,
+    });
+
+    // Zvw wordt geheven over de belastbare winst en telt fors mee.
+    expect(result.zvwBijdrage).toBe(calculateZvwBijdrage(result.belastbaarInkomen));
+    expect(result.zvwBijdrage).toBeGreaterThan(2_000);
+    // De totale heffing is exact IB + Zvw — dit voedt de reservering.
+    expect(result.totaleHeffing).toBe(round2(result.nettoIB + result.zvwBijdrage));
+    expect(result.totaleHeffing).toBeGreaterThan(result.nettoIB);
   });
 
   it("berekent KIA correct bij investeringen", () => {

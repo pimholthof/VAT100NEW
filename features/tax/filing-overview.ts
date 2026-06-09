@@ -57,13 +57,17 @@ export async function getFilingOverview(): Promise<ActionResult<FilingOverview>>
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("uses_kor, full_name, btw_number, kvk_number")
+    .select("uses_kor, full_name, studio_name, btw_number, kvk_number")
     .eq("id", user.id)
     .single();
 
   const usesKor = profile?.uses_kor ?? false;
+  // Een naam (persoonlijk óf studio) + een KVK- of BTW-nummer volstaat. Eerder
+  // eiste dit specifiek full_name, waardoor een ingevuld profiel met alleen een
+  // studionaam onterecht als "onvolledig" gold.
   const profileComplete =
-    !!profile?.full_name && (!!profile?.btw_number || !!profile?.kvk_number);
+    (!!profile?.full_name || !!profile?.studio_name) &&
+    (!!profile?.btw_number || !!profile?.kvk_number);
 
   const now = new Date();
 

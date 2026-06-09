@@ -206,7 +206,12 @@ export default function TaxContent() {
               <BreakdownLine label="Inkomstenbelasting" value={projection.inkomstenbelasting} />
               <BreakdownLine label="Belastingkorting (algemeen)" value={-projection.algemeneHeffingskorting} negative />
               <BreakdownLine label="Belastingkorting (arbeid)" value={-projection.arbeidskorting} negative />
-              <BreakdownTotal label="Geschatte inkomstenbelasting" value={projection.nettoIB} highlight />
+              <BreakdownTotal label="Geschatte inkomstenbelasting" value={projection.nettoIB} />
+              <BreakdownLine
+                label={`Bijdrage Zorgverzekeringswet (${(TAX_CONSTANTS.zvwRate * 100).toFixed(2)}%)`}
+                value={projection.zvwBijdrage}
+              />
+              <BreakdownTotal label="Geschatte heffing (IB + Zvw)" value={projection.totaleHeffing} highlight />
             </BreakdownSection>
 
             <div style={{ marginTop: 20 }}>
