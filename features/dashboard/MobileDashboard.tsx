@@ -14,6 +14,7 @@ import { createTrip } from "@/features/trips/actions";
 import type { ActionResult } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/context";
+import { AllocationBar } from "@/features/dashboard/components/AllocationBar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useToast } from "@/components/ui/Toast";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
@@ -45,14 +46,9 @@ export default function MobileDashboard({
   });
 
   const data = dashboardResult?.data;
-  const stats = data?.stats;
   const openInvoices = data?.openInvoices ?? [];
   const safeToSpend = data?.safeToSpend;
   const vatDeadline = data?.vatDeadline;
-  const upcomingInvoices = data?.upcomingInvoices ?? [];
-
-  const urgentCount = upcomingInvoices.filter((inv) => inv.days_overdue > 0).length;
-  const outstandingAmount = upcomingInvoices.reduce((sum, inv) => sum + inv.total_inc_vat, 0);
 
   const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
 
@@ -136,31 +132,10 @@ export default function MobileDashboard({
         />
       </section>
 
-      {/* Stats strip */}
-      {stats && (
-        <section className="mobile-dashboard-stats">
-          <MobileStatCard
-            label={t.dashboard.revenueThisMonth}
-            value={formatCurrency(stats.revenueThisMonth)}
-          />
-          <MobileStatCard
-            label={t.dashboard.outstandingAmount}
-            value={formatCurrency(outstandingAmount)}
-            sub={urgentCount > 0 ? `${urgentCount} ${t.dashboard.overdue}` : undefined}
-            accent={urgentCount > 0}
-          />
-          <MobileStatCard
-            label={t.dashboard.vatReserve}
-            value={formatCurrency(stats.vatToPay)}
-            hint={stats.vatToPay > 0 ? t.dashboard.vatReserveHint : undefined}
-          />
-          <MobileStatCard
-            label={t.dashboard.receiptsProcessed}
-            value={String(stats.receiptsThisMonth)}
-            sub={t.dashboard.thisMonth}
-          />
-        </section>
-      )}
+      {/* De Drie Potten: waar je geld staat */}
+      <section style={{ padding: "0 20px", marginTop: 24 }}>
+        <AllocationBar data={safeToSpend} />
+      </section>
 
       {/* Openstaande facturen als swipeable cards */}
       <section style={{ marginTop: 32 }}>
@@ -338,68 +313,6 @@ function QuickActionButton({
     <button type="button" onClick={onClick} style={style}>
       {content}
     </button>
-  );
-}
-
-function MobileStatCard({
-  label,
-  value,
-  sub,
-  hint,
-  accent,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  hint?: string;
-  accent?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        padding: 16,
-        border: "0.5px solid rgba(0,0,0,0.08)",
-        borderRadius: 12,
-        background: "var(--background)",
-      }}
-    >
-      <p
-        className="label"
-        style={{
-          margin: 0,
-          fontSize: 9,
-          opacity: 0.45,
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          margin: "6px 0 0",
-          fontSize: 18,
-          fontWeight: 600,
-          letterSpacing: "-0.02em",
-          color: accent ? "var(--color-overdue)" : "var(--foreground)",
-        }}
-      >
-        {value}
-      </p>
-      {sub && (
-        <p style={{ margin: "2px 0 0", fontSize: 10, opacity: 0.5 }}>{sub}</p>
-      )}
-      {hint && (
-        <p
-          style={{
-            margin: "2px 0 0",
-            fontSize: 10,
-            opacity: 0.45,
-            fontStyle: "italic",
-          }}
-        >
-          {hint}
-        </p>
-      )}
-    </div>
   );
 }
 
