@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import { getClients } from "@/features/clients/actions";
@@ -76,14 +76,19 @@ export function InvoiceLivePreview({
 }: InvoiceLivePreviewProps) {
   const { locale } = useLocale();
 
-  const [template, setTemplate] = useState<InvoiceTemplate>(() => {
-    if (typeof window === "undefined") return "poster";
+  // Start altijd met "poster" — gelijk op server en client — en lees de
+  // opgeslagen voorkeur pas ná mount (voorkomt hydration-mismatch / React #418).
+  const [template, setTemplate] = useState<InvoiceTemplate>("poster");
+
+  useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as InvoiceTemplate | null;
     if (saved && ["minimaal", "klassiek", "strak", "poster", "editoriaal"].includes(saved)) {
-      return saved;
+      // Bewust: voorkeur pas ná mount toepassen — dit is de fix tegen de
+      // hydration-mismatch, geen render-cascade.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTemplate(saved);
     }
-    return "poster";
-  });
+  }, []);
 
   function handleTemplateChange(t: InvoiceTemplate) {
     setTemplate(t);

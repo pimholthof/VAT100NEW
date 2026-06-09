@@ -87,6 +87,8 @@ export interface DashboardData {
   latestTaxAudit?: TaxAuditSummary;
   cashflowForecast: CashflowForecastWeek[];
   financialHealth: FinancialHealth;
+  /** Heeft de gebruiker een (gesynchroniseerde) bankkoppeling? */
+  hasBankConnection: boolean;
 }
 
 interface RpcCashflowEntry {
@@ -384,6 +386,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       safeToSpend,
       cashflowForecast,
       financialHealth,
+      hasBankConnection: rpc.daysSinceLastBankSync != null,
     },
   };
 }
