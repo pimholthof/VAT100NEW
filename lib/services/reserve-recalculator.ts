@@ -9,6 +9,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { type Investment } from "@/lib/tax/dutch-tax-2026";
 import { computeReserve } from "@/lib/logic/reserve";
+import { receiptCostExVat } from "@/lib/logic/receipt-cost";
 
 /**
  * Herbereken reserves en schrijf een snapshot.
@@ -52,7 +53,7 @@ export async function recalculateReserves(
     const [regularReceiptsRes, investmentReceiptsRes] = await Promise.all([
       supabase
         .from("receipts")
-        .select("amount_ex_vat")
+        .select("amount_ex_vat, amount_inc_vat, vat_amount, vat_rate")
         .eq("user_id", userId)
         .gte("receipt_date", yearStart)
         .lte("receipt_date", yearEnd)
@@ -67,7 +68,7 @@ export async function recalculateReserves(
     ]);
 
     const jaarKostenExBtw = (regularReceiptsRes.data ?? []).reduce(
-      (sum, rec) => sum + (Number(rec.amount_ex_vat) || 0),
+      (sum, rec) => sum + receiptCostExVat(rec),
       0
     );
 

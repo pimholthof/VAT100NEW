@@ -4,9 +4,10 @@
  * Eén bron voor zowel het dashboard (live/fallback) als de reserve-recalculator
  * (snapshot). Zo kan "veilig te besteden" nergens nog van zichzelf afwijken.
  *
- * BTW-reservering = output − input (≥ 0). IB-reservering via de geverifieerde
- * 2026-projectie over werkelijke omzet, kosten en investeringen. Veilig te
- * besteden = saldo − beide reserveringen (≥ 0). Puur en deterministisch.
+ * BTW-reservering = output − input (≥ 0). IB-reservering = inkomstenbelasting +
+ * inkomensafhankelijke bijdrage Zvw, via de geverifieerde 2026-projectie over
+ * werkelijke omzet, kosten en investeringen. Veilig te besteden = saldo − beide
+ * reserveringen (≥ 0). Puur en deterministisch.
  */
 
 import type { SafeToSpendData } from "@/lib/types";
@@ -48,7 +49,11 @@ export function computeReserve(input: ReserveInput): SafeToSpendData {
     maandenVerstreken: input.maandenVerstreken,
   });
 
-  const estimatedIncomeTax = Math.max(0, roundMoney(projection.nettoIB));
+  // De IB-pot omvat inkomstenbelasting én de inkomensafhankelijke bijdrage Zvw —
+  // samen "wat je voor de Belastingdienst opzij houdt". Zonder de Zvw zou "vrij
+  // te besteden" voor een winst van €50–80k honderden tot duizenden euro's te
+  // hoog staan.
+  const estimatedIncomeTax = Math.max(0, roundMoney(projection.totaleHeffing));
   const reservedTotal = roundMoney(estimatedVat + estimatedIncomeTax);
   const safeToSpend = Math.max(0, roundMoney(input.currentBalance - reservedTotal));
 

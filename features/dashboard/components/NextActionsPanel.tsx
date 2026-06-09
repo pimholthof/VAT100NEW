@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { m as motion } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
 import { formatCurrency } from "@/lib/format";
 import { deriveNextActions, type NextAction, type NextActionTone } from "@/lib/logic/next-actions";
+import { getControleBevindingen } from "@/features/tax/controle";
 import type { DashboardData } from "@/features/dashboard/actions";
+
+/** Bon-bevindingen uit de controle-laag die de gebruiker zelf moet nakijken. */
+const RECEIPT_FINDING_KINDS = new Set(["duplicate_receipt", "receipt_incomplete"]);
 
 const TONE_COLOR: Record<NextActionTone, string> = {
   urgent: "var(--color-overdue)",
@@ -22,6 +27,19 @@ const TONE_COLOR: Record<NextActionTone, string> = {
 export function NextActionsPanel({ data }: { data?: DashboardData }) {
   const { t } = useLocale();
   const a = t.dashboard;
+
+  // Controle-laag, niet-blokkerend naast de dashboarddata geladen: zo verschijnt
+  // een mogelijke dubbele/onvolledige bon rustig in "Nu doen".
+  const { data: controleResult } = useQuery({
+    queryKey: ["controle"],
+    queryFn: () => getControleBevindingen(),
+    staleTime: 60_000,
+  });
+
+  const receiptIssues = useMemo(() => {
+    const findings = controleResult?.data?.findings ?? [];
+    return findings.filter((f) => RECEIPT_FINDING_KINDS.has(f.kind)).length;
+  }, [controleResult]);
 
   const actions = useMemo(() => {
     const upcoming = data?.upcomingInvoices ?? [];
@@ -51,8 +69,9 @@ export function NextActionsPanel({ data }: { data?: DashboardData }) {
             amount: data.vatDeadline.estimatedAmount,
           }
         : null,
+      receiptIssues,
     });
-  }, [data]);
+  }, [data, receiptIssues]);
 
   function content(action: NextAction): { title: string; detail: string; cta: string | null } {
     switch (action.kind) {
@@ -66,6 +85,8 @@ export function NextActionsPanel({ data }: { data?: DashboardData }) {
             .replace("{amount}", formatCurrency(action.amount ?? 0)),
           cta: a.actionVatCta,
         };
+      case "reviewReceipts":
+        return { title: a.actionReviewTitle, detail: a.actionReviewDetail, cta: a.actionReviewCta };
       case "collect":
         return { title: a.actionCollectTitle, detail: formatCurrency(action.amount ?? 0), cta: a.actionCollectCta };
       case "firstInvoice":
@@ -82,7 +103,7 @@ export function NextActionsPanel({ data }: { data?: DashboardData }) {
         {actions.map((action, i) => {
           const { title, detail, cta } = content(action);
           const color = TONE_COLOR[action.tone];
-          const showCount = (action.kind === "overdue" || action.kind === "collect") && (action.count ?? 0) > 1;
+          const showCount = (action.kind === "overdue" || action.kind === "collect" || action.kind === "reviewReceipts") && (action.count ?? 0) > 1;
           return (
             <motion.div
               key={action.kind}

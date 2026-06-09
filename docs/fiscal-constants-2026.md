@@ -20,6 +20,16 @@ overgang van bèta naar betaald**, met name de arbeidskorting-trajecten.
 | AHK nulpunt | €78.426 | €78.426 | idem |
 | Arbeidskorting afbouwpercentage | 6,51% | 6,51% | idem |
 | Arbeidskorting nulpunt | €132.920 | €132.920 | idem |
+| Zvw-bijdrage (lage tarief, IB-ondernemer) | 4,85% | 4,85% (2025: 5,26%) | Belastingdienst, NDFR, Taxence |
+| Zvw max. bijdrage-inkomen | €79.409 | €79.409 (max. bijdrage ≈ €3.851) | NDFR, Salaris Vanmorgen |
+
+De **inkomensafhankelijke bijdrage Zvw** is per 2026-06-09 toegevoegd aan
+`calculateZZPTaxProjection` (`zvwBijdrage` + `totaleHeffing`). Grondslag = het
+bijdrage-inkomen (≈ de belastbare winst ná ondernemersaftrek en MKB-vrijstelling),
+gemaximeerd op €79.409, tarief 4,85%, zonder heffingskortingen. De bijdrage telt
+mee in de reservering ("vrij te besteden"), de fiscale-waarheid per factuur en de
+belastingvoorziening op de jaarrekening. **Laat een fiscalist dit aftekenen** —
+met name of het tarief 2026 definitief 4,85% is en of het maximum klopt.
 
 De **volgorde** van de winstberekening (KIA → ondernemersaftrek →
 MKB-winstvrijstelling) is bevestigd: de MKB-vrijstelling wordt berekend over de

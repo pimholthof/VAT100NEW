@@ -40,6 +40,8 @@ vi.mock("@/lib/supabase/service", () => ({
 vi.mock("@/lib/tax/dutch-tax-2026", () => ({
   calculateZZPTaxProjection: vi.fn(({ jaarOmzetExBtw }) => ({
     nettoIB: jaarOmzetExBtw > 0 ? jaarOmzetExBtw * 0.2 : 0, // Simplified: 20% IB
+    zvwBijdrage: 0,
+    totaleHeffing: jaarOmzetExBtw > 0 ? jaarOmzetExBtw * 0.2 : 0, // reserve leest dit veld
     brutoOmzet: jaarOmzetExBtw,
     kosten: 0,
     afschrijvingen: 0,

@@ -9,6 +9,7 @@ import {
   type DepreciationRow,
 } from "@/lib/tax/dutch-tax-2026";
 import { KOSTENSOORTEN, type Kostensoort } from "@/lib/constants/costs";
+import { receiptCostExVat, type ReceiptCostFields } from "@/lib/logic/receipt-cost";
 import type { QuarterStats } from "./actions";
 import { quarterVatStats } from "@/lib/tax/quarter-vat-stats";
 import type { InvoiceForBtw, ReceiptForBtw } from "@/lib/tax/btw-rubrieken";
@@ -102,14 +103,15 @@ function groupByQuarter<T>(items: T[], dateOf: (t: T) => string | null): Map<str
 }
 
 function groupKosten(
-  receipts: { amount_ex_vat: number | null; cost_code: number | null; business_percentage?: number | null }[],
+  receipts: (ReceiptCostFields & { cost_code: number | null; business_percentage?: number | null })[],
 ): KostenGroep[] {
-  // Tally per cost_code (gewogen naar zakelijk percentage)
+  // Tally per cost_code (gewogen naar zakelijk percentage). Bon zonder ex-bedrag?
+  // Dan leidt receiptCostExVat het af uit incl./tarief — geen kosten vallen weg.
   const codeMap = new Map<number, number>();
   for (const r of receipts) {
     const code = r.cost_code ?? 4999;
     const pct = (r.business_percentage ?? 100) / 100;
-    const amount = (Number(r.amount_ex_vat) || 0) * pct;
+    const amount = receiptCostExVat(r) * pct;
     codeMap.set(code, (codeMap.get(code) || 0) + amount);
   }
 
@@ -187,7 +189,7 @@ export async function getJaarrekeningData(
     // Bonnen dit jaar (excl. investeringen cost_code 4230)
     supabase
       .from("receipts")
-      .select("amount_ex_vat, vat_amount, cost_code, receipt_date, business_percentage")
+      .select("amount_ex_vat, amount_inc_vat, vat_amount, vat_rate, cost_code, receipt_date, business_percentage")
       .eq("user_id", user.id)
       .gte("receipt_date", yearStart)
       .lte("receipt_date", yearEnd)
@@ -270,7 +272,7 @@ export async function getJaarrekeningData(
   const kostenGroepen = groupKosten(reguliereKosten);
   const totaalKosten = round2(
     reguliereKosten.reduce(
-      (s, r) => s + (Number(r.amount_ex_vat) || 0) * ((r.business_percentage ?? 100) / 100),
+      (s, r) => s + receiptCostExVat(r) * ((r.business_percentage ?? 100) / 100),
       0,
     ),
   );
@@ -353,7 +355,8 @@ export async function getJaarrekeningData(
   const totaalActiva = round2(bankSaldo + debiteuren + vasteActiva);
 
   const btwSchuld = Math.max(0, btwJaarTotaal.nettoBtw);
-  const belastingVoorziening = fiscaal.nettoIB;
+  // Voorziening voor de Belastingdienst = inkomstenbelasting + Zvw.
+  const belastingVoorziening = fiscaal.totaleHeffing;
   const eigenVermogen = round2(totaalActiva - btwSchuld - belastingVoorziening);
   const totaalPassiva = round2(btwSchuld + belastingVoorziening + eigenVermogen);
 

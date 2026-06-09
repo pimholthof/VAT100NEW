@@ -46,6 +46,18 @@ const AK_TRAJECT3_END = 45_593;
 const AK_TRAJECT3_RATE = 0.019; // → max €5.712
 const AK_AFBOUW_RATE = 0.0651; // €0 bij ≥ €132.920
 
+// ─── Inkomensafhankelijke bijdrage Zvw 2026 ───
+// IB-ondernemers betalen de "lage" inkomensafhankelijke bijdrage Zorgverzekerings-
+// wet over hun bijdrage-inkomen (≈ de belastbare winst ná ondernemersaftrek én
+// MKB-winstvrijstelling), tot een wettelijk maximum. Heffingskortingen gelden
+// hier niet. Voor een winst van €50–80k is dit een vierde belasting die fors
+// meetelt voor "wat is van mij" — daarom hoort hij in de reservering thuis.
+// 2026: 4,85% over maximaal €79.409 bijdrage-inkomen (max. bijdrage ≈ €3.851).
+// Bron: Belastingdienst / NDFR (maximum bijdrageloon Zvw 2026). Zie
+// docs/fiscal-constants-2026.md.
+const ZVW_RATE = 0.0485;
+const ZVW_MAX_BIJDRAGE_INKOMEN = 79_409;
+
 // ─── KIA 2026 ───
 
 const KIA_MIN_TOTAL = 2_901;
@@ -111,6 +123,10 @@ export interface TaxProjection {
   algemeneHeffingskorting: number;
   arbeidskorting: number;
   nettoIB: number;
+  /** Inkomensafhankelijke bijdrage Zvw over de belastbare winst (4,85%, gemaximeerd). */
+  zvwBijdrage: number;
+  /** Wat je voor de Belastingdienst reserveert: inkomstenbelasting + Zvw. */
+  totaleHeffing: number;
   effectiefTarief: number;
 
   // Prognose (geannualiseerd)
@@ -199,6 +215,21 @@ export function calculateArbeidskorting(arbeidsinkomen: number): number {
   }
 
   return round2(Math.max(0, ak));
+}
+
+/**
+ * Berekent de inkomensafhankelijke bijdrage Zvw 2026 voor een IB-ondernemer.
+ *
+ * Grondslag is het bijdrage-inkomen (≈ de belastbare winst), gemaximeerd op
+ * €79.409. Tarief 4,85%. Heffingskortingen zijn hier niet van toepassing.
+ *
+ * @param bijdrageInkomen Belastbare winst (≈ `belastbaarInkomen`) in euro's.
+ * @returns Zvw-bijdrage in euro's (≥ 0), afgerond op 2 decimalen.
+ */
+export function calculateZvwBijdrage(bijdrageInkomen: number): number {
+  if (bijdrageInkomen <= 0) return 0;
+  const grondslag = Math.min(bijdrageInkomen, ZVW_MAX_BIJDRAGE_INKOMEN);
+  return round2(grondslag * ZVW_RATE);
 }
 
 /**
@@ -499,6 +530,12 @@ export function calculateZZPTaxProjection(input: {
     Math.max(0, inkomstenbelasting - algemeneHeffingskorting - arbeidskorting),
   );
 
+  // Inkomensafhankelijke bijdrage Zvw over de belastbare winst — de "vierde
+  // belasting" die voor deze doelgroep fors meetelt. Samen met de IB vormt dit
+  // wat je werkelijk voor de Belastingdienst opzij houdt.
+  const zvwBijdrage = calculateZvwBijdrage(belastbaarInkomen);
+  const totaleHeffing = round2(nettoIB + zvwBijdrage);
+
   const effectiefTarief =
     jaarOmzetExBtw > 0 ? round2((nettoIB / jaarOmzetExBtw) * 100) : 0;
 
@@ -551,6 +588,8 @@ export function calculateZZPTaxProjection(input: {
     algemeneHeffingskorting,
     arbeidskorting,
     nettoIB,
+    zvwBijdrage,
+    totaleHeffing,
     effectiefTarief,
     prognoseJaarOmzet,
     prognoseJaarKosten,
@@ -568,6 +607,8 @@ export const TAX_CONSTANTS = {
   mkbVrijstellingRate: MKB_VRIJSTELLING_RATE,
   ahkMax: AHK_MAX,
   akMax: 5_712,
+  zvwRate: ZVW_RATE,
+  zvwMaxBijdrageInkomen: ZVW_MAX_BIJDRAGE_INKOMEN,
   kiaMinTotal: KIA_MIN_TOTAL,
   kiaItemMin: KIA_ITEM_MIN,
   kiaTier1Rate: KIA_TIER1_RATE,

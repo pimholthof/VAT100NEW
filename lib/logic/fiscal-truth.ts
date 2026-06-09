@@ -53,7 +53,7 @@ export interface InvoiceTruth {
   btw: number;
   /** Het gehanteerde BTW-tarief. */
   vatRate: VatRate;
-  /** Wat je opzij zet voor de inkomstenbelasting (marginale schatting). */
+  /** Wat je opzij zet voor de Belastingdienst: inkomstenbelasting + Zvw (marginale schatting). */
   incomeTaxReserve: number;
   /** Wat er werkelijk van jou is: netto − IB-reservering. */
   yours: number;
@@ -64,18 +64,20 @@ export interface InvoiceTruth {
 }
 
 /**
- * Netto inkomstenbelasting (na heffingskortingen) bij een gegeven jaaromzet,
- * volgens de 2026-tarieven. `maandenVerstreken: 12` schakelt de annualisering
- * uit zodat we de IB over precies dit omzetniveau krijgen.
+ * Totale heffing (inkomstenbelasting ná heffingskortingen + inkomensafhankelijke
+ * bijdrage Zvw) bij een gegeven jaaromzet, volgens de 2026-tarieven.
+ * `maandenVerstreken: 12` schakelt de annualisering uit zodat we de heffing over
+ * precies dit omzetniveau krijgen. We nemen de Zvw mee zodat de IB-reservering
+ * per factuur klopt met "wat je werkelijk voor de Belastingdienst opzij houdt".
  */
-function nettoIBAtRevenue(annualRevenueExBtw: number): number {
+function heffingAtRevenue(annualRevenueExBtw: number): number {
   if (annualRevenueExBtw <= 0) return 0;
   return calculateZZPTaxProjection({
     jaarOmzetExBtw: annualRevenueExBtw,
     jaarKostenExBtw: 0,
     investeringen: [],
     maandenVerstreken: 12,
-  }).nettoIB;
+  }).totaleHeffing;
 }
 
 /**
@@ -93,8 +95,8 @@ export function estimateMarginalIncomeTax(
   baseAnnualRevenue: number,
 ): number {
   if (netAmount <= 0) return 0;
-  const withInvoice = nettoIBAtRevenue(baseAnnualRevenue + netAmount);
-  const without = nettoIBAtRevenue(baseAnnualRevenue);
+  const withInvoice = heffingAtRevenue(baseAnnualRevenue + netAmount);
+  const without = heffingAtRevenue(baseAnnualRevenue);
   return Math.max(0, roundMoney(withInvoice - without));
 }
 
