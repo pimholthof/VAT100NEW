@@ -16,6 +16,7 @@ import { formatCurrency } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/context";
 import { AllocationBar } from "@/features/dashboard/components/AllocationBar";
 import { NextActionsPanel } from "@/features/dashboard/components/NextActionsPanel";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useToast } from "@/components/ui/Toast";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
@@ -76,7 +77,7 @@ export default function MobileDashboard({
             margin: "6px 0 0",
           }}
         >
-          {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
+          {safeToSpend ? <AnimatedNumber value={safeToSpend.safeToSpend} duration={0.7} /> : "—"}
         </p>
         <p style={{ margin: "8px 0 0", fontSize: 12, opacity: 0.5 }}>
           {t.dashboard.balance}{" "}

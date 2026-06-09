@@ -7,7 +7,6 @@ import {
   type DashboardData,
 } from "@/features/dashboard/actions";
 import type { ActionResult } from "@/lib/types";
-import { formatCurrency } from "@/lib/format";
 
 import {
   SkeletonTable,
@@ -18,6 +17,7 @@ import { CashflowForecast } from "@/features/dashboard/components/CashflowForeca
 import { HealthScore } from "@/features/dashboard/components/HealthScore";
 import { AllocationBar } from "@/features/dashboard/components/AllocationBar";
 import { NextActionsPanel } from "@/features/dashboard/components/NextActionsPanel";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
 import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
@@ -156,7 +156,7 @@ function DesktopDashboard({
               fontVariantNumeric: "tabular-nums",
             }}
           >
-            {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
+            {safeToSpend ? <AnimatedNumber value={safeToSpend.safeToSpend} duration={0.7} /> : "—"}
           </p>
           <p className="dashboard-home-intro">
             {t.dashboard.freeToSpendContext}
