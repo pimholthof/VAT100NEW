@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
-import { getTaxPaymentsSummary, createTaxPayment, deleteTaxPayment } from "@/features/tax/payments-actions";
+import { getTaxPaymentsSummary, getTaxPayments, createTaxPayment, deleteTaxPayment } from "@/features/tax/payments-actions";
 import { getVatReturns, generateVatReturn, lockVatReturn, submitVatReturn } from "@/features/tax/vat-returns-actions";
 import { getICPReport, type ICPEntry } from "@/features/tax/icp-actions";
 import type { QuarterStats } from "@/features/tax/actions";
@@ -337,6 +337,9 @@ export default function TaxContent() {
                 <p style={{ fontSize: "var(--text-body-sm)", opacity: 0.4, margin: 0 }}>
                   {current.quarter} · Dit kwartaal
                 </p>
+                {current.netVat > 0 && (
+                  <BtwPayBlock quarterLabel={current.quarter} amount={current.netVat} />
+                )}
               </div>
             ) : null}
 
@@ -499,6 +502,70 @@ export default function TaxContent() {
 }
 
 // ─── Subcomponenten ───
+
+/**
+ * BTW betalen — wrijvingsloos afdragen en vastleggen. De Belastingdienst
+ * betaal je via je bank (met het betalingskenmerk van je aangifte); hier leg
+ * je in één tik vast dat het betaald is, zodat je administratie klopt.
+ */
+function BtwPayBlock({ quarterLabel, amount }: { quarterLabel: string; amount: number }) {
+  const queryClient = useQueryClient();
+  const parts = quarterLabel.split(" ");
+  const q = parts[0]?.replace("Q", "") ?? "";
+  const year = parts[1] ?? "";
+  const period = `${year}-Q${q}`;
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data: paymentsRes } = useQuery({
+    queryKey: ["tax-payments", year],
+    queryFn: () => getTaxPayments(Number(year)),
+    enabled: !!year,
+  });
+  const paid = paymentsRes?.data?.find((p) => p.type === "btw" && p.period === period) ?? null;
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      createTaxPayment({ type: "btw", period, amount, paid_date: today, reference: null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tax-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["tax-payments-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+
+  return (
+    <div style={{ marginTop: 20, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 14 }}>
+      {paid ? (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "var(--color-success)" }}>
+          ✓ Betaald op {paid.paid_date ? formatDate(paid.paid_date) : "—"}
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => mutation.mutate()}
+          disabled={mutation.isPending}
+          className="btn-primary"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: mutation.isPending ? 0.5 : 1 }}
+        >
+          {mutation.isPending ? "Opslaan…" : "Markeer als betaald"}
+        </button>
+      )}
+      <a
+        href="https://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/hoe-moet-ik-btw-betalen"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ fontSize: 12, opacity: 0.55, textDecoration: "none", color: "inherit" }}
+      >
+        Hoe betaal ik? →
+      </a>
+      {!paid && (
+        <p style={{ margin: 0, fontSize: 11, opacity: 0.4, flexBasis: "100%", lineHeight: 1.5 }}>
+          Betaal via je bank met het <strong>betalingskenmerk</strong> van je aangifte. Daarna leg je het hier in één tik vast.
+        </p>
+      )}
+    </div>
+  );
+}
 
 function DepreciationTableRow({ row }: { row: DepreciationRow }) {
   return (
