@@ -98,7 +98,8 @@ geldt: **elk fiscaal getal heeft precies één implementatie.**
 | BTW-rubrieken (officiële aangifte) | `lib/tax/btw-rubrieken.ts` |
 | Aangifte-rij voor `vat_returns` | `lib/tax/vat-return-row.ts` (adapter op btw-rubrieken) |
 | Inkomstenbelasting (Box 1, kortingen, KIA, afschrijving) | `lib/tax/dutch-tax-2026.ts` |
-| Reservering / safe-to-spend | `lib/services/reserve-recalculator.ts` *(zie §6.2)* |
+| Reservering / safe-to-spend | `lib/logic/reserve.ts` (`computeReserve`) — gedeeld door dashboard + recalculator |
+| BTW per kwartaal (jaarrekening) | `lib/tax/quarter-vat-stats.ts` (op btw-rubrieken) |
 | Eerstvolgende acties | `lib/logic/next-actions.ts` |
 | Controles/invarianten | `lib/logic/self-checks.ts` |
 
@@ -125,18 +126,19 @@ gedrag exact te behouden. Fiscaal horen ze in 1e/3a.
 Digipoort-mapping bijwerkt, met **fiscalist-akkoord**. Pas dán de adapter
 ontvouwen.
 
-### 6.2 ⏳ Safe-to-spend — formule unificeren (Fase 2)
-Twee paden berekenen de reserve: `lib/services/reserve-recalculator.ts`
-(volledig: echte kosten + investeringen) en de fallback
-`calculateSafeToSpend()` in `features/dashboard/actions.ts` (nul kosten,
-hardgecodeerde KIA en marginaal tarief). Bij een verouderde snapshot toont het
-dashboard daardoor een te optimistische "veilig te besteden".
-**Vervolg:** beide door één pure `computeReserve(input)` laten lopen; de
-dashboard-fallback echte kosten laten ophalen of strikter op snapshots leunen.
+### 6.2 ✅ Opgelost — safe-to-spend geünificeerd
+Eén pure `computeReserve(input)` (`lib/logic/reserve.ts`) wordt nu gedeeld door
+de recalculator (snapshot) én de dashboard-fallback. De fallback haalt
+werkelijke jaarkosten + investeringen op (geen nul-kosten-optimisme meer), en
+de `taxShieldPotential` gebruikt het werkelijke marginale tarief i.p.v. een
+hardgecodeerde 0,3575 (en een voorbeeldinvestering bóven de KIA-drempel — de
+oude €1.000 gaf altijd 0).
 
-### 6.3 ⏳ Snapshot-versheid — commentaar vs. code
-In `features/dashboard/actions.ts` heet de drempelvariabele `fourHoursAgo` maar
-staat hij op 24 uur. Onschuldig, maar verwarrend — uitlijnen.
+### 6.3 ✅ Opgelost — jaarrekening-BTW via de canonieke bron
+`getJaarrekeningData` berekende BTW per kwartaal los; dat loopt nu via
+`lib/tax/quarter-vat-stats.ts` (op `calculateBtwRubrieken`) — exact dezelfde
+cijfers als de aangifte, schema-bewust en met creditnota's afgetrokken. Tevens
+de snapshot-drempelvariabele hernoemd (`fourHoursAgo` → `snapshotCutoff`).
 
 ## 7. Toekomstbestendigheid — jaar-parametrisering
 

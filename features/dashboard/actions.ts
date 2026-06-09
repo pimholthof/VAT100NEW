@@ -2,7 +2,7 @@
 
 import { requireAuth, requireAdmin } from "@/lib/supabase/server";
 import type { ActionResult, SafeToSpendData } from "@/lib/types";
-import { calculateZZPTaxProjection, calculateKIA } from "@/lib/tax/dutch-tax-2026";
+import { computeReserve } from "@/lib/logic/reserve";
 import { calculateFinancialHealth, type FinancialHealth } from "@/lib/tax/financial-health";
 import * as Sentry from "@sentry/nextjs";
 
@@ -270,13 +270,13 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
 
   let safeToSpend: SafeToSpendData;
 
-  // Check of er een recent reserve_snapshot is (<24 uur oud)
-  const fourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  // Gebruik een recent reserve_snapshot (<24 uur) als die er is.
+  const snapshotCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data: recentSnapshot } = await supabase
     .from("reserve_snapshots")
     .select("bank_balance, estimated_vat, estimated_income_tax, reserved_total, safe_to_spend")
     .eq("user_id", user.id)
-    .gt("created_at", fourHoursAgo)
+    .gt("created_at", snapshotCutoff)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -288,15 +288,53 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       estimatedIncomeTax: Number(recentSnapshot.estimated_income_tax) || 0,
       reservedTotal: Number(recentSnapshot.reserved_total) || 0,
       safeToSpend: Number(recentSnapshot.safe_to_spend) || 0,
-      taxShieldPotential: 0, // Snapshot bevat geen KIA data, fallback naar 0
+      taxShieldPotential: 0, // Snapshot bevat geen KIA-data, fallback naar 0
     };
   } else {
-    safeToSpend = calculateSafeToSpend(
-      bankBalance,
-      yearRevenueRecords,
-      outputVat,
-      inputVat
+    // Geen verse snapshot → live berekenen via de canonieke formule, mét
+    // werkelijke jaarkosten en investeringen (niet nul — geen optimisme).
+    const totalRevenueExVat = yearRevenueRecords.reduce(
+      (sum, inv) => sum + ((Number(inv.total_inc_vat) || 0) - (Number(inv.vat_amount) || 0)),
+      0,
     );
+    const huidigJaar = now.getFullYear();
+    const [kostenRes, investRes] = await Promise.all([
+      supabase
+        .from("receipts")
+        .select("amount_ex_vat")
+        .eq("user_id", user.id)
+        .gte("receipt_date", `${huidigJaar}-01-01`)
+        .lte("receipt_date", `${huidigJaar}-12-31`)
+        .or("cost_code.is.null,cost_code.neq.4230"),
+      supabase
+        .from("receipts")
+        .select("id, vendor_name, amount_ex_vat, receipt_date")
+        .eq("user_id", user.id)
+        .eq("cost_code", 4230)
+        .not("amount_ex_vat", "is", null)
+        .not("receipt_date", "is", null),
+    ]);
+    const jaarKostenExBtw = (kostenRes.data ?? []).reduce(
+      (sum, rec) => sum + (Number(rec.amount_ex_vat) || 0),
+      0,
+    );
+    const investeringen = (investRes.data ?? []).map((rec) => ({
+      id: rec.id,
+      omschrijving: rec.vendor_name ?? "Investering",
+      aanschafprijs: Number(rec.amount_ex_vat) || 0,
+      aanschafDatum: rec.receipt_date as string,
+      levensduur: 5,
+      restwaarde: 0,
+    }));
+    safeToSpend = computeReserve({
+      currentBalance: bankBalance,
+      jaarOmzetExBtw: totalRevenueExVat,
+      jaarKostenExBtw,
+      investeringen,
+      maandenVerstreken: now.getMonth() + 1,
+      outputVat,
+      inputVat,
+    });
   }
 
   // ── Cashflow Forecast (13 weken) ──
@@ -406,46 +444,6 @@ function calculateCashflowForecast(
   }
 
   return weeks;
-}
-
-// ── Safe-to-Spend Calculator ──
-function calculateSafeToSpend(
-  currentBalance: number,
-  yearRevenue: Array<{ total_inc_vat: number; vat_amount: number }>,
-  outputVat: number,
-  inputVat: number
-): SafeToSpendData {
-  const estimatedVat = Math.max(0, Math.round((outputVat - inputVat) * 100) / 100);
-
-  const totalRevenueExVat = yearRevenue.reduce(
-    (sum, inv) => sum + ((Number(inv.total_inc_vat) || 0) - (Number(inv.vat_amount) || 0)), 0
-  );
-
-  const now = new Date();
-  const maandenVerstreken = now.getMonth() + 1;
-  const projection = calculateZZPTaxProjection({
-    jaarOmzetExBtw: totalRevenueExVat,
-    jaarKostenExBtw: 0,
-    investeringen: [],
-    maandenVerstreken,
-  });
-
-  const estimatedIncomeTax = Math.max(0, projection.nettoIB);
-  const reservedTotal = estimatedVat + estimatedIncomeTax;
-  const safeToSpend = Math.round((currentBalance - reservedTotal) * 100) / 100;
-
-  const kiaVoordeel = totalRevenueExVat > 10000
-    ? Math.round(calculateKIA(1000) * 0.3575 * 100) / 100
-    : 0;
-
-  return {
-    currentBalance: Math.round(currentBalance * 100) / 100,
-    estimatedVat,
-    estimatedIncomeTax,
-    reservedTotal: Math.round(reservedTotal * 100) / 100,
-    safeToSpend: Math.max(0, safeToSpend),
-    taxShieldPotential: kiaVoordeel,
-  };
 }
 
 // ── Setup Progress (Onboarding Checklist) ──

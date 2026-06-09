@@ -10,6 +10,8 @@ import {
 } from "@/lib/tax/dutch-tax-2026";
 import { KOSTENSOORTEN, type Kostensoort } from "@/lib/constants/costs";
 import type { QuarterStats } from "./actions";
+import { quarterVatStats } from "@/lib/tax/quarter-vat-stats";
+import type { InvoiceForBtw, ReceiptForBtw } from "@/lib/tax/btw-rubrieken";
 
 // ─── Types ───
 
@@ -84,6 +86,19 @@ function getQuarterKey(dateStr: string): string {
   const d = new Date(dateStr);
   const q = Math.floor(d.getMonth() / 3) + 1;
   return `Q${q} ${d.getFullYear()}`;
+}
+
+function groupByQuarter<T>(items: T[], dateOf: (t: T) => string | null): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const item of items) {
+    const date = dateOf(item);
+    if (!date) continue;
+    const key = getQuarterKey(date);
+    const arr = map.get(key);
+    if (arr) arr.push(item);
+    else map.set(key, [item]);
+  }
+  return map;
 }
 
 function groupKosten(
@@ -162,7 +177,7 @@ export async function getJaarrekeningData(
     supabase
       .from("invoices")
       .select(
-        "subtotal_ex_vat, vat_amount, total_inc_vat, status, issue_date",
+        "subtotal_ex_vat, vat_amount, vat_rate, total_inc_vat, status, issue_date, is_credit_note, vat_scheme, invoice_lines(amount, vat_rate)",
       )
       .eq("user_id", user.id)
       .in("status", ["sent", "paid"])
@@ -283,55 +298,31 @@ export async function getJaarrekeningData(
 
   // ─── BTW per kwartaal ───
 
-  const quarterMap = new Map<string, QuarterStats>();
-  const getOrCreate = (key: string): QuarterStats => {
-    let q = quarterMap.get(key);
-    if (!q) {
-      q = {
-        quarter: key,
-        revenueExVat: 0,
-        outputVat: 0,
-        inputVat: 0,
-        netVat: 0,
-        invoiceCount: 0,
-        receiptCount: 0,
-      };
-      quarterMap.set(key, q);
-    }
-    return q;
-  };
-
-  // Ensure all 4 quarters exist
-  for (let qi = 1; qi <= 4; qi++) getOrCreate(`Q${qi} ${year}`);
-
-  for (const inv of invoices) {
-    if (!inv.issue_date) continue;
-    const q = getOrCreate(getQuarterKey(inv.issue_date));
-    const isCN = hasCreditNoteCol && (inv as InvoiceRow & { is_credit_note?: boolean }).is_credit_note;
-    const sign = isCN ? -1 : 1;
-    q.revenueExVat += sign * (Number(inv.subtotal_ex_vat) || 0);
-    q.outputVat += sign * (Number(inv.vat_amount) || 0);
-    q.invoiceCount += 1;
-  }
-
-  for (const rec of allReceipts) {
-    if (!rec.receipt_date) continue;
-    const q = getOrCreate(getQuarterKey(rec.receipt_date));
-    const pct = (rec.business_percentage ?? 100) / 100;
-    q.inputVat += (Number(rec.vat_amount) || 0) * pct;
-    q.receiptCount += 1;
-  }
+  // BTW per kwartaal via de canonieke rubriek-engine — exact dezelfde cijfers
+  // als de aangifte (schema-bewust, creditnota's afgetrokken).
+  const invByQuarter = groupByQuarter(invoices, (inv) => inv.issue_date);
+  const recByQuarter = groupByQuarter(allReceipts, (rec) => rec.receipt_date);
 
   const btwKwartalen: QuarterStats[] = [];
   const btwJaarTotaal = { omzetExBtw: 0, outputBtw: 0, inputBtw: 0, nettoBtw: 0 };
 
   for (let qi = 1; qi <= 4; qi++) {
-    const q = quarterMap.get(`Q${qi} ${year}`)!;
-    q.revenueExVat = round2(q.revenueExVat);
-    q.outputVat = round2(q.outputVat);
-    q.inputVat = round2(q.inputVat);
-    q.netVat = round2(q.outputVat - q.inputVat);
-
+    const key = `Q${qi} ${year}`;
+    const qInvoices = invByQuarter.get(key) ?? [];
+    const qReceipts = recByQuarter.get(key) ?? [];
+    const stats = quarterVatStats(
+      qInvoices as unknown as InvoiceForBtw[],
+      qReceipts as unknown as ReceiptForBtw[],
+    );
+    const q: QuarterStats = {
+      quarter: key,
+      revenueExVat: stats.revenueExVat,
+      outputVat: stats.outputVat,
+      inputVat: stats.inputVat,
+      netVat: stats.netVat,
+      invoiceCount: qInvoices.length,
+      receiptCount: qReceipts.length,
+    };
     btwKwartalen.push(q);
     btwJaarTotaal.omzetExBtw += q.revenueExVat;
     btwJaarTotaal.outputBtw += q.outputVat;
