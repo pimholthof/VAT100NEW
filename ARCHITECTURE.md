@@ -164,9 +164,12 @@ moeten groen zijn na elke wijziging.
 
 ## 9. Roadmap (fasering)
 
-1. **Veiligheidsfundament** — `lib/autonomy/` met `AutonomyTier`/`AgentAction`
-   (confidence/evidence/undo) + dispatcher die de tier-regels afdwingt, met de
-   controle-laag als invariant-gate.
+1. **Veiligheidsfundament** — ✅ kernel gebouwd: `lib/autonomy/dispatcher.ts`
+   (`AutonomyTier`/`AgentAction`, `ACTION_TIERS`-beleid, `decideAction`) dwingt
+   de tier-regels, confidence-drempels, noodstop, schaduwmodus en de
+   invariant-gate af. **Volgende:** de bestaande autonome bits (overdue
+   markeren, betaling-match, BTW voorbereiden) hier doorheen routeren + elke
+   uitvoering loggen met undo-handle.
 2. **Eén fiscale kern afronden** — safe-to-spend unificeren (§6.2),
    reconciliatie-tests uitbreiden.
 3. **Schaduwmodus, noodstop, idempotentie + admin-controletoren** — laat zien
