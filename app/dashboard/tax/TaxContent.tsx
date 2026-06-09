@@ -15,6 +15,7 @@ import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components
 import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
 import { AangifteExplainer } from "@/features/tax/components/AangifteExplainer";
+import { FilingOverview } from "@/features/tax/components/FilingOverview";
 import { DigipoortSubmitButton } from "@/features/tax/components/DigipoortSubmitButton";
 import { FiscalDisclaimer } from "@/components/ui/FiscalDisclaimer";
 import { InlineFeedback } from "@/components/feedback/InlineFeedback";
@@ -67,6 +68,9 @@ export default function TaxContent() {
           <a href="/dashboard/tax/opening-balance" className="btn-secondary">Openingsbalans</a>
         </div>
       </div>
+
+      {/* ══ AANGIFTES & AFSLUITING — readiness + één-tap volgende stap ══ */}
+      <FilingOverview />
 
       {/* ══════════════════════════════════════════════════
           ZONE 1: INKOMSTENBELASTING
@@ -288,9 +292,10 @@ export default function TaxContent() {
           ZONE 2: BTW (OMZETBELASTING)
       ══════════════════════════════════════════════════ */}
 
-      <div style={{
+      <div id="btw-zone" style={{
         borderTop: "1px solid var(--color-black)",
         paddingTop: "var(--space-xl)",
+        scrollMarginTop: 80,
       }}>
         {/* BTW header */}
         <div style={{
