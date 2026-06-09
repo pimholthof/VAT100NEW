@@ -4,6 +4,8 @@ import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, VatReturn, VatReturnStatus } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { sanitizeSupabaseError } from "@/lib/errors";
+import { computeVatReturnRow } from "@/lib/tax/vat-return-row";
+import type { InvoiceForBtw, ReceiptForBtw } from "@/lib/tax/btw-rubrieken";
 
 /**
  * Generate a VAT return for a given year/quarter based on unlinked invoices/receipts.
@@ -92,84 +94,17 @@ export async function generateVatReturn(
     };
   }
 
-  const round2 = (v: number) => Math.round(v * 100) / 100;
-
-  // Calculate rubrieken
-  const rubrieken = {
-    "1a": { omzet: 0, btw: 0 },
-    "1b": { omzet: 0, btw: 0 },
-    "1c": { omzet: 0, btw: 0 },
-    "2a": { omzet: 0, btw: 0 }, // ICP (intracommunautaire leveringen)
-    "3b": { omzet: 0, btw: 0 }, // EU reverse charge services
-    "4a": { omzet: 0, btw: 0 }, // Leveringen buiten EU
-    "4b": { omzet: 0, btw: 0 }, // Diensten buiten EU
-  };
-
-  for (const inv of invoices ?? []) {
-    const sign = inv.is_credit_note ? -1 : 1;
-    const scheme = inv.vat_scheme ?? "standard";
-    const lines = (inv as { invoice_lines?: { amount: number; vat_rate: number | null }[] }).invoice_lines;
-
-    // Route to correct rubriek based on vat_scheme
-    if (scheme === "eu_reverse_charge") {
-      // ZZP'ers leveren diensten → rubriek 3b (diensten aan EU-ondernemers)
-      // Rubriek 2a is uitsluitend voor intracommunautaire leveringen van goederen
-      const amount = Number(inv.subtotal_ex_vat) || 0;
-      rubrieken["3b"].omzet += sign * amount;
-      continue;
-    }
-
-    if (scheme === "export_outside_eu") {
-      // Buiten-EU: 4a = leveringen (goederen), 4b = diensten
-      // For ZZP'ers (predominantly service providers), default to 4b
-      const amount = Number(inv.subtotal_ex_vat) || 0;
-      rubrieken["4b"].omzet += sign * amount;
-      continue;
-    }
-
-    // Standard: categorize by VAT rate
-    if (lines && lines.length > 0) {
-      for (const line of lines) {
-        const rate = line.vat_rate ?? inv.vat_rate ?? 21;
-        const amount = Number(line.amount) || 0;
-        const key = rate === 21 ? "1a" : rate === 9 ? "1b" : "1c";
-        rubrieken[key].omzet += sign * amount;
-        rubrieken[key].btw += sign * round2(amount * (rate / 100));
-      }
-    } else {
-      const rate = inv.vat_rate ?? 21;
-      const key = rate === 21 ? "1a" : rate === 9 ? "1b" : "1c";
-      rubrieken[key].omzet += sign * (Number(inv.subtotal_ex_vat) || 0);
-      rubrieken[key].btw += sign * (Number(inv.vat_amount) || 0);
-    }
-  }
-
-  // Voorbelasting (5b)
-  let voorbelasting = 0;
-  for (const rec of receipts ?? []) {
-    const pct = (rec.business_percentage ?? 100) / 100;
-    voorbelasting += (Number(rec.vat_amount) || 0) * pct;
-  }
+  // Eén bron van waarheid: canonieke rubriek-berekening (lib/tax/btw-rubrieken.ts).
+  const { row } = computeVatReturnRow(
+    (invoices ?? []) as unknown as InvoiceForBtw[],
+    (receipts ?? []) as unknown as ReceiptForBtw[],
+  );
 
   const returnData = {
     user_id: user.id,
     year,
     quarter,
-    rubriek_1a_omzet: round2(rubrieken["1a"].omzet),
-    rubriek_1a_btw: round2(rubrieken["1a"].btw),
-    rubriek_1b_omzet: round2(rubrieken["1b"].omzet),
-    rubriek_1b_btw: round2(rubrieken["1b"].btw),
-    rubriek_1c_omzet: round2(rubrieken["1c"].omzet),
-    rubriek_1c_btw: round2(rubrieken["1c"].btw),
-    rubriek_2a_omzet: round2(rubrieken["2a"].omzet),
-    rubriek_2a_btw: round2(rubrieken["2a"].btw),
-    rubriek_3b_omzet: round2(rubrieken["3b"].omzet),
-    rubriek_3b_btw: round2(rubrieken["3b"].btw),
-    rubriek_4a_omzet: round2(rubrieken["4a"].omzet),
-    rubriek_4a_btw: round2(rubrieken["4a"].btw),
-    rubriek_4b_omzet: round2(rubrieken["4b"].omzet),
-    rubriek_4b_btw: round2(rubrieken["4b"].btw),
-    rubriek_5b: round2(voorbelasting),
+    ...row,
     status: "draft" as VatReturnStatus,
   };
 
@@ -291,62 +226,11 @@ export async function previewVatReturn(
     return { error: sanitizeSupabaseError(recError, { area: "previewVatReturn.fetchReceipts", userId: user.id }) };
   }
 
-  const round2 = (v: number) => Math.round(v * 100) / 100;
-
-  // Calculate rubrieken (identical logic to generateVatReturn)
-  const rubrieken = {
-    "1a": { omzet: 0, btw: 0 },
-    "1b": { omzet: 0, btw: 0 },
-    "1c": { omzet: 0, btw: 0 },
-    "2a": { omzet: 0, btw: 0 },
-    "3b": { omzet: 0, btw: 0 },
-    "4a": { omzet: 0, btw: 0 },
-    "4b": { omzet: 0, btw: 0 },
-  };
-
-  for (const inv of invoices ?? []) {
-    const sign = inv.is_credit_note ? -1 : 1;
-    const scheme = inv.vat_scheme ?? "standard";
-    const lines = (inv as { invoice_lines?: { amount: number; vat_rate: number | null }[] }).invoice_lines;
-
-    if (scheme === "eu_reverse_charge") {
-      const amount = Number(inv.subtotal_ex_vat) || 0;
-      rubrieken["3b"].omzet += sign * amount;
-      continue;
-    }
-
-    if (scheme === "export_outside_eu") {
-      const amount = Number(inv.subtotal_ex_vat) || 0;
-      rubrieken["4b"].omzet += sign * amount;
-      continue;
-    }
-
-    if (lines && lines.length > 0) {
-      for (const line of lines) {
-        const rate = line.vat_rate ?? inv.vat_rate ?? 21;
-        const amount = Number(line.amount) || 0;
-        const key = rate === 21 ? "1a" : rate === 9 ? "1b" : "1c";
-        rubrieken[key].omzet += sign * amount;
-        rubrieken[key].btw += sign * round2(amount * (rate / 100));
-      }
-    } else {
-      const rate = inv.vat_rate ?? 21;
-      const key = rate === 21 ? "1a" : rate === 9 ? "1b" : "1c";
-      rubrieken[key].omzet += sign * (Number(inv.subtotal_ex_vat) || 0);
-      rubrieken[key].btw += sign * (Number(inv.vat_amount) || 0);
-    }
-  }
-
-  let voorbelasting = 0;
-  for (const rec of receipts ?? []) {
-    const pct = (rec.business_percentage ?? 100) / 100;
-    voorbelasting += (Number(rec.vat_amount) || 0) * pct;
-  }
-
-  const totaalBtw = round2(
-    rubrieken["1a"].btw + rubrieken["1b"].btw + rubrieken["1c"].btw
+  // Eén bron van waarheid: identieke berekening als generateVatReturn.
+  const { row, totaalBtw, voorbelasting, teBetalen } = computeVatReturnRow(
+    (invoices ?? []) as unknown as InvoiceForBtw[],
+    (receipts ?? []) as unknown as ReceiptForBtw[],
   );
-  const teBetalen = round2(totaalBtw - voorbelasting);
 
   return {
     error: null,
@@ -355,21 +239,7 @@ export async function previewVatReturn(
         user_id: user.id,
         year,
         quarter,
-        rubriek_1a_omzet: round2(rubrieken["1a"].omzet),
-        rubriek_1a_btw: round2(rubrieken["1a"].btw),
-        rubriek_1b_omzet: round2(rubrieken["1b"].omzet),
-        rubriek_1b_btw: round2(rubrieken["1b"].btw),
-        rubriek_1c_omzet: round2(rubrieken["1c"].omzet),
-        rubriek_1c_btw: round2(rubrieken["1c"].btw),
-        rubriek_2a_omzet: round2(rubrieken["2a"].omzet),
-        rubriek_2a_btw: round2(rubrieken["2a"].btw),
-        rubriek_3b_omzet: round2(rubrieken["3b"].omzet),
-        rubriek_3b_btw: round2(rubrieken["3b"].btw),
-        rubriek_4a_omzet: round2(rubrieken["4a"].omzet),
-        rubriek_4a_btw: round2(rubrieken["4a"].btw),
-        rubriek_4b_omzet: round2(rubrieken["4b"].omzet),
-        rubriek_4b_btw: round2(rubrieken["4b"].btw),
-        rubriek_5b: round2(voorbelasting),
+        ...row,
         status: "draft" as VatReturnStatus,
       },
       invoiceCount: (invoices ?? []).length,
@@ -390,7 +260,7 @@ export async function previewVatReturn(
         business_percentage: rec.business_percentage ?? 100,
       })),
       totaalBtw,
-      voorbelasting: round2(voorbelasting),
+      voorbelasting,
       teBetalen,
     },
   };
