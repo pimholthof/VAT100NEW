@@ -88,24 +88,24 @@ export default function TaxContent() {
         }}>
           {[
             {
-              label: "Geschatte IB",
+              label: "IB — tot nu toe",
               value: formatCurrency(Math.round(projection.nettoIB)),
-              sub: `Effectief tarief ${projection.effectiefTarief.toFixed(1)}%`,
+              sub: `Dit jaar · effectief ${projection.effectiefTarief.toFixed(1)}%`,
             },
             {
-              label: "Jaaromzet",
+              label: "Jaaromzet — prognose",
               value: formatCurrency(Math.round(projection.prognoseJaarOmzet)),
-              sub: `Verwacht ${now.getFullYear()}`,
+              sub: `Verwacht heel ${now.getFullYear()}`,
             },
             {
-              label: "Jaarkosten",
+              label: "Jaarkosten — prognose",
               value: formatCurrency(Math.round(projection.prognoseJaarKosten)),
-              sub: `Verwacht ${now.getFullYear()}`,
+              sub: `Verwacht heel ${now.getFullYear()}`,
             },
             {
-              label: "Jaar-IB",
+              label: "Jaar-IB — prognose",
               value: formatCurrency(Math.round(projection.prognoseJaarIB)),
-              sub: "Prognose op jaarbasis",
+              sub: `Verwacht heel ${now.getFullYear()}`,
             },
           ].map((item, i) => (
             <div
