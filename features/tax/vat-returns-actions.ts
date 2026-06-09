@@ -6,6 +6,8 @@ import { uuidSchema } from "@/lib/validation";
 import { sanitizeSupabaseError } from "@/lib/errors";
 import { computeVatReturnRow } from "@/lib/tax/vat-return-row";
 import type { InvoiceForBtw, ReceiptForBtw } from "@/lib/tax/btw-rubrieken";
+import { defineAction } from "@/lib/autonomy/dispatcher";
+import { runAgentAction } from "@/lib/autonomy/run";
 
 /**
  * Generate a VAT return for a given year/quarter based on unlinked invoices/receipts.
@@ -499,9 +501,49 @@ export async function autoPreparePreviousQuarterVatReturn(): Promise<ActionResul
     return { error: null, data: { prepared: false } };
   }
 
-  // Genereer draft
-  const result = await generateVatReturn(prevYear, prevQuarter);
-  if (result.error) {
+  // ── Autonomie-poort: BTW voorbereiden is Tier 1 (omkeerbaar concept) ──
+  // Het systeem mag dit zelf doen bij voldoende zekerheid; staat de noodstop aan
+  // of breekt een invariant, dan wordt het rustig voorgelegd. Elke uitvoering
+  // wordt gelogd in de action feed (zichtbaar; omkeerbaar — het concept kan weg).
+  const action = defineAction("prepare_vat_return", {
+    confidence: 1,
+    evidence: [
+      `Kwartaal Q${prevQuarter} ${prevYear} is afgesloten`,
+      "Er bestaat nog geen aangifte voor dit kwartaal",
+    ],
+    summary: `Concept BTW-aangifte Q${prevQuarter} ${prevYear} voorbereiden`,
+  });
+
+  const run = await runAgentAction<ActionResult<VatReturn>>(
+    action,
+    // TODO: noodstop/schaduwmodus uit config; invarianten uit runSelfChecks.
+    { autonomyEnabled: true, invariantsOk: true },
+    {
+      onExecute: () => generateVatReturn(prevYear, prevQuarter),
+      onPropose: async () => {
+        await supabase.from("action_feed").insert({
+          user_id: user.id,
+          type: "tax_alert",
+          title: `BTW-aangifte Q${prevQuarter} ${prevYear} klaar om voor te bereiden`,
+          description: "Bereid je concept-aangifte voor en dien in vóór de deadline.",
+          ai_confidence: action.confidence,
+        });
+      },
+      onLog: async ({ executed, result }) => {
+        if (!executed || result?.error) return;
+        await supabase.from("action_feed").insert({
+          user_id: user.id,
+          type: "tax_alert",
+          title: `BTW-aangifte Q${prevQuarter} ${prevYear} automatisch voorbereid`,
+          description:
+            "Je concept-aangifte staat klaar. Controleer en dien in vóór de deadline.",
+          ai_confidence: action.confidence,
+        });
+      },
+    },
+  );
+
+  if (!run.executed || run.result?.error) {
     return { error: null, data: { prepared: false } }; // Non-fatal
   }
 
