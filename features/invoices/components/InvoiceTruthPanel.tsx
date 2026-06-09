@@ -10,7 +10,6 @@ import { useInvoiceStore } from "@/lib/store/invoice";
 import { getProfile } from "@/features/profile/actions";
 import { calculateInvoiceTruth } from "@/lib/logic/fiscal-truth";
 import { formatCurrency } from "@/lib/format";
-import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 
 /**
  * Het waarheid-paneel: terwijl je een factuur opstelt, toont dit live wat er
@@ -159,8 +158,7 @@ export function InvoiceTruthPanel() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             >
-              <AnimatedNumber
-                value={truth.yours}
+              <span
                 className="mono-amount"
                 style={{
                   fontSize: "2.6rem",
@@ -169,7 +167,9 @@ export function InvoiceTruthPanel() {
                   letterSpacing: "-0.03em",
                   color: "var(--foreground)",
                 }}
-              />
+              >
+                {formatCurrency(truth.yours)}
+              </span>
             </motion.div>
           </div>
 
