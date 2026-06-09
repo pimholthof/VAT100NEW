@@ -174,7 +174,7 @@ function DesktopDashboard({
       {/* ── DE DRIE POTTEN: het hart van het systeem ── */}
       {!isLoading && (
         <motion.div variants={itemVariants}>
-          <AllocationBar data={safeToSpend} />
+          <AllocationBar data={safeToSpend} hasBankConnection={data?.hasBankConnection ?? false} />
         </motion.div>
       )}
 

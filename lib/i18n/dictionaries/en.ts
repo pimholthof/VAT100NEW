@@ -266,6 +266,7 @@ const en = {
     allocYours: "Yours",
     allocYoursSub: "Safe to spend",
     allocEmpty: "Connect your bank and see at a glance what of your money is truly yours — and what you're holding for the tax office.",
+    allocNoBalance: "No balance to allocate yet — your bank is syncing. This can take a moment.",
     allocConnectBank: "Connect your bank →",
     // ── Predictive Calm: To do now ──
     actionsHeading: "To do now",

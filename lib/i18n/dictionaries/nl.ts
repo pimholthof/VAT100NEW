@@ -266,6 +266,7 @@ const nl = {
     allocYours: "Van jou",
     allocYoursSub: "Veilig te besteden",
     allocEmpty: "Koppel je bank en zie in één oogopslag wat er van jouw geld werkelijk van jou is — en wat je opzij houdt voor de Belastingdienst.",
+    allocNoBalance: "Nog geen saldo om te verdelen — je bank wordt gesynchroniseerd. Dit kan even duren.",
     allocConnectBank: "Koppel je bank →",
     // ── Predictive Calm: Nu doen ──
     actionsHeading: "Nu doen",

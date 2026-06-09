@@ -55,10 +55,13 @@ export function formatCurrency(amount: number): string {
  */
 export function formatDate(dateStr: string | null): string {
   if (!dateStr) return "—";
+  // Tijdzone vastgepind zodat server (UTC) en client identiek formatteren — geen
+  // hydration-mismatch op datums met een tijdcomponent.
   return new Date(dateStr).toLocaleDateString("nl-NL", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "Europe/Amsterdam",
   });
 }
 
@@ -71,5 +74,6 @@ export function formatDateLong(dateStr: string | null): string {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Europe/Amsterdam",
   });
 }

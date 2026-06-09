@@ -112,7 +112,7 @@ function InvoicesTab() {
           <h1 className="display-title" style={{ marginBottom: 8 }}>
             {t.invoices.title}
           </h1>
-          <p className="label" style={{ opacity: 0.25 }}>{invoices.length} {invoices.length === 1 ? t.invoices.invoice.toUpperCase() : t.invoices.invoices.toUpperCase()}</p>
+          <p className="label" style={{ opacity: 0.25 }}>{isLoading ? "—" : `${invoices.length} ${invoices.length === 1 ? t.invoices.invoice.toUpperCase() : t.invoices.invoices.toUpperCase()}`}</p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <a
@@ -380,7 +380,7 @@ function QuotesTab() {
           <h1 className="display-title" style={{ marginBottom: 8 }}>
             {t.quotes.title}
           </h1>
-          <p className="label" style={{ opacity: 0.3 }}>{quotes.length} {quotes.length === 1 ? t.quotes.quote.toUpperCase() : t.quotes.title.toUpperCase()}</p>
+          <p className="label" style={{ opacity: 0.3 }}>{isLoading ? "—" : `${quotes.length} ${quotes.length === 1 ? t.quotes.quote.toUpperCase() : t.quotes.title.toUpperCase()}`}</p>
         </div>
         <Link
           href="/dashboard/quotes/new"

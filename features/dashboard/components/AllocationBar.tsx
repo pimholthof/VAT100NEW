@@ -18,7 +18,13 @@ import type { SafeToSpendData } from "@/lib/types";
  * Eén proportionele balk vertaalt je saldo naar die ene waarheid: wat is
  * werkelijk van mij? Geen beheer, geen invoer — alleen rust.
  */
-export function AllocationBar({ data }: { data?: SafeToSpendData }) {
+export function AllocationBar({
+  data,
+  hasBankConnection = false,
+}: {
+  data?: SafeToSpendData;
+  hasBankConnection?: boolean;
+}) {
   const { t } = useLocale();
   const a = t.dashboard;
 
@@ -39,22 +45,24 @@ export function AllocationBar({ data }: { data?: SafeToSpendData }) {
       <section className="glass" style={{ borderRadius: "var(--radius-lg)", padding: "28px 32px" }}>
         <span className="label">{a.allocHeading}</span>
         <p style={{ margin: "14px 0 0", fontSize: "var(--text-body-md)", opacity: 0.55, lineHeight: 1.6, maxWidth: "32rem" }}>
-          {a.allocEmpty}
+          {hasBankConnection ? a.allocNoBalance : a.allocEmpty}
         </p>
-        <Link
-          href="/dashboard/bank"
-          style={{
-            display: "inline-block",
-            marginTop: 14,
-            fontSize: 12,
-            fontWeight: 600,
-            color: "var(--color-accent)",
-            textDecoration: "none",
-            letterSpacing: "0.01em",
-          }}
-        >
-          {a.allocConnectBank}
-        </Link>
+        {!hasBankConnection && (
+          <Link
+            href="/dashboard/bank"
+            style={{
+              display: "inline-block",
+              marginTop: 14,
+              fontSize: 12,
+              fontWeight: 600,
+              color: "var(--color-accent)",
+              textDecoration: "none",
+              letterSpacing: "0.01em",
+            }}
+          >
+            {a.allocConnectBank}
+          </Link>
+        )}
       </section>
     );
   }

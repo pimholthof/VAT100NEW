@@ -141,7 +141,7 @@ export default function MobileDashboard({
 
       {/* De Drie Potten: waar je geld staat */}
       <section style={{ padding: "0 20px", marginTop: 24 }}>
-        <AllocationBar data={safeToSpend} />
+        <AllocationBar data={safeToSpend} hasBankConnection={data?.hasBankConnection ?? false} />
       </section>
 
       {/* Openstaande facturen als swipeable cards */}
