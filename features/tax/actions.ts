@@ -135,7 +135,7 @@ export async function getTaxProjection(): Promise<
   const yearEnd = `${huidigJaar}-12-31`;
   const maandenVerstreken = now.getMonth() + 1;
 
-  const [invoicesRes, regularReceiptsRes, investmentReceiptsRes] =
+  const [invoicesRes, regularReceiptsRes, investmentReceiptsRes, tripsRes] =
     await Promise.all([
       // Facturen dit jaar (sent/paid) → omzet
       supabase
@@ -165,6 +165,14 @@ export async function getTaxProjection(): Promise<
         .not("amount_ex_vat", "is", null)
         .not("receipt_date", "is", null)
         .is("archived_at", null),
+
+      // Zakelijke ritten dit jaar → kilometeraftrek (€0,23/km)
+      supabase
+        .from("trips")
+        .select("distance_km")
+        .eq("user_id", user.id)
+        .gte("date", yearStart)
+        .lte("date", yearEnd),
     ]);
 
   if (invoicesRes.error) return { error: invoicesRes.error.message };
@@ -172,6 +180,7 @@ export async function getTaxProjection(): Promise<
     return { error: regularReceiptsRes.error.message };
   if (investmentReceiptsRes.error)
     return { error: investmentReceiptsRes.error.message };
+  if (tripsRes.error) return { error: tripsRes.error.message };
 
   // Omzet ex BTW
   const jaarOmzetExBtw = (invoicesRes.data ?? []).reduce(
@@ -186,6 +195,20 @@ export async function getTaxProjection(): Promise<
     (sum, rec) => sum + receiptCostExVat(rec),
     0,
   );
+
+  // Kilometeraftrek: zakelijke ritten × €0,23/km. Deze verlaagt de winst en
+  // hoorde tot nu toe niet in de IB-prognose — daardoor was de winst (en dus de
+  // geschatte belasting) te hoog. Zie testrapport 2.2.
+  const KM_VERGOEDING = 0.23;
+  const jaarKilometerAftrek =
+    Math.round(
+      (tripsRes.data ?? []).reduce(
+        (sum, t) => sum + (Number(t.distance_km) || 0),
+        0,
+      ) *
+        KM_VERGOEDING *
+        100,
+    ) / 100;
 
   // Investeringen omzetten naar Investment objecten
   const investeringen: Investment[] = (investmentReceiptsRes.data ?? []).map(
@@ -204,6 +227,7 @@ export async function getTaxProjection(): Promise<
     jaarKostenExBtw,
     investeringen,
     maandenVerstreken,
+    kilometerAftrek: jaarKilometerAftrek,
   });
 
   return { error: null, data: projection };

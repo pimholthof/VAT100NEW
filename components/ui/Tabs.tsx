@@ -32,13 +32,25 @@ export function Tabs({ tabs, activeTab, onTabChange }: TabsProps) {
   );
 }
 
-/** Hook that syncs active tab with URL search param `?tab=...` */
-export function useTabState(defaultTab: string, paramName = "tab") {
+/**
+ * Hook that syncs active tab with URL search param `?tab=...`.
+ *
+ * `aliases` mapt taal-onafhankelijke sleutels (bijv. het Engelse `assets`) naar
+ * de canonieke tab-key (`activa`), zodat gedeelde links en bladwijzers blijven
+ * werken ongeacht de UI-taal. Onbekende waarden vallen veilig terug op de
+ * default via de `isValidTab`-check in de aanroepende pagina.
+ */
+export function useTabState(
+  defaultTab: string,
+  paramName = "tab",
+  aliases?: Record<string, string>,
+) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  const activeTab = searchParams.get(paramName) ?? defaultTab;
+  const raw = searchParams.get(paramName);
+  const activeTab = raw ? aliases?.[raw] ?? raw : defaultTab;
 
   const setActiveTab = useCallback(
     (key: string) => {

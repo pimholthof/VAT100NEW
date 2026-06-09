@@ -15,13 +15,23 @@ const TripsTab = dynamic(() => import("./TripsTab"));
 const TAB_KEYS = ["bonnen", "bank", "activa", "uren", "ritten"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
+// Taal-onafhankelijke aliassen → canonieke (NL) tab-key, zodat deep-links als
+// ?tab=assets blijven werken naast ?tab=activa. Zie testrapport 2.5.
+const TAB_ALIASES: Record<string, string> = {
+  receipts: "bonnen",
+  assets: "activa",
+  hours: "uren",
+  trips: "ritten",
+  kilometers: "ritten",
+};
+
 function isValidTab(value: string): value is TabKey {
   return (TAB_KEYS as readonly string[]).includes(value);
 }
 
 export default function ExpensesPage() {
   const { t } = useLocale();
-  const [rawTab, setActiveTab] = useTabState("bonnen");
+  const [rawTab, setActiveTab] = useTabState("bonnen", "tab", TAB_ALIASES);
   const activeTab: TabKey = isValidTab(rawTab) ? rawTab : "bonnen";
 
   const tabs = [

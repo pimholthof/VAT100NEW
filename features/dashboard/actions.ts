@@ -363,6 +363,17 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
     overdueCount,
   });
 
+  // ── Bankkoppeling: één bron van waarheid ──
+  // Niet op basis van de laatste sync (die is null zolang er nog niet gesynct
+  // is, waardoor het dashboard "Koppel je bank" toonde terwijl er al een
+  // koppeling bestond — zie testrapport 3.3), maar op het bestaan van een
+  // bank_connections-rij, gelijk aan de bankpagina en getSetupProgress.
+  const { count: bankConnectionCount } = await supabase
+    .from("bank_connections")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+  const hasBankConnection = (bankConnectionCount ?? 0) > 0;
+
   return {
     error: null,
     data: {
@@ -387,7 +398,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       safeToSpend,
       cashflowForecast,
       financialHealth,
-      hasBankConnection: rpc.daysSinceLastBankSync != null,
+      hasBankConnection,
     },
   };
 }

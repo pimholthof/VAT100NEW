@@ -404,6 +404,51 @@ describe("calculateZZPTaxProjection", () => {
     // Brutowinst moet lager zijn door kilometerAftrek
     expect(result.brutoWinst).toBe(53_000); // 60000 - 5000 - 0 - 2000
   });
+
+  it("stelt de kilometeraftrek beschikbaar voor de breakdown", () => {
+    const result = calculateZZPTaxProjection({
+      jaarOmzetExBtw: 40_000,
+      jaarKostenExBtw: 3_000,
+      investeringen: [],
+      maandenVerstreken: 12,
+      kilometerAftrek: 192.97,
+    });
+
+    expect(result.kilometerAftrek).toBe(192.97);
+  });
+
+  it("winstberekening telt op: omzet − kosten − afschrijving − km = winst", () => {
+    // Regressie testrapport 2.1/2.2: de breakdown moet optellen, zonder
+    // verborgen posten. Geen afschrijvingen hier zodat de invariant exact is.
+    const result = calculateZZPTaxProjection({
+      jaarOmzetExBtw: 18_000,
+      jaarKostenExBtw: 4_200,
+      investeringen: [],
+      maandenVerstreken: 6,
+      kilometerAftrek: 192.97,
+    });
+
+    const verwachteWinst =
+      result.brutoOmzet -
+      result.kosten -
+      result.afschrijvingen -
+      result.kilometerAftrek;
+    expect(result.brutoWinst).toBeCloseTo(verwachteWinst, 2);
+  });
+
+  it("prognose-omzet = YTD-omzet geannualiseerd (geen dubbeltelling)", () => {
+    // Regressie testrapport 2.1: de prognose-kaart mag niet méér zijn dan de
+    // YTD-omzet × (12 / verstreken maanden).
+    const result = calculateZZPTaxProjection({
+      jaarOmzetExBtw: 18_000,
+      jaarKostenExBtw: 0,
+      investeringen: [],
+      maandenVerstreken: 6,
+    });
+
+    expect(result.brutoOmzet).toBe(18_000); // YTD ongewijzigd
+    expect(result.prognoseJaarOmzet).toBe(36_000); // 18000 × 12/6
+  });
 });
 
 // ─── Belastingdienst Rekenvoorbeelden 2026 ───

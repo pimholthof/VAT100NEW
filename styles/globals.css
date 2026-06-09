@@ -739,6 +739,9 @@ a {
   color: var(--foreground);
   text-decoration: none;
   line-height: 1;
+  /* Logo nooit afkappen of laten krimpen ("VAT10"). Zie testrapport 3.5. */
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dashboard-nav-actions {
@@ -751,7 +754,9 @@ a {
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0.01em;
-  opacity: var(--opacity-tertiary);
+  /* Was 0.35 — te licht voor WCAG-contrast op het warme papier (testrapport
+     4.6). 0.6 blijft rustig maar leesbaar. */
+  opacity: 0.6;
   text-transform: none;
 }
 
@@ -904,7 +909,8 @@ a {
   }
 
   .dashboard-content {
-    padding-bottom: 72px;
+    /* Ruimte voor de bottom-nav (±56px) én de Feedback-knop erboven. */
+    padding-bottom: 140px;
   }
 }
 
@@ -1539,6 +1545,9 @@ a {
 .dashboard-content {
   flex: 1;
   padding: var(--space-3xl) var(--page-gutter);
+  /* Extra ruimte onderaan zodat de zwevende Feedback-knop (rechtsonder) nooit
+     interactieve content of tekst overlapt. Zie testrapport 3.2. */
+  padding-bottom: max(var(--space-3xl), 96px);
   max-width: var(--content-max-width);
   width: 100%;
   margin: 0 auto;

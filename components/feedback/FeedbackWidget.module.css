@@ -16,6 +16,17 @@
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
+/* Op mobiel zit onderaan de bottom-nav; til de knop daarboven zodat hij de
+   navigatie niet bedekt. Zie testrapport 3.2. */
+@media (max-width: 768px) {
+  .fab {
+    bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+  .panel {
+    bottom: calc(120px + env(safe-area-inset-bottom));
+  }
+}
+
 .fab:hover {
   transform: translateY(-1px);
 }

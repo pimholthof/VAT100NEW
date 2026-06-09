@@ -109,6 +109,8 @@ export interface TaxProjection {
   brutoOmzet: number;
   kosten: number;
   afschrijvingen: number;
+  /** Kilometeraftrek zakelijke ritten (€0,23/km) — verlaagt de winst. */
+  kilometerAftrek: number;
   brutoWinst: number;
 
   // Aftrekposten
@@ -578,6 +580,7 @@ export function calculateZZPTaxProjection(input: {
     brutoOmzet: jaarOmzetExBtw,
     kosten: jaarKostenExBtw,
     afschrijvingen: totalAfschrijvingen,
+    kilometerAftrek,
     brutoWinst,
     zelfstandigenaftrek,
     mkbVrijstelling,

@@ -161,8 +161,10 @@ export default function TaxContent() {
             {showBreakdown ? "Verberg berekening" : "Toon berekening"}
             <span style={{ display: "inline-block", transition: "transform 0.2s ease", transform: showBreakdown ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
           </button>
-          <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.35, margin: 0 }}>
-            Indicatie op basis van de tarieven {TAX_CONSTANTS.year}. Geen belastingadvies.
+          <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.35, margin: 0, maxWidth: 420, textAlign: "right" }}>
+            Prognose = je cijfers tot nu toe doorgerekend naar een heel jaar. De
+            berekening hieronder gebruikt je werkelijke bedragen tot nu toe.
+            Tarieven {TAX_CONSTANTS.year}. Geen belastingadvies.
           </p>
         </div>
       )}
@@ -179,9 +181,12 @@ export default function TaxContent() {
           </div>
           <div style={{ borderLeft: "0.5px solid rgba(0,0,0,0.1)", paddingLeft: 32 }}>
             <BreakdownSection title="Winstberekening">
-              <BreakdownLine label="Omzet (excl. BTW)" value={projection.brutoOmzet} />
+              <BreakdownLine label="Omzet tot nu toe (excl. BTW)" value={projection.brutoOmzet} />
               <BreakdownLine label="Kosten" value={-projection.kosten} negative />
               <BreakdownLine label="Afschrijvingen" value={-projection.afschrijvingen} negative />
+              {projection.kilometerAftrek > 0 && (
+                <BreakdownLine label="Kilometeraftrek (€0,23/km)" value={-projection.kilometerAftrek} negative />
+              )}
               <BreakdownTotal label="Winst voor aftrekposten" value={projection.brutoWinst} />
             </BreakdownSection>
 
@@ -270,28 +275,9 @@ export default function TaxContent() {
           </div>
         </div>
       )}
-      {/* ── Editorial breaker ── */}
-      <div style={{
-        margin: "var(--space-xl) 0",
-        height: 200,
-        borderRadius: "var(--radius)",
-        overflow: "hidden",
-        position: "relative",
-      }}>
-        <Image
-          src="/images/office-walnut.png"
-          alt=""
-          aria-hidden="true"
-          fill
-          sizes="100vw"
-          style={{
-            objectFit: "cover",
-            objectPosition: "center 40%",
-            opacity: 0.12,
-            filter: "grayscale(100%)",
-          }}
-        />
-      </div>
+      {/* Geen decoratief beeld tussen de cijfers: het duwde de BTW-tabel onnodig
+          omlaag (testrapport 4.4). Een rustige scheidingsregel volstaat — de
+          BTW-zone heeft al een eigen border-top. */}
 
       {/* ══════════════════════════════════════════════════
           ZONE 2: BTW (OMZETBELASTING)
@@ -584,7 +570,7 @@ function DepreciationTableRow({ row }: { row: DepreciationRow }) {
         <span className="label">{row.omschrijving}</span>
         <br />
         <span style={{ fontSize: "var(--text-body-xs)", opacity: 0.4 }}>
-          {new Date(row.aanschafDatum).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}
+          {new Date(row.aanschafDatum).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Amsterdam" })}
         </span>
       </Td>
       <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(row.aanschafprijs)}</span></Td>

@@ -37,6 +37,15 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // RSC-prefetches (hover/viewport) vuren in bursts en mogen de auth-gating niet
+  // dragen: dat veroorzaakt 2 Supabase round-trips per prefetch en daarmee
+  // intermitterende 503's (zie testrapport 2.4). De echte navigatie draait deze
+  // middleware opnieuw mét volledige gating, dus we slaan de zware profiel-/
+  // abonnementscontrole over bij prefetch.
+  const isPrefetch =
+    request.headers.get("next-router-prefetch") === "1" ||
+    request.headers.get("purpose") === "prefetch";
+
   const pathname = request.nextUrl.pathname;
   const publicRoutes = ["/login", "/register", "/auth/callback", "/invoice", "/setup-founder", "/privacy", "/voorwaarden", "/forgot-password", "/reset-password"];
   const authOnlyRoutes = ["/onboarding", "/abonnement"];
@@ -59,7 +68,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Profile checks: admin role + suspended status + subscription
-  if (user && !isPublicRoute && !isAuthOnlyRoute) {
+  if (user && !isPublicRoute && !isAuthOnlyRoute && !isPrefetch) {
     // Tijdens de bèta is er geen paywall: iedereen die (met uitnodigingscode)
     // is geregistreerd, krijgt volledige toegang zonder abonnement.
     const needsSubscription =
