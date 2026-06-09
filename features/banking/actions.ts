@@ -15,6 +15,7 @@ import { getErrorMessage } from "@/lib/utils/errors";
 import type { ActionResult, BankConnection, BankTransaction } from "@/lib/types";
 import { uuidSchema } from "@/lib/validation";
 import { KOSTENSOORTEN } from "@/lib/constants/costs";
+import { decideLearnedRuleApplication } from "@/lib/autonomy/learning";
 
 export async function getBankConnections(): Promise<ActionResult<BankConnection[]>> {
   // Feature-gate: Bank koppeling beschikbaar vanaf Studio
@@ -491,9 +492,12 @@ export async function autoCategorizeTransactionsInternal(
     .eq("user_id", userId);
 
   type CatRule = { counterpart_pattern: string; category: string; is_income: boolean };
-  const rulesMap = new Map<string, CatRule>(
-    (rules ?? []).map((r: CatRule) => [r.counterpart_pattern.toLowerCase(), r])
-  );
+  // Geleerde regels → leer-kern-vorm; toepassen loopt door de veiligheidspoort.
+  const learnedRules = (rules ?? []).map((r: CatRule) => ({
+    pattern: r.counterpart_pattern,
+    value: r.category,
+    isIncome: r.is_income,
+  }));
 
   // Separate transactions that match existing rules from those needing AI
   const results: Record<string, string> = {};
@@ -502,11 +506,16 @@ export async function autoCategorizeTransactionsInternal(
   const ruleMatched: { id: string; category: string; is_income: boolean }[] = [];
 
   for (const tx of transactions) {
-    const key = (tx.counterpart_name ?? "").toLowerCase();
-    const rule = rulesMap.get(key);
-    if (rule && key) {
-      ruleMatched.push({ id: tx.id, category: rule.category, is_income: rule.is_income });
-      results[tx.id] = rule.category;
+    // Tier 1 (omkeerbaar): geleerde regel autonoom toepassen bij zekerheid.
+    const applied = decideLearnedRuleApplication(
+      learnedRules,
+      tx.counterpart_name ?? "",
+      { autonomyEnabled: true, invariantsOk: true },
+    );
+    if (applied && applied.decision.decision === "execute") {
+      const rule = applied.match.rule;
+      ruleMatched.push({ id: tx.id, category: rule.value, is_income: rule.isIncome });
+      results[tx.id] = rule.value;
     } else {
       // Probeer hardcoded keyword classificatie (geen AI nodig)
       const { classifyTransaction } = await import("@/lib/tax/transaction-classifier");

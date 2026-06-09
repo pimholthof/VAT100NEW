@@ -73,6 +73,7 @@ export const ACTION_TIERS: Record<string, AutonomyTier> = {
   match_payment_to_invoice: 1,
   prepare_vat_return: 1,
   categorize_transaction: 1,
+  apply_learned_rule: 1,
 
   // Tier 2 — naar buiten, herstelbaar
   send_payment_reminder: 2,
