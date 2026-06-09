@@ -17,6 +17,7 @@ import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingIn
 import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
 import { HealthScore } from "@/features/dashboard/components/HealthScore";
 import { AllocationBar } from "@/features/dashboard/components/AllocationBar";
+import { NextActionsPanel } from "@/features/dashboard/components/NextActionsPanel";
 import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
 import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
@@ -63,7 +64,7 @@ function DesktopDashboard({
   initialResult?: ActionResult<DashboardData>;
   initialOnboarding?: OnboardingProgress | null;
 }) {
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   const { data: dashboardResult, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
@@ -83,34 +84,13 @@ function DesktopDashboard({
 
   const data = dashboardResult?.data;
   const stats = data?.stats;
-
   const openInvoices = data?.openInvoices;
-  const upcomingInvoices = data?.upcomingInvoices;
   const safeToSpend = data?.safeToSpend;
-  const vatDeadline = data?.vatDeadline;
-
-  const urgentInvoiceCount = upcomingInvoices?.filter((invoice) => invoice.days_overdue > 0).length ?? 0;
-  const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.due_date && invoice.days_overdue <= 0);
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 8 },
     show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }
   };
-
-  const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
-  const nextInvoiceDueLabel = nextInvoiceDue?.due_date
-    ? new Intl.DateTimeFormat(dateLocale, { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))
-    : null;
-
-  const heroMessage = urgentInvoiceCount > 0
-    ? t.dashboard.invoicesOverdue
-        .replace("{count}", String(urgentInvoiceCount))
-        .replace("{plural}", urgentInvoiceCount === 1 ? t.dashboard.invoiceOverdueSingular : t.dashboard.invoiceOverduePlural)
-    : nextInvoiceDue && nextInvoiceDueLabel
-      ? t.dashboard.nextDeadline
-          .replace("{client}", nextInvoiceDue.client_name)
-          .replace("{date}", nextInvoiceDueLabel)
-      : t.dashboard.noUrgentInvoices;
 
   if (dashboardResult?.error) {
     return (
@@ -179,15 +159,15 @@ function DesktopDashboard({
             {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
           </p>
           <p className="dashboard-home-intro">
-            {t.dashboard.freeToSpendContext} {heroMessage}
+            {t.dashboard.freeToSpendContext}
           </p>
-          {vatDeadline && (
-            <p className="dashboard-home-intro" style={{ marginTop: 2, opacity: 0.5 }}>
-              {t.dashboard.vatDeadlineLine
-                .replace("{quarter}", vatDeadline.quarter)
-                .replace("{days}", String(vatDeadline.daysRemaining))}
-            </p>
-          )}
+        </motion.div>
+      )}
+
+      {/* ── NU DOEN: Predictive Calm — de eerstvolgende dingen die ertoe doen ── */}
+      {!isLoading && (
+        <motion.div variants={itemVariants}>
+          <NextActionsPanel data={data} />
         </motion.div>
       )}
 

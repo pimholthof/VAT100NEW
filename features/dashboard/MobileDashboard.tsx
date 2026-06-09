@@ -15,6 +15,7 @@ import type { ActionResult } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
 import { useLocale } from "@/lib/i18n/context";
 import { AllocationBar } from "@/features/dashboard/components/AllocationBar";
+import { NextActionsPanel } from "@/features/dashboard/components/NextActionsPanel";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useToast } from "@/components/ui/Toast";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
@@ -111,6 +112,11 @@ export default function MobileDashboard({
             </p>
           </div>
         )}
+      </section>
+
+      {/* Nu doen: Predictive Calm */}
+      <section style={{ padding: "0 20px", marginTop: 8 }}>
+        <NextActionsPanel data={data} />
       </section>
 
       {/* Quick Actions */}
