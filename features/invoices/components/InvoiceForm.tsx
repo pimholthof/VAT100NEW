@@ -14,6 +14,7 @@ import { getClients } from "@/features/clients/actions";
 import { detectVatScheme } from "@/lib/tax/vat-scheme-detector";
 import { InvoiceMetadata } from "./InvoiceMetadata";
 import { InvoiceTotals } from "./InvoiceTotals";
+import { InvoiceTruthPanel } from "./InvoiceTruthPanel";
 import { ErrorMessage } from "@/components/ui";
 import { m as motion  } from "framer-motion";
 import { InvoiceRecipientSection } from "./InvoiceRecipientSection";
@@ -244,6 +245,9 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
 
       {/* ── The Monolith: Total ── */}
       <InvoiceTotals />
+
+      {/* ── De waarheid: wat is hiervan van jou? ── */}
+      <InvoiceTruthPanel />
 
       {/* ── Actions: The VanMoof Unlock ── */}
       <InvoiceFormActions

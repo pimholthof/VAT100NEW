@@ -18,6 +18,7 @@ import { InvoiceRecipientSection } from "./InvoiceRecipientSection";
 import { InvoiceLinesSection } from "./InvoiceLinesSection";
 import { InvoiceMetadata } from "./InvoiceMetadata";
 import { InvoiceTotals } from "./InvoiceTotals";
+import { InvoiceTruthPanel } from "./InvoiceTruthPanel";
 import { InvoiceLivePreview } from "./InvoiceLivePreview";
 import { ErrorMessage, StepIndicator } from "@/components/ui";
 import { playSound } from "@/lib/utils/sound";
@@ -244,6 +245,9 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
             <InvoiceMetadata defaultCollapsed={false} />
             <div style={{ marginTop: 24 }}>
               <InvoiceTotals />
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <InvoiceTruthPanel />
             </div>
             <button
               type="button"
