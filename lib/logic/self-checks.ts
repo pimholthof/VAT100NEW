@@ -274,3 +274,12 @@ export function highestSeverity(findings: ControlFinding[]): ControlSeverity | n
     return SEVERITY_RANK[f.severity] < SEVERITY_RANK[worst] ? f.severity : worst;
   }, "info");
 }
+
+/**
+ * Houden de invarianten stand? Geen blokkerende (kritieke) bevinding → de boeken
+ * zijn gezond genoeg om autonoom op te handelen. Dit voedt de `invariantsOk` van
+ * de veiligheidspoort (`lib/autonomy/dispatcher.ts`).
+ */
+export function invariantsHold(findings: ControlFinding[]): boolean {
+  return !findings.some((f) => f.severity === "critical");
+}
