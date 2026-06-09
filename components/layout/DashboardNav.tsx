@@ -184,10 +184,10 @@ export function DashboardNav({
           >
             <div className="dashboard-drawer-inner">
 
-              {/* Main navigation */}
+              {/* Main navigation — de twee kernen + de waarheid */}
               <div className="dashboard-drawer-col">
                 <span className="label mb-4">Menu</span>
-                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")} aria-current={linkAriaCurrent("/dashboard")}>{t.nav.overview}</Link>
+                <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard")} aria-current={linkAriaCurrent("/dashboard")}>{t.nav.now}</Link>
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Link
                     href="/dashboard/invoices"
@@ -220,9 +220,12 @@ export function DashboardNav({
                     </Link>
                   )}
                 </span>
+                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")} aria-current={linkAriaCurrent("/dashboard/tax")}>{t.nav.tax}</Link>
+
+                {/* Meer — alles wat de twee kernen voedt, maar niet het dagelijkse zicht hoeft te vullen */}
+                <span className="label mb-4" style={{ marginTop: 32, opacity: 0.55 }}>{t.nav.more}</span>
                 <Link href="/dashboard/clients" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/clients")} aria-current={linkAriaCurrent("/dashboard/clients")}>{t.nav.clients}</Link>
                 <Link href="/dashboard/expenses" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/expenses")} aria-current={linkAriaCurrent("/dashboard/expenses")}>{t.nav.expenses}</Link>
-                <Link href="/dashboard/tax" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/tax")} aria-current={linkAriaCurrent("/dashboard/tax")}>{t.nav.tax}</Link>
                 <Link href="/dashboard/berichten" onClick={() => setIsDrawerOpen(false)} className={linkClass("/dashboard/berichten")} aria-current={linkAriaCurrent("/dashboard/berichten")} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Berichten
                   {unreadMessages > 0 && (

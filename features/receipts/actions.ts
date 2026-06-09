@@ -247,6 +247,22 @@ export async function updateReceipt(
       supabase,
     }).catch(() => {});
 
+    // Leer van de correctie: leverancier → kostsoort (door de poort, non-fataal).
+    if (input.vendor_name?.trim() && costCode != null) {
+      try {
+        const { recordLearnedRule } = await import("@/features/autonomy/learned-rules");
+        await recordLearnedRule(
+          supabase,
+          user.id,
+          "receipt_cost_code",
+          input.vendor_name.trim(),
+          String(costCode),
+        );
+      } catch {
+        // Leren is een extraatje — nooit de opslag laten falen.
+      }
+    }
+
     return { error: null, data };
   } catch (e) {
     return { error: getErrorMessage(e) };
@@ -580,6 +596,26 @@ confidence: hoe zeker je bent van de totale extractie. Gebruik null als een veld
       // Als verschil > €0.05 dan is amount_inc_vat betrouwbaarder (direct van bon gelezen)
       if (diff > 0.05) {
         data.amount_ex_vat = Math.round((data.amount_inc_vat / (1 + data.vat_rate / 100)) * 100) / 100;
+      }
+    }
+
+    // Geleerde regel wint van een verse AI-gok: een leverancier die je
+    // consequent op dezelfde kostsoort zet, wordt voortaan zelf goed ingevuld.
+    if (data.vendor_name) {
+      try {
+        const { applyLearnedRule } = await import("@/features/autonomy/learned-rules");
+        const learned = await applyLearnedRule(
+          supabase,
+          user.id,
+          "receipt_cost_code",
+          data.vendor_name,
+        );
+        if (learned != null) {
+          const code = Number(learned);
+          if (Number.isFinite(code)) data.cost_code = code;
+        }
+      } catch {
+        // Leren is een extraatje — nooit de scan laten falen.
       }
     }
 

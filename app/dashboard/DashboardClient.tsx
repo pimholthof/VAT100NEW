@@ -7,16 +7,17 @@ import {
   type DashboardData,
 } from "@/features/dashboard/actions";
 import type { ActionResult } from "@/lib/types";
-import { formatCurrency } from "@/lib/format";
 
 import {
-  StatCard,
   SkeletonTable,
   EmptyState,
 } from "@/components/ui";
 import { UpcomingInvoiceTable } from "@/features/dashboard/components/UpcomingInvoiceTable";
 import { CashflowForecast } from "@/features/dashboard/components/CashflowForecast";
 import { HealthScore } from "@/features/dashboard/components/HealthScore";
+import { AllocationBar } from "@/features/dashboard/components/AllocationBar";
+import { NextActionsPanel } from "@/features/dashboard/components/NextActionsPanel";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { OnboardingChecklist } from "@/features/onboarding/components/OnboardingChecklist";
 import { getOnboardingProgress, type OnboardingProgress } from "@/features/onboarding/actions";
 import { useLocale } from "@/lib/i18n/context";
@@ -63,7 +64,7 @@ function DesktopDashboard({
   initialResult?: ActionResult<DashboardData>;
   initialOnboarding?: OnboardingProgress | null;
 }) {
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   const { data: dashboardResult, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
@@ -83,35 +84,13 @@ function DesktopDashboard({
 
   const data = dashboardResult?.data;
   const stats = data?.stats;
-
   const openInvoices = data?.openInvoices;
-  const upcomingInvoices = data?.upcomingInvoices;
   const safeToSpend = data?.safeToSpend;
-  const vatDeadline = data?.vatDeadline;
-
-  const urgentInvoiceCount = upcomingInvoices?.filter((invoice) => invoice.days_overdue > 0).length ?? 0;
-  const upcomingInvoiceAmount = upcomingInvoices?.reduce((sum, invoice) => sum + invoice.total_inc_vat, 0) ?? 0;
-  const nextInvoiceDue = upcomingInvoices?.find((invoice) => invoice.due_date && invoice.days_overdue <= 0);
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 8 },
     show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }
   };
-
-  const dateLocale = locale === "en" ? "en-GB" : "nl-NL";
-  const nextInvoiceDueLabel = nextInvoiceDue?.due_date
-    ? new Intl.DateTimeFormat(dateLocale, { day: "numeric", month: "short" }).format(new Date(nextInvoiceDue.due_date))
-    : null;
-
-  const heroMessage = urgentInvoiceCount > 0
-    ? t.dashboard.invoicesOverdue
-        .replace("{count}", String(urgentInvoiceCount))
-        .replace("{plural}", urgentInvoiceCount === 1 ? t.dashboard.invoiceOverdueSingular : t.dashboard.invoiceOverduePlural)
-    : nextInvoiceDue && nextInvoiceDueLabel
-      ? t.dashboard.nextDeadline
-          .replace("{client}", nextInvoiceDue.client_name)
-          .replace("{date}", nextInvoiceDueLabel)
-      : t.dashboard.noUrgentInvoices;
 
   if (dashboardResult?.error) {
     return (
@@ -159,102 +138,44 @@ function DesktopDashboard({
         />
       )}
 
-      {/* ── HERO: de wig — wat kan ik echt uitgeven ── */}
+      {/* ── HERO: één getal — wat is van jou ── */}
       {!isLoading && (
-        <div className="dashboard-home-hero">
-          <motion.div variants={itemVariants} className="dashboard-home-hero-copy">
-            <p className="label" style={{ margin: 0 }}>{t.dashboard.freeToSpend}</p>
-            <p
-              style={{
-                fontSize: "clamp(2.75rem, 5vw, 4.5rem)",
-                fontWeight: 400,
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-                margin: "8px 0 0",
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {safeToSpend ? formatCurrency(safeToSpend.safeToSpend) : "—"}
-            </p>
-            <p className="dashboard-home-intro">
-              {t.dashboard.freeToSpendContext} {heroMessage}
-            </p>
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <div className="dashboard-home-hero-stats">
-              <div className="dashboard-home-meta-item">
-                <span className="label">{t.dashboard.balance}</span>
-                <span className="dashboard-home-meta-value">
-                  {safeToSpend ? formatCurrency(safeToSpend.currentBalance) : "—"}
-                </span>
-                <p className="dashboard-home-meta-sub">
-                  {safeToSpend ? t.dashboard.onAccountNow : t.dashboard.balanceNotAvailable}
-                </p>
-              </div>
-
-              <div className="dashboard-home-meta-item">
-                <span className="label">{t.dashboard.vatDeadline}</span>
-                <span className="dashboard-home-meta-value">
-                  {vatDeadline ? `${vatDeadline.daysRemaining} ${t.dashboard.days}` : "—"}
-                </span>
-                <p className="dashboard-home-meta-sub">
-                  {vatDeadline ? `${vatDeadline.quarter} · ${new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" })}` : t.dashboard.noDeadline}
-                </p>
-              </div>
-
-              <div className="dashboard-home-meta-item">
-                <span className="label">{t.dashboard.outstandingAmount}</span>
-                <span className="dashboard-home-meta-value">{formatCurrency(upcomingInvoiceAmount)}</span>
-                <p className="dashboard-home-meta-sub">
-                  {urgentInvoiceCount > 0
-                    ? `${urgentInvoiceCount} ${t.dashboard.overdue}`
-                    : `${upcomingInvoices?.length ?? 0} ${t.dashboard.invoicesShortTerm}`}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        <motion.div
+          variants={itemVariants}
+          className="dashboard-home-hero-copy"
+          style={{ minHeight: "auto", padding: "8px 0 8px" }}
+        >
+          <p className="label" style={{ margin: 0 }}>{t.dashboard.freeToSpend}</p>
+          <p
+            style={{
+              fontSize: "clamp(3rem, 6vw, 5.5rem)",
+              fontWeight: 400,
+              letterSpacing: "-0.04em",
+              lineHeight: 1,
+              margin: "8px 0 0",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {safeToSpend ? <AnimatedNumber value={safeToSpend.safeToSpend} duration={0.7} /> : "—"}
+          </p>
+          <p className="dashboard-home-intro">
+            {t.dashboard.freeToSpendContext}
+          </p>
+        </motion.div>
       )}
 
-      {stats && !isLoading && (
-        <div className="dashboard-home-kpi-grid">
-          <motion.div variants={itemVariants}>
-            <StatCard
-              label={t.dashboard.revenueThisMonth}
-              value={formatCurrency(stats.revenueThisMonth)}
-              numericValue={stats.revenueThisMonth}
-              sub={t.dashboard.paidThisMonth}
-            />
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <StatCard
-              label={t.dashboard.openInvoices}
-              value={String(stats.openInvoiceCount)}
-              numericValue={stats.openInvoiceCount}
-              isCurrency={false}
-              sub={formatCurrency(stats.openInvoiceAmount)}
-            />
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <StatCard
-              label={t.dashboard.receiptsProcessed}
-              value={String(stats.receiptsThisMonth)}
-              numericValue={stats.receiptsThisMonth}
-              isCurrency={false}
-              sub={t.dashboard.thisMonth}
-            />
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <StatCard
-              label={t.dashboard.vatReserve}
-              value={formatCurrency(stats.vatToPay)}
-              numericValue={stats.vatToPay}
-              sub={vatDeadline ? new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" }) : t.dashboard.thisQuarter}
-              hint={stats.vatToPay > 0 ? t.dashboard.vatReserveHint : undefined}
-            />
-          </motion.div>
-        </div>
+      {/* ── NU DOEN: Predictive Calm — de eerstvolgende dingen die ertoe doen ── */}
+      {!isLoading && (
+        <motion.div variants={itemVariants}>
+          <NextActionsPanel data={data} />
+        </motion.div>
+      )}
+
+      {/* ── DE DRIE POTTEN: het hart van het systeem ── */}
+      {!isLoading && (
+        <motion.div variants={itemVariants}>
+          <AllocationBar data={safeToSpend} />
+        </motion.div>
       )}
 
 
