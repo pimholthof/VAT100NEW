@@ -3,6 +3,7 @@ import {
   runSelfChecks,
   countAutoFixable,
   highestSeverity,
+  invariantsHold,
   type SelfCheckInput,
 } from "./self-checks";
 
@@ -156,5 +157,22 @@ describe("runSelfChecks", () => {
     expect(findings[0].severity).toBe("critical");
     expect(highestSeverity(findings)).toBe("critical");
     expect(countAutoFixable(findings)).toBeGreaterThanOrEqual(1);
+  });
+
+  it("invariantsHold: false bij een kritieke bevinding, anders true", () => {
+    const schoon = runSelfChecks(empty);
+    expect(invariantsHold(schoon)).toBe(true);
+
+    const kritiek = runSelfChecks({
+      ...empty,
+      invoices: [invoice({ vat_scheme: "eu_reverse_charge", client_btw_number: "" })],
+    });
+    expect(invariantsHold(kritiek)).toBe(false);
+
+    const alleenWaarschuwing = runSelfChecks({
+      ...empty,
+      invoices: [invoice({ due_date: "2026-05-01" })],
+    });
+    expect(invariantsHold(alleenWaarschuwing)).toBe(true);
   });
 });
