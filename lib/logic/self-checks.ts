@@ -15,6 +15,7 @@
  */
 
 import type { InvoiceStatus, VatScheme } from "@/lib/types";
+import { consolidateCorrections, type Correction } from "@/lib/autonomy/learning";
 
 export type ControlSeverity = "info" | "warning" | "critical";
 
@@ -26,7 +27,8 @@ export type ControlKind =
   | "receipt_incomplete" // bon zonder bedrag of BTW-tarief
   | "duplicate_receipt" // mogelijke dubbele bon
   | "vat_return_due_unprepared" // deadline nabij, aangifte nog niet voorbereid
-  | "reserve_shortfall"; // reserve is groter dan het saldo
+  | "reserve_shortfall" // reserve is groter dan het saldo
+  | "repeated_correction"; // patroon herhaald gecorrigeerd → maak er een vaste regel van
 
 export interface ControlFinding {
   kind: ControlKind;
@@ -39,6 +41,8 @@ export interface ControlFinding {
   relatedId?: string;
   amount?: number;
   count?: number;
+  /** Mensleesbare context, bv. het patroon bij een herhaalde correctie. */
+  label?: string;
 }
 
 export interface SelfCheckInvoice {
@@ -82,6 +86,8 @@ export interface SelfCheckInput {
     reservedTotal: number;
     currentBalance: number;
   } | null;
+  /** Bevestigde correcties (tegenpartij/leverancier → uitkomst) om op te leren. */
+  corrections?: Correction[];
 }
 
 /** Binnen hoeveel dagen een onvoorbereide aangifte een waarschuwing wordt. */
@@ -89,6 +95,9 @@ export const VAT_PREPARE_WINDOW_DAYS = 14;
 
 /** Tolerantie (in euro's) waarmee een transactie een factuur mag matchen. */
 export const PAYMENT_MATCH_TOLERANCE = 0.02;
+
+/** Vanaf hoeveel eensluidende correcties een vaste regel wordt voorgesteld. */
+export const REPEATED_CORRECTION_THRESHOLD = 3;
 
 const SEVERITY_RANK: Record<ControlSeverity, number> = {
   critical: 0,
@@ -231,6 +240,23 @@ export function runSelfChecks(input: SelfCheckInput): ControlFinding[] {
       amount:
         Math.round((input.reserve.reservedTotal - input.reserve.currentBalance) * 100) / 100,
     });
+  }
+
+  // 9. Zelf-verbetering: een patroon dat je telkens eensluidend corrigeert,
+  // mag een vaste regel worden (auto-fixbaar: de regel kan autonoom worden
+  // vastgelegd). Conflicterende correcties tellen niet — die vragen aandacht.
+  if (input.corrections && input.corrections.length > 0) {
+    for (const c of consolidateCorrections(input.corrections)) {
+      if (!c.conflicted && c.strength >= REPEATED_CORRECTION_THRESHOLD) {
+        findings.push({
+          kind: "repeated_correction",
+          severity: "info",
+          autoFixable: true,
+          label: `${c.pattern} → ${c.value}`,
+          count: c.strength,
+        });
+      }
+    }
   }
 
   return findings.sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]);

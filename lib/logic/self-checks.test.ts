@@ -97,6 +97,44 @@ describe("runSelfChecks", () => {
     expect(prepared.some((f) => f.kind === "vat_return_due_unprepared")).toBe(false);
   });
 
+  it("stelt een vaste regel voor bij een herhaald, eensluidend gecorrigeerd patroon", () => {
+    const findings = runSelfChecks({
+      ...empty,
+      corrections: [
+        { pattern: "Coolblue", value: "Computer & software" },
+        { pattern: "coolblue", value: "Computer & software" },
+        { pattern: "CoolBlue", value: "Computer & software" },
+      ],
+    });
+    const f = findings.find((x) => x.kind === "repeated_correction");
+    expect(f).toBeDefined();
+    expect(f?.autoFixable).toBe(true);
+    expect(f?.count).toBe(3);
+    expect(f?.label).toContain("coolblue");
+  });
+
+  it("stelt géén regel voor bij te weinig of conflicterende correcties", () => {
+    const tooFew = runSelfChecks({
+      ...empty,
+      corrections: [
+        { pattern: "Shell", value: "Vervoer" },
+        { pattern: "Shell", value: "Vervoer" },
+      ],
+    });
+    expect(tooFew.some((f) => f.kind === "repeated_correction")).toBe(false);
+
+    const conflicted = runSelfChecks({
+      ...empty,
+      corrections: [
+        { pattern: "X", value: "A" },
+        { pattern: "X", value: "A" },
+        { pattern: "X", value: "B" },
+        { pattern: "X", value: "B" },
+      ],
+    });
+    expect(conflicted.some((f) => f.kind === "repeated_correction")).toBe(false);
+  });
+
   it("waarschuwt bij een reserve-tekort", () => {
     const findings = runSelfChecks({
       ...empty,
