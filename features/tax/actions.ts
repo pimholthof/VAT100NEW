@@ -135,7 +135,7 @@ export async function getTaxProjection(): Promise<
   const yearEnd = `${huidigJaar}-12-31`;
   const maandenVerstreken = now.getMonth() + 1;
 
-  const [invoicesRes, regularReceiptsRes, investmentReceiptsRes] =
+  const [invoicesRes, regularReceiptsRes, investmentReceiptsRes, profileRes] =
     await Promise.all([
       // Facturen dit jaar (sent/paid) → omzet
       supabase
@@ -165,6 +165,13 @@ export async function getTaxProjection(): Promise<
         .not("amount_ex_vat", "is", null)
         .not("receipt_date", "is", null)
         .is("archived_at", null),
+
+      // Urencriterium bepaalt de zelfstandigenaftrek
+      supabase
+        .from("profiles")
+        .select("meets_urencriterium")
+        .eq("id", user.id)
+        .single(),
     ]);
 
   if (invoicesRes.error) return { error: invoicesRes.error.message };
@@ -204,6 +211,7 @@ export async function getTaxProjection(): Promise<
     jaarKostenExBtw,
     investeringen,
     maandenVerstreken,
+    meetsUrencriterium: profileRes.data?.meets_urencriterium ?? true,
   });
 
   return { error: null, data: projection };

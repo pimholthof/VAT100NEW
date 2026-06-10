@@ -34,6 +34,8 @@ export interface ReserveInput {
   outputVat: number;
   /** Voorbelasting (terug te vorderen). */
   inputVat: number;
+  /** Voldoet aan het urencriterium (≥ 1.225 uur) — bepaalt de zelfstandigenaftrek. */
+  meetsUrencriterium?: boolean;
 }
 
 /** Voorbeeldinvestering voor de belastingvoordeel-potentie (boven de KIA-drempel). */
@@ -47,6 +49,7 @@ export function computeReserve(input: ReserveInput): SafeToSpendData {
     jaarKostenExBtw: input.jaarKostenExBtw,
     investeringen: input.investeringen,
     maandenVerstreken: input.maandenVerstreken,
+    meetsUrencriterium: input.meetsUrencriterium,
   });
 
   // De IB-pot omvat inkomstenbelasting én de inkomensafhankelijke bijdrage Zvw —

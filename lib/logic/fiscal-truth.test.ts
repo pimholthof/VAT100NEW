@@ -72,6 +72,41 @@ describe("calculateInvoiceTruth", () => {
     expect(truth.clientPays).toBe(1090);
   });
 
+  it("geeft het urencriterium door aan de marginale schatting", () => {
+    const met = calculateInvoiceTruth({
+      subtotalExVat: 1000,
+      vatRate: 21,
+      profile: { estimatedAnnualIncome: 60_000, meetsUrencriterium: true },
+    });
+    const zonder = calculateInvoiceTruth({
+      subtotalExVat: 1000,
+      vatRate: 21,
+      profile: { estimatedAnnualIncome: 60_000, meetsUrencriterium: false },
+    });
+
+    // De vaste zelfstandigenaftrek valt grotendeels weg in het *marginale*
+    // verschil (zie estimateMarginalIncomeTax-docstring): de reservering per
+    // factuur blijft vrijwel gelijk, alleen rond schijfgrenzen schuift hij iets.
+    expect(Math.abs(zonder.incomeTaxReserve - met.incomeTaxReserve)).toBeLessThan(5);
+    // Beide ontleden exact: netto = van jou + reservering.
+    expect(zonder.yours + zonder.incomeTaxReserve).toBeCloseTo(zonder.net, 2);
+    expect(met.yours + met.incomeTaxReserve).toBeCloseTo(met.net, 2);
+  });
+
+  it("behandelt een ontbrekende urencriterium-vlag als 'voldoet' (default true)", () => {
+    const zonderVlag = calculateInvoiceTruth({
+      subtotalExVat: 1000,
+      vatRate: 21,
+      profile: { estimatedAnnualIncome: 60_000 },
+    });
+    const expliciet = calculateInvoiceTruth({
+      subtotalExVat: 1000,
+      vatRate: 21,
+      profile: { estimatedAnnualIncome: 60_000, meetsUrencriterium: true },
+    });
+    expect(zonderVlag).toEqual(expliciet);
+  });
+
   it("geeft nul terug bij een leeg factuurbedrag", () => {
     const truth = calculateInvoiceTruth({
       subtotalExVat: 0,
@@ -96,5 +131,14 @@ describe("estimateMarginalIncomeTax", () => {
   it("is nooit negatief", () => {
     expect(estimateMarginalIncomeTax(-500, 40_000)).toBe(0);
     expect(estimateMarginalIncomeTax(0, 40_000)).toBe(0);
+  });
+
+  it("is robuust voor het urencriterium: de vaste aftrek valt weg in het verschil", () => {
+    for (const base of [20_000, 40_000, 60_000, 80_000]) {
+      const met = estimateMarginalIncomeTax(1000, base, true);
+      const zonder = estimateMarginalIncomeTax(1000, base, false);
+      // Marginale schatting verschuift hooguit rond schijf-/afbouwgrenzen.
+      expect(Math.abs(zonder - met)).toBeLessThan(5);
+    }
   });
 });

@@ -143,7 +143,7 @@ export async function getTaxPaymentsSummary(
   const yearStart = `${year}-01-01`;
   const yearEnd = `${year}-12-31`;
 
-  const [invoicesRes, receiptsRes] = await Promise.all([
+  const [invoicesRes, receiptsRes, profileRes] = await Promise.all([
     supabase
       .from("invoices")
       .select("subtotal_ex_vat, vat_amount")
@@ -158,6 +158,12 @@ export async function getTaxPaymentsSummary(
       .gte("receipt_date", yearStart)
       .lte("receipt_date", yearEnd)
       .is("archived_at", null),
+    // Urencriterium bepaalt de zelfstandigenaftrek in de IB-schatting
+    supabase
+      .from("profiles")
+      .select("meets_urencriterium")
+      .eq("id", user.id)
+      .single(),
   ]);
 
   const outputVat = (invoicesRes.data ?? []).reduce(
@@ -185,6 +191,7 @@ export async function getTaxPaymentsSummary(
     investeringen: [],
     maandenVerstreken: maanden,
     huidigJaar: year,
+    meetsUrencriterium: profileRes.data?.meets_urencriterium ?? true,
   });
 
   const geschatteIB = Math.max(0, Math.round(projection.nettoIB * 100) / 100);

@@ -369,6 +369,53 @@ describe("calculateZZPTaxProjection", () => {
     expect(result.nettoIB).toBe(0);
   });
 
+  it("past geen zelfstandigenaftrek toe zonder urencriterium", () => {
+    const result = calculateZZPTaxProjection({
+      jaarOmzetExBtw: 60_000,
+      jaarKostenExBtw: 5_000,
+      investeringen: [],
+      maandenVerstreken: 12,
+      meetsUrencriterium: false,
+    });
+
+    expect(result.zelfstandigenaftrek).toBe(0);
+    // (55000 − 0) × (1 − 12,7%) = 48.015
+    expect(result.belastbaarInkomen).toBe(48_015);
+  });
+
+  it("urencriterium-verschil werkt door: €1.200 aftrek → hogere grondslag en heffing", () => {
+    const input = {
+      jaarOmzetExBtw: 60_000,
+      jaarKostenExBtw: 5_000,
+      investeringen: [],
+      maandenVerstreken: 12,
+    };
+    const met = calculateZZPTaxProjection({ ...input, meetsUrencriterium: true });
+    const zonder = calculateZZPTaxProjection({ ...input, meetsUrencriterium: false });
+
+    expect(met.zelfstandigenaftrek).toBe(1_200);
+    expect(zonder.zelfstandigenaftrek).toBe(0);
+    // Grondslagverschil = €1.200 × (1 − 12,7%) = €1.047,60
+    expect(round2(zonder.belastbaarInkomen - met.belastbaarInkomen)).toBe(1_047.6);
+    expect(zonder.totaleHeffing).toBeGreaterThan(met.totaleHeffing);
+    // Ook de prognose-tak rekent zonder de aftrek
+    expect(zonder.prognoseJaarIB).toBeGreaterThan(met.prognoseJaarIB);
+  });
+
+  it("default (vlag weggelaten) gedraagt zich als mét urencriterium", () => {
+    const input = {
+      jaarOmzetExBtw: 60_000,
+      jaarKostenExBtw: 5_000,
+      investeringen: [],
+      maandenVerstreken: 12,
+    };
+    const zonderVlag = calculateZZPTaxProjection(input);
+    const expliciet = calculateZZPTaxProjection({ ...input, meetsUrencriterium: true });
+
+    expect(zonderVlag).toEqual(expliciet);
+    expect(zonderVlag.zelfstandigenaftrek).toBe(1_200);
+  });
+
   it("annualiseert correct bij halfjaar", () => {
     const result = calculateZZPTaxProjection({
       jaarOmzetExBtw: 30_000,
