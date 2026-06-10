@@ -14,7 +14,7 @@ import {
 } from "@/features/quotes/actions";
 import { QuoteForm } from "@/features/quotes/components/QuoteForm";
 import type { QuoteStatus, VatRate } from "@/lib/types";
-import { ButtonPrimary, ButtonSecondary, ErrorMessage, ConfirmDialog } from "@/components/ui";
+import { ButtonPrimary, ButtonSecondary, ErrorMessage, ErrorState, ConfirmDialog } from "@/components/ui";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Concept",
@@ -132,7 +132,15 @@ export default function EditQuotePage() {
   }
 
   if (result?.error) {
-    return <ErrorMessage>Fout: {result.error}</ErrorMessage>;
+    return (
+      <ErrorState
+        title="Offerte niet gevonden"
+        description="Geen zorgen — je administratie staat er nog. Mogelijk is de link verouderd of is deze offerte verwijderd."
+        detail={result.error}
+        actionLabel="Terug naar offertes"
+        actionHref="/dashboard/invoices?tab=offertes"
+      />
+    );
   }
 
   const currentStatus = result?.data?.status;

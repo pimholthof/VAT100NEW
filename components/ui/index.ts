@@ -10,6 +10,7 @@ export {
 } from "./Input";
 export { SkeletonTable } from "./SkeletonTable";
 export { ErrorMessage } from "./ErrorMessage";
+export { ErrorState } from "./ErrorState";
 export { PageHeader } from "./PageHeader";
 export { SearchFilter } from "./SearchFilter";
 export { ConfirmDialog } from "./ConfirmDialog";

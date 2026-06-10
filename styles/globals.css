@@ -922,10 +922,8 @@ a {
     justify-content: space-around;
     align-items: center;
   }
-
-  .dashboard-content {
-    padding-bottom: 72px;
-  }
+  /* padding-bottom van .dashboard-content staat bij de mobile media query
+     onderaan dit bestand (nav + zwevende Feedback-knop). */
 }
 
 .mobile-bottom-nav-item {
@@ -1559,6 +1557,9 @@ a {
 .dashboard-content {
   flex: 1;
   padding: var(--space-3xl) var(--page-gutter);
+  /* Vrije ruimte onder de content zodat de zwevende Feedback-knop nooit
+     actieknoppen of foutmeldingen onderaan de pagina overlapt. */
+  padding-bottom: calc(var(--space-3xl) + 64px);
   max-width: var(--content-max-width);
   width: 100%;
   margin: 0 auto;
@@ -2402,7 +2403,7 @@ a {
   }
 
   .dashboard-content {
-    padding: 40px var(--page-gutter);
+    padding: 40px var(--page-gutter) 104px;
   }
 
   :root {
@@ -2445,7 +2446,8 @@ a {
   }
 
   .dashboard-content {
-    padding: 24px var(--page-gutter);
+    /* Onderaan ruimte voor mobile bottom nav (≈64px) + Feedback-knop erboven. */
+    padding: 24px var(--page-gutter) 148px;
   }
 
   .dashboard-nav {

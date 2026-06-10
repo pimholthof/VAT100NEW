@@ -249,8 +249,11 @@ export function OnboardingChecklist({
             gap: 10,
           }}
         >
+          {/* Alle stappen tonen — voltooid mét vinkje. Alleen de open items
+              tonen leest als selecteerbare radio's en klopt niet met de
+              "4 van 6"-teller erboven. */}
           <AnimatePresence initial={false}>
-            {remainingSteps.map((step) => (
+            {steps.map((step) => (
               <motion.li
                 key={step.key}
                 initial={{ opacity: 0, height: 0 }}
@@ -265,23 +268,44 @@ export function OnboardingChecklist({
                     width: 18,
                     height: 18,
                     borderRadius: "50%",
-                    border: "1px solid rgba(0,0,0,0.15)",
-                    background: "transparent",
+                    border: step.done ? "none" : "1px solid rgba(0,0,0,0.15)",
+                    background: step.done ? "var(--color-success)" : "transparent",
+                    color: "var(--background)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    lineHeight: 1,
                     flexShrink: 0,
                   }}
-                />
-                <Link
-                  href={step.href}
-                  style={{
-                    fontSize: "var(--text-body-md)",
-                    color: "var(--foreground)",
-                    textDecoration: "none",
-                    fontWeight: step.key === nextStep?.key ? 500 : 400,
-                    opacity: step.key === nextStep?.key ? 0.85 : 0.55,
-                  }}
                 >
-                  {step.label} {step.key === nextStep?.key && "→"}
-                </Link>
+                  {step.done ? "✓" : ""}
+                </span>
+                {step.done ? (
+                  <span
+                    style={{
+                      fontSize: "var(--text-body-md)",
+                      opacity: 0.35,
+                    }}
+                  >
+                    {step.label}
+                    <span className="sr-only"> — voltooid</span>
+                  </span>
+                ) : (
+                  <Link
+                    href={step.href}
+                    style={{
+                      fontSize: "var(--text-body-md)",
+                      color: "var(--foreground)",
+                      textDecoration: "none",
+                      fontWeight: step.key === nextStep?.key ? 500 : 400,
+                      opacity: step.key === nextStep?.key ? 0.85 : 0.55,
+                    }}
+                  >
+                    {step.label} {step.key === nextStep?.key && "→"}
+                  </Link>
+                )}
               </motion.li>
             ))}
           </AnimatePresence>

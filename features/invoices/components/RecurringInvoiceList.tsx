@@ -83,8 +83,11 @@ export function RecurringInvoiceList() {
             Terugkerend
           </h1>
           <p className="label" style={{ opacity: 0.25 }}>
-            {templates.length}{" "}
-            {templates.length === 1 ? "TEMPLATE" : "TEMPLATES"}
+            {/* Zelfde conventie als de tabs Facturen/Offertes: "—" tijdens
+                laden, daarna altijd "N TEMPLATES" (ook bij 0). */}
+            {isLoading
+              ? "—"
+              : `${templates.length} ${templates.length === 1 ? "TEMPLATE" : "TEMPLATES"}`}
           </p>
         </div>
         <button onClick={() => setShowForm(true)} className="btn-primary">

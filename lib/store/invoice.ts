@@ -41,13 +41,15 @@ interface InvoiceFormState {
   isDirty: boolean;
   lastSavedAt: number | null;
 
-  // Actions
+  // Actions — `markDirty: false` is voor systeem-acties (auto-gegenereerd
+  // nummer, BTW-detectie bij laden) zodat een vers formulier niet direct
+  // "Niet-opgeslagen wijzigingen" toont.
   setClientId: (id: string) => void;
-  setInvoiceNumber: (num: string) => void;
+  setInvoiceNumber: (num: string, markDirty?: boolean) => void;
   setIssueDate: (date: string) => void;
-  setDueDate: (date: string) => void;
-  setVatRate: (rate: VatRate) => void;
-  setVatScheme: (scheme: VatScheme) => void;
+  setDueDate: (date: string, markDirty?: boolean) => void;
+  setVatRate: (rate: VatRate, markDirty?: boolean) => void;
+  setVatScheme: (scheme: VatScheme, markDirty?: boolean) => void;
   setNotes: (notes: string) => void;
 
   addLine: () => void;
@@ -86,20 +88,22 @@ export const useInvoiceStore = create<InvoiceFormState>((set, get) => ({
   lastSavedAt: null,
 
   setClientId: (id) => set({ clientId: id, isDirty: true }),
-  setInvoiceNumber: (num) => set({ invoiceNumber: num, isDirty: true }),
+  setInvoiceNumber: (num, markDirty = true) =>
+    set((s) => ({ invoiceNumber: num, isDirty: s.isDirty || markDirty })),
   setIssueDate: (date) => set({ issueDate: date, isDirty: true }),
-  setDueDate: (date) => set({ dueDate: date, isDirty: true }),
-  setVatRate: (rate) => {
-    const { lines } = get();
-    set({ vatRate: rate, totals: calcTotals(lines, rate), isDirty: true });
+  setDueDate: (date, markDirty = true) =>
+    set((s) => ({ dueDate: date, isDirty: s.isDirty || markDirty })),
+  setVatRate: (rate, markDirty = true) => {
+    const { lines, isDirty } = get();
+    set({ vatRate: rate, totals: calcTotals(lines, rate), isDirty: isDirty || markDirty });
   },
-  setVatScheme: (scheme) => {
-    const { lines } = get();
+  setVatScheme: (scheme, markDirty = true) => {
+    const { lines, isDirty } = get();
     // EU reverse charge and export outside EU always have 0% VAT
     if (scheme === "eu_reverse_charge" || scheme === "export_outside_eu") {
-      set({ vatScheme: scheme, vatRate: 0, totals: calcTotals(lines, 0), isDirty: true });
+      set({ vatScheme: scheme, vatRate: 0, totals: calcTotals(lines, 0), isDirty: isDirty || markDirty });
     } else {
-      set({ vatScheme: scheme, isDirty: true });
+      set({ vatScheme: scheme, isDirty: isDirty || markDirty });
     }
   },
   setNotes: (notes) => set({ notes, isDirty: true }),

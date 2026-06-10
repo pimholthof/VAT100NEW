@@ -403,6 +403,7 @@ const nl = {
     exVatLabel: "Excl. BTW:",
     vatAmountLabel: "BTW:",
     selectClientPlaceholder: "Selecteer klant",
+    loadingClients: "Klanten laden…",
     closeQuickCreate: "[-] Sluiten",
     openQuickCreate: "[+] Nieuw",
     invoiceLines: "Factuurregels",

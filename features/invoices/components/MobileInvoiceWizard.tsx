@@ -14,6 +14,7 @@ import {
 } from "@/features/invoices/actions";
 import { getClients } from "@/features/clients/actions";
 import { detectVatScheme } from "@/lib/tax/vat-scheme-detector";
+import { scrollToField } from "@/lib/utils/focus-field";
 import { InvoiceRecipientSection } from "./InvoiceRecipientSection";
 import { InvoiceLinesSection } from "./InvoiceLinesSection";
 import { InvoiceMetadata } from "./InvoiceMetadata";
@@ -73,13 +74,14 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
       const client = clientList.find((c) => c.id === cId);
       if (!client) return;
       const detection = detectVatScheme(client);
-      setVatScheme(detection.scheme);
-      setVatRate(detection.rate as 0 | 9 | 21);
+      // markDirty=false: afgeleide systeemwaarden, zie DesktopInvoiceForm.
+      setVatScheme(detection.scheme, false);
+      setVatRate(detection.rate as 0 | 9 | 21, false);
       setVatReason(detection.reason);
       const termDays = client.payment_terms_days ?? 30;
       const due = new Date();
       due.setDate(due.getDate() + termDays);
-      setDueDate(due.toISOString().split("T")[0]);
+      setDueDate(due.toISOString().split("T")[0], false);
     },
     [setVatScheme, setVatRate, setDueDate]
   );
@@ -92,7 +94,7 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
     if (!invoiceId && !invoiceNumber) {
       generateInvoiceNumber().then((result) => {
         if (result.error) setError(result.error);
-        else if (result.data) setInvoiceNumber(result.data);
+        else if (result.data) setInvoiceNumber(result.data, false);
       });
     }
   }, [invoiceId, invoiceNumber, setInvoiceNumber]);
@@ -117,10 +119,12 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
     if (!clientId) {
       setFieldErrors((f) => ({ ...f, client: t.invoices.selectClient }));
       setStep(1);
+      scrollToField("invoice-client-select");
       return;
     }
     if (!invoiceNumber) {
       setError(t.invoices.invoiceNumberRequired);
+      scrollToField("mobile-invoice-error");
       return;
     }
     setSaving(true);
@@ -147,7 +151,10 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
       }
     }
 
-    if (result.error) setError(result.error);
+    if (result.error) {
+      setError(result.error);
+      scrollToField("mobile-invoice-error");
+    }
     setSaving(false);
   }
 
@@ -155,6 +162,7 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
     if (step === 1) {
       if (!clientId) {
         setFieldErrors((f) => ({ ...f, client: t.invoices.selectClient }));
+        scrollToField("invoice-client-select");
         return;
       }
       setFieldErrors((f) => ({ ...f, client: undefined }));
@@ -188,7 +196,11 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
         }}
       />
 
-      {error && <ErrorMessage style={{ marginBottom: 20 }}>{error}</ErrorMessage>}
+      {error && (
+        <div id="mobile-invoice-error">
+          <ErrorMessage style={{ marginBottom: 20 }}>{error}</ErrorMessage>
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {step === 1 && (

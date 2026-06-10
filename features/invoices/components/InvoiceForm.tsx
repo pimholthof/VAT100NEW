@@ -12,6 +12,7 @@ import {
 } from "@/features/invoices/actions";
 import { getClients } from "@/features/clients/actions";
 import { detectVatScheme } from "@/lib/tax/vat-scheme-detector";
+import { scrollToField } from "@/lib/utils/focus-field";
 import { InvoiceMetadata } from "./InvoiceMetadata";
 import { InvoiceTotals } from "./InvoiceTotals";
 import { InvoiceTruthPanel } from "./InvoiceTruthPanel";
@@ -52,6 +53,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clientFieldError, setClientFieldError] = useState<string | null>(null);
+  const [validationHint, setValidationHint] = useState<string | null>(null);
   const [showNewClient, setShowNewClient] = useState(false);
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -92,15 +94,17 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
     if (!client) return;
 
     const detection = detectVatScheme(client);
-    setVatScheme(detection.scheme);
-    setVatRate(detection.rate as 0 | 9 | 21);
+    // markDirty=false: afgeleide systeemwaarden — bij een klantwissel is het
+    // formulier al dirty via setClientId, bij laden hoort het schoon te blijven.
+    setVatScheme(detection.scheme, false);
+    setVatRate(detection.rate as 0 | 9 | 21, false);
     setVatReason(detection.reason);
 
     // Set due date based on client payment terms
     const termDays = client.payment_terms_days ?? 30;
     const due = new Date();
     due.setDate(due.getDate() + termDays);
-    setDueDate(due.toISOString().split("T")[0]);
+    setDueDate(due.toISOString().split("T")[0], false);
   }, [setVatScheme, setVatRate, setDueDate]);
 
   useEffect(() => {
@@ -114,7 +118,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
         if (result.error) {
           setError(result.error);
         } else if (result.data) {
-          setInvoiceNumber(result.data);
+          setInvoiceNumber(result.data, false);
         }
       });
     }
@@ -146,15 +150,20 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
   const handleSave = async (andPreview: boolean) => {
     if (!clientId) {
       setClientFieldError(t.invoices.selectClient);
+      setValidationHint(t.common.checkFields);
+      scrollToField("invoice-client-select");
       return;
     }
     if (!invoiceNumber) {
       setError(t.invoices.invoiceNumberRequired);
+      setValidationHint(t.common.checkFields);
+      scrollToField("invoice-form-error");
       return;
     }
 
     setSaving(true);
     setError(null);
+    setValidationHint(null);
 
     const status = andPreview ? "sent" : "draft";
     const input = toInput(status as "draft" | "sent");
@@ -182,6 +191,9 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
 
     if (result.error) {
       setError(result.error);
+      // De melding staat boven het formulier; de knop onderaan — breng de
+      // fout in beeld zodat een klik nooit "stilletjes" lijkt te mislukken.
+      scrollToField("invoice-form-error");
     }
     setSaving(false);
   };
@@ -194,7 +206,9 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
       style={{ maxWidth: "100%" }}
     >
       {error && (
-        <ErrorMessage style={{ marginBottom: 40 }}>{error}</ErrorMessage>
+        <div id="invoice-form-error">
+          <ErrorMessage style={{ marginBottom: 40 }}>{error}</ErrorMessage>
+        </div>
       )}
 
       {/* ── Recipient: Large and focused ── */}
@@ -202,6 +216,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
         clientId={clientId}
         setClientId={(id) => {
           setClientFieldError(null);
+          setValidationHint(null);
           setClientId(id);
         }}
         clients={clients}
@@ -260,6 +275,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
         onSaveDraft={() => handleSave(false)}
         onIssueAndPreview={() => handleSave(true)}
         recipientName={clients.find((c) => c.id === clientId)?.name ?? null}
+        validationHint={validationHint}
       />
 
       {(savingDraft || lastSavedAt) && (

@@ -54,7 +54,9 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
           min="0"
           step="0.5"
           onChange={(e) =>
-            onUpdate(line.id, "quantity", parseFloat(e.target.value) || 0)
+            // Negatief aantal is fiscaal onzinnig; creditfacturen lopen via
+            // de aparte creditnota-flow. Clamp op 0 (min="0" blokkeert typen niet).
+            onUpdate(line.id, "quantity", Math.max(0, parseFloat(e.target.value) || 0))
           }
           style={{ ...cellInputStyle, textAlign: "right", width: 40 }}
         />
@@ -78,7 +80,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
           min="0"
           step="0.01"
           onChange={(e) =>
-            onUpdate(line.id, "rate", parseFloat(e.target.value) || 0)
+            onUpdate(line.id, "rate", Math.max(0, parseFloat(e.target.value) || 0))
           }
           style={{ ...cellInputStyle, textAlign: "right" }}
         />

@@ -10,11 +10,13 @@ export function InvoiceFormActions({
   onSaveDraft,
   onIssueAndPreview,
   recipientName,
+  validationHint,
 }: {
   saving: boolean;
   onSaveDraft: () => void;
   onIssueAndPreview: () => void;
   recipientName?: string | null;
+  validationHint?: string | null;
 }) {
   const { t } = useLocale();
   const isDirty = useInvoiceStore((s) => s.isDirty);
@@ -45,6 +47,24 @@ export function InvoiceFormActions({
           <span>{savedLabel}</span>
         ) : null}
       </div>
+
+      {/* Validatie-echo direct bij de knoppen: het foutveld zelf kan buiten
+          beeld staan, dus hier bevestigen we dat de klik bewust is geblokkeerd. */}
+      {validationHint && (
+        <p
+          role="alert"
+          style={{
+            margin: "0 0 12px",
+            fontSize: 12,
+            fontWeight: 500,
+            color: "var(--color-accent)",
+            textAlign: "right",
+            letterSpacing: "0.01em",
+          }}
+        >
+          {validationHint}
+        </p>
+      )}
 
       <div style={{ display: "flex", gap: 24 }}>
         <button

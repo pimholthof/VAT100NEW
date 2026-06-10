@@ -6,11 +6,13 @@ import { createNewClient, updateClient, checkDuplicateClients } from "@/features
 import type { Client, ClientInput } from "@/lib/types";
 import {
   FieldGroup,
+  FieldError,
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
 } from "@/components/ui";
 import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
+import { scrollToField } from "@/lib/utils/focus-field";
 import { useLocale } from "@/lib/i18n/context";
 import { useToast } from "@/components/ui/Toast";
 
@@ -24,6 +26,7 @@ export function ClientForm({ client }: ClientFormProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationHint, setValidationHint] = useState<string | null>(null);
 
   const [name, setName] = useState(client?.name ?? "");
   const [contactName, setContactName] = useState(client?.contact_name ?? "");
@@ -116,22 +119,33 @@ export function ClientForm({ client }: ClientFormProps) {
   }
 
   const handleSubmit = async () => {
-    if (!name.trim()) {
-      setError(t.clients.companyNameRequired);
+    // Fouten op het veld zelf (rode rand + inline melding) i.p.v. alleen een
+    // losse melding bovenaan; daarna naar het eerste foutveld scrollen zodat
+    // een klik op de knop onderaan nooit "stilletjes" lijkt te mislukken.
+    const errs: Record<string, string | null> = {
+      name: name.trim() ? null : t.clients.companyNameRequired,
+      email: validateEmail(email),
+      kvk: validateKvk(kvkNumber),
+      btw: validateBtw(btwNumber),
+    };
+    setFieldErrors((prev) => ({ ...prev, ...errs }));
+
+    const fieldIds: Record<string, string> = {
+      name: "client-name",
+      email: "client-email",
+      kvk: "client-kvk",
+      btw: "client-btw",
+    };
+    const firstInvalid = Object.keys(errs).find((k) => errs[k]);
+    if (firstInvalid) {
+      setValidationHint(t.common.checkFields);
+      scrollToField(fieldIds[firstInvalid]);
       return;
     }
 
-    const emailErr = validateEmail(email);
-    if (emailErr) { setError(emailErr); return; }
-
-    const kvkErr = validateKvk(kvkNumber);
-    if (kvkErr) { setError(kvkErr); return; }
-
-    const btwErr = validateBtw(btwNumber);
-    if (btwErr) { setError(btwErr); return; }
-
     setSaving(true);
     setError(null);
+    setValidationHint(null);
 
     const input: ClientInput = {
       name,
@@ -152,6 +166,7 @@ export function ClientForm({ client }: ClientFormProps) {
 
     if (result.error) {
       setError(result.error);
+      scrollToField("client-form-error");
       setSaving(false);
       return;
     }
@@ -165,16 +180,30 @@ export function ClientForm({ client }: ClientFormProps) {
   return (
     <div style={{ maxWidth: 600 }}>
       {error && (
-        <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
+        <div id="client-form-error">
+          <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
+        </div>
       )}
 
-      <FieldGroup label={`${t.clients.companyName} *`}>
+      <FieldGroup
+        label={`${t.clients.companyName} *`}
+        htmlFor="client-name"
+        error={fieldErrors.name ?? undefined}
+      >
         <input
+          id="client-name"
           type="text"
           value={name}
-          onChange={(e) => { setName(e.target.value); triggerDuplicateCheck(e.target.value); }}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (e.target.value.trim()) {
+              setFieldErrors((prev) => ({ ...prev, name: null }));
+            }
+            triggerDuplicateCheck(e.target.value);
+          }}
           placeholder={t.clients.companyName}
           className="form-input"
+          style={fieldErrors.name ? { borderColor: "var(--color-accent)" } : undefined}
         />
         {duplicates.length > 0 && (
           <div style={{ marginTop: 6, padding: "8px 12px", background: "rgba(180, 83, 9, 0.06)", border: "0.5px solid rgba(180, 83, 9, 0.25)", borderRadius: "var(--radius-sm)", fontSize: 12 }}>
@@ -212,6 +241,7 @@ export function ClientForm({ client }: ClientFormProps) {
           onBlur={() => validateField("email", email)}
           placeholder={t.clients.emailPlaceholder}
           className="form-input"
+          style={fieldErrors.email ? { borderColor: "var(--color-accent)" } : undefined}
         />
       </FieldGroup>
 
@@ -327,7 +357,10 @@ export function ClientForm({ client }: ClientFormProps) {
               onBlur={handleKvkBlur}
               placeholder="12345678"
               className="form-input"
-              style={{ paddingRight: 32 }}
+              style={{
+                paddingRight: 32,
+                ...(fieldErrors.kvk ? { borderColor: "var(--color-accent)" } : {}),
+              }}
             />
             {kvkLoading && (
               <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "rgba(0,0,0,0.4)" }}>...</span>
@@ -358,7 +391,10 @@ export function ClientForm({ client }: ClientFormProps) {
               onBlur={handleBtwBlur}
               placeholder="NL123456789B01"
               className="form-input"
-              style={{ paddingRight: 32 }}
+              style={{
+                paddingRight: 32,
+                ...(fieldErrors.btw ? { borderColor: "var(--color-accent)" } : {}),
+              }}
             />
             {viesStatus === "loading" && (
               <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "rgba(0,0,0,0.4)" }}>...</span>
@@ -375,19 +411,23 @@ export function ClientForm({ client }: ClientFormProps) {
 
       <div
         style={{
-          display: "flex",
-          gap: 12,
           marginTop: 32,
           paddingTop: 24,
           borderTop: "0.5px solid rgba(13,13,11,0.15)",
         }}
       >
-        <ButtonSecondary onClick={() => router.back()} disabled={saving}>
-          {t.common.cancel}
-        </ButtonSecondary>
-        <ButtonPrimary onClick={handleSubmit} loading={saving}>
-          {client ? t.clients.update : t.clients.createClient}
-        </ButtonPrimary>
+        {/* Validatie-echo bij de knop: het foutveld kan buiten beeld staan. */}
+        {validationHint && (
+          <FieldError style={{ margin: "0 0 12px" }}>{validationHint}</FieldError>
+        )}
+        <div style={{ display: "flex", gap: 12 }}>
+          <ButtonSecondary onClick={() => router.back()} disabled={saving}>
+            {t.common.cancel}
+          </ButtonSecondary>
+          <ButtonPrimary onClick={handleSubmit} loading={saving}>
+            {client ? t.clients.update : t.clients.createClient}
+          </ButtonPrimary>
+        </div>
       </div>
     </div>
   );

@@ -35,6 +35,7 @@ export function InvoiceRecipientSection({
       </p>
       <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
         <select
+          id="invoice-client-select"
           value={clientId}
           onChange={(e) => {
             setClientId(e.target.value);
@@ -42,6 +43,8 @@ export function InvoiceRecipientSection({
           }}
           autoFocus={!clientId}
           required
+          disabled={clientsLoading}
+          aria-busy={clientsLoading || undefined}
           aria-label={t.invoices.recipientLabel}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "invoice-client-error" : undefined}
@@ -51,15 +54,18 @@ export function InvoiceRecipientSection({
             fontWeight: 400,
             letterSpacing: "-0.01em",
             border: "none",
+            borderBottom: error ? "1.5px solid var(--color-accent)" : "none",
             padding: 0,
             width: "auto",
             minWidth: 160,
             background: "transparent",
+            opacity: clientsLoading ? 0.45 : 1,
+            cursor: clientsLoading ? "wait" : undefined,
           }}
         >
           <option value="">
             {clientsLoading
-              ? t.common.loading
+              ? t.invoices.loadingClients
               : hasClientError
                 ? clientErrorMessage
                 : t.invoices.selectClientPlaceholder}

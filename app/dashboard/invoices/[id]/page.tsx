@@ -21,6 +21,7 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   ErrorMessage,
+  ErrorState,
   ConfirmDialog,
   useToast,
 } from "@/components/ui";
@@ -197,9 +198,13 @@ export default function EditInvoicePage() {
 
   if (result?.error) {
     return (
-      <ErrorMessage>
-        Fout: {result.error}
-      </ErrorMessage>
+      <ErrorState
+        title="Factuur niet gevonden"
+        description="Geen zorgen — je administratie staat er nog. Mogelijk is de link verouderd of is deze factuur verwijderd."
+        detail={result.error}
+        actionLabel="Terug naar facturen"
+        actionHref="/dashboard/invoices"
+      />
     );
   }
 

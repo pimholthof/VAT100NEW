@@ -403,6 +403,7 @@ const en = {
     exVatLabel: "Excl. VAT:",
     vatAmountLabel: "VAT:",
     selectClientPlaceholder: "Select client",
+    loadingClients: "Loading clients…",
     closeQuickCreate: "[-] Close",
     openQuickCreate: "[+] New",
     invoiceLines: "Invoice lines",

@@ -216,6 +216,8 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
               invoiceSetClientId(e.target.value);
               playSound("tink");
             }}
+            disabled={clientsLoading}
+            aria-busy={clientsLoading || undefined}
             className="form-input"
             style={{
               fontSize: 14,
@@ -225,11 +227,13 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
               padding: 0,
               width: "auto",
               minWidth: 160,
-              background: "transparent"
+              background: "transparent",
+              opacity: clientsLoading ? 0.45 : 1,
+              cursor: clientsLoading ? "wait" : undefined,
             }}
           >
             <option value="">
-              {clientsLoading ? t.common.loading : hasClientError ? clientErrorMessage : t.quotes.selectClientPlaceholder}
+              {clientsLoading ? t.invoices.loadingClients : hasClientError ? clientErrorMessage : t.quotes.selectClientPlaceholder}
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
