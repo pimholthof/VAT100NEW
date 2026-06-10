@@ -127,7 +127,7 @@ function BenchmarkBar({ label, value, avg, unit }: { label: string; value: numbe
             width: `${pct}%`,
             background: isAbove ? "var(--color-success, #1a7a3a)" : "rgba(0,0,0,0.2)",
             borderRadius: 3,
-            transition: "width 0.3s",
+            transition: "width var(--duration-moderate)",
           }}
         />
         <div
@@ -389,7 +389,7 @@ export default function AdminKlantDetailPage() {
             onClick={() => setActiveTab(tab.key)}
             className="admin-page-button"
             style={{
-              borderBottom: activeTab === tab.key ? "2px solid #000" : "2px solid transparent",
+              borderBottom: activeTab === tab.key ? "2px solid var(--foreground)" : "2px solid transparent",
               borderTop: "none",
               borderLeft: "none",
               borderRight: "none",

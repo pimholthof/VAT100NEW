@@ -229,7 +229,7 @@ export default function AdminKlantenFeedbackPage() {
               style={{
                 padding: "32px 16px",
                 textAlign: "center",
-                border: "0.5px solid rgba(0, 0, 0, 0.08)",
+                border: "var(--border-light)",
                 borderRadius: "var(--radius)",
                 color: "var(--foreground)",
                 opacity: 0.55,
@@ -248,7 +248,7 @@ export default function AdminKlantenFeedbackPage() {
                 padding: 0,
                 display: "flex",
                 flexDirection: "column",
-                border: "0.5px solid rgba(0, 0, 0, 0.08)",
+                border: "var(--border-light)",
                 borderRadius: "var(--radius)",
                 overflow: "hidden",
               }}
@@ -260,7 +260,7 @@ export default function AdminKlantenFeedbackPage() {
                   <li
                     key={entry.id}
                     style={{
-                      borderTop: i === 0 ? "none" : "0.5px solid rgba(0, 0, 0, 0.05)",
+                      borderTop: i === 0 ? "none" : "var(--border-rule)",
                     }}
                   >
                     <button
@@ -275,7 +275,7 @@ export default function AdminKlantenFeedbackPage() {
                         cursor: "pointer",
                         padding: "14px 16px",
                         color: "var(--foreground)",
-                        transition: "background 0.12s ease",
+                        transition: "background var(--duration-instant) ease",
                       }}
                     >
                       <div
@@ -393,7 +393,7 @@ export default function AdminKlantenFeedbackPage() {
         {selectedConversation && (
           <div
             style={{
-              border: "0.5px solid rgba(0, 0, 0, 0.08)",
+              border: "var(--border-light)",
               borderRadius: "var(--radius)",
               display: "flex",
               flexDirection: "column",
@@ -406,7 +406,7 @@ export default function AdminKlantenFeedbackPage() {
             <div
               style={{
                 padding: "14px 20px",
-                borderBottom: "0.5px solid rgba(0, 0, 0, 0.06)",
+                borderBottom: "var(--border-rule)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -513,7 +513,7 @@ export default function AdminKlantenFeedbackPage() {
             {/* Reply input */}
             <div
               style={{
-                borderTop: "0.5px solid rgba(0, 0, 0, 0.06)",
+                borderTop: "var(--border-rule)",
                 padding: "14px 16px",
                 display: "flex",
                 gap: 10,
