@@ -11,6 +11,7 @@ import { getICPReport, type ICPEntry } from "@/features/tax/icp-actions";
 import type { QuarterStats } from "@/features/tax/actions";
 import type { DepreciationRow } from "@/lib/tax/dutch-tax-2026";
 import type { TaxPaymentType, VatReturn } from "@/lib/types";
+import type { VoorlopigeAanslagAdvies } from "@/lib/tax/voorlopige-aanslag";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { TAX_CONSTANTS } from "@/lib/tax/dutch-tax-2026";
@@ -942,6 +943,114 @@ function ICPSection({ year }: { year: number }) {
 
 // ─── Voorlopige Aanslag Section ───
 
+function VoorlopigeAanslagHint({
+  advies,
+  year,
+}: {
+  advies: VoorlopigeAanslagAdvies;
+  year: number;
+}) {
+  if (advies.status === "geen") return null;
+  if (advies.status !== "gedekt" && !advies.materieel) return null;
+
+  const gedekt = advies.status === "gedekt";
+  const maanden =
+    advies.resterendeMaanden === 1
+      ? "1 maand"
+      : `${advies.resterendeMaanden} maanden`;
+
+  return (
+    <div
+      className="glass"
+      style={{
+        padding: "20px 24px",
+        borderRadius: "var(--radius)",
+        marginBottom: 32,
+        borderLeft: `2px solid ${gedekt ? "var(--color-success)" : "var(--color-info)"}`,
+      }}
+    >
+      <p
+        className="label"
+        style={{
+          color: gedekt ? "var(--color-success)" : "var(--color-info)",
+          margin: "0 0 6px",
+        }}
+      >
+        Voorlopige aanslag
+      </p>
+      {gedekt ? (
+        <p style={{ fontSize: 13, opacity: 0.7, lineHeight: 1.6, margin: 0 }}>
+          Je voorlopige aanslag dekt de verwachte heffing voor {year}. Geen
+          actie nodig.
+        </p>
+      ) : (
+        <>
+          <p style={{ fontSize: 13, opacity: 0.7, lineHeight: 1.6, margin: 0 }}>
+            {advies.afgelopenJaar ? (
+              <>
+                Voor {year} rekent de Belastingdienst vanaf 1 juli {year + 1}{" "}
+                belastingrente (6,5%) over wat nog openstaat:{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(advies.openstaand)}
+                </span>
+                . Een aanvulling op de aanslag beperkt het bedrag waarover
+                rente telt.
+              </>
+            ) : advies.status === "ongedekt" ? (
+              <>
+                Je verwachte heffing voor {year} is{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(advies.verwachteHeffing)}
+                </span>{" "}
+                (inclusief Zvw), maar er staat nog geen voorlopige aanslag
+                tegenover. Vraag er één aan via Mijn Belastingdienst en spreid
+                het over {maanden}: zo&apos;n{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(advies.maandbedrag)}
+                </span>{" "}
+                per maand.
+              </>
+            ) : (
+              <>
+                Je hebt{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(advies.vaBetaald)}
+                </span>{" "}
+                aan voorlopige aanslag betaald van de verwachte{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(advies.verwachteHeffing)}
+                </span>{" "}
+                (inclusief Zvw). Het restant komt neer op zo&apos;n{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatCurrency(advies.maandbedrag)}
+                </span>{" "}
+                per maand over de resterende {maanden}.
+              </>
+            )}
+          </p>
+          {!advies.afgelopenJaar && (
+            <p
+              style={{
+                fontSize: 13,
+                opacity: 0.5,
+                lineHeight: 1.6,
+                margin: "6px 0 0",
+              }}
+            >
+              Blijft dit openstaan, dan rekent de Belastingdienst vanaf 1 juli{" "}
+              {year + 1} 6,5% belastingrente — zo&apos;n{" "}
+              <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                {formatCurrency(advies.renteRisicoPerMaand)}
+              </span>{" "}
+              per maand.
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function VoorlopigeAanslagSection({ year }: { year: number }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
@@ -1050,6 +1159,10 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
             </p>
           </div>
         </div>
+      )}
+
+      {!isLoading && summary && (
+        <VoorlopigeAanslagHint advies={summary.vaAdvies} year={year} />
       )}
 
       {/* Formulier */}

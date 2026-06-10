@@ -3,6 +3,10 @@
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, TaxPayment, TaxPaymentInput } from "@/lib/types";
 import { taxPaymentSchema, uuidSchema, validate } from "@/lib/validation";
+import {
+  adviseerVoorlopigeAanslag,
+  type VoorlopigeAanslagAdvies,
+} from "@/lib/tax/voorlopige-aanslag";
 
 export async function getTaxPayments(
   year?: number,
@@ -111,6 +115,8 @@ export interface TaxPaymentsSummary {
   verschilIB: number;
   verschilBTW: number;
   betalingen: TaxPayment[];
+  /** Beslishulp voorlopige aanslag, op basis van de totale heffing (IB + Zvw). */
+  vaAdvies: VoorlopigeAanslagAdvies;
 }
 
 export async function getTaxPaymentsSummary(
@@ -196,6 +202,15 @@ export async function getTaxPaymentsSummary(
 
   const geschatteIB = Math.max(0, Math.round(projection.nettoIB * 100) / 100);
 
+  // De voorlopige aanslag omvat IB én Zvw — daarom totaleHeffing, niet nettoIB.
+  const vaAdvies = adviseerVoorlopigeAanslag({
+    verwachteHeffing: projection.totaleHeffing,
+    vaBetaald: ibBetaald,
+    jaar: year,
+    huidigJaar: now.getFullYear(),
+    huidigeMaandIndex: now.getMonth(),
+  });
+
   return {
     error: null,
     data: {
@@ -206,6 +221,7 @@ export async function getTaxPaymentsSummary(
       verschilIB: Math.round((geschatteIB - ibBetaald) * 100) / 100,
       verschilBTW: Math.round((geschatteBTW - btwBetaald) * 100) / 100,
       betalingen,
+      vaAdvies,
     },
   };
 }
