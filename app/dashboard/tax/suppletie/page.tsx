@@ -5,6 +5,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getVatReturns } from "@/features/tax/vat-returns-actions";
 import { createSuppletie } from "@/features/tax/suppletie-actions";
+import {
+  checkSuppletieDrempel,
+  SUPPLETIE_DREMPEL_HINT,
+} from "@/lib/tax/suppletie-drempel";
 import type { VatReturn } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
 import { useToast } from "@/components/ui";
@@ -103,6 +107,23 @@ export default function SuppletPage() {
     }));
   };
 
+  // Netto-BTW (verschuldigd − voorbelasting) vóór en ná de correctie. Bij een
+  // verschil t/m € 1.000 mag de correctie in de eerstvolgende aangifte mee.
+  const origineelNetto =
+    RUBRIEKEN.reduce(
+      (s, r) =>
+        s +
+        Number(
+          (original as unknown as Record<string, unknown>)[
+            `rubriek_${r.key}_btw`
+          ] ?? 0,
+        ),
+      0,
+    ) - Number(original.rubriek_5b ?? 0);
+  const gecorrigeerdNetto =
+    RUBRIEKEN.reduce((s, r) => s + (values[r.key]?.btw ?? 0), 0) - voorbelasting;
+  const drempel = checkSuppletieDrempel(origineelNetto, gecorrigeerdNetto);
+
   return (
     <div>
       <div className="page-header">
@@ -191,6 +212,33 @@ export default function SuppletPage() {
           />
         </div>
       </div>
+
+      {/* Drempelhint: t/m € 1.000 mag het verschil in de eerstvolgende aangifte */}
+      {drempel.binnenDrempel && (
+        <div
+          className="glass"
+          style={{
+            padding: "20px 24px",
+            borderRadius: 16,
+            marginBottom: 24,
+            borderLeft: "2px solid var(--color-info)",
+          }}
+        >
+          <p
+            className="label"
+            style={{ color: "var(--color-info)", marginBottom: 6 }}
+          >
+            GOED OM TE WETEN
+          </p>
+          <p style={{ fontSize: 13, opacity: 0.7, lineHeight: 1.6 }}>
+            Het verschil met de oorspronkelijke aangifte is{" "}
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>
+              {formatCurrency(Math.abs(drempel.verschil))}
+            </span>
+            . {SUPPLETIE_DREMPEL_HINT}
+          </p>
+        </div>
+      )}
 
       {/* Save */}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
