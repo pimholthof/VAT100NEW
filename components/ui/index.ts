@@ -1,8 +1,8 @@
 export { Th, Td, TableWrapper } from "./Table";
 export { StatCard, SkeletonCard } from "./StatCard";
 export { DetailCell } from "./DetailCell";
-export { FieldGroup } from "./FieldGroup";
-export { ButtonPrimary, ButtonSecondary } from "./Button";
+export { FieldGroup, FieldError } from "./FieldGroup";
+export { ButtonPrimary, ButtonSecondary, Spinner } from "./Button";
 export {
   Input,
   Select,

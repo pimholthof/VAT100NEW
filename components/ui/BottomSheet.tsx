@@ -3,6 +3,8 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { m as motion, AnimatePresence, useDragControls, type PanInfo } from "framer-motion";
 
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+
 interface BottomSheetProps {
   open: boolean;
   onClose: () => void;
@@ -20,22 +22,16 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const controls = useDragControls();
   const sheetRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(sheetRef, open, { onEscape: onClose, initialFocus: "container" });
 
   useEffect(() => {
     if (!open) return;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
-    function handleEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleEscape);
-
     return () => {
       document.body.style.overflow = originalOverflow;
-      document.removeEventListener("keydown", handleEscape);
     };
-  }, [open, onClose]);
+  }, [open]);
 
   function handleDragEnd(_: unknown, info: PanInfo) {
     if (info.offset.y > 120 || info.velocity.y > 500) {
@@ -68,6 +64,7 @@ export function BottomSheet({
             role="dialog"
             aria-modal="true"
             aria-label={title}
+            tabIndex={-1}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -93,6 +90,7 @@ export function BottomSheet({
               display: "flex",
               flexDirection: "column",
               paddingBottom: "env(safe-area-inset-bottom)",
+              outline: "none",
             }}
           >
             <div

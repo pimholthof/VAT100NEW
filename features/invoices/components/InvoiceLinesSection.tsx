@@ -4,12 +4,14 @@ import { InvoiceLineRow } from "./InvoiceLineRow";
 import { playSound } from "@/lib/utils/sound";
 import type { InvoiceLineInput } from "@/lib/types";
 import { useLocale } from "@/lib/i18n/context";
+import { FieldError } from "@/components/ui";
 
 export function InvoiceLinesSection({
   lines,
   addLine,
   updateLine,
   removeLine,
+  error,
 }: {
   lines: InvoiceLineInput[];
   addLine: () => void;
@@ -19,11 +21,12 @@ export function InvoiceLinesSection({
     value: string | number
   ) => void;
   removeLine: (id: string) => void;
+  error?: string | null;
 }) {
   const { t } = useLocale();
   return (
     <div style={{ marginBottom: 80 }}>
-      <p className="label" style={{ opacity: 0.2, marginBottom: 24 }}>
+      <p className="label" style={{ marginBottom: 24 }}>
         {t.invoices.invoiceLines}
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -39,24 +42,15 @@ export function InvoiceLinesSection({
         ))}
         <button
           type="button"
+          className="btn-ghost"
           onClick={() => {
             addLine();
             playSound("tink");
           }}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 12,
-            textAlign: "left",
-            padding: "12px 0",
-            opacity: 0.2,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
         >
           {t.invoices.addLine}
         </button>
+        {error && <FieldError>{error}</FieldError>}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { m as motion } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
+import { FieldError } from "@/components/ui";
 import { ClientQuickCreate } from "./ClientQuickCreate";
 import { playSound } from "@/lib/utils/sound";
 
@@ -14,6 +15,7 @@ export function InvoiceRecipientSection({
   clientErrorMessage,
   showNewClient,
   setShowNewClient,
+  error,
 }: {
   clientId: string;
   setClientId: (id: string) => void;
@@ -23,11 +25,12 @@ export function InvoiceRecipientSection({
   clientErrorMessage: string;
   showNewClient: boolean;
   setShowNewClient: (show: boolean) => void;
+  error?: string | null;
 }) {
   const { t } = useLocale();
   return (
     <div style={{ marginBottom: 48 }}>
-      <p className="label" style={{ opacity: 0.2, marginBottom: 8 }}>
+      <p className="label" style={{ marginBottom: 8 }}>
         {t.invoices.recipientLabel}
       </p>
       <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
@@ -38,7 +41,10 @@ export function InvoiceRecipientSection({
             playSound("tink");
           }}
           autoFocus={!clientId}
+          required
           aria-label={t.invoices.recipientLabel}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "invoice-client-error" : undefined}
           className="form-input"
           style={{
             fontSize: 16,
@@ -66,23 +72,16 @@ export function InvoiceRecipientSection({
         </select>
         <button
           type="button"
+          className="btn-ghost"
           onClick={() => {
             setShowNewClient(!showNewClient);
             playSound("glass-ping");
-          }}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 12,
-            textTransform: "uppercase",
-            letterSpacing: "0.2em",
-            opacity: 0.3,
           }}
         >
           {showNewClient ? t.invoices.closeQuickCreate : t.invoices.openQuickCreate}
         </button>
       </div>
+      {error && <FieldError id="invoice-client-error">{error}</FieldError>}
       {showNewClient && (
         <motion.div
           initial={{ height: 0, opacity: 0 }}

@@ -6,7 +6,7 @@ export default function InvoiceNotFound() {
         <p style={text}>
           Deze link is ongeldig, verlopen, of de factuur is niet meer beschikbaar.
         </p>
-        <p style={{ ...text, marginTop: 24, opacity: 0.4 }}>
+        <p style={{ ...text, marginTop: 24, opacity: 0.55 }}>
           Neem contact op met de afzender als je denkt dat dit een vergissing is.
         </p>
       </div>
@@ -16,7 +16,7 @@ export default function InvoiceNotFound() {
 
 const wrapper: React.CSSProperties = {
   minHeight: "100vh",
-  backgroundColor: "#F5F5F5",
+  background: "var(--background)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -24,24 +24,30 @@ const wrapper: React.CSSProperties = {
 };
 
 const card: React.CSSProperties = {
-  backgroundColor: "#FFFFFF",
+  background: "rgba(255, 255, 255, 0.55)",
+  border: "var(--border-light)",
+  borderRadius: "var(--radius)",
+  boxShadow: "var(--edge-highlight), var(--shadow-md)",
   padding: "56px",
   maxWidth: "480px",
   textAlign: "center",
 };
 
 const heading: React.CSSProperties = {
-  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+  fontFamily: "inherit",
   fontSize: "24px",
-  fontWeight: 700,
-  color: "#0D0D0B",
+  fontWeight: 600,
+  letterSpacing: "-0.02em",
+  color: "var(--foreground)",
   margin: "0 0 12px",
 };
 
 const text: React.CSSProperties = {
-  fontFamily: "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+  fontFamily: "inherit",
   fontSize: "14px",
-  fontWeight: 300,
-  color: "rgba(13,13,11,0.6)",
+  fontWeight: 400,
+  color: "var(--foreground)",
+  opacity: 0.7,
   margin: 0,
+  lineHeight: 1.5,
 };

@@ -39,7 +39,7 @@ export function QuickActionMenu() {
           borderRadius: "var(--radius-sm)",
           cursor: "pointer",
           color: "var(--foreground)",
-          transition: "opacity 0.2s ease",
+          transition: "opacity var(--duration-quick) ease",
           opacity: open ? 1 : 0.5,
         }}
       >

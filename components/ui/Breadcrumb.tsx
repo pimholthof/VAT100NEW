@@ -83,7 +83,7 @@ export function Breadcrumb() {
                     color: "var(--foreground)",
                     textDecoration: "none",
                     opacity: 0.3,
-                    transition: "opacity 0.15s ease",
+                    transition: "opacity var(--duration-quick) ease",
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.7"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.3"; }}

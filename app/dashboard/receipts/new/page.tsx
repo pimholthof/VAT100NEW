@@ -18,7 +18,7 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
   textTransform: "uppercase",
   cursor: "pointer",
   opacity: active ? 1 : 0.35,
-  transition: "opacity 0.2s ease",
+  transition: "opacity var(--duration-quick) ease",
 });
 
 export default function NewReceiptPage() {

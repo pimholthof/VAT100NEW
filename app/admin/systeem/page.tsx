@@ -67,9 +67,9 @@ function SettingRow({
         <button
           onClick={() => onUpdate(settingKey, !boolValue)}
           disabled={isUpdating}
-          style={{ width: 48, height: 28, borderRadius: 14, border: "none", cursor: "pointer", background: boolValue ? "#000" : "rgba(0,0,0,0.1)", position: "relative", transition: "background 0.2s" }}
+          style={{ width: 48, height: 28, borderRadius: 14, border: "none", cursor: "pointer", background: boolValue ? "var(--foreground)" : "rgba(0,0,0,0.1)", position: "relative", transition: "background var(--duration-quick)" }}
         >
-          <span style={{ position: "absolute", top: 3, left: boolValue ? 23 : 3, width: 22, height: 22, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+          <span style={{ position: "absolute", top: 3, left: boolValue ? 23 : 3, width: 22, height: 22, borderRadius: "50%", background: "var(--background)", transition: "left var(--duration-quick)" }} />
         </button>
       </div>
     );

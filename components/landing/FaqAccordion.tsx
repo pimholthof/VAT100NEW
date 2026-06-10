@@ -43,7 +43,7 @@ export default function FaqAccordion({ faqs }: { faqs: FaqItem[] }) {
               style={{
                 fontSize: 18,
                 opacity: 0.3,
-                transition: "transform 0.2s ease",
+                transition: "transform var(--duration-quick) ease",
                 transform: openFaq === i ? "rotate(45deg)" : "rotate(0deg)",
                 flexShrink: 0,
               }}
@@ -55,7 +55,7 @@ export default function FaqAccordion({ faqs }: { faqs: FaqItem[] }) {
             style={{
               maxHeight: openFaq === i ? 200 : 0,
               overflow: "hidden",
-              transition: "max-height 0.3s ease",
+              transition: "max-height var(--duration-moderate) ease",
             }}
           >
             <p

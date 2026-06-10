@@ -164,7 +164,7 @@ export default function AbonnementSettingsPage() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     marginBottom: 8,
-                    transition: "background 0.15s ease",
+                    transition: "background var(--duration-quick) ease",
                   }}
                 >
                   <span style={{ fontWeight: 500 }}>{plan.name}</span>

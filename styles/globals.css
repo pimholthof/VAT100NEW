@@ -252,9 +252,15 @@ button {
   transition: opacity var(--duration-instant) var(--ease-out-expo);
 }
 
+/* Disabled settles into the paper but stays readable; busy stays near-full under the spinner */
 button:disabled {
-  opacity: 0.2;
-  cursor: default;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button[aria-busy="true"] {
+  opacity: 0.8;
+  cursor: progress;
 }
 
 .table-action:hover:not(:disabled),
@@ -448,9 +454,23 @@ a {
   font-size: var(--text-body-lg);
   font-weight: 500;
   line-height: 1.5;
-  opacity: var(--opacity-tertiary);
+  opacity: 0.65;
   padding: var(--space-2xl) 0;
   text-align: center;
+}
+
+.empty-state-link {
+  font-size: var(--text-body-sm);
+  color: var(--foreground);
+  text-decoration: none;
+  border-bottom: var(--border-light);
+  padding-bottom: 1px;
+  opacity: 0.65;
+  transition: opacity var(--duration-instant) ease;
+}
+
+.empty-state-link:hover {
+  opacity: 1;
 }
 
 /* ─── Brutalist Report Page ─── */
@@ -1956,9 +1976,14 @@ a {
   white-space: nowrap;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: var(--edge-highlight-ink), var(--shadow-md);
+}
+
+.btn-primary:disabled {
+  box-shadow: none;
+  transform: none;
 }
 
 .btn-primary:active:not(:disabled) {
@@ -1985,7 +2010,7 @@ a {
   white-space: nowrap;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   border-color: rgba(0, 0, 0, 0.3);
   background: rgba(255, 255, 255, 0.5);
   transform: translateY(-1px);
@@ -1995,6 +2020,40 @@ a {
 .btn-secondary:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: none;
+}
+
+.btn-secondary:disabled {
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: none;
+  transform: none;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  min-height: 44px;
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--foreground);
+  opacity: 0.45;
+  cursor: pointer;
+  transition: opacity var(--duration-quick) var(--ease-out-expo);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.btn-ghost:focus-visible {
+  opacity: 0.85;
+  outline: 1.5px solid var(--color-black);
+  outline-offset: 4px;
 }
 
 /* ─── Form Elements ─── */
@@ -2430,8 +2489,8 @@ a {
   }
 
   .invoice-line-grid {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .responsive-grid-3 {
@@ -2677,6 +2736,21 @@ a {
 
   .invoice-edit-layout__preview {
     display: block;
+  }
+}
+
+/* ─── Invoice Line Grid ─── */
+.invoice-line-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px 140px 100px;
+  gap: 24px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .invoice-line-grid {
+    grid-template-columns: minmax(0, 1fr) 72px 110px 90px;
+    gap: 16px;
   }
 }
 

@@ -139,7 +139,7 @@ export function DashboardNav({
                 borderRadius: "var(--radius-sm)",
                 cursor: "pointer",
                 padding: "4px 8px",
-                transition: "opacity 0.2s ease",
+                transition: "opacity var(--duration-quick) ease",
                 color: "var(--foreground)",
                 fontWeight: 600,
                 opacity: 0.5,
@@ -161,7 +161,7 @@ export function DashboardNav({
                 border: "none",
                 cursor: "pointer",
                 padding: "4px 0",
-                transition: "opacity 0.2s ease",
+                transition: "opacity var(--duration-quick) ease",
                 color: "var(--foreground)",
                 fontWeight: 700
               }}

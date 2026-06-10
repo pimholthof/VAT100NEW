@@ -6,11 +6,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getBtwOverview, getTaxProjection } from "@/features/tax/actions";
 import { getDashboardData } from "@/features/dashboard/actions";
 import { getTaxPaymentsSummary, getTaxPayments, createTaxPayment, deleteTaxPayment } from "@/features/tax/payments-actions";
-import { getVatReturns, generateVatReturn, lockVatReturn, submitVatReturn } from "@/features/tax/vat-returns-actions";
 import { getICPReport, type ICPEntry } from "@/features/tax/icp-actions";
 import type { QuarterStats } from "@/features/tax/actions";
 import type { DepreciationRow } from "@/lib/tax/dutch-tax-2026";
-import type { TaxPaymentType, VatReturn } from "@/lib/types";
+import type { TaxPaymentType } from "@/lib/types";
 import type { VoorlopigeAanslagAdvies } from "@/lib/tax/voorlopige-aanslag";
 import { SkeletonCard, SkeletonTable, Th, Td, ConfirmDialog } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -64,9 +63,14 @@ export default function TaxContent() {
           <p className="label" style={{ margin: "0 0 8px" }}>Fiscaal overzicht {now.getFullYear()}</p>
           <h1 className="display-title">Belasting</h1>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <a href="/api/export/btw" download className="btn-secondary">Download lijst</a>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <a href="/api/export/btw" download className="btn-ghost">Download lijst</a>
           <a href="/dashboard/tax/opening-balance" className="btn-secondary">Openingsbalans</a>
+          {vatDeadline && (
+            <a href="#btw-zone" className="btn-primary">
+              BTW-aangifte {vatDeadline.quarter} — nog {vatDeadline.daysRemaining} dagen
+            </a>
+          )}
         </div>
       </div>
 
@@ -146,21 +150,10 @@ export default function TaxContent() {
             type="button"
             onClick={() => setShowBreakdown((v) => !v)}
             aria-expanded={showBreakdown}
-            className="label"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "4px 0",
-              color: "var(--foreground)",
-              opacity: 0.55,
-            }}
+            className="btn-ghost"
           >
             {showBreakdown ? "Verberg berekening" : "Toon berekening"}
-            <span style={{ display: "inline-block", transition: "transform 0.2s ease", transform: showBreakdown ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+            <span style={{ display: "inline-block", transition: "transform var(--duration-quick) var(--ease-out-expo)", transform: showBreakdown ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
           </button>
           <p style={{ fontSize: "var(--text-body-xs)", opacity: 0.35, margin: 0 }}>
             Indicatie op basis van de tarieven {TAX_CONSTANTS.year}. Geen belastingadvies.
@@ -555,8 +548,9 @@ function BtwPayBlock({ quarterLabel, amount }: { quarterLabel: string; amount: n
           type="button"
           onClick={() => mutation.mutate()}
           disabled={mutation.isPending}
+          aria-busy={mutation.isPending || undefined}
           className="btn-primary"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: mutation.isPending ? 0.5 : 1 }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
         >
           {mutation.isPending ? "Opslaan…" : "Markeer als betaald"}
         </button>
@@ -640,201 +634,6 @@ function BreakdownTotal({ label, value, highlight }: { label: string; value: num
       >
         {formatCurrency(Math.round(value))}
       </span>
-    </div>
-  );
-}
-
-// ─── BTW Aangifte Section (Fiscus-proof) ───
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function BtwAangifteSection({ year }: { year: number }) {
-  const queryClient = useQueryClient();
-  const [preparingQ, setPreparingQ] = useState<number | null>(null);
-
-  const { data: returnsResult, isLoading } = useQuery({
-    queryKey: ["vat-returns"],
-    queryFn: () => getVatReturns(),
-  });
-
-  const generateMutation = useMutation({
-    mutationFn: (quarter: number) => generateVatReturn(year, quarter),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vat-returns"] });
-      setPreparingQ(null);
-    },
-  });
-
-  const lockMutation = useMutation({
-    mutationFn: (id: string) => lockVatReturn(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vat-returns"] });
-    },
-  });
-
-  const submitMutation = useMutation({
-    mutationFn: (id: string) => submitVatReturn(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vat-returns"] });
-    },
-  });
-
-  const returns = (returnsResult?.data ?? []).filter((r) => r.year === year);
-
-  const statusLabel = (status: string) => {
-    switch (status) {
-      case "draft": return "Concept";
-      case "locked": return "Vergrendeld";
-      case "submitted": return "Ingediend";
-      default: return status;
-    }
-  };
-
-  return (
-    <div style={{
-      borderTop: "0.5px solid rgba(13,13,11,0.08)",
-      paddingTop: "var(--space-section)",
-      marginTop: "var(--space-section)",
-    }}>
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "baseline",
-        flexWrap: "wrap",
-        gap: 8,
-        margin: "0 0 24px",
-      }}>
-        <h2 className="section-header" style={{ margin: 0 }}>BTW Aangiftes</h2>
-        <div style={{ display: "flex", gap: 8 }}>
-          {[1, 2, 3, 4].map((q) => {
-            const existing = returns.find((r) => r.quarter === q);
-            if (existing && existing.status !== "draft") return null;
-            return (
-              <button
-                key={q}
-                onClick={() => { setPreparingQ(q); generateMutation.mutate(q); }}
-                disabled={generateMutation.isPending}
-                className="label-strong"
-                style={{
-                  padding: "12px 20px",
-                  border: "1px solid var(--color-black)",
-                  borderRadius: 9999,
-                  background: "transparent",
-                  cursor: "pointer",
-                  fontSize: 10,
-                  letterSpacing: "0.15em",
-                  textTransform: "uppercase",
-                  opacity: generateMutation.isPending && preparingQ === q ? 0.5 : 1,
-                }}
-              >
-                {generateMutation.isPending && preparingQ === q ? "Laden..." : existing ? `Q${q} herberekenen` : `Q${q} voorbereiden`}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <SkeletonTable columns="1fr 1fr 1fr 1fr 1fr 1fr 1fr" rows={4} headerWidths={[50, 60, 60, 60, 60, 60, 60]} bodyWidths={[40, 50, 50, 50, 50, 50, 50]} />
-      ) : returns.length > 0 ? (
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
-          <thead>
-            <tr style={{ borderBottom: "0.5px solid rgba(13,13,11,0.15)", textAlign: "left" }}>
-              <Th>Kwartaal</Th>
-              <Th style={{ textAlign: "right" }}>1a (21%)</Th>
-              <Th style={{ textAlign: "right" }}>1b (9%)</Th>
-              <Th style={{ textAlign: "right" }}>1c (0%)</Th>
-              <Th style={{ textAlign: "right" }}>2a ICP</Th>
-              <Th style={{ textAlign: "right" }}>3b EU</Th>
-              <Th style={{ textAlign: "right" }}>4b Export</Th>
-              <Th style={{ textAlign: "right" }}>5b Voorb.</Th>
-              <Th style={{ textAlign: "right" }}>Saldo</Th>
-              <Th>Status</Th>
-              <Th style={{ textAlign: "right" }}>Actie</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {returns.map((r: VatReturn) => {
-              const totalBtw = r.rubriek_1a_btw + r.rubriek_1b_btw + r.rubriek_1c_btw;
-              const saldo = totalBtw - r.rubriek_5b;
-              return (
-                <tr key={r.id} style={{ borderBottom: "0.5px solid rgba(13,13,11,0.06)" }}>
-                  <Td><span className="mono-amount">Q{r.quarter} {r.year}</span></Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.rubriek_1a_btw)}</span></Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.rubriek_1b_btw)}</span></Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount" style={{ opacity: r.rubriek_1c_omzet ? 1 : 0.2 }}>{formatCurrency(r.rubriek_1c_btw)}</span></Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount" style={{ opacity: r.rubriek_2a_omzet ? 1 : 0.2 }}>{formatCurrency(r.rubriek_2a_omzet)}</span></Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount" style={{ opacity: r.rubriek_3b_omzet ? 1 : 0.2 }}>{formatCurrency(r.rubriek_3b_omzet)}</span></Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount" style={{ opacity: r.rubriek_4b_omzet ? 1 : 0.2 }}>{formatCurrency(r.rubriek_4b_omzet)}</span></Td>
-                  <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(r.rubriek_5b)}</span></Td>
-                  <Td style={{ textAlign: "right" }}>
-                    <span className="mono-amount" style={{ fontWeight: 600 }}>
-                      {formatCurrency(saldo)}
-                    </span>
-                  </Td>
-                  <Td>
-                    <span className="label" style={{
-                      opacity: 1,
-                      color: r.status === "submitted" ? "green" : r.status === "locked" ? "var(--foreground)" : "inherit",
-                    }}>
-                      {statusLabel(r.status)}
-                    </span>
-                    {r.submitted_at && (
-                      <span style={{ display: "block", fontSize: "var(--text-body-xs)", opacity: 0.4 }}>
-                        {formatDate(r.submitted_at)}
-                      </span>
-                    )}
-                  </Td>
-                  <Td style={{ textAlign: "right" }}>
-                    {r.status === "draft" && (
-                      <button
-                        onClick={() => lockMutation.mutate(r.id)}
-                        disabled={lockMutation.isPending}
-                        className="label-strong"
-                        style={{
-                          padding: "10px 20px",
-                          border: "1px solid var(--color-black)",
-                          borderRadius: 9999,
-                          background: "var(--foreground)",
-                          color: "var(--background)",
-                          cursor: "pointer",
-                          fontSize: 10,
-                          letterSpacing: "0.15em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Vergrendelen
-                      </button>
-                    )}
-                    {r.status === "locked" && (
-                      <button
-                        onClick={() => submitMutation.mutate(r.id)}
-                        disabled={submitMutation.isPending}
-                        className="table-action"
-                        style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5, fontSize: 11 }}
-                      >
-                        Markeer ingediend
-                      </button>
-                    )}
-                    {r.status === "submitted" && (
-                      <a
-                        href={`/dashboard/tax/suppletie?returnId=${r.id}&year=${r.year}&quarter=${r.quarter}`}
-                        className="table-action"
-                        style={{ fontSize: 11, opacity: 0.5 }}
-                      >
-                        Suppletie
-                      </a>
-                    )}
-                  </Td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      ) : (
-        <p className="empty-state" style={{ marginBottom: 24 }}>
-          Nog geen BTW aangiftes. Bereid een kwartaal voor om te beginnen.
-        </p>
-      )}
     </div>
   );
 }
@@ -1223,11 +1022,11 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
             <button
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !formAmount}
+              aria-busy={createMutation.isPending || undefined}
               className="btn-primary"
               style={{
                 height: 48,
                 boxSizing: "border-box",
-                opacity: createMutation.isPending || !formAmount ? 0.4 : 1,
               }}
             >
               {createMutation.isPending ? "Opslaan..." : "Opslaan"}

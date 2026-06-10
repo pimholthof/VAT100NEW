@@ -34,6 +34,7 @@ export function EmptyState({
     >
       {icon && (
         <span
+          aria-hidden="true"
           style={{
             fontSize: 32,
             opacity: 0.12,
@@ -48,7 +49,6 @@ export function EmptyState({
         style={{
           fontSize: "var(--text-body-lg)",
           fontWeight: 500,
-          opacity: 0.4,
           margin: 0,
           maxWidth: 320,
           lineHeight: 1.4,
@@ -60,7 +60,7 @@ export function EmptyState({
         <p
           style={{
             fontSize: "var(--text-body-sm)",
-            opacity: 0.25,
+            opacity: 0.65,
             margin: "8px 0 0",
             maxWidth: 280,
             lineHeight: 1.5,
@@ -81,15 +81,8 @@ export function EmptyState({
       {secondaryLabel && secondaryHref && (
         <Link
           href={secondaryHref}
-          style={{
-            marginTop: 14,
-            fontSize: "var(--text-body-sm)",
-            opacity: 0.5,
-            color: "var(--foreground)",
-            textDecoration: "none",
-            borderBottom: "var(--border-light)",
-            paddingBottom: 1,
-          }}
+          className="empty-state-link"
+          style={{ marginTop: 14 }}
         >
           {secondaryLabel}
         </Link>

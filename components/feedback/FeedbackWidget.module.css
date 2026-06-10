@@ -13,7 +13,7 @@
   border-radius: 999px;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.16);
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform var(--duration-quick) ease, opacity var(--duration-quick) ease;
 }
 
 .fab:hover {
@@ -67,7 +67,7 @@
   background: transparent;
   border: 0.5px solid rgba(0, 0, 0, 0.1);
   border-radius: 10px;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color var(--duration-quick) ease, background var(--duration-quick) ease;
 }
 
 .sentimentActive {
