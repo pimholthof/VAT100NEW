@@ -38,7 +38,9 @@ export function InvoiceTruthPanel() {
         vatAmount: totals.vatAmount,
         profile: {
           estimatedAnnualIncome: profile?.estimated_annual_income ?? null,
-          meetsUrencriterium: profile?.meets_urencriterium ?? false,
+          // Default true: gelijk aan de rekenkern en de server-call-sites,
+          // zodat het paneel vóór het laden van het profiel niet verspringt.
+          meetsUrencriterium: profile?.meets_urencriterium ?? true,
           usesKor: profile?.uses_kor ?? false,
         },
       }),

@@ -220,10 +220,11 @@ export function calculateArbeidskorting(arbeidsinkomen: number): number {
 /**
  * Berekent de inkomensafhankelijke bijdrage Zvw 2026 voor een IB-ondernemer.
  *
- * Grondslag is het bijdrage-inkomen (≈ de belastbare winst), gemaximeerd op
+ * Grondslag is het bijdrage-inkomen: de belastbare winst ná ondernemersaftrek
+ * en MKB-winstvrijstelling (zie docs/fiscal-constants-2026.md), gemaximeerd op
  * €79.409. Tarief 4,85%. Heffingskortingen zijn hier niet van toepassing.
  *
- * @param bijdrageInkomen Belastbare winst (≈ `belastbaarInkomen`) in euro's.
+ * @param bijdrageInkomen Bijdrage-inkomen (`belastbaarInkomen`) in euro's.
  * @returns Zvw-bijdrage in euro's (≥ 0), afgerond op 2 decimalen.
  */
 export function calculateZvwBijdrage(bijdrageInkomen: number): number {
@@ -448,6 +449,8 @@ function generateBespaartips(
  * @param input.maandenVerstreken Aantal maanden van het boekjaar dat al is
  *   verstreken (1-12). Gebruikt voor lineaire extrapolatie.
  * @param input.huidigJaar Optioneel kalenderjaar; default = huidig jaar.
+ * @param input.meetsUrencriterium Voldoet aan het urencriterium (≥ 1.225 uur).
+ *   Default `true`; bij `false` vervalt de zelfstandigenaftrek.
  * @returns Volledige {@link TaxProjection} inclusief bespaartips.
  */
 export function calculateZZPTaxProjection(input: {
@@ -457,10 +460,12 @@ export function calculateZZPTaxProjection(input: {
   maandenVerstreken: number;
   huidigJaar?: number;
   kilometerAftrek?: number; // €0,23/km deduction from trips
+  meetsUrencriterium?: boolean;
 }): TaxProjection {
   const { jaarOmzetExBtw, jaarKostenExBtw, investeringen, maandenVerstreken } =
     input;
   const huidigJaar = input.huidigJaar ?? new Date().getFullYear();
+  const meetsUrencriterium = input.meetsUrencriterium ?? true;
 
   // Afschrijvingen berekenen
   const afschrijvingDetails: DepreciationRow[] = [];
@@ -509,11 +514,13 @@ export function calculateZZPTaxProjection(input: {
 
   // Volgorde conform IB-winstberekening:
   //  1. investeringsaftrek (KIA) verlaagt de winst
-  //  2. ondernemersaftrek (zelfstandigenaftrek)
+  //  2. ondernemersaftrek (zelfstandigenaftrek — alleen bij urencriterium)
   //  3. MKB-winstvrijstelling over het bedrag ná ondernemersaftrek
   const kia = calculateKIA(totalInvestments);
   const winstNaKia = Math.max(0, brutoWinst - kia);
-  const zelfstandigenaftrek = Math.min(ZELFSTANDIGENAFTREK, winstNaKia);
+  const zelfstandigenaftrek = meetsUrencriterium
+    ? Math.min(ZELFSTANDIGENAFTREK, winstNaKia)
+    : 0;
   const winstNaAftrek = Math.max(0, winstNaKia - zelfstandigenaftrek);
   const mkbVrijstelling = round2(winstNaAftrek * MKB_VRIJSTELLING_RATE);
 
@@ -553,7 +560,9 @@ export function calculateZZPTaxProjection(input: {
   );
   const prognoseKIA = calculateKIA(totalInvestments); // KIA is niet geannualiseerd
   const prognoseNaKia = Math.max(0, prognoseWinst - prognoseKIA);
-  const prognoseZA = Math.min(ZELFSTANDIGENAFTREK, prognoseNaKia);
+  const prognoseZA = meetsUrencriterium
+    ? Math.min(ZELFSTANDIGENAFTREK, prognoseNaKia)
+    : 0;
   const prognoseNaAftrek = Math.max(0, prognoseNaKia - prognoseZA);
   const prognoseMKB = round2(prognoseNaAftrek * MKB_VRIJSTELLING_RATE);
   const prognoseBelastbaar = round2(Math.max(0, prognoseNaAftrek - prognoseMKB));

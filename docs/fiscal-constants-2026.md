@@ -36,6 +36,14 @@ MKB-winstvrijstelling) is bevestigd: de MKB-vrijstelling wordt berekend over de
 winst ná de ondernemersaftrek. Dit is per 2026-06-02 in de code gecorrigeerd
 (de KIA werd voorheen ná de MKB-vrijstelling toegepast).
 
+De **belastingrente IB** (`BELASTINGRENTE_PERCENTAGE_2026` in
+`lib/tax/voorlopige-aanslag.ts`) staat op **6,5%** en loopt vanaf **1 juli ná
+het belastingjaar** over wat dan nog niet via (voorlopige) aanslag is voldaan.
+Het percentage wordt per halfjaar vastgesteld; het advies in de app is bewust
+indicatief geformuleerd ("zo'n … per maand"). Controleer het actuele
+percentage bij wijziging van de wettelijke rente (bron: belastingdienst.nl,
+"belastingrente").
+
 ## ⚠️ Te bevestigen door fiscalist (kleine afwijkingen)
 
 | Constante | Code | Secundaire bron | Verschil |

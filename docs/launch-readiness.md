@@ -1,7 +1,7 @@
 # VAT100 — Launch readiness (bèta)
 
 Single source of truth voor de status richting de gratis bèta-lancering.
-Bijgewerkt: 2026-06-03.
+Bijgewerkt: 2026-06-10.
 
 ## Gereed (op de bèta-branch)
 
@@ -27,8 +27,18 @@ Bijgewerkt: 2026-06-03.
   security-headers (HSTS, X-Frame-Options, nosniff, frame-ancestors).
 
 **Kwaliteit**
-- `npm run build`, typecheck, lint groen; 405 unit tests groen; CI-gate actief.
+- `npm run build`, typecheck, lint groen; 552 unit tests groen; CI-gate actief
+  (incl. niet-blokkerende `npm audit`-stap).
 - Mobiel geverifieerd (landing/register/login op 390px).
+
+**Segment-scherpte 30k–85k (juni 2026)**
+- Urencriterium stuurt de zelfstandigenaftrek door de hele rekenkern
+  (projectie, reserve, jaarrekening, betalingen, waarheid-paneel);
+  `profiles.meets_urencriterium` is niet langer een dode vlag.
+- Suppletie-drempelhint: verschil ≤ € 1.000 mag in de eerstvolgende
+  btw-aangifte — de suppletiepagina zegt dit nu zelf.
+- Laatste design-restanten (brutalist/hardcoded kleuren) omgezet naar het
+  token-vocabulaire; abonnementslabels gelijk aan de `plans`-tabel.
 
 **Minimalisatie (juni 2026)**
 - Expliciete AI verwijderd (assistent/chat/quota/managed-agent in de UI);

@@ -301,7 +301,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       0,
     );
     const huidigJaar = now.getFullYear();
-    const [kostenRes, investRes] = await Promise.all([
+    const [kostenRes, investRes, profileRes] = await Promise.all([
       supabase
         .from("receipts")
         .select("amount_ex_vat, amount_inc_vat, vat_amount, vat_rate")
@@ -316,6 +316,12 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
         .eq("cost_code", 4230)
         .not("amount_ex_vat", "is", null)
         .not("receipt_date", "is", null),
+      // Urencriterium bepaalt de zelfstandigenaftrek in de IB-reservering
+      supabase
+        .from("profiles")
+        .select("meets_urencriterium")
+        .eq("id", user.id)
+        .single(),
     ]);
     const jaarKostenExBtw = (kostenRes.data ?? []).reduce(
       (sum, rec) => sum + receiptCostExVat(rec),
@@ -337,6 +343,7 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       maandenVerstreken: now.getMonth() + 1,
       outputVat,
       inputVat,
+      meetsUrencriterium: profileRes.data?.meets_urencriterium ?? true,
     });
   }
 

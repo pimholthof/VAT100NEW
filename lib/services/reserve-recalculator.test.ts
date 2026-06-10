@@ -12,6 +12,18 @@ vi.mock("@/lib/supabase/service", () => ({
       if (table === "reserve_snapshots") {
         return { insert: mockInsert };
       }
+      if (table === "profiles") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: { meets_urencriterium: true },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
       // receipts table queries
       return {
         select: mockSelect.mockReturnValue({

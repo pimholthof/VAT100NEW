@@ -217,7 +217,7 @@ export async function getJaarrekeningData(
     supabase
       .from("profiles")
       .select(
-        "full_name, studio_name, kvk_number, btw_number, address, city, postal_code, iban",
+        "full_name, studio_name, kvk_number, btw_number, address, city, postal_code, iban, meets_urencriterium",
       )
       .eq("id", user.id)
       .single(),
@@ -296,6 +296,7 @@ export async function getJaarrekeningData(
     investeringen,
     maandenVerstreken: year < currentYear ? 12 : new Date().getMonth() + 1,
     huidigJaar: year,
+    meetsUrencriterium: profile.meets_urencriterium ?? true,
   });
 
   // ─── BTW per kwartaal ───

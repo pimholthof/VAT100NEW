@@ -38,7 +38,7 @@ export const DEFAULT_ASSUMED_ANNUAL_REVENUE = 40_000;
 export interface FiscalProfileInput {
   /** Geschat jaarinkomen (omzet ex. BTW) uit het profiel. */
   estimatedAnnualIncome: number | null;
-  /** Voldoet aan het urencriterium (≥ 1.225 uur) — voor toekomstig gebruik. */
+  /** Voldoet aan het urencriterium (≥ 1.225 uur) — bepaalt de zelfstandigenaftrek. */
   meetsUrencriterium?: boolean;
   /** Gebruikt de kleineondernemersregeling (KOR) — dan geen BTW-afdracht. */
   usesKor?: boolean;
@@ -70,13 +70,17 @@ export interface InvoiceTruth {
  * precies dit omzetniveau krijgen. We nemen de Zvw mee zodat de IB-reservering
  * per factuur klopt met "wat je werkelijk voor de Belastingdienst opzij houdt".
  */
-function heffingAtRevenue(annualRevenueExBtw: number): number {
+function heffingAtRevenue(
+  annualRevenueExBtw: number,
+  meetsUrencriterium: boolean,
+): number {
   if (annualRevenueExBtw <= 0) return 0;
   return calculateZZPTaxProjection({
     jaarOmzetExBtw: annualRevenueExBtw,
     jaarKostenExBtw: 0,
     investeringen: [],
     maandenVerstreken: 12,
+    meetsUrencriterium,
   }).totaleHeffing;
 }
 
@@ -88,15 +92,20 @@ function heffingAtRevenue(annualRevenueExBtw: number): number {
  *
  * @param netAmount Extra netto-omzet (ex. BTW) van deze factuur.
  * @param baseAnnualRevenue Basis-jaaromzet waarop de factuur bovenop komt.
+ * @param meetsUrencriterium Voldoet aan het urencriterium (default `true`).
  * @returns Marginale IB in euro's (≥ 0), afgerond op 2 decimalen.
  */
 export function estimateMarginalIncomeTax(
   netAmount: number,
   baseAnnualRevenue: number,
+  meetsUrencriterium = true,
 ): number {
   if (netAmount <= 0) return 0;
-  const withInvoice = heffingAtRevenue(baseAnnualRevenue + netAmount);
-  const without = heffingAtRevenue(baseAnnualRevenue);
+  const withInvoice = heffingAtRevenue(
+    baseAnnualRevenue + netAmount,
+    meetsUrencriterium,
+  );
+  const without = heffingAtRevenue(baseAnnualRevenue, meetsUrencriterium);
   return Math.max(0, roundMoney(withInvoice - without));
 }
 
@@ -128,7 +137,11 @@ export function calculateInvoiceTruth(input: {
     ? (input.profile.estimatedAnnualIncome as number)
     : DEFAULT_ASSUMED_ANNUAL_REVENUE;
 
-  const incomeTaxReserve = estimateMarginalIncomeTax(net, baseRevenue);
+  const incomeTaxReserve = estimateMarginalIncomeTax(
+    net,
+    baseRevenue,
+    input.profile.meetsUrencriterium ?? true,
+  );
   const yours = roundMoney(net - incomeTaxReserve);
   const marginalRate = net > 0 ? incomeTaxReserve / net : 0;
 

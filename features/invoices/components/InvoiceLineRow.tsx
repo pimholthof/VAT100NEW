@@ -93,6 +93,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         </div>
         <button
           type="button"
+          aria-label="Regel verwijderen"
           onClick={() => {
             onRemove(line.id);
             playSound("tink");

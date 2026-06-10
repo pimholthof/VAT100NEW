@@ -3,6 +3,10 @@
 import { requireAuth } from "@/lib/supabase/server";
 import type { ActionResult, TaxPayment, TaxPaymentInput } from "@/lib/types";
 import { taxPaymentSchema, uuidSchema, validate } from "@/lib/validation";
+import {
+  adviseerVoorlopigeAanslag,
+  type VoorlopigeAanslagAdvies,
+} from "@/lib/tax/voorlopige-aanslag";
 
 export async function getTaxPayments(
   year?: number,
@@ -111,6 +115,8 @@ export interface TaxPaymentsSummary {
   verschilIB: number;
   verschilBTW: number;
   betalingen: TaxPayment[];
+  /** Beslishulp voorlopige aanslag, op basis van de totale heffing (IB + Zvw). */
+  vaAdvies: VoorlopigeAanslagAdvies;
 }
 
 export async function getTaxPaymentsSummary(
@@ -143,7 +149,7 @@ export async function getTaxPaymentsSummary(
   const yearStart = `${year}-01-01`;
   const yearEnd = `${year}-12-31`;
 
-  const [invoicesRes, receiptsRes] = await Promise.all([
+  const [invoicesRes, receiptsRes, profileRes] = await Promise.all([
     supabase
       .from("invoices")
       .select("subtotal_ex_vat, vat_amount")
@@ -158,6 +164,12 @@ export async function getTaxPaymentsSummary(
       .gte("receipt_date", yearStart)
       .lte("receipt_date", yearEnd)
       .is("archived_at", null),
+    // Urencriterium bepaalt de zelfstandigenaftrek in de IB-schatting
+    supabase
+      .from("profiles")
+      .select("meets_urencriterium")
+      .eq("id", user.id)
+      .single(),
   ]);
 
   const outputVat = (invoicesRes.data ?? []).reduce(
@@ -185,9 +197,19 @@ export async function getTaxPaymentsSummary(
     investeringen: [],
     maandenVerstreken: maanden,
     huidigJaar: year,
+    meetsUrencriterium: profileRes.data?.meets_urencriterium ?? true,
   });
 
   const geschatteIB = Math.max(0, Math.round(projection.nettoIB * 100) / 100);
+
+  // De voorlopige aanslag omvat IB én Zvw — daarom totaleHeffing, niet nettoIB.
+  const vaAdvies = adviseerVoorlopigeAanslag({
+    verwachteHeffing: projection.totaleHeffing,
+    vaBetaald: ibBetaald,
+    jaar: year,
+    huidigJaar: now.getFullYear(),
+    huidigeMaandIndex: now.getMonth(),
+  });
 
   return {
     error: null,
@@ -199,6 +221,7 @@ export async function getTaxPaymentsSummary(
       verschilIB: Math.round((geschatteIB - ibBetaald) * 100) / 100,
       verschilBTW: Math.round((geschatteBTW - btwBetaald) * 100) / 100,
       betalingen,
+      vaAdvies,
     },
   };
 }

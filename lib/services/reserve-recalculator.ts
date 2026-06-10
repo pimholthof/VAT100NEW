@@ -49,8 +49,8 @@ export async function recalculateReserves(
     const yearEnd = `${huidigJaar}-12-31`;
     const maandenVerstreken = now.getMonth() + 1;
 
-    // Haal werkelijke kosten en investeringen op (parallel)
-    const [regularReceiptsRes, investmentReceiptsRes] = await Promise.all([
+    // Haal werkelijke kosten, investeringen en profiel op (parallel)
+    const [regularReceiptsRes, investmentReceiptsRes, profileRes] = await Promise.all([
       supabase
         .from("receipts")
         .select("amount_ex_vat, amount_inc_vat, vat_amount, vat_rate")
@@ -65,6 +65,12 @@ export async function recalculateReserves(
         .eq("cost_code", 4230)
         .not("amount_ex_vat", "is", null)
         .not("receipt_date", "is", null),
+      // Urencriterium bepaalt de zelfstandigenaftrek in de IB-reservering
+      supabase
+        .from("profiles")
+        .select("meets_urencriterium")
+        .eq("id", userId)
+        .single(),
     ]);
 
     const jaarKostenExBtw = (regularReceiptsRes.data ?? []).reduce(
@@ -92,6 +98,7 @@ export async function recalculateReserves(
       maandenVerstreken,
       outputVat,
       inputVat,
+      meetsUrencriterium: profileRes.data?.meets_urencriterium ?? true,
     });
 
     // 4. Schrijf snapshot
