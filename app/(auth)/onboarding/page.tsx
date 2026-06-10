@@ -505,7 +505,7 @@ export default function OnboardingPage() {
                   style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: "4px 0", color: "var(--foreground)", opacity: 0.55, alignSelf: "flex-start" }}
                 >
                   Geavanceerd
-                  <span style={{ display: "inline-block", transition: "transform 0.2s ease", transform: showAdvancedFiscal ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+                  <span style={{ display: "inline-block", transition: "transform var(--duration-quick) ease", transform: showAdvancedFiscal ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
                 </button>
 
                 {showAdvancedFiscal && (

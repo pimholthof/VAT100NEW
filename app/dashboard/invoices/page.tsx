@@ -9,44 +9,26 @@ import { getQuotes, deleteQuote, updateQuoteStatus, type QuoteWithClient } from 
 import type { InvoiceStatus, QuoteStatus } from "@/lib/types";
 import { RecurringInvoiceList } from "@/features/invoices/components/RecurringInvoiceList";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog, useToast, EmptyState, StatusBadge } from "@/components/ui";
+import { Th, Td, SearchFilter, TableWrapper, ConfirmDialog, useToast, EmptyState, StatusBadge, Tabs, useTabState } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
-
-const tabStyle = (active: boolean): React.CSSProperties => ({
-  background: "none",
-  border: "none",
-  borderBottom: active ? "1.5px solid var(--foreground)" : "1.5px solid transparent",
-  padding: "0 0 12px 0",
-  fontSize: 14,
-  fontWeight: active ? 600 : 400,
-  color: "var(--foreground)",
-  opacity: active ? 1 : 0.4,
-  cursor: "pointer",
-  letterSpacing: "-0.01em",
-  transition: "opacity 0.2s ease",
-});
 
 export default function InvoicesPage() {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab");
-  const initialTab = tabParam === "offertes" ? "offertes" : tabParam === "terugkerend" ? "terugkerend" : "facturen";
-  const [activeTab, setActiveTab] = useState<"facturen" | "offertes" | "terugkerend">(initialTab);
+  const [tabParam, setActiveTab] = useTabState("facturen");
+  const activeTab =
+    tabParam === "offertes" || tabParam === "terugkerend" ? tabParam : "facturen";
 
   return (
     <div>
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 28, marginBottom: 40, borderBottom: "0.5px solid rgba(0, 0, 0, 0.08)" }}>
-        <button onClick={() => setActiveTab("facturen")} style={tabStyle(activeTab === "facturen")}>
-          {t.invoices.title}
-        </button>
-        <button onClick={() => setActiveTab("offertes")} style={tabStyle(activeTab === "offertes")}>
-          {t.quotes.title}
-        </button>
-        <button onClick={() => setActiveTab("terugkerend")} style={tabStyle(activeTab === "terugkerend")}>
-          Terugkerend
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { key: "facturen", label: t.invoices.title },
+          { key: "offertes", label: t.quotes.title },
+          { key: "terugkerend", label: "Terugkerend" },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {activeTab === "facturen" ? <InvoicesTab /> : activeTab === "offertes" ? <QuotesTab /> : <RecurringInvoiceList />}
     </div>

@@ -151,7 +151,7 @@ function PlanSelection() {
                   border: `0.5px solid ${isSelected ? "var(--foreground)" : "rgba(0,0,0,0.1)"}`,
                   cursor: "pointer",
                   textAlign: "left",
-                  transition: "all 0.2s ease",
+                  transition: "all var(--duration-quick) ease",
                   display: "flex",
                   flexDirection: "column",
                   gap: 20,
@@ -261,7 +261,7 @@ function PlanSelection() {
             letterSpacing: "0.10em",
             textTransform: "uppercase",
             cursor: "pointer",
-            transition: "opacity 0.15s ease",
+            transition: "opacity var(--duration-quick) ease",
             opacity: pending ? 0.5 : 1,
           }}
         >
@@ -286,7 +286,7 @@ function toggleBtn(active: boolean): React.CSSProperties {
     letterSpacing: "0.08em",
     textTransform: "uppercase",
     fontWeight: 500,
-    transition: "all 0.15s ease",
+    transition: "all var(--duration-quick) ease",
   };
 }
 

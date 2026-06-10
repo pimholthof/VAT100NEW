@@ -29,7 +29,7 @@ export function PageHeader({
             gap: 6,
             marginBottom: 20,
             fontSize: 11,
-            transition: "opacity 0.15s ease",
+            transition: "opacity var(--duration-quick) ease",
           }}
         >
           &larr; {backLabel}

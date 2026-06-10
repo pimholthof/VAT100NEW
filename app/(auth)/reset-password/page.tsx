@@ -15,7 +15,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--color-black)",
   outline: "none",
   width: "100%",
-  transition: "border-color 0.2s ease",
+  transition: "border-color var(--duration-quick) ease",
 };
 
 export default function ResetPasswordPage() {
