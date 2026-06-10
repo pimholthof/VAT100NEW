@@ -92,9 +92,23 @@ export async function processOverdueInvoices(userId?: string): Promise<{
         return { invoiceNumber: inv.invoice_number, emailSent: false, actionCreated: false };
       }
 
+      // Expliciete kolommen: precies de velden van de Client/Profile-types,
+      // zodat de e-mailtemplates nooit stilletjes op extra data leunen.
       const [clientResult, profileResult, itemsResult] = await Promise.all([
-        supabase.from("clients").select("*").eq("id", inv.client_id).single(),
-        supabase.from("profiles").select("*").eq("id", inv.user_id).single(),
+        supabase
+          .from("clients")
+          .select(
+            "id, user_id, name, contact_name, email, address, city, postal_code, kvk_number, btw_number, country, payment_terms_days, archived_at, created_at",
+          )
+          .eq("id", inv.client_id)
+          .single(),
+        supabase
+          .from("profiles")
+          .select(
+            "id, full_name, studio_name, kvk_number, btw_number, address, city, postal_code, iban, bic, logo_path, vat_frequency, bookkeeping_start_date, onboarding_completed_at, onboarding_dismissed_at, uses_kor, estimated_annual_income, meets_urencriterium, created_at",
+          )
+          .eq("id", inv.user_id)
+          .single(),
         supabase.from("invoice_lines").select("*").eq("invoice_id", inv.id),
       ]);
 
