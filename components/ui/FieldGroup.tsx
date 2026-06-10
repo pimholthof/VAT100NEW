@@ -8,6 +8,36 @@ interface FieldGroupProps {
   children: React.ReactNode;
 }
 
+/**
+ * Losse veldfout voor velden die niet in een FieldGroup-frame passen
+ * (zoals de randloze klant-select in het factuurformulier).
+ */
+export function FieldError({
+  id,
+  children,
+  style,
+}: {
+  id?: string;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <p
+      id={id}
+      role="alert"
+      style={{
+        margin: "6px 0 0",
+        fontSize: 11,
+        color: "var(--color-accent)",
+        lineHeight: 1.45,
+        ...style,
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
 export function FieldGroup({
   label,
   htmlFor,
@@ -61,20 +91,7 @@ export function FieldGroup({
           {hint}
         </p>
       )}
-      {error && (
-        <p
-          id={errorId}
-          role="alert"
-          style={{
-            margin: "6px 0 0",
-            fontSize: 11,
-            color: "var(--color-accent)",
-            lineHeight: 1.45,
-          }}
-        >
-          {error}
-        </p>
-      )}
+      {error && <FieldError id={errorId}>{error}</FieldError>}
     </div>
   );
 }

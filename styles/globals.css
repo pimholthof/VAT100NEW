@@ -2489,8 +2489,8 @@ a {
   }
 
   .invoice-line-grid {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .responsive-grid-3 {
@@ -2736,6 +2736,21 @@ a {
 
   .invoice-edit-layout__preview {
     display: block;
+  }
+}
+
+/* ─── Invoice Line Grid ─── */
+.invoice-line-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px 140px 100px;
+  gap: 24px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .invoice-line-grid {
+    grid-template-columns: minmax(0, 1fr) 72px 110px 90px;
+    gap: 16px;
   }
 }
 

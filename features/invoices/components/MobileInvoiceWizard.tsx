@@ -20,7 +20,7 @@ import { InvoiceMetadata } from "./InvoiceMetadata";
 import { InvoiceTotals } from "./InvoiceTotals";
 import { InvoiceTruthPanel } from "./InvoiceTruthPanel";
 import { InvoiceLivePreview } from "./InvoiceLivePreview";
-import { ErrorMessage, StepIndicator } from "@/components/ui";
+import { ErrorMessage, StepIndicator, Spinner } from "@/components/ui";
 import { playSound } from "@/lib/utils/sound";
 
 interface MobileInvoiceWizardProps {
@@ -35,6 +35,7 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
   const [step, setStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ client?: string; lines?: string }>({});
   const [showNewClient, setShowNewClient] = useState(false);
   const [vatReason, setVatReason] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -114,7 +115,7 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
 
   async function handleSave(andPreview: boolean) {
     if (!clientId) {
-      setError(t.invoices.selectClient);
+      setFieldErrors((f) => ({ ...f, client: t.invoices.selectClient }));
       setStep(1);
       return;
     }
@@ -153,17 +154,17 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
   function goNext() {
     if (step === 1) {
       if (!clientId) {
-        setError(t.invoices.selectClient);
+        setFieldErrors((f) => ({ ...f, client: t.invoices.selectClient }));
         return;
       }
-      setError(null);
+      setFieldErrors((f) => ({ ...f, client: undefined }));
       setStep(2);
     } else if (step === 2) {
       if (lines.length === 0 || lines.every((l) => !l.description && !l.rate)) {
-        setError("Voeg minstens één factuurregel toe.");
+        setFieldErrors((f) => ({ ...f, lines: "Voeg minstens één factuurregel toe." }));
         return;
       }
-      setError(null);
+      setFieldErrors((f) => ({ ...f, lines: undefined }));
       setStep(3);
     }
   }
@@ -200,13 +201,17 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
           >
             <InvoiceRecipientSection
               clientId={clientId}
-              setClientId={setClientId}
+              setClientId={(id) => {
+                setFieldErrors((f) => ({ ...f, client: undefined }));
+                setClientId(id);
+              }}
               clients={clients}
               clientsLoading={clientsLoading}
               hasClientError={hasClientError}
               clientErrorMessage={clientErrorMessage}
               showNewClient={showNewClient}
               setShowNewClient={setShowNewClient}
+              error={fieldErrors.client}
             />
           </motion.section>
         )}
@@ -221,9 +226,16 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
           >
             <InvoiceLinesSection
               lines={lines}
-              addLine={addLine}
-              updateLine={updateLine}
+              addLine={() => {
+                setFieldErrors((f) => ({ ...f, lines: undefined }));
+                addLine();
+              }}
+              updateLine={(id, field, value) => {
+                setFieldErrors((f) => ({ ...f, lines: undefined }));
+                updateLine(id, field, value);
+              }}
               removeLine={removeLine}
+              error={fieldErrors.lines}
             />
             {vatReason && (
               <div
@@ -344,6 +356,7 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
                 playSound("glass-ping");
               }}
               disabled={saving}
+              aria-busy={saving || undefined}
               style={{
                 flex: 1,
                 padding: "16px",
@@ -355,9 +368,20 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
                 cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
               }}
             >
-              {saving ? "..." : t.invoices.saveDraft}
+              {saving ? (
+                <>
+                  <Spinner size={12} />
+                  {t.common.saving}
+                </>
+              ) : (
+                t.invoices.saveDraft
+              )}
             </button>
             <button
               type="button"
@@ -366,6 +390,7 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
                 playSound("glass-ping");
               }}
               disabled={saving}
+              aria-busy={saving || undefined}
               style={{
                 flex: 2,
                 padding: "16px",
@@ -378,9 +403,20 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
                 cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
               }}
             >
-              {saving ? "..." : t.invoices.issueAndPreview}
+              {saving ? (
+                <>
+                  <Spinner size={12} />
+                  {t.common.saving}
+                </>
+              ) : (
+                t.invoices.issueAndPreview
+              )}
             </button>
           </>
         )}

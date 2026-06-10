@@ -3,6 +3,7 @@
 import { useLocale } from "@/lib/i18n/context";
 import { playSound } from "@/lib/utils/sound";
 import { useInvoiceStore } from "@/lib/store/invoice";
+import { Spinner } from "@/components/ui";
 
 export function InvoiceFormActions({
   saving,
@@ -52,6 +53,7 @@ export function InvoiceFormActions({
             playSound("glass-ping");
           }}
           disabled={saving}
+          aria-busy={saving || undefined}
           style={{
             flex: 1,
             padding: "24px",
@@ -62,9 +64,20 @@ export function InvoiceFormActions({
             textTransform: "uppercase",
             letterSpacing: "0.2em",
             cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
           }}
         >
-          {saving ? "..." : t.invoices.saveDraft}
+          {saving ? (
+            <>
+              <Spinner size={12} />
+              {t.common.saving}
+            </>
+          ) : (
+            t.invoices.saveDraft
+          )}
         </button>
         <button
           onClick={() => {
@@ -72,6 +85,7 @@ export function InvoiceFormActions({
             playSound("glass-ping");
           }}
           disabled={saving}
+          aria-busy={saving || undefined}
           style={{
             flex: 2,
             padding: "24px",
@@ -84,13 +98,22 @@ export function InvoiceFormActions({
             letterSpacing: "0.2em",
             cursor: "pointer",
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
           }}
         >
-          {saving
-            ? "..."
-            : recipientName
-            ? `Versturen aan ${recipientName}`
-            : t.invoices.issueAndPreview}
+          {saving ? (
+            <>
+              <Spinner size={12} />
+              {t.common.saving}
+            </>
+          ) : recipientName ? (
+            `Versturen aan ${recipientName}`
+          ) : (
+            t.invoices.issueAndPreview
+          )}
         </button>
       </div>
     </div>

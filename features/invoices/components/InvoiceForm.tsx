@@ -51,6 +51,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [clientFieldError, setClientFieldError] = useState<string | null>(null);
   const [showNewClient, setShowNewClient] = useState(false);
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -144,7 +145,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
 
   const handleSave = async (andPreview: boolean) => {
     if (!clientId) {
-      setError(t.invoices.selectClient);
+      setClientFieldError(t.invoices.selectClient);
       return;
     }
     if (!invoiceNumber) {
@@ -199,13 +200,17 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
       {/* ── Recipient: Large and focused ── */}
       <InvoiceRecipientSection
         clientId={clientId}
-        setClientId={setClientId}
+        setClientId={(id) => {
+          setClientFieldError(null);
+          setClientId(id);
+        }}
         clients={clients}
         clientsLoading={clientsLoading}
         hasClientError={hasClientError}
         clientErrorMessage={clientErrorMessage}
         showNewClient={showNewClient}
         setShowNewClient={setShowNewClient}
+        error={clientFieldError}
       />
 
       {/* ── The Sum: Invoicing as Expression ── */}

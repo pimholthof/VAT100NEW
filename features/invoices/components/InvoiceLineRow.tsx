@@ -36,10 +36,6 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
     <div
       className="invoice-line-grid"
       style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 100px 140px 100px",
-        gap: 24,
-        alignItems: "center",
         padding: "16px 0",
         borderBottom: "var(--border-rule)"
       }}
@@ -49,7 +45,7 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
         value={line.description}
         onChange={(e) => onUpdate(line.id, "description", e.target.value)}
         placeholder={t.invoices.descriptionPlaceholder}
-        style={{ ...cellInputStyle, fontSize: 16, fontWeight: 400 }}
+        style={{ ...cellInputStyle, fontSize: 16, fontWeight: 400, minWidth: 0 }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <input
