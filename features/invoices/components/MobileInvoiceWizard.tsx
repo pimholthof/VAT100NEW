@@ -177,7 +177,15 @@ export function MobileInvoiceWizard({ invoiceId }: MobileInvoiceWizardProps) {
 
   return (
     <div style={{ maxWidth: "100%", paddingBottom: 120 }}>
-      <StepIndicator currentStep={step} totalSteps={3} labels={stepLabels} />
+      <StepIndicator
+        currentStep={step}
+        totalSteps={3}
+        labels={stepLabels}
+        onStepSelect={(s) => {
+          setError(null);
+          setStep(s as Step);
+        }}
+      />
 
       {error && <ErrorMessage style={{ marginBottom: 20 }}>{error}</ErrorMessage>}
 
