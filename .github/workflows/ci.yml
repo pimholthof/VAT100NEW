@@ -36,6 +36,12 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      # Niet-blokkerend: signaal over kwetsbare dependencies zonder de poort
+      # dicht te gooien op advisories zonder beschikbare fix.
+      - name: Dependency audit
+        continue-on-error: true
+        run: npm audit --audit-level=moderate
+
       # E2E is momenteel niet-blokkerend: de Playwright-install (--with-deps)
       # hing herhaaldelijk tot de job-timeout. Lint/typecheck/build/unit zijn
       # de harde poort; E2E levert alleen signaal tot de install stabiel is.
