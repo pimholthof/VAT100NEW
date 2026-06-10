@@ -1,41 +1,32 @@
+import { Skeleton, TableSkeleton } from "@/components/ui/Skeleton";
+
 export default function DashboardLoading() {
   return (
     <div style={{ padding: "64px 0" }}>
-      {/* Stat cards skeleton */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 1,
-          marginBottom: 64,
-        }}
-        className="stat-cards-grid"
-      >
-        {[...Array(4)].map((_, i) => (
-          <div key={i} style={{ padding: "20px 24px" }}>
-            <div
-              className="skeleton"
-              style={{ width: 80, height: 9, marginBottom: 12 }}
-            />
-            <div className="skeleton" style={{ width: 120, height: 32 }} />
-          </div>
-        ))}
+      {/* Hero: vrij te besteden */}
+      <div style={{ marginBottom: 64 }}>
+        <Skeleton width={130} height={10} style={{ marginBottom: 16 }} />
+        <Skeleton width={320} height={72} style={{ marginBottom: 16 }} />
+        <Skeleton width={230} height={12} />
       </div>
 
-      {/* Table skeleton */}
-      <div style={{ marginBottom: 48 }}>
-        <div
-          className="skeleton"
-          style={{ width: 140, height: 12, marginBottom: 24 }}
-        />
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="skeleton"
-            style={{ width: "100%", height: 40, marginBottom: 1 }}
-          />
-        ))}
-      </div>
+      {/* Nu doen-paneel */}
+      <Skeleton
+        width="100%"
+        height={120}
+        style={{ borderRadius: "var(--radius)", marginBottom: 48 }}
+      />
+
+      {/* De drie potten */}
+      <Skeleton
+        width="100%"
+        height={88}
+        style={{ borderRadius: "var(--radius)", marginBottom: 64 }}
+      />
+
+      {/* Open facturen */}
+      <Skeleton width={160} height={12} style={{ marginBottom: 24 }} />
+      <TableSkeleton rows={4} />
     </div>
   );
 }

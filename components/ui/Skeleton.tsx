@@ -17,14 +17,20 @@ export function Skeleton({
   );
 }
 
-export function TableSkeleton({ rows = 5 }: { rows?: number }) {
+export function TableSkeleton({
+  rows = 5,
+  rowHeight = 48,
+}: {
+  rows?: number;
+  rowHeight?: number;
+}) {
   return (
     <div role="status" aria-label="Laden...">
       {[...Array(rows)].map((_, i) => (
         <div
           key={i}
           className="skeleton"
-          style={{ width: "100%", height: 40, marginBottom: 1 }}
+          style={{ width: "100%", height: rowHeight, marginBottom: 1 }}
         />
       ))}
     </div>
