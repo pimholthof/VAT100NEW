@@ -111,20 +111,21 @@ export function CreateCustomerDialog({ open, onClose, onCreated }: CreateCustome
               De klant kan nu inloggen met onderstaande gegevens.
             </p>
             {created.emailSent && (
-              <div style={{ background: "rgba(22,163,74,0.06)", border: "1px solid rgba(22,163,74,0.15)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#15803d" }}>
+              <div style={{ background: "rgba(26, 122, 58, 0.06)", border: "0.5px solid rgba(26, 122, 58, 0.2)", borderRadius: "var(--radius-sm)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "var(--color-success)" }}>
                 Welkomstmail verstuurd naar {created.email}
               </div>
             )}
             {created.emailError && (
-              <div style={{ background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.15)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#b91c1c" }}>
+              <div style={{ background: "rgba(196, 77, 42, 0.06)", border: "0.5px solid rgba(196, 77, 42, 0.2)", borderRadius: "var(--radius-sm)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "var(--color-overdue)" }}>
                 Welkomstmail mislukt: {created.emailError}
               </div>
             )}
             <div
               style={{
-                background: "#F5F5F5",
+                background: "rgba(0, 0, 0, 0.03)",
                 padding: 20,
-                borderLeft: "4px solid #000",
+                borderLeft: "2px solid var(--foreground)",
+                borderRadius: "var(--radius-sm)",
                 marginBottom: 24,
                 fontFamily: "var(--font-mono)",
                 fontSize: 14,
@@ -159,12 +160,13 @@ export function CreateCustomerDialog({ open, onClose, onCreated }: CreateCustome
             {error && (
               <div
                 style={{
-                  background: "rgba(220,38,38,0.06)",
-                  border: "1px solid rgba(220,38,38,0.15)",
+                  background: "rgba(196, 77, 42, 0.06)",
+                  border: "0.5px solid rgba(196, 77, 42, 0.2)",
+                  borderRadius: "var(--radius-sm)",
                   padding: "10px 14px",
                   marginBottom: 16,
                   fontSize: 13,
-                  color: "#b91c1c",
+                  color: "var(--color-overdue)",
                 }}
               >
                 {error}
@@ -246,9 +248,11 @@ export function CreateCustomerDialog({ open, onClose, onCreated }: CreateCustome
                   className="admin-select"
                   style={{ width: "100%" }}
                 >
+                  {/* Labels en prijzen volgen de plans-tabel (migratie 20260421_001) */}
                   <option value="basis">Start — €29/mnd</option>
                   <option value="studio">Studio — €39/mnd</option>
-                  <option value="compleet">Complete — €59/mnd</option>
+                  <option value="compleet">Complete — €79/mnd</option>
+                  <option value="plus">Plus — €149/mnd</option>
                 </select>
               </div>
 

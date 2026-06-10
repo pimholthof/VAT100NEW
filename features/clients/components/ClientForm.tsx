@@ -177,11 +177,11 @@ export function ClientForm({ client }: ClientFormProps) {
           className="form-input"
         />
         {duplicates.length > 0 && (
-          <div style={{ marginTop: 6, padding: "8px 12px", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 6, fontSize: 12 }}>
-            <span style={{ fontWeight: 700, color: "#b45309" }}>Mogelijk bestaande klant: </span>
+          <div style={{ marginTop: 6, padding: "8px 12px", background: "rgba(180, 83, 9, 0.06)", border: "0.5px solid rgba(180, 83, 9, 0.25)", borderRadius: "var(--radius-sm)", fontSize: 12 }}>
+            <span style={{ fontWeight: 600, color: "var(--color-warning)" }}>Mogelijk bestaande klant: </span>
             {duplicates.map((d, i) => (
               <span key={d.id}>
-                <a href={`/dashboard/clients/${d.id}`} style={{ color: "#b45309", textDecoration: "underline" }}>{d.name}</a>
+                <a href={`/dashboard/clients/${d.id}`} style={{ color: "var(--color-warning)", textDecoration: "underline" }}>{d.name}</a>
                 {i < duplicates.length - 1 ? ", " : ""}
               </span>
             ))}

@@ -7,10 +7,10 @@ async function getResources() {
   const supabase = createServiceClient();
   const { data: resources } = await supabase
     .from("resources")
-    .select("*")
+    .select("id, category, type, title, description, download_url")
     .eq("is_active", true)
     .order("created_at", { ascending: false });
-  
+
   return resources || [];
 }
 
@@ -18,60 +18,96 @@ export default async function ResourcesPage() {
   if (!isGrowthEnabled()) redirect("/dashboard");
 
   const resources = await getResources();
-  
+
   const categories = ["Fiscaal", "Business", "Growth", "Community"];
 
   return (
-    <div className="p-8 md:p-12 max-w-7xl mx-auto">
-      {/* Editorial Header */}
-      <header className="mb-20">
-        <h1 className="display-hero text-6xl md:text-8xl leading-[0.85] mb-6 uppercase">Kennisbank</h1>
-        <p className="label-bold opacity-40 max-w-xl">
-          Exclusieve VAT100 gidsen, templates en checklists. Alles wat je nodig hebt om je business fiscaal vlijmscherp te maken.
-        </p>
-      </header>
+    <div>
+      {/* Header */}
+      <div className="page-header" style={{ marginBottom: "var(--space-xl)" }}>
+        <div>
+          <h1 className="display-title">Kennisbank</h1>
+          <p
+            style={{
+              fontSize: "var(--text-body-md)",
+              fontWeight: 400,
+              margin: "12px 0 0",
+              opacity: 0.4,
+              maxWidth: 560,
+            }}
+          >
+            Gidsen, templates en checklists. Alles wat je nodig hebt om je
+            onderneming fiscaal scherp te houden.
+          </p>
+        </div>
+      </div>
 
-      {/* Categories / Grid */}
-      <div className="space-y-24">
+      {/* Categorieën */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-xl)" }}>
         {categories.map((category) => {
-          const catResources = resources.filter(r => r.category === category);
+          const catResources = resources.filter((r) => r.category === category);
           if (catResources.length === 0) return null;
 
           return (
             <section key={category}>
-              <div className="flex items-center gap-8 mb-12">
-                <h2 className="text-4xl font-black italic tracking-tighter uppercase">{category}</h2>
-                <div className="h-1 bg-black flex-grow"></div>
-              </div>
+              <h2 className="section-header" style={{ marginBottom: 24 }}>
+                {category}
+              </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                  gap: 24,
+                }}
+              >
                 {catResources.map((resource) => (
-                  <div key={resource.id} className="border-4 border-black bg-white group hover:translate-y-[-4px] transition-all duration-300 flex flex-col">
-                    <div className="p-8 flex-grow">
-                      {/* Type Badge */}
-                      <div className="mb-6">
-                        <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-black text-white">
-                          {resource.type}
-                        </span>
-                      </div>
+                  <div
+                    key={resource.id}
+                    className="glass"
+                    style={{
+                      padding: 32,
+                      borderRadius: "var(--radius)",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <p className="label" style={{ margin: "0 0 16px" }}>
+                      {resource.type}
+                    </p>
 
-                      <h3 className="text-2xl font-black italic tracking-tighter leading-tight mb-4 group-hover:underline transition-all">
-                        {resource.title}
-                      </h3>
-                      
-                      <p className="text-sm opacity-60 leading-relaxed">
-                        {resource.description}
-                      </p>
-                    </div>
+                    <h3
+                      className="section-header"
+                      style={{ fontSize: "1.25rem", marginBottom: 12 }}
+                    >
+                      {resource.title}
+                    </h3>
 
-                    {/* Footer / CTA */}
-                    <div className="border-t-4 border-black p-4 bg-black/5 flex items-center justify-between">
-                      <div className="text-[10px] font-black uppercase tracking-widest opacity-40">
-                         VAT100 EXCLUSIVE
-                      </div>
-                      <Link 
-                        href={resource.download_url || "#"} 
-                        className="bg-black text-white px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all"
+                    <p
+                      style={{
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        opacity: 0.6,
+                        margin: "0 0 24px",
+                        flexGrow: 1,
+                      }}
+                    >
+                      {resource.description}
+                    </p>
+
+                    <div
+                      style={{
+                        borderTop: "var(--border-light)",
+                        paddingTop: 16,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span className="label">VAT100</span>
+                      <Link
+                        href={resource.download_url || "#"}
+                        className="btn-secondary"
                       >
                         Bekijken
                       </Link>
@@ -84,15 +120,17 @@ export default async function ResourcesPage() {
         })}
       </div>
 
-      {/* Resource Suggestion CTA */}
-      <div className="mt-32 border-4 border-black border-dashed p-12 text-center bg-black/5">
-        <h3 className="text-2xl font-black italic tracking-tighter mb-4">MIS JE EEN SPECIFIEKE GIDS?</h3>
-        <p className="text-sm opacity-40 mb-8 max-w-md mx-auto">
-          We breiden de kennisbank continu uit. Laat de community weten welke template of checklist jij nodig hebt.
+      {/* Suggestie */}
+      <div
+        style={{
+          marginTop: "var(--space-xl)",
+          borderTop: "var(--border-light)",
+          paddingTop: 32,
+        }}
+      >
+        <p style={{ fontSize: 13, opacity: 0.5, margin: 0 }}>
+          Mis je een specifieke gids? We breiden de kennisbank continu uit.
         </p>
-        <button className="label-strong underline hover:opacity-60 transition-opacity">
-          Doe een suggestie
-        </button>
       </div>
     </div>
   );
