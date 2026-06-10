@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Agent, SystemEventRow } from "../types";
-import { v4 as uuidv4 } from "uuid";
 
 /**
  * Agent 1: The Navigator
@@ -37,7 +37,7 @@ export const navigatorAgent: Agent = {
       }
 
       // 2. Generate secure token
-      const token = uuidv4();
+      const token = randomUUID();
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
