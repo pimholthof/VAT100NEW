@@ -10,6 +10,7 @@ import { COMMAND_MENU_OPEN_EVENT } from "@/lib/events/command-menu";
 import { getInvoices } from "@/features/invoices/actions";
 import { getClients } from "@/features/clients/actions";
 import { formatCurrency } from "@/lib/format";
+import { commandFilter } from "@/lib/utils/command-filter";
 
 const SEARCH_MIN_CHARS = 2;
 const MAX_RESULTS_PER_GROUP = 5;
@@ -56,18 +57,19 @@ export function CommandMenu() {
     };
   }, []);
 
-  const { data: invoiceResults } = useQuery({
+  const { data: invoiceResults, isFetching: invoicesFetching } = useQuery({
     queryKey: ["cmdk-invoices", trimmed],
     queryFn: () => getInvoices({ search: trimmed }),
     enabled: open && searchEnabled,
     staleTime: 30_000,
   });
-  const { data: clientResults } = useQuery({
+  const { data: clientResults, isFetching: clientsFetching } = useQuery({
     queryKey: ["cmdk-clients", trimmed],
     queryFn: () => getClients(trimmed),
     enabled: open && searchEnabled,
     staleTime: 30_000,
   });
+  const searchPending = searchEnabled && (invoicesFetching || clientsFetching);
 
   const invoiceMatches = (invoiceResults?.data ?? []).slice(0, MAX_RESULTS_PER_GROUP);
   const clientMatches = (clientResults?.data ?? []).slice(0, MAX_RESULTS_PER_GROUP);
@@ -119,7 +121,7 @@ export function CommandMenu() {
         <Command
           style={{ width: "100%" }}
           label="Global commands"
-          shouldFilter={!searchEnabled}
+          filter={commandFilter}
         >
           <div style={{ borderBottom: "var(--border-rule)" }}>
             <Command.Input
@@ -148,11 +150,19 @@ export function CommandMenu() {
               fontFamily: "var(--font-body), sans-serif",
             }}
           >
-            <Command.Empty
-              style={{ padding: "24px", textAlign: "center", opacity: 0.5 }}
-            >
-              {t.commandMenu.noResults} &quot;{query}&quot;.
-            </Command.Empty>
+            {searchPending ? (
+              <Command.Loading
+                style={{ padding: "24px", textAlign: "center", opacity: 0.5 }}
+              >
+                {t.commandMenu.searching}
+              </Command.Loading>
+            ) : (
+              <Command.Empty
+                style={{ padding: "24px", textAlign: "center", opacity: 0.5 }}
+              >
+                {t.commandMenu.noResults} &quot;{query}&quot;.
+              </Command.Empty>
+            )}
 
             {searchEnabled && invoiceMatches.length > 0 && (
               <Command.Group heading="Facturen" className="cmdk-group">
@@ -228,18 +238,24 @@ export function CommandMenu() {
 
             <Command.Group heading={t.commandMenu.actionsGroup} className="cmdk-group">
               <Command.Item
+                value="actie-nieuwe-factuur"
+                keywords={[t.commandMenu.newInvoice, "nieuwe factuur maken", "factuur", "rekening", "create new invoice"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/invoices/new"))}
                 className="cmdk-item"
               >
                 {t.commandMenu.newInvoice}
               </Command.Item>
               <Command.Item
+                value="actie-nieuwe-klant"
+                keywords={[t.commandMenu.newClient, "nieuwe klant toevoegen", "klant", "contact", "relatie", "add new client"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/clients/new"))}
                 className="cmdk-item"
               >
                 {t.commandMenu.newClient}
               </Command.Item>
               <Command.Item
+                value="actie-nieuwe-bon"
+                keywords={["nieuwe bon", "bonnetje", "uitgave", "kosten", "new receipt"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/receipts/new"))}
                 className="cmdk-item"
               >
@@ -249,42 +265,56 @@ export function CommandMenu() {
 
             <Command.Group heading={t.commandMenu.navGroup} className="cmdk-group">
               <Command.Item
+                value="nav-dashboard"
+                keywords={[t.commandMenu.dashboard, "overzicht", "home", "start"]}
                 onSelect={() => runCommand(() => router.push("/dashboard"))}
                 className="cmdk-item"
               >
                 {t.commandMenu.dashboard}
               </Command.Item>
               <Command.Item
+                value="nav-facturen"
+                keywords={[t.commandMenu.invoicesOverview, "facturen overzicht", "factuur", "offertes", "invoices"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/invoices"))}
                 className="cmdk-item"
               >
                 {t.commandMenu.invoicesOverview}
               </Command.Item>
               <Command.Item
+                value="nav-klanten"
+                keywords={[t.commandMenu.clientsOverview, "klanten overzicht", "klant", "contacten", "relaties", "clients"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/clients"))}
                 className="cmdk-item"
               >
                 {t.commandMenu.clientsOverview}
               </Command.Item>
               <Command.Item
+                value="nav-belasting"
+                keywords={["btw", "belasting", "aangifte", "kwartaal", "omzetbelasting", "inkomstenbelasting", "tax"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/tax"))}
                 className="cmdk-item"
               >
                 BTW & belasting
               </Command.Item>
               <Command.Item
+                value="nav-uitgaven"
+                keywords={[t.commandMenu.receiptsExpenses, "bonnen", "uitgaven", "kosten", "bonnetjes", "receipts", "expenses"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/expenses"))}
                 className="cmdk-item"
               >
                 {t.commandMenu.receiptsExpenses}
               </Command.Item>
               <Command.Item
+                value="nav-berichten"
+                keywords={["berichten", "chat", "support", "vraag", "messages"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/berichten"))}
                 className="cmdk-item"
               >
                 Berichten
               </Command.Item>
               <Command.Item
+                value="nav-instellingen"
+                keywords={[t.commandMenu.settings, "instellingen", "profiel", "voorkeuren", "account", "settings"]}
                 onSelect={() => runCommand(() => router.push("/dashboard/settings"))}
                 className="cmdk-item"
               >

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLocale } from "@/lib/i18n/context";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { getClients, deleteClient } from "@/features/clients/actions";
 import type { Client } from "@/lib/types";
@@ -22,9 +22,11 @@ export default function ClientsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: result, isLoading } = useQuery({
+  const { data: result, isLoading, isPlaceholderData } = useQuery({
     queryKey: ["clients", debouncedSearch],
     queryFn: () => getClients(debouncedSearch || undefined),
+    // Bij zoeken blijft de vorige lijst staan i.p.v. skeletons.
+    placeholderData: keepPreviousData,
   });
 
   const deleteMutation = useMutation({
@@ -36,6 +38,8 @@ export default function ClientsPage() {
   });
 
   const filtered = result?.data ?? [];
+  const initialLoading = isLoading && result === undefined;
+  const hasActiveSearch = Boolean(search.trim());
 
   return (
     <div>
@@ -73,7 +77,7 @@ export default function ClientsPage() {
         />
       </div>
 
-      {isLoading ? (
+      {initialLoading ? (
         <div>
           {[...Array(5)].map((_, i) => (
             <div
@@ -90,15 +94,16 @@ export default function ClientsPage() {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon="○"
-          title={search.trim() ? t.clients.noClientsFound : t.clients.noClientsYet}
-          description={!search.trim() ? "Voeg je eerste klant toe om facturen te kunnen sturen." : undefined}
-          actionLabel={!search.trim() ? t.clients.newClientBtn : undefined}
-          actionHref={!search.trim() ? "/dashboard/clients/new" : undefined}
-          secondaryLabel={!search.trim() ? "Bekijk een voorbeeld" : undefined}
-          secondaryHref={!search.trim() ? "/dashboard/voorbeeld" : undefined}
+          title={hasActiveSearch ? t.clients.noClientsFound : t.clients.noClientsYet}
+          description={hasActiveSearch ? t.clients.noClientsFoundDescription : "Voeg je eerste klant toe om facturen te kunnen sturen."}
+          actionLabel={hasActiveSearch ? t.common.clearSearchFilters : t.clients.newClientBtn}
+          actionHref={hasActiveSearch ? undefined : "/dashboard/clients/new"}
+          actionOnClick={hasActiveSearch ? () => setSearch("") : undefined}
+          secondaryLabel={!hasActiveSearch ? "Bekijk een voorbeeld" : undefined}
+          secondaryHref={!hasActiveSearch ? "/dashboard/voorbeeld" : undefined}
         />
       ) : (
-        <TableWrapper>
+        <TableWrapper style={{ opacity: isPlaceholderData ? 0.6 : 1, transition: "opacity 150ms ease" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 500 }}>
             <thead>
               <tr style={{ borderBottom: "0.5px solid rgba(0,0,0,0.08)" }}>

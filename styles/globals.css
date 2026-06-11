@@ -957,6 +957,53 @@ a {
   letter-spacing: 0.08em;
 }
 
+/* ── Mobile "Meer"-paneel boven de bottom nav ── */
+.mobile-more-backdrop,
+.mobile-more-sheet {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-more-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 898;
+    background: rgba(244, 243, 241, 0.5);
+  }
+
+  .mobile-more-sheet {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    z-index: 899;
+    padding: 8px;
+    border-radius: var(--radius);
+    border-top: 0.5px solid rgba(13, 13, 11, 0.08);
+  }
+}
+
+.mobile-more-sheet-item {
+  padding: 14px 16px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--foreground);
+  font-size: 14px;
+  border-radius: var(--radius-sm);
+  opacity: var(--opacity-secondary);
+}
+
+.mobile-more-sheet-item--active {
+  opacity: var(--opacity-primary);
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.03);
+}
+
 /* ── Interactive Table Rows ── */
 .table-row-interactive {
   cursor: pointer;
@@ -2054,6 +2101,15 @@ a {
   opacity: 0.85;
   outline: 1.5px solid var(--color-black);
   outline-offset: 4px;
+}
+
+/* Maatmodifier: grote, volle-breedte variant van primary/secondary
+   (o.a. de factuur-actiebalk). Hiërarchie blijft het 3-niveausysteem. */
+.btn-block {
+  width: 100%;
+  justify-content: center;
+  padding: 24px;
+  letter-spacing: 0.2em;
 }
 
 /* ─── Form Elements ─── */

@@ -52,6 +52,7 @@ export function CashflowForecast({
           {visibleWeeks.map((week, i) => {
             const weekDate = new Date(week.weekStart);
             const label = weekDate.toLocaleDateString("nl-NL", {
+              timeZone: "Europe/Amsterdam",
               day: "numeric",
               month: "short",
             });

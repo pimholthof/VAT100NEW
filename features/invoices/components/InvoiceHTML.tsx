@@ -8,13 +8,13 @@ import { calculatePaymentDays } from "@/lib/logic/invoice-calculations";
 function fmtDate(d: string | null, locale: Locale = "nl"): string {
   if (!d) return "—";
   const l = locale === "en" ? "en-GB" : "nl-NL";
-  return new Date(d).toLocaleDateString(l, { day: "2-digit", month: "2-digit", year: "numeric" });
+  return new Date(d).toLocaleDateString(l, { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Europe/Amsterdam" });
 }
 
 function fmtDateLong(d: string | null, locale: Locale = "nl"): string {
   if (!d) return "—";
   const l = locale === "en" ? "en-GB" : "nl-NL";
-  return new Date(d).toLocaleDateString(l, { day: "numeric", month: "long", year: "numeric" });
+  return new Date(d).toLocaleDateString(l, { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Amsterdam" });
 }
 
 function fmtEur(n: number): string {

@@ -130,6 +130,8 @@ export interface TaxProjection {
   effectiefTarief: number;
 
   // Prognose (geannualiseerd)
+  /** Aantal verstreken maanden van het boekjaar waarop de prognose is gebaseerd. */
+  maandenVerstreken: number;
   prognoseJaarOmzet: number;
   prognoseJaarKosten: number;
   prognoseJaarIB: number;
@@ -600,6 +602,7 @@ export function calculateZZPTaxProjection(input: {
     zvwBijdrage,
     totaleHeffing,
     effectiefTarief,
+    maandenVerstreken,
     prognoseJaarOmzet,
     prognoseJaarKosten,
     prognoseJaarIB,

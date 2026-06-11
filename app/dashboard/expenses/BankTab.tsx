@@ -34,7 +34,7 @@ function getMonthOptions(locale: string): { value: string; label: string }[] {
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString(dateLocale, { month: "long", year: "numeric" });
+    const label = d.toLocaleDateString(dateLocale, { month: "long", year: "numeric", timeZone: "Europe/Amsterdam" });
     options.push({ value, label });
   }
   return options;

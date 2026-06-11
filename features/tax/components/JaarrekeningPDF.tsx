@@ -239,6 +239,7 @@ const s = StyleSheet.create({
 export function JaarrekeningPDF({ data }: { data: JaarrekeningData }) {
   const { profiel, winstEnVerlies: wv, balans, btwKwartalen, btwJaarTotaal, fiscaal, investeringen } = data;
   const genDate = new Date().toLocaleDateString("nl-NL", {
+    timeZone: "Europe/Amsterdam",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

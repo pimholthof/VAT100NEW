@@ -7,6 +7,7 @@ import { useInvoiceStore } from "@/lib/store/invoice";
 import {
   ButtonPrimary,
   ButtonSecondary,
+  FieldError,
 } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/context";
 
@@ -36,26 +37,32 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
   const [postalCode, setPostalCode] = useState("");
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const handleCreate = async () => {
     if (!name.trim()) return;
     setErrorMsg(null);
-    const result = await createNewClient({
-      name: name.trim(),
-      contact_name: null,
-      email: email.trim() || null,
-      address: address.trim() || null,
-      city: city.trim() || null,
-      postal_code: postalCode.trim() || null,
-      kvk_number: null,
-      btw_number: null,
-    });
-    if (result.error) {
-      setErrorMsg(result.error);
-    } else if (result.data) {
-      setClientId(result.data.id);
-      await queryClient.invalidateQueries({ queryKey: ["clients"] });
-      onClose();
+    setCreating(true);
+    try {
+      const result = await createNewClient({
+        name: name.trim(),
+        contact_name: null,
+        email: email.trim() || null,
+        address: address.trim() || null,
+        city: city.trim() || null,
+        postal_code: postalCode.trim() || null,
+        kvk_number: null,
+        btw_number: null,
+      });
+      if (result.error) {
+        setErrorMsg(result.error);
+      } else if (result.data) {
+        setClientId(result.data.id);
+        await queryClient.invalidateQueries({ queryKey: ["clients"] });
+        onClose();
+      }
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -133,21 +140,20 @@ export function ClientQuickCreate({ onClose }: ClientQuickCreateProps) {
         </div>
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-        <ButtonPrimary type="button" onClick={handleCreate}>
+        <ButtonPrimary type="button" onClick={handleCreate} loading={creating}>
           {t.clients.createClient}
         </ButtonPrimary>
         <ButtonSecondary
           type="button"
           onClick={onClose}
+          disabled={creating}
           style={{ opacity: 0.4 }}
         >
           {t.common.cancel}
         </ButtonSecondary>
       </div>
       {errorMsg && (
-        <p style={{ color: "var(--foreground)", opacity: 0.8, marginTop: 12, fontSize: "var(--text-body-sm)" }}>
-          {errorMsg}
-        </p>
+        <FieldError style={{ marginTop: 12 }}>{errorMsg}</FieldError>
       )}
     </div>
   );

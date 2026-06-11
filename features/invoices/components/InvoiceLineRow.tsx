@@ -4,7 +4,12 @@ import { memo } from "react";
 import type { InvoiceLineInput, InvoiceUnit } from "@/lib/types";
 import { useLocale } from "@/lib/i18n/context";
 import { playSound } from "@/lib/utils/sound";
-import { calculateInvoiceLineAmount } from "@/lib/logic/invoice-calculations";
+import {
+  calculateInvoiceLineAmount,
+  sanitizeQuantity,
+  sanitizeRate,
+} from "@/lib/logic/invoice-calculations";
+import { blockNonCurrencyKeys } from "@/lib/utils/number-input";
 import { formatCurrency } from "@/lib/format";
 
 interface InvoiceLineRowProps {
@@ -54,8 +59,12 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
           min="0"
           step="0.5"
           onChange={(e) =>
-            onUpdate(line.id, "quantity", parseFloat(e.target.value) || 0)
+            onUpdate(line.id, "quantity", sanitizeQuantity(e.target.value))
           }
+          onBlur={(e) =>
+            onUpdate(line.id, "quantity", sanitizeQuantity(e.target.value))
+          }
+          onKeyDown={blockNonCurrencyKeys}
           style={{ ...cellInputStyle, textAlign: "right", width: 40 }}
         />
         <select
@@ -78,8 +87,12 @@ export const InvoiceLineRow = memo(function InvoiceLineRow({
           min="0"
           step="0.01"
           onChange={(e) =>
-            onUpdate(line.id, "rate", parseFloat(e.target.value) || 0)
+            onUpdate(line.id, "rate", sanitizeRate(e.target.value))
           }
+          onBlur={(e) =>
+            onUpdate(line.id, "rate", sanitizeRate(e.target.value))
+          }
+          onKeyDown={blockNonCurrencyKeys}
           style={{ ...cellInputStyle, textAlign: "right" }}
         />
       </div>

@@ -17,7 +17,7 @@ function unitLabel(u: string): string {
 
 function fmtDateLong(d: string | null): string {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Amsterdam" });
 }
 
 // ─── Dispatcher ───

@@ -1,8 +1,14 @@
 import React from "react";
 
-export function TableWrapper({ children }: { children: React.ReactNode }) {
+export function TableWrapper({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
   return (
-    <div className="table-wrapper">
+    <div className="table-wrapper" style={style}>
       {children}
     </div>
   );

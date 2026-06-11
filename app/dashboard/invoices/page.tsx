@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { getInvoices, deleteInvoice, updateInvoiceStatus, type InvoiceWithClient } from "@/features/invoices/actions";
 import { getQuotes, deleteQuote, updateQuoteStatus, type QuoteWithClient } from "@/features/quotes/actions";
 import type { InvoiceStatus, QuoteStatus } from "@/lib/types";
@@ -43,11 +43,18 @@ function InvoicesTab() {
   const initialStatus = searchParams.get("status") ?? "";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [filterResetKey, setFilterResetKey] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
   const handleFilter = useCallback((f: Record<string, string>) => {
     setStatusFilter(f.status ?? "");
+  }, []);
+  // Remount van SearchFilter (via key) wist ook diens interne zoektekst.
+  const clearFilters = useCallback(() => {
+    setSearch("");
+    setStatusFilter("");
+    setFilterResetKey((k) => k + 1);
   }, []);
 
   const invoiceStatusOptions = [
@@ -58,13 +65,15 @@ function InvoicesTab() {
   ];
 
 
-  const { data: result, isLoading } = useQuery({
+  const { data: result, isLoading, isPlaceholderData } = useQuery({
     queryKey: ["invoices", search, statusFilter],
     queryFn: () =>
       getInvoices({
         search: search || undefined,
         status: (statusFilter as InvoiceStatus) || undefined,
       }),
+    // Bij zoeken/filteren blijft de vorige lijst staan i.p.v. skeletons.
+    placeholderData: keepPreviousData,
   });
 
   const deleteMutation = useMutation({
@@ -85,6 +94,8 @@ function InvoicesTab() {
   });
 
   const invoices = result?.data ?? [];
+  const initialLoading = isLoading && result === undefined;
+  const hasActiveFilters = Boolean(search || statusFilter);
 
   return (
     <div>
@@ -94,7 +105,7 @@ function InvoicesTab() {
           <h1 className="display-title" style={{ marginBottom: 8 }}>
             {t.invoices.title}
           </h1>
-          <p className="label" style={{ opacity: 0.25 }}>{isLoading ? "—" : `${invoices.length} ${invoices.length === 1 ? t.invoices.invoice.toUpperCase() : t.invoices.invoices.toUpperCase()}`}</p>
+          <p className="label" style={{ opacity: 0.25 }}>{initialLoading ? "—" : `${invoices.length} ${invoices.length === 1 ? t.invoices.invoice.toUpperCase() : t.invoices.invoices.toUpperCase()}`}</p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <a
@@ -121,16 +132,17 @@ function InvoicesTab() {
 
       {/* Search & Filter */}
       <SearchFilter
+        key={filterResetKey}
         placeholder={t.invoices.searchPlaceholder}
         filters={[
           { key: "status", label: t.invoices.allStatuses, options: invoiceStatusOptions },
         ]}
-        initialFilters={initialStatus ? { status: initialStatus } : undefined}
+        initialFilters={filterResetKey === 0 && initialStatus ? { status: initialStatus } : undefined}
         onSearch={handleSearch}
         onFilterChange={handleFilter}
       />
 
-      {isLoading ? (
+      {initialLoading ? (
         <div>
           {[...Array(5)].map((_, i) => (
             <div
@@ -143,15 +155,16 @@ function InvoicesTab() {
       ) : invoices.length === 0 ? (
         <EmptyState
           icon="□"
-          title={search || statusFilter ? t.invoices.noInvoicesFound : t.invoices.noInvoicesYet}
-          description={!search && !statusFilter ? "Maak je eerste factuur aan om te beginnen." : undefined}
-          actionLabel={!search && !statusFilter ? t.invoices.newInvoiceBtn : undefined}
-          actionHref={!search && !statusFilter ? "/dashboard/invoices/new" : undefined}
-          secondaryLabel={!search && !statusFilter ? "Bekijk een voorbeeld" : undefined}
-          secondaryHref={!search && !statusFilter ? "/dashboard/voorbeeld" : undefined}
+          title={hasActiveFilters ? t.invoices.noInvoicesFound : t.invoices.noInvoicesYet}
+          description={hasActiveFilters ? t.invoices.noInvoicesFoundDescription : "Maak je eerste factuur aan om te beginnen."}
+          actionLabel={hasActiveFilters ? t.common.clearSearchFilters : t.invoices.newInvoiceBtn}
+          actionHref={hasActiveFilters ? undefined : "/dashboard/invoices/new"}
+          actionOnClick={hasActiveFilters ? clearFilters : undefined}
+          secondaryLabel={!hasActiveFilters ? "Bekijk een voorbeeld" : undefined}
+          secondaryHref={!hasActiveFilters ? "/dashboard/voorbeeld" : undefined}
         />
       ) : (
-        <TableWrapper>
+        <TableWrapper style={{ opacity: isPlaceholderData ? 0.6 : 1, transition: "opacity 150ms ease" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
             <thead>
               <tr style={{ borderBottom: "0.5px solid rgba(0,0,0,0.08)" }}>
@@ -312,11 +325,17 @@ function QuotesTab() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [filterResetKey, setFilterResetKey] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSearch = useCallback((q: string) => setSearch(q), []);
   const handleFilter = useCallback((f: Record<string, string>) => {
     setStatusFilter(f.status ?? "");
+  }, []);
+  const clearFilters = useCallback(() => {
+    setSearch("");
+    setStatusFilter("");
+    setFilterResetKey((k) => k + 1);
   }, []);
 
   const quoteStatusOptions = [
@@ -327,13 +346,14 @@ function QuotesTab() {
     { value: "rejected", label: t.quotes.rejected },
   ];
 
-  const { data: result, isLoading } = useQuery({
+  const { data: result, isLoading, isPlaceholderData } = useQuery({
     queryKey: ["quotes", search, statusFilter],
     queryFn: () =>
       getQuotes({
         search: search || undefined,
         status: (statusFilter as QuoteStatus) || undefined,
       }),
+    placeholderData: keepPreviousData,
   });
 
   const deleteMutation = useMutation({
@@ -354,6 +374,8 @@ function QuotesTab() {
   });
 
   const quotes = result?.data ?? [];
+  const initialLoading = isLoading && result === undefined;
+  const hasActiveFilters = Boolean(search || statusFilter);
 
   return (
     <div>
@@ -362,7 +384,7 @@ function QuotesTab() {
           <h1 className="display-title" style={{ marginBottom: 8 }}>
             {t.quotes.title}
           </h1>
-          <p className="label" style={{ opacity: 0.3 }}>{isLoading ? "—" : `${quotes.length} ${quotes.length === 1 ? t.quotes.quote.toUpperCase() : t.quotes.title.toUpperCase()}`}</p>
+          <p className="label" style={{ opacity: 0.3 }}>{initialLoading ? "—" : `${quotes.length} ${quotes.length === 1 ? t.quotes.quote.toUpperCase() : t.quotes.title.toUpperCase()}`}</p>
         </div>
         <Link
           href="/dashboard/quotes/new"
@@ -373,6 +395,7 @@ function QuotesTab() {
       </div>
 
       <SearchFilter
+        key={filterResetKey}
         placeholder={t.invoices.searchPlaceholder}
         filters={[
           { key: "status", label: t.invoices.allStatuses, options: quoteStatusOptions },
@@ -381,7 +404,7 @@ function QuotesTab() {
         onFilterChange={handleFilter}
       />
 
-      {isLoading ? (
+      {initialLoading ? (
         <div>
           {[...Array(5)].map((_, i) => (
             <div key={i} className="skeleton" style={{ width: "100%", height: 48, marginBottom: 1 }} />
@@ -390,13 +413,14 @@ function QuotesTab() {
       ) : quotes.length === 0 ? (
         <EmptyState
           icon="◇"
-          title={search || statusFilter ? t.quotes.noQuotesFound : t.quotes.noQuotesYet}
-          description={!search && !statusFilter ? "Stuur een offerte naar je klant." : undefined}
-          actionLabel={!search && !statusFilter ? t.quotes.newQuoteBtn : undefined}
-          actionHref={!search && !statusFilter ? "/dashboard/quotes/new" : undefined}
+          title={hasActiveFilters ? t.quotes.noQuotesFound : t.quotes.noQuotesYet}
+          description={hasActiveFilters ? t.quotes.noQuotesFoundDescription : "Stuur een offerte naar je klant."}
+          actionLabel={hasActiveFilters ? t.common.clearSearchFilters : t.quotes.newQuoteBtn}
+          actionHref={hasActiveFilters ? undefined : "/dashboard/quotes/new"}
+          actionOnClick={hasActiveFilters ? clearFilters : undefined}
         />
       ) : (
-        <TableWrapper><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
+        <TableWrapper style={{ opacity: isPlaceholderData ? 0.6 : 1, transition: "opacity 150ms ease" }}><table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: "var(--border-rule)", textAlign: "left" }}>
               <Th>{t.common.ref}</Th>

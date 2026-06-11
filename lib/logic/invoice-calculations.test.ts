@@ -6,6 +6,8 @@ import {
   calculateInvoiceVatAmount,
   calculatePaymentDays,
   roundMoney,
+  sanitizeQuantity,
+  sanitizeRate,
 } from "@/lib/logic/invoice-calculations";
 
 describe("invoice-calculations", () => {
@@ -28,6 +30,51 @@ describe("invoice-calculations", () => {
         { quantity: 2, rate: 2.505 },
       ])
     ).toBe(15.01);
+  });
+
+  // Invariant: het subtotaal is exact de som van de (afgeronde) regel-
+  // bedragen die de gebruiker op het scherm ziet — wat je optelt klopt
+  // tot de cent. (Regressie: 2,5 × 99,99 + 3 × 10,005 toonde regels die
+  // optelden tot € 280,00 naast een subtotaal van € 279,99.)
+  test("subtotal equals the sum of displayed (rounded) line amounts", () => {
+    const cases: Array<Array<{ quantity: number; rate: number }>> = [
+      [
+        { quantity: 2.5, rate: 99.99 },
+        { quantity: 3, rate: 10.005 },
+      ],
+      [
+        { quantity: 0.5, rate: 0.01 },
+        { quantity: 0.5, rate: 0.01 },
+        { quantity: 0.5, rate: 0.01 },
+      ],
+      [
+        { quantity: 3, rate: 33.33 },
+        { quantity: 7, rate: 14.285 },
+      ],
+    ];
+
+    for (const lines of cases) {
+      const displayedSum = roundMoney(
+        lines.reduce((sum, line) => sum + calculateInvoiceLineAmount(line), 0)
+      );
+      expect(calculateInvoiceSubtotalExVat(lines)).toBe(displayedSum);
+    }
+  });
+
+  test("sanitizeQuantity clamps negatives and limits to 2 decimals", () => {
+    expect(sanitizeQuantity("-5")).toBe(0);
+    expect(sanitizeQuantity("2.5")).toBe(2.5);
+    expect(sanitizeQuantity("10.006")).toBe(10.01);
+    expect(sanitizeQuantity("10.004")).toBe(10);
+    expect(sanitizeQuantity("")).toBe(0);
+    expect(sanitizeQuantity("abc")).toBe(0);
+  });
+
+  test("sanitizeRate clamps negatives and limits to 2 decimals", () => {
+    expect(sanitizeRate("-100")).toBe(0);
+    expect(sanitizeRate("99.99")).toBe(99.99);
+    expect(sanitizeRate("10.006")).toBe(10.01);
+    expect(sanitizeRate("")).toBe(0);
   });
 
   test("calculateInvoiceVatAmount calculates VAT on rounded subtotal", () => {

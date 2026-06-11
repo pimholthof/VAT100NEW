@@ -9,6 +9,7 @@ import { useLocale } from "@/lib/i18n/context";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("nl-NL", {
+    timeZone: "Europe/Amsterdam",
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -25,7 +26,7 @@ function formatDayHeader(iso: string): string {
     a.getDate() === b.getDate();
   if (sameDay(d, today)) return "Vandaag";
   if (sameDay(d, yesterday)) return "Gisteren";
-  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
+  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long", timeZone: "Europe/Amsterdam" });
 }
 
 export function BerichtenPage() {

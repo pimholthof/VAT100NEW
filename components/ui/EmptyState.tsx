@@ -8,6 +8,8 @@ interface EmptyStateProps {
   description?: string;
   actionLabel?: string;
   actionHref?: string;
+  /** Knop-variant van de actie, bv. "wis zoekopdracht"; wint nooit van actionHref. */
+  actionOnClick?: () => void;
   secondaryLabel?: string;
   secondaryHref?: string;
 }
@@ -18,6 +20,7 @@ export function EmptyState({
   description,
   actionLabel,
   actionHref,
+  actionOnClick,
   secondaryLabel,
   secondaryHref,
 }: EmptyStateProps) {
@@ -77,6 +80,16 @@ export function EmptyState({
         >
           {actionLabel}
         </Link>
+      )}
+      {actionLabel && !actionHref && actionOnClick && (
+        <button
+          type="button"
+          onClick={actionOnClick}
+          className="btn-secondary"
+          style={{ marginTop: 24 }}
+        >
+          {actionLabel}
+        </button>
       )}
       {secondaryLabel && secondaryHref && (
         <Link

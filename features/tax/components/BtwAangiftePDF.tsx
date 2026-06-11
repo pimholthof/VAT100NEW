@@ -236,6 +236,7 @@ interface RubriekRow {
 
 export function BtwAangiftePDF({ data }: { data: BtwAangifteData }) {
   const genDate = new Date().toLocaleDateString("nl-NL", {
+    timeZone: "Europe/Amsterdam",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

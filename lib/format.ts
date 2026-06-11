@@ -77,3 +77,28 @@ export function formatDateLong(dateStr: string | null): string {
     timeZone: "Europe/Amsterdam",
   });
 }
+
+/**
+ * Time format: "14:05". Tijdzone vastgepind — zie formatDate.
+ */
+export function formatTime(date: string | number | null): string {
+  if (date === null || date === "") return "—";
+  return new Date(date).toLocaleTimeString("nl-NL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Amsterdam",
+  });
+}
+
+/**
+ * Date + time format: "05-03-2026 14:05". Tijdzone vastgepind — zie formatDate.
+ */
+export function formatDateTime(date: string | number | null): string {
+  if (date === null || date === "") return "—";
+  return `${new Date(date).toLocaleDateString("nl-NL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Europe/Amsterdam",
+  })} ${formatTime(date)}`;
+}

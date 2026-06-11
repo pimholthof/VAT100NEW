@@ -6,6 +6,7 @@ import { toggleLeadTask, updateLeadStage, updateLeadPlan, autoProvisionAccount }
 import { Select } from "@/components/ui/Input";
 import { ButtonPrimary } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { formatDate } from "@/lib/format";
 
 interface LeadTask {
   id: string;
@@ -216,7 +217,7 @@ export function LeadDossier({ lead, activities, tasks: initialTasks, plans }: Le
               </span>
               {task.completed_at && (
                 <span className="label" style={{ fontSize: 9 }}>
-                  {new Date(task.completed_at).toLocaleDateString("nl-NL")}
+                  {formatDate(task.completed_at)}
                 </span>
               )}
             </div>

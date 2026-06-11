@@ -28,12 +28,23 @@ export type ClientSchema = z.infer<typeof clientSchema>;
 
 // ─── Invoice Line ───
 
+// Geen z.multipleOf(0.01): die struikelt over IEEE-754-restwaarden
+// (bv. 0.07 % 0.01 ≠ 0). Epsilon-check op centen is wél betrouwbaar.
+const maxTwoDecimals = (v: number) =>
+  Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
+
 const invoiceLineSchema = z.object({
   id: z.string(),
   description: trimmedString.min(1, "Omschrijving is verplicht"),
-  quantity: z.number().positive("Aantal moet positief zijn"),
+  quantity: z
+    .number()
+    .positive("Aantal moet positief zijn")
+    .refine(maxTwoDecimals, "Maximaal 2 decimalen"),
   unit: z.enum(["uren", "dagen", "stuks"]),
-  rate: z.number().min(0, "Tarief mag niet negatief zijn"),
+  rate: z
+    .number()
+    .min(0, "Tarief mag niet negatief zijn")
+    .refine(maxTwoDecimals, "Maximaal 2 decimalen"),
 });
 
 // ─── Invoice ───
