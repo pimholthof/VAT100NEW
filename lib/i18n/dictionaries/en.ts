@@ -924,6 +924,7 @@ const en = {
     placeholder: "What would you like to do?",
     chatPlaceholder: "Ask a question...",
     noResults: "No results for",
+    searching: "Searching…",
     askAssistant: "Ask the assistant",
     askQuestion: "Ask a question",
     actionsGroup: "Actions",

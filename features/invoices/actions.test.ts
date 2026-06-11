@@ -82,4 +82,39 @@ describe("createInvoice validatie pipeline", () => {
     expect(totals.vatAmount).toBe(21);
     expect(totals.totalIncVat).toBe(120.99);
   });
+
+  it("subtotaal is de som van de afgeronde regelbedragen", () => {
+    // Regressie: 2,5 × 99,99 (249,98) + 3 × 10,01 (30,03) — de getoonde
+    // regels moeten exact optellen tot het subtotaal.
+    const lines = [
+      { id: "1", description: "A", quantity: 2.5, unit: "uren" as const, rate: 99.99 },
+      { id: "2", description: "B", quantity: 3, unit: "stuks" as const, rate: 10.01 },
+    ];
+    const totals = calculateLineTotals(lines, 21);
+    expect(totals.subtotalExVat).toBe(280.01);
+  });
+
+  it("weigert tarief met 3 decimalen", () => {
+    const result = validate(invoiceSchema, {
+      ...validInput,
+      lines: [{ ...validInput.lines[0], rate: 10.005 }],
+    });
+    expect(result.error).toBe("Maximaal 2 decimalen");
+  });
+
+  it("weigert negatief aantal", () => {
+    const result = validate(invoiceSchema, {
+      ...validInput,
+      lines: [{ ...validInput.lines[0], quantity: -5 }],
+    });
+    expect(result.error).toBe("Aantal moet positief zijn");
+  });
+
+  it("weigert negatief tarief", () => {
+    const result = validate(invoiceSchema, {
+      ...validInput,
+      lines: [{ ...validInput.lines[0], rate: -100 }],
+    });
+    expect(result.error).toBe("Tarief mag niet negatief zijn");
+  });
 });

@@ -924,6 +924,7 @@ const nl = {
     placeholder: "Wat wil je doen?",
     chatPlaceholder: "Stel een vraag...",
     noResults: "Geen resultaten voor",
+    searching: "Zoeken…",
     askAssistant: "Vraag dit aan de assistent",
     askQuestion: "Stel een vraag",
     actionsGroup: "Acties",

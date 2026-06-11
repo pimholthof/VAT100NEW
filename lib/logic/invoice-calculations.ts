@@ -17,9 +17,28 @@ export function calculateInvoiceLineAmount(line: Pick<InvoiceLineInput, "quantit
   return roundMoney(line.quantity * line.rate);
 }
 
+// Invoersanitatie voor aantal/tarief-velden: nooit negatief, maximaal
+// 2 decimalen. Creditfacturen krijgen hun minteken server-side, niet via
+// deze invoervelden.
+export function sanitizeQuantity(raw: string): number {
+  const parsed = parseFloat(raw);
+  if (!Number.isFinite(parsed)) return 0;
+  return roundMoney(Math.max(0, parsed));
+}
+
+export function sanitizeRate(raw: string): number {
+  const parsed = parseFloat(raw);
+  if (!Number.isFinite(parsed)) return 0;
+  return roundMoney(Math.max(0, parsed));
+}
+
+// Afrondingsstrategie: elke regel wordt eerst op de cent afgerond (zoals de
+// regel ook getoond wordt), daarna sommeren we de afgeronde regelbedragen.
+// Zo telt wat op het scherm staat altijd exact op tot het subtotaal. De
+// buitenste roundMoney vangt alleen IEEE-754-artefacten in de som af.
 export function calculateInvoiceSubtotalExVat(lines: Array<Pick<InvoiceLineInput, "quantity" | "rate">>): MoneyAmount {
   return roundMoney(
-    lines.reduce((sum, line) => sum + line.quantity * line.rate, 0)
+    lines.reduce((sum, line) => sum + calculateInvoiceLineAmount(line), 0)
   );
 }
 

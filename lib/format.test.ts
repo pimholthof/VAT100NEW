@@ -157,8 +157,10 @@ describe("calculateVat rounding edge cases", () => {
 });
 
 describe("calculateLineTotals rounding edge cases", () => {
-  it("handles three lines at 0.335 summed then rounded (not line-by-line)", () => {
-    // 3 lines van 0.335 = 1.005 → subtotal 1.01 (rounded on sum), not 1.02.
+  it("rounds per line and sums the rounded line amounts", () => {
+    // Strategie: elke regel rondt af zoals hij getoond wordt (0.335 → 0.34)
+    // en het subtotaal is de som van die getoonde bedragen: 3 × 0.34 = 1.02.
+    // Zo telt wat de gebruiker op het scherm ziet altijd exact op.
     const result = calculateLineTotals(
       [
         { quantity: 1, rate: 0.335 },
@@ -167,7 +169,7 @@ describe("calculateLineTotals rounding edge cases", () => {
       ],
       21
     );
-    expect(result.subtotalExVat).toBe(1.01);
+    expect(result.subtotalExVat).toBe(1.02);
   });
 
   it("handles fractional quantity (e.g. half hour)", () => {
