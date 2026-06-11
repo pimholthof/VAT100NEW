@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { Camera, FileText } from "lucide-react";
 import {
   createReceipt,
   uploadReceiptImage,
@@ -380,8 +381,8 @@ export function BulkUpload() {
                     borderBottom: "0.5px solid rgba(13,13,11,0.06)",
                   }}
                 >
-                  <span style={{ fontSize: 14, opacity: 0.4 }}>
-                    {isPdf ? "📄" : "📷"}
+                  <span aria-hidden="true" style={{ display: "inline-flex", opacity: 0.4 }}>
+                    {isPdf ? <FileText size={14} strokeWidth={1.5} /> : <Camera size={14} strokeWidth={1.5} />}
                   </span>
                   <span
                     style={{

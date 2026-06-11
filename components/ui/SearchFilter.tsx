@@ -70,7 +70,7 @@ export function SearchFilter({
           key={filter.key}
           value={filterValues[filter.key] ?? ""}
           onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-          className="input-field"
+          className="form-input form-select"
           style={{
             width: "auto",
             minWidth: 140,

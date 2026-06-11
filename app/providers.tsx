@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { LazyMotion, domAnimation } from "framer-motion";
+import { LazyMotion, MotionConfig, domAnimation } from "framer-motion";
 import { useState } from "react";
 import { LocaleProvider } from "@/lib/i18n/context";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -31,11 +31,14 @@ export function Providers({
   return (
     <QueryClientProvider client={queryClient}>
       <LazyMotion features={domAnimation} strict>
-        <LocaleProvider initialLocale={locale ?? "nl"}>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
-        </LocaleProvider>
+        {/* CSS dekt prefers-reduced-motion al; dit dekt de framer-animaties */}
+        <MotionConfig reducedMotion="user">
+          <LocaleProvider initialLocale={locale ?? "nl"}>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </LocaleProvider>
+        </MotionConfig>
       </LazyMotion>
     </QueryClientProvider>
   );

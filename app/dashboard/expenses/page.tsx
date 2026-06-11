@@ -36,7 +36,15 @@ export default function ExpensesPage() {
     <div>
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <Suspense fallback={<SkeletonTable />}>
+      <Suspense
+        fallback={
+          <SkeletonTable
+            columns="24px 1fr 2fr 1fr 1fr 1fr 1fr 80px"
+            headerWidths={[10, 60, 80, 70, 60, 50, 50, 40]}
+            bodyWidths={[10, 50, 70, 60, 50, 40, 40, 30]}
+          />
+        }
+      >
         {activeTab === "bonnen" && <ReceiptsTab />}
         {activeTab === "bank" && <BankTab />}
         {activeTab === "activa" && <AssetsTab />}

@@ -195,7 +195,7 @@ export default function AssetsPage() {
             {editingId ? t.assets.editAsset : t.assets.newAssetTitle}
           </h2>
 
-          {error && <p style={{ color: "#A51C30", marginBottom: 16 }}>{error}</p>}
+          {error && <p style={{ color: "var(--color-accent)", marginBottom: 16 }}>{error}</p>}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div style={{ gridColumn: "1 / -1" }}>
@@ -267,7 +267,12 @@ export default function AssetsPage() {
 
       {/* Tabel */}
       {isLoading ? (
-        <SkeletonTable rows={5} />
+        <SkeletonTable
+          columns="2fr 1fr 1fr 1fr 1fr 1fr 1fr 40px"
+          rows={5}
+          headerWidths={[70, 60, 60, 60, 60, 60, 60, 20]}
+          bodyWidths={[60, 50, 50, 50, 50, 50, 50, 15]}
+        />
       ) : assets.length === 0 ? (
         <div style={{ textAlign: "center", padding: "80px 0", opacity: 0.4 }}>
           <p style={{ fontSize: "var(--text-body-lg)" }}>{t.assets.noAssetsYet}</p>
@@ -314,7 +319,7 @@ export default function AssetsPage() {
                         </button>
                         <button
                           onClick={() => setDeleteId(asset.id)}
-                          style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5, fontSize: 13, color: "#A51C30" }}
+                          style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.5, fontSize: 13, color: "var(--color-accent)" }}
                         >
                           {t.common.delete}
                         </button>

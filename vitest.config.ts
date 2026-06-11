@@ -2,6 +2,10 @@ import { defineConfig } from "vitest/config";
 import path from "path";
 
 export default defineConfig({
+  // tsconfig houdt jsx op "preserve" voor Next; vitest moet JSX zelf transformeren
+  oxc: {
+    jsx: { runtime: "automatic" },
+  },
   test: {
     environment: "jsdom",
     globals: true,

@@ -143,17 +143,17 @@ export default function HoursPage() {
             <div>
               <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.common.date}</label>
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)}
-                className="input-field" />
+                className="form-input" />
             </div>
             <div>
               <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.hours.hoursLabel}</label>
               <input type="number" step="0.25" min="0.25" max="24" value={formHours} onChange={(e) => setFormHours(e.target.value)} placeholder="8"
-                className="input-field" />
+                className="form-input" />
             </div>
             <div>
               <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.hours.categoryLabel}</label>
               <input type="text" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} placeholder={t.hours.categoryPlaceholder}
-                className="input-field" />
+                className="form-input" />
             </div>
             <button
               onClick={() => createMutation.mutate()}

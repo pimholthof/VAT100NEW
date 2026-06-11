@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { m as motion, AnimatePresence } from "framer-motion";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { ButtonPrimary, ButtonSecondary } from "@/components/ui/Button";
 import { createCustomerAccount } from "./actions";
@@ -92,203 +93,218 @@ export function CreateCustomerDialog({ open, onClose, onCreated }: CreateCustome
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="create-customer-title"
-      className="dialog-overlay"
-    >
-      <div ref={panelRef} className="dialog-panel" style={{ maxWidth: 480 }}>
-        {created ? (
-          <>
-            <p id="create-customer-title" className="dialog-panel__title">
-              Klant aangemaakt
-            </p>
-            <p className="dialog-panel__message" style={{ marginBottom: 16 }}>
-              De klant kan nu inloggen met onderstaande gegevens.
-            </p>
-            {created.emailSent && (
-              <div style={{ background: "rgba(26, 122, 58, 0.06)", border: "0.5px solid rgba(26, 122, 58, 0.2)", borderRadius: "var(--radius-sm)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "var(--color-success)" }}>
-                Welkomstmail verstuurd naar {created.email}
-              </div>
-            )}
-            {created.emailError && (
-              <div style={{ background: "rgba(196, 77, 42, 0.06)", border: "0.5px solid rgba(196, 77, 42, 0.2)", borderRadius: "var(--radius-sm)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "var(--color-overdue)" }}>
-                Welkomstmail mislukt: {created.emailError}
-              </div>
-            )}
-            <div
-              style={{
-                background: "rgba(0, 0, 0, 0.03)",
-                padding: 20,
-                borderLeft: "2px solid var(--foreground)",
-                borderRadius: "var(--radius-sm)",
-                marginBottom: 24,
-                fontFamily: "var(--font-mono)",
-                fontSize: 14,
-                lineHeight: 1.8,
-              }}
-            >
-              <div>
-                <span style={{ opacity: 0.5 }}>E-mail:</span>{" "}
-                <strong>{created.email}</strong>
-              </div>
-              <div>
-                <span style={{ opacity: 0.5 }}>Wachtwoord:</span>{" "}
-                <strong>{created.tempPassword}</strong>
-              </div>
-            </div>
-            <div className="dialog-panel__actions">
-              <ButtonSecondary onClick={handleCopy}>
-                {copied ? "Gekopieerd" : "Kopieer gegevens"}
-              </ButtonSecondary>
-              <ButtonPrimary onClick={handleClose}>Sluiten</ButtonPrimary>
-            </div>
-          </>
-        ) : (
-          <>
-            <p id="create-customer-title" className="dialog-panel__title">
-              Nieuwe klant aanmaken
-            </p>
-            <p className="dialog-panel__message">
-              Maak een account aan en geef de klant direct inloggegevens.
-            </p>
-
-            {error && (
-              <div
-                style={{
-                  background: "rgba(196, 77, 42, 0.06)",
-                  border: "0.5px solid rgba(196, 77, 42, 0.2)",
-                  borderRadius: "var(--radius-sm)",
-                  padding: "10px 14px",
-                  marginBottom: 16,
-                  fontSize: 13,
-                  color: "var(--color-overdue)",
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-              <div>
-                <label className="label" style={{ display: "block", marginBottom: 4 }}>
-                  Naam *
-                </label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Volledige naam"
-                  className="admin-field"
-                  style={{ width: "100%" }}
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label className="label" style={{ display: "block", marginBottom: 4 }}>
-                  Studionaam
-                </label>
-                <input
-                  type="text"
-                  value={studioName}
-                  onChange={(e) => setStudioName(e.target.value)}
-                  placeholder="Bedrijfsnaam (optioneel)"
-                  className="admin-field"
-                  style={{ width: "100%" }}
-                />
-              </div>
-
-              <div>
-                <label className="label" style={{ display: "block", marginBottom: 4 }}>
-                  E-mailadres *
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="klant@voorbeeld.nl"
-                  className="admin-field"
-                  style={{ width: "100%" }}
-                />
-              </div>
-
-              <div>
-                <label className="label" style={{ display: "block", marginBottom: 4 }}>
-                  Wachtwoord *
-                </label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input
-                    type="text"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="admin-field mono-amount"
-                    style={{ width: "100%" }}
-                  />
-                  <ButtonSecondary
-                    onClick={() => setPassword(generatePassword())}
-                    style={{ whiteSpace: "nowrap", flexShrink: 0 }}
-                  >
-                    Genereer
-                  </ButtonSecondary>
-                </div>
-              </div>
-
-              <div>
-                <label className="label" style={{ display: "block", marginBottom: 4 }}>
-                  Abonnement *
-                </label>
-                <select
-                  value={planId}
-                  onChange={(e) => setPlanId(e.target.value)}
-                  className="admin-select"
-                  style={{ width: "100%" }}
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-customer-title"
+          className="dialog-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <motion.div
+            ref={panelRef}
+            className="dialog-panel"
+            style={{ maxWidth: 480 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {created ? (
+              <>
+                <p id="create-customer-title" className="dialog-panel__title">
+                  Klant aangemaakt
+                </p>
+                <p className="dialog-panel__message" style={{ marginBottom: 16 }}>
+                  De klant kan nu inloggen met onderstaande gegevens.
+                </p>
+                {created.emailSent && (
+                  <div style={{ background: "rgba(26, 122, 58, 0.06)", border: "0.5px solid rgba(26, 122, 58, 0.2)", borderRadius: "var(--radius-sm)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "var(--color-success)" }}>
+                    Welkomstmail verstuurd naar {created.email}
+                  </div>
+                )}
+                {created.emailError && (
+                  <div style={{ background: "rgba(196, 77, 42, 0.06)", border: "0.5px solid rgba(196, 77, 42, 0.2)", borderRadius: "var(--radius-sm)", padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "var(--color-overdue)" }}>
+                    Welkomstmail mislukt: {created.emailError}
+                  </div>
+                )}
+                <div
+                  style={{
+                    background: "rgba(0, 0, 0, 0.03)",
+                    padding: 20,
+                    borderLeft: "2px solid var(--foreground)",
+                    borderRadius: "var(--radius-sm)",
+                    marginBottom: 24,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 14,
+                    lineHeight: 1.8,
+                  }}
                 >
-                  {/* Labels en prijzen volgen de plans-tabel (migratie 20260421_001) */}
-                  <option value="basis">Start — €29/mnd</option>
-                  <option value="studio">Studio — €39/mnd</option>
-                  <option value="compleet">Complete — €79/mnd</option>
-                  <option value="plus">Plus — €149/mnd</option>
-                </select>
-              </div>
+                  <div>
+                    <span style={{ opacity: 0.5 }}>E-mail:</span>{" "}
+                    <strong>{created.email}</strong>
+                  </div>
+                  <div>
+                    <span style={{ opacity: 0.5 }}>Wachtwoord:</span>{" "}
+                    <strong>{created.tempPassword}</strong>
+                  </div>
+                </div>
+                <div className="dialog-panel__actions">
+                  <ButtonSecondary onClick={handleCopy}>
+                    {copied ? "Gekopieerd" : "Kopieer gegevens"}
+                  </ButtonSecondary>
+                  <ButtonPrimary onClick={handleClose}>Sluiten</ButtonPrimary>
+                </div>
+              </>
+            ) : (
+              <>
+                <p id="create-customer-title" className="dialog-panel__title">
+                  Nieuwe klant aanmaken
+                </p>
+                <p className="dialog-panel__message">
+                  Maak een account aan en geef de klant direct inloggegevens.
+                </p>
 
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontSize: 13,
-                  cursor: "pointer",
-                  marginTop: 4,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={sendEmail}
-                  onChange={(e) => setSendEmail(e.target.checked)}
-                />
-                Welkomstmail met inloggegevens versturen
-              </label>
-            </div>
+                {error && (
+                  <div
+                    style={{
+                      background: "rgba(196, 77, 42, 0.06)",
+                      border: "0.5px solid rgba(196, 77, 42, 0.2)",
+                      borderRadius: "var(--radius-sm)",
+                      padding: "10px 14px",
+                      marginBottom: 16,
+                      fontSize: 13,
+                      color: "var(--color-overdue)",
+                    }}
+                  >
+                    {error}
+                  </div>
+                )}
 
-            <div className="dialog-panel__actions">
-              <ButtonSecondary onClick={handleClose} disabled={isSubmitting}>
-                Annuleer
-              </ButtonSecondary>
-              <ButtonPrimary
-                onClick={handleSubmit}
-                disabled={isSubmitting || !email.trim() || !fullName.trim() || !password}
-              >
-                {isSubmitting ? "Aanmaken..." : "Klant aanmaken"}
-              </ButtonPrimary>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+                  <div>
+                    <label className="label" style={{ display: "block", marginBottom: 4 }}>
+                      Naam *
+                    </label>
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Volledige naam"
+                      className="admin-field"
+                      style={{ width: "100%" }}
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label" style={{ display: "block", marginBottom: 4 }}>
+                      Studionaam
+                    </label>
+                    <input
+                      type="text"
+                      value={studioName}
+                      onChange={(e) => setStudioName(e.target.value)}
+                      placeholder="Bedrijfsnaam (optioneel)"
+                      className="admin-field"
+                      style={{ width: "100%" }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label" style={{ display: "block", marginBottom: 4 }}>
+                      E-mailadres *
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="klant@voorbeeld.nl"
+                      className="admin-field"
+                      style={{ width: "100%" }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label" style={{ display: "block", marginBottom: 4 }}>
+                      Wachtwoord *
+                    </label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input
+                        type="text"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="admin-field mono-amount"
+                        style={{ width: "100%" }}
+                      />
+                      <ButtonSecondary
+                        onClick={() => setPassword(generatePassword())}
+                        style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                      >
+                        Genereer
+                      </ButtonSecondary>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label" style={{ display: "block", marginBottom: 4 }}>
+                      Abonnement *
+                    </label>
+                    <select
+                      value={planId}
+                      onChange={(e) => setPlanId(e.target.value)}
+                      className="admin-select"
+                      style={{ width: "100%" }}
+                    >
+                      {/* Labels en prijzen volgen de plans-tabel (migratie 20260421_001) */}
+                      <option value="basis">Start — €29/mnd</option>
+                      <option value="studio">Studio — €39/mnd</option>
+                      <option value="compleet">Complete — €79/mnd</option>
+                      <option value="plus">Plus — €149/mnd</option>
+                    </select>
+                  </div>
+
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: 13,
+                      cursor: "pointer",
+                      marginTop: 4,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={sendEmail}
+                      onChange={(e) => setSendEmail(e.target.checked)}
+                    />
+                    Welkomstmail met inloggegevens versturen
+                  </label>
+                </div>
+
+                <div className="dialog-panel__actions">
+                  <ButtonSecondary onClick={handleClose} disabled={isSubmitting}>
+                    Annuleer
+                  </ButtonSecondary>
+                  <ButtonPrimary
+                    onClick={handleSubmit}
+                    loading={isSubmitting}
+                    disabled={!email.trim() || !fullName.trim() || !password}
+                  >
+                    Klant aanmaken
+                  </ButtonPrimary>
+                </div>
+              </>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

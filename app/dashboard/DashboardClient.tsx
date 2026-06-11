@@ -205,7 +205,7 @@ function DesktopDashboard({
           <span className="brutalist-rule" />
         </h2>
         {isLoading ? (
-          <SkeletonTable />
+          <SkeletonTable columns="80px 2fr 1fr 100px" rows={4} headerWidths={[40, 60, 50, 40]} bodyWidths={[30, 70, 40, 50]} />
         ) : openInvoices && openInvoices.length > 0 ? (
           <UpcomingInvoiceTable invoices={openInvoices} />
         ) : onboardingResult && !onboardingResult.hasClient ? (

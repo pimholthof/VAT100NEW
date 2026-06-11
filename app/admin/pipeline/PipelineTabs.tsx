@@ -22,7 +22,15 @@ export function PipelineTabs({ children }: { children: ReactNode }) {
 
       {activeTab === "pipeline" && children}
       {activeTab === "wachtlijst" && (
-        <Suspense fallback={<SkeletonTable />}>
+        <Suspense
+          fallback={
+            <SkeletonTable
+              columns="40px 1.5fr 2fr 1fr 1fr"
+              headerWidths={[20, 60, 80, 50, 50]}
+              bodyWidths={[15, 50, 70, 40, 40]}
+            />
+          }
+        >
           <WaitlistTab />
         </Suspense>
       )}

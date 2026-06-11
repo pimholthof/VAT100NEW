@@ -11,7 +11,15 @@ import {
 } from "react";
 import { m as motion, AnimatePresence } from "framer-motion";
 
-type ToastType = "success" | "error" | "info";
+type ToastType = "success" | "error" | "warning" | "info";
+
+/* Statuskleur-dot per type; op het accentvlak van error spreekt papier-op-crimson */
+const TOAST_DOT_COLOR: Record<ToastType, string> = {
+  success: "var(--color-success)",
+  warning: "var(--color-warning)",
+  info: "var(--color-info)",
+  error: "var(--background)",
+};
 
 interface ToastAction {
   label: string;
@@ -141,6 +149,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   justifyContent: "space-between",
                 }}
               >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: TOAST_DOT_COLOR[t.type],
+                    flexShrink: 0,
+                  }}
+                />
                 <span
                   style={{ flex: 1, cursor: t.action ? "default" : "pointer" }}
                   onClick={() => {

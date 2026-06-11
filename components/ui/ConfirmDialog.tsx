@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { m as motion, AnimatePresence } from "framer-motion";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { ButtonPrimary, ButtonSecondary } from "./Button";
@@ -31,32 +32,45 @@ export function ConfirmDialog({
   // Initiële focus komt van de autoFocus op de annuleerknop.
   useFocusTrap(panelRef, open, { onEscape: onCancel });
 
-  if (!open) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-title"
-      className="dialog-overlay"
-    >
-      <div ref={panelRef} className="dialog-panel">
-        <p id="confirm-title" className="dialog-panel__title">
-          {title}
-        </p>
-        <p className="dialog-panel__message">
-          {message}
-        </p>
-        {children}
-        <div className="dialog-panel__actions" style={{ marginTop: children ? 24 : 0 }}>
-          <ButtonSecondary onClick={onCancel} autoFocus>
-            {cancelLabel}
-          </ButtonSecondary>
-          <ButtonPrimary onClick={onConfirm}>
-            {confirmLabel}
-          </ButtonPrimary>
-        </div>
-      </div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-title"
+          className="dialog-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <motion.div
+            ref={panelRef}
+            className="dialog-panel"
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <p id="confirm-title" className="dialog-panel__title">
+              {title}
+            </p>
+            <p className="dialog-panel__message">
+              {message}
+            </p>
+            {children}
+            <div className="dialog-panel__actions" style={{ marginTop: children ? 24 : 0 }}>
+              <ButtonSecondary onClick={onCancel} autoFocus>
+                {cancelLabel}
+              </ButtonSecondary>
+              <ButtonPrimary onClick={onConfirm}>
+                {confirmLabel}
+              </ButtonPrimary>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

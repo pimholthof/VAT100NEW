@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Camera, FileText } from "lucide-react";
 import type { ReceiptInput } from "@/lib/types";
 import {
   FieldGroup,
@@ -90,7 +91,9 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
           gap: 12,
         }}
       >
-        <span style={{ fontSize: 14, opacity: 0.4 }}>{isPdf ? "📄" : "📷"}</span>
+        <span aria-hidden="true" style={{ display: "inline-flex", opacity: 0.4 }}>
+          {isPdf ? <FileText size={14} strokeWidth={1.5} /> : <Camera size={14} strokeWidth={1.5} />}
+        </span>
         <span
           style={{
             fontSize: "var(--text-body-sm)",
@@ -119,7 +122,9 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
           gap: 12,
         }}
       >
-        <span style={{ fontSize: 14, opacity: 0.4 }}>{isPdf ? "📄" : "📷"}</span>
+        <span aria-hidden="true" style={{ display: "inline-flex", opacity: 0.4 }}>
+          {isPdf ? <FileText size={14} strokeWidth={1.5} /> : <Camera size={14} strokeWidth={1.5} />}
+        </span>
         <span
           style={{
             fontSize: "var(--text-body-sm)",
@@ -156,7 +161,9 @@ export function BulkReceiptCard({ result, onUpdate }: BulkReceiptCardProps) {
           gap: 12,
         }}
       >
-        <span style={{ fontSize: 14, opacity: 0.4 }}>{isPdf ? "📄" : "📷"}</span>
+        <span aria-hidden="true" style={{ display: "inline-flex", opacity: 0.4 }}>
+          {isPdf ? <FileText size={14} strokeWidth={1.5} /> : <Camera size={14} strokeWidth={1.5} />}
+        </span>
         <span
           style={{
             fontSize: "var(--text-body-sm)",
