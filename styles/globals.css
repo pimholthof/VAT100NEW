@@ -2299,6 +2299,9 @@ a {
   background: rgba(0, 0, 0, 0.04);
 }
 
+/* In een transient menu is focus altijd keyboard-gestuurd (roving focus),
+   dus :focus i.p.v. alleen :focus-visible — programmatic focus telt mee. */
+.dropdown-item:focus,
 .dropdown-item:focus-visible {
   background: rgba(0, 0, 0, 0.04);
   outline: var(--focus-ring);
