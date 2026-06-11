@@ -6,18 +6,18 @@ const text = {
   nl: {
     title: "FACTUREN",
     invoices: [
-      { nr: "2024-042", client: "Ace & Partners", amount: "€ 2.400,00", status: "Betaald", color: "#1a7a3a", date: "15 mrt" },
-      { nr: "2024-041", client: "De Correspondent", amount: "€ 850,00", status: "Verzonden", color: "#2563eb", date: "12 mrt" },
-      { nr: "2024-040", client: "Foam Amsterdam", amount: "€ 1.200,00", status: "Betaald", color: "#1a7a3a", date: "8 mrt" },
+      { nr: "2024-042", client: "Ace & Partners", amount: "€ 2.400,00", status: "Betaald", color: "var(--color-success)", date: "15 mrt" },
+      { nr: "2024-041", client: "De Correspondent", amount: "€ 850,00", status: "Verzonden", color: "var(--color-info)", date: "12 mrt" },
+      { nr: "2024-040", client: "Foam Amsterdam", amount: "€ 1.200,00", status: "Betaald", color: "var(--color-success)", date: "8 mrt" },
       { nr: "2024-039", client: "Bureau Borzo", amount: "€ 3.150,00", status: "Concept", color: "rgba(0,0,0,0.25)", date: "5 mrt" },
     ],
   },
   en: {
     title: "INVOICES",
     invoices: [
-      { nr: "2024-042", client: "Ace & Partners", amount: "€ 2,400.00", status: "Paid", color: "#1a7a3a", date: "Mar 15" },
-      { nr: "2024-041", client: "De Correspondent", amount: "€ 850.00", status: "Sent", color: "#2563eb", date: "Mar 12" },
-      { nr: "2024-040", client: "Foam Amsterdam", amount: "€ 1,200.00", status: "Paid", color: "#1a7a3a", date: "Mar 8" },
+      { nr: "2024-042", client: "Ace & Partners", amount: "€ 2,400.00", status: "Paid", color: "var(--color-success)", date: "Mar 15" },
+      { nr: "2024-041", client: "De Correspondent", amount: "€ 850.00", status: "Sent", color: "var(--color-info)", date: "Mar 12" },
+      { nr: "2024-040", client: "Foam Amsterdam", amount: "€ 1,200.00", status: "Paid", color: "var(--color-success)", date: "Mar 8" },
       { nr: "2024-039", client: "Bureau Borzo", amount: "€ 3,150.00", status: "Draft", color: "rgba(0,0,0,0.25)", date: "Mar 5" },
     ],
   },

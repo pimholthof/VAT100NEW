@@ -97,6 +97,15 @@
   --opacity-tertiary: 0.35;
   --opacity-ghost: 0.15;
 
+  /* Muted ink — informative microtext (labels, table headers).
+     Same Obsidian ink; 0.62 holds ≈4.7:1 on warm paper (AA for small text).
+     --opacity-tertiary stays reserved for decorative use. */
+  --ink-muted: rgba(26, 26, 25, 0.62);
+
+  /* Focus ring — one definition for every focusable surface */
+  --focus-ring: 2px solid var(--color-black);
+  --focus-ring-offset: 2px;
+
   /* Duration hierarchy */
   --duration-instant: 100ms;
   --duration-quick: 200ms;
@@ -206,8 +215,8 @@ body {
 
 /* ─── Focus-visible — Accessibility ring ─── */
 :focus-visible {
-  outline: 2px solid var(--color-black);
-  outline-offset: 2px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 input:focus-visible,
@@ -215,6 +224,8 @@ select:focus-visible,
 textarea:focus-visible {
   outline: none;
   border-color: var(--color-black) !important;
+  /* Keyboard focus reads stronger than pointer focus */
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
 }
 
 /* ─── Scrollbar — Minimal ─── */
@@ -254,7 +265,7 @@ button {
 
 /* Disabled settles into the paper but stays readable; busy stays near-full under the spinner */
 button:disabled {
-  opacity: 0.45;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -318,7 +329,7 @@ a {
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: rgba(0, 0, 0, var(--opacity-tertiary));
+  color: var(--ink-muted);
 }
 
 .label-strong {
@@ -471,6 +482,12 @@ a {
 
 .empty-state-link:hover {
   opacity: 1;
+}
+
+.empty-state-link:focus-visible {
+  opacity: 1;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* ─── Brutalist Report Page ─── */
@@ -673,7 +690,7 @@ a {
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, var(--opacity-tertiary));
+  color: var(--ink-muted);
   padding: 8px 0;
   text-align: left;
 }
@@ -996,6 +1013,13 @@ a {
   font-size: 14px;
   border-radius: var(--radius-sm);
   opacity: var(--opacity-secondary);
+}
+
+.mobile-more-sheet-item:focus-visible {
+  opacity: var(--opacity-primary);
+  background: rgba(0, 0, 0, 0.03);
+  outline: var(--focus-ring);
+  outline-offset: -2px;
 }
 
 .mobile-more-sheet-item--active {
@@ -2000,7 +2024,10 @@ a {
   width: 100%;
 }
 
-/* ─── Action Buttons (inline) ─── */
+/* ─── Action Buttons (inline) ───
+   Canonieke 3-niveauhiërarchie: .btn-primary (gevuld, dé actie op een scherm),
+   .btn-secondary (omlijnd, nevengeschikte actie), .btn-ghost (tekst, terloops).
+   Maatvoering via .btn-block; geen nieuwe knopfamilies naast deze drie. */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -2034,7 +2061,7 @@ a {
 }
 
 .btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
   box-shadow: var(--edge-highlight-ink), var(--shadow-xs);
 }
 
@@ -2065,7 +2092,7 @@ a {
 }
 
 .btn-secondary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
   box-shadow: none;
 }
 
@@ -2112,11 +2139,13 @@ a {
   letter-spacing: 0.2em;
 }
 
-/* ─── Form Elements ─── */
+/* ─── Zoek-pil ───
+   Uitsluitend voor zoekvelden; de pilvorm signaleert "filteren, niet invoeren".
+   Reguliere formuliervelden gebruiken .form-input. */
 .input-field {
   width: 100%;
   padding: 12px 20px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: var(--border-input);
   border-radius: 24px;
   background: rgba(0, 0, 0, 0.02);
   color: var(--foreground);
@@ -2185,7 +2214,7 @@ a {
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
-  animation: fadeIn var(--duration-quick) ease;
+  /* In/uit-animatie komt van framer-motion (AnimatePresence) in de dialogen zelf */
 }
 
 .dialog-panel {
@@ -2244,7 +2273,7 @@ a {
   font-size: var(--text-label);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  opacity: var(--opacity-tertiary);
+  color: var(--ink-muted);
   font-weight: 600;
 }
 
@@ -2270,6 +2299,12 @@ a {
   background: rgba(0, 0, 0, 0.04);
 }
 
+.dropdown-item:focus-visible {
+  background: rgba(0, 0, 0, 0.04);
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
 .dropdown-item--active {
   background: rgba(0, 0, 0, 0.03);
 }
@@ -2285,6 +2320,12 @@ a {
 
 .dropdown-item--link:hover {
   background: rgba(0, 0, 0, 0.03);
+}
+
+.dropdown-item--link:focus-visible {
+  background: rgba(0, 0, 0, 0.03);
+  outline: var(--focus-ring);
+  outline-offset: -2px;
 }
 
 /* ─── Interactive Status Badge ─── */
@@ -2303,6 +2344,20 @@ a {
   opacity: 0.8;
   transition: opacity var(--duration-instant) ease;
   white-space: nowrap;
+}
+
+.status-badge-interactive:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.status-badge-interactive:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.status-badge-interactive:focus-visible {
+  opacity: 1;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .status-badge-interactive:disabled {
@@ -2425,7 +2480,7 @@ a {
 .table-th {
   padding: 12px 16px 12px 0;
   text-align: left;
-  opacity: var(--opacity-tertiary);
+  color: var(--ink-muted);
   font-weight: 600;
   white-space: nowrap;
   font-size: var(--text-label);

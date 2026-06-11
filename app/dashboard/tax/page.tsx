@@ -30,7 +30,16 @@ export default function TaxPage() {
     <div>
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <Suspense fallback={<SkeletonTable />}>
+      <Suspense
+        fallback={
+          <SkeletonTable
+            columns="1fr 1fr 1fr 1fr 1fr 1fr"
+            rows={4}
+            headerWidths={[60, 80, 70, 70, 60, 50]}
+            bodyWidths={[50, 70, 60, 60, 50, 40]}
+          />
+        }
+      >
         {activeTab === "btw" && <TaxContent />}
         {activeTab === "documenten" && <DocumentsTab />}
         {activeTab === "importeren" && <ImportTab />}

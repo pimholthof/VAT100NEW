@@ -53,7 +53,7 @@ export default function WaitlistTab() {
       </div>
 
       {isLoading ? (
-        <SkeletonTable rows={5} />
+        <SkeletonTable columns="40px 1.5fr 2fr 1fr 1fr" rows={5} headerWidths={[20, 60, 80, 50, 50]} bodyWidths={[15, 50, 70, 40, 40]} />
       ) : entries.length === 0 ? (
         <p className="empty-state">Geen wachtlijstinschrijvingen gevonden.</p>
       ) : (

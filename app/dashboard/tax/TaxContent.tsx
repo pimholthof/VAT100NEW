@@ -968,7 +968,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
               <select
                 value={formType}
                 onChange={(e) => setFormType(e.target.value as TaxPaymentType)}
-                className="input-field"
+                className="form-input form-select"
                 style={{ height: 48, boxSizing: "border-box" }}
               >
                 <option value="ib">Inkomstenbelasting</option>
@@ -982,7 +982,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 value={formPeriod}
                 onChange={(e) => setFormPeriod(e.target.value)}
                 placeholder={`${year} of ${year}-Q1`}
-                className="input-field"
+                className="form-input"
                 style={{ height: 48, boxSizing: "border-box" }}
               />
             </div>
@@ -995,7 +995,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 value={formAmount}
                 onChange={(e) => setFormAmount(e.target.value)}
                 placeholder="0,00"
-                className="input-field"
+                className="form-input"
                 style={{ height: 48, boxSizing: "border-box" }}
               />
             </div>
@@ -1005,7 +1005,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
                 type="date"
                 value={formDate}
                 onChange={(e) => setFormDate(e.target.value)}
-                className="input-field"
+                className="form-input"
                 style={{ height: 48, boxSizing: "border-box" }}
               />
             </div>

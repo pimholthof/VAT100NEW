@@ -248,7 +248,7 @@ export default function OpeningBalancePage() {
 
       {/* Balans check */}
       {Math.abs(totaalActiva - totaalPassiva) > 0.01 && (
-        <p style={{ color: "#A51C30", marginBottom: 16, fontSize: "var(--text-body-sm)" }}>
+        <p style={{ color: "var(--color-accent)", marginBottom: 16, fontSize: "var(--text-body-sm)" }}>
           Let op: activa ({formatCurrency(totaalActiva)}) en passiva ({formatCurrency(totaalPassiva)}) zijn niet in balans.
         </p>
       )}

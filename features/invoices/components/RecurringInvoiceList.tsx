@@ -43,6 +43,9 @@ export function RecurringInvoiceList() {
       queryClient.invalidateQueries({ queryKey: ["recurring-invoices"] });
       toast("Template verwijderd");
     },
+    onError: () => {
+      toast("Verwijderen mislukt, probeer het opnieuw", "error");
+    },
   });
 
   const toggleMutation = useMutation({
@@ -51,6 +54,9 @@ export function RecurringInvoiceList() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurring-invoices"] });
       toast("Status bijgewerkt");
+    },
+    onError: () => {
+      toast("Status bijwerken mislukt, probeer het opnieuw", "error");
     },
   });
 
@@ -189,6 +195,15 @@ export function RecurringInvoiceList() {
                             isActive: !t.is_active,
                           })
                         }
+                        disabled={
+                          toggleMutation.isPending &&
+                          toggleMutation.variables?.id === t.id
+                        }
+                        aria-busy={
+                          (toggleMutation.isPending &&
+                            toggleMutation.variables?.id === t.id) ||
+                          undefined
+                        }
                         style={{
                           background: "none",
                           border: "none",
@@ -198,7 +213,7 @@ export function RecurringInvoiceList() {
                           textTransform: "uppercase",
                           letterSpacing: "0.05em",
                           color: t.is_active
-                            ? "rgba(0,128,0,0.7)"
+                            ? "var(--color-success)"
                             : "rgba(0,0,0,0.3)",
                         }}
                       >

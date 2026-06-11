@@ -82,6 +82,9 @@ function InvoicesTab() {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       toast("Factuur verwijderd");
     },
+    onError: () => {
+      toast("Verwijderen mislukt, probeer het opnieuw", "error");
+    },
   });
 
   const statusMutation = useMutation({
@@ -90,6 +93,9 @@ function InvoicesTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       toast("Status bijgewerkt");
+    },
+    onError: () => {
+      toast("Status bijwerken mislukt, probeer het opnieuw", "error");
     },
   });
 
@@ -362,6 +368,9 @@ function QuotesTab() {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       toast("Offerte verwijderd");
     },
+    onError: () => {
+      toast("Verwijderen mislukt, probeer het opnieuw", "error");
+    },
   });
 
   const statusMutation = useMutation({
@@ -370,6 +379,9 @@ function QuotesTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       toast("Status bijgewerkt");
+    },
+    onError: () => {
+      toast("Status bijwerken mislukt, probeer het opnieuw", "error");
     },
   });
 

@@ -397,7 +397,7 @@ export default function BankTab() {
         </div>
 
         {transactionsLoading ? (
-          <SkeletonTable />
+          <SkeletonTable columns="1fr 2fr 1.5fr 1fr 1fr" headerWidths={[60, 80, 70, 60, 50]} bodyWidths={[50, 70, 60, 50, 40]} />
         ) : displayTransactions.length === 0 ? (
           <div style={{ borderTop: "var(--border-rule)", borderBottom: "var(--border-rule)", padding: 48, textAlign: "center" }}>
             <p style={{ fontSize: "var(--text-body-lg)", fontWeight: 300, margin: 0 }}>

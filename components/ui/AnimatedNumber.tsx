@@ -57,9 +57,18 @@ export function AnimatedNumber({
     return controls.stop;
   }, [value, count, duration]);
 
+  // Screenreaders horen de definitieve waarde, niet de tussenframes van de telling.
+  const formatter = new Intl.NumberFormat(numLocale, {
+    style: isCurrency ? "currency" : "decimal",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: isCurrency ? 0 : 2,
+  });
+  const accessibleValue = `${prefix}${formatter.format(Math.round(value))}${suffix}`;
+
   return (
-    <motion.span style={style} className={className}>
-      {rounded}
-    </motion.span>
+    <span aria-label={accessibleValue} style={style} className={className}>
+      <motion.span aria-hidden="true">{rounded}</motion.span>
+    </span>
   );
 }

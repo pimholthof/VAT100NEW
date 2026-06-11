@@ -99,7 +99,7 @@ export default function VatMockup({ locale = "nl" }: { locale?: "nl" | "en" }) {
           <span style={{ fontWeight: 600, fontSize: 12 }}>{row.q}</span>
           <span style={{ textAlign: "right", opacity: 0.6, fontVariantNumeric: "tabular-nums" }}>{row.revenue}</span>
           <span style={{ textAlign: "right", opacity: 0.6, fontVariantNumeric: "tabular-nums" }}>{row.vatOwed}</span>
-          <span style={{ textAlign: "right", color: row.done ? "#1a7a3a" : "inherit", fontVariantNumeric: "tabular-nums" }}>{row.vatDeductible}</span>
+          <span style={{ textAlign: "right", color: row.done ? "var(--color-success)" : "inherit", fontVariantNumeric: "tabular-nums" }}>{row.vatDeductible}</span>
           <span style={{ textAlign: "right", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>{row.net}</span>
         </div>
       ))}
@@ -119,7 +119,7 @@ export default function VatMockup({ locale = "nl" }: { locale?: "nl" | "en" }) {
         <span style={{ fontWeight: 700, fontSize: 12 }}>{t.total}</span>
         <span style={{ textAlign: "right", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>{t.totalRevenue}</span>
         <span style={{ textAlign: "right", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>{t.totalOwed}</span>
-        <span style={{ textAlign: "right", fontWeight: 500, color: "#1a7a3a", fontVariantNumeric: "tabular-nums" }}>{t.totalDeductible}</span>
+        <span style={{ textAlign: "right", fontWeight: 500, color: "var(--color-success)", fontVariantNumeric: "tabular-nums" }}>{t.totalDeductible}</span>
         <span style={{ textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{t.totalNet}</span>
       </div>
     </BrowserFrame>

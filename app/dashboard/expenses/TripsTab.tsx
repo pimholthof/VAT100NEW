@@ -112,17 +112,17 @@ export default function TripsPage() {
             <div>
               <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.common.date}</label>
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)}
-                className="input-field" />
+                className="form-input" />
             </div>
             <div>
               <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.trips.purpose}</label>
               <input type="text" value={formPurpose} onChange={(e) => setFormPurpose(e.target.value)} placeholder={t.trips.purposePlaceholder}
-                className="input-field" />
+                className="form-input" />
             </div>
             <div>
               <label className="label" style={{ display: "block", marginBottom: 8, opacity: 0.4, fontSize: 10 }}>{t.trips.kmSingleTrip}</label>
               <input type="number" step="0.1" min="0.1" value={formKm} onChange={(e) => setFormKm(e.target.value)} placeholder="45"
-                className="input-field" />
+                className="form-input" />
             </div>
             <button
               onClick={() => createMutation.mutate()}
