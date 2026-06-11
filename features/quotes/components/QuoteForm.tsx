@@ -22,6 +22,7 @@ import { m as motion } from "framer-motion";
 import { playSound } from "@/lib/utils/sound";
 import { useInvoiceStore } from "@/lib/store/invoice";
 import { useLocale } from "@/lib/i18n/context";
+import { formatTime } from "@/lib/format";
 
 interface QuoteFormProps {
   quoteId?: string;
@@ -394,7 +395,7 @@ export function QuoteForm({ quoteId }: QuoteFormProps) {
 
       {lastSavedAt && (
         <p className="mono-amount" style={{ fontSize: 10, opacity: 0.2, marginTop: 40, textAlign: "center" }}>
-          PROTOCOL Sync / {new Date(lastSavedAt).toLocaleTimeString("nl-NL")}
+          PROTOCOL Sync / {formatTime(lastSavedAt)}
         </p>
       )}
     </motion.div>

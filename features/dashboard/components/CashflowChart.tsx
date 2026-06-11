@@ -13,9 +13,11 @@ export function CashflowChart({ cashflow }: { cashflow: CashflowSummary }) {
   const data = useMemo(() => {
     return monthlyRevenue.map((rev) => {
       const [year, month] = rev.month.split("-");
-      const label = new Date(Number(year), Number(month) - 1, 1).toLocaleDateString(
+      // Dag 15 + vaste tijdzone: het maandlabel kan nooit verschuiven door
+      // het tijdzoneverschil tussen server (UTC) en browser.
+      const label = new Date(Number(year), Number(month) - 1, 15).toLocaleDateString(
         "nl-NL",
-        { month: "short" }
+        { month: "short", timeZone: "Europe/Amsterdam" }
       );
       return { label, value: rev.amount };
     });

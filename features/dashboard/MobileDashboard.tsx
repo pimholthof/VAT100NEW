@@ -107,6 +107,7 @@ export default function MobileDashboard({
             <p style={{ margin: 0, fontSize: 11, opacity: 0.45, textAlign: "right" }}>
               {vatDeadline.quarter} ·{" "}
               {new Date(vatDeadline.deadline).toLocaleDateString(dateLocale, {
+                timeZone: "Europe/Amsterdam",
                 day: "numeric",
                 month: "short",
               })}

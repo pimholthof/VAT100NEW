@@ -1,42 +1,23 @@
-"use client";
+import {
+  QueryClient,
+  dehydrate,
+  HydrationBoundary,
+} from "@tanstack/react-query";
+import { getClients } from "@/features/clients/actions";
+import { NewInvoicePageClient } from "./NewInvoicePageClient";
 
-import { useEffect } from "react";
-import { useInvoiceStore } from "@/lib/store/invoice";
-import { InvoiceForm } from "@/features/invoices/components/InvoiceForm";
-import { InvoiceLivePreview } from "@/features/invoices/components/InvoiceLivePreview";
-import { useLocale } from "@/lib/i18n/context";
-
-export default function NewInvoicePage() {
-  const { t } = useLocale();
-  const resetForm = useInvoiceStore((s) => s.resetForm);
-
-  useEffect(() => {
-    resetForm();
-  }, [resetForm]);
+// Klanten worden server-side meegeladen zodat de ontvanger-dropdown nooit
+// leeg of op "Laden…" staat.
+export default async function NewInvoicePage() {
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: ["clients"],
+    queryFn: () => getClients(),
+  });
 
   return (
-    <div className="invoice-edit-layout">
-      <div className="invoice-edit-layout__form">
-        <h1
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "var(--text-display-md)",
-            fontWeight: 700,
-            letterSpacing: "var(--tracking-display)",
-            lineHeight: 1,
-            margin: "0 0 32px",
-          }}
-        >
-          {t.invoices.newInvoice}
-        </h1>
-        <InvoiceForm />
-      </div>
-      <aside
-        className="invoice-edit-layout__preview"
-        aria-label="Live factuurvoorbeeld"
-      >
-        <InvoiceLivePreview />
-      </aside>
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <NewInvoicePageClient />
+    </HydrationBoundary>
   );
 }

@@ -136,7 +136,7 @@ export default function AbonnementSettingsPage() {
 
             {subscription.current_period_end && (
               <p className="label" style={{ marginTop: 16, opacity: 0.4 }}>
-                Volgende betaling: {new Date(subscription.current_period_end).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+                Volgende betaling: {new Date(subscription.current_period_end).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Amsterdam" })}
               </p>
             )}
           </div>

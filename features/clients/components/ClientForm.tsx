@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createNewClient, updateClient, checkDuplicateClients } from "@/features/clients/actions";
 import type { Client, ClientInput } from "@/lib/types";
@@ -11,6 +11,7 @@ import {
   ErrorMessage,
 } from "@/components/ui";
 import { validateEmail, validateKvk, validateBtw } from "@/lib/validation/client-validators";
+import { scrollToFirstInvalidField, scrollToElement } from "@/lib/utils/focus-error";
 import { useLocale } from "@/lib/i18n/context";
 import { useToast } from "@/components/ui/Toast";
 
@@ -44,6 +45,13 @@ export function ClientForm({ client }: ClientFormProps) {
   const [viesName, setViesName] = useState<string | null>(null);
   const [duplicates, setDuplicates] = useState<Array<{ id: string; name: string; email: string | null }>>([]);
   const dupCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Serverfouten staan boven het formulier terwijl de knop onderaan zit —
+  // breng ze in beeld zodra ze verschijnen.
+  useEffect(() => {
+    if (error) scrollToElement(errorRef.current);
+  }, [error]);
 
   function validateField(field: string, value: string) {
     let err: string | null = null;
@@ -116,19 +124,20 @@ export function ClientForm({ client }: ClientFormProps) {
   }
 
   const handleSubmit = async () => {
-    if (!name.trim()) {
-      setError(t.clients.companyNameRequired);
+    // Validatie verschijnt bij het veld zelf; we scrollen en focussen er
+    // direct naartoe. De ErrorMessage bovenaan blijft voor serverfouten.
+    const errs: Record<string, string | null> = {
+      name: name.trim() ? null : t.clients.companyNameRequired,
+      email: validateEmail(email),
+      kvk: validateKvk(kvkNumber),
+      btw: validateBtw(btwNumber),
+    };
+    if (Object.values(errs).some(Boolean)) {
+      setFieldErrors((prev) => ({ ...prev, ...errs }));
+      setError(null);
+      scrollToFirstInvalidField();
       return;
     }
-
-    const emailErr = validateEmail(email);
-    if (emailErr) { setError(emailErr); return; }
-
-    const kvkErr = validateKvk(kvkNumber);
-    if (kvkErr) { setError(kvkErr); return; }
-
-    const btwErr = validateBtw(btwNumber);
-    if (btwErr) { setError(btwErr); return; }
 
     setSaving(true);
     setError(null);
@@ -164,15 +173,26 @@ export function ClientForm({ client }: ClientFormProps) {
 
   return (
     <div style={{ maxWidth: 600 }}>
-      {error && (
-        <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
-      )}
+      <div ref={errorRef}>
+        {error && (
+          <ErrorMessage style={{ marginBottom: 24 }}>{error}</ErrorMessage>
+        )}
+      </div>
 
-      <FieldGroup label={`${t.clients.companyName} *`}>
+      <FieldGroup
+        label={`${t.clients.companyName} *`}
+        htmlFor="client-name"
+        error={fieldErrors.name ?? undefined}
+      >
         <input
+          id="client-name"
           type="text"
           value={name}
-          onChange={(e) => { setName(e.target.value); triggerDuplicateCheck(e.target.value); }}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: null }));
+            triggerDuplicateCheck(e.target.value);
+          }}
           placeholder={t.clients.companyName}
           className="form-input"
         />

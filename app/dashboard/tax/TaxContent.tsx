@@ -100,17 +100,17 @@ export default function TaxContent() {
             {
               label: "Jaaromzet — prognose",
               value: formatCurrency(Math.round(projection.prognoseJaarOmzet)),
-              sub: `Verwacht heel ${now.getFullYear()}`,
+              sub: `${formatCurrency(Math.round(projection.brutoOmzet))} t/m maand ${projection.maandenVerstreken}, doorgerekend naar 12`,
             },
             {
               label: "Jaarkosten — prognose",
               value: formatCurrency(Math.round(projection.prognoseJaarKosten)),
-              sub: `Verwacht heel ${now.getFullYear()}`,
+              sub: `Op basis van ${projection.maandenVerstreken} ${projection.maandenVerstreken === 1 ? "maand" : "maanden"}, doorgerekend naar 12`,
             },
             {
               label: "Jaar-IB — prognose",
               value: formatCurrency(Math.round(projection.prognoseJaarIB)),
-              sub: `Verwacht heel ${now.getFullYear()}`,
+              sub: `Op basis van ${projection.maandenVerstreken} ${projection.maandenVerstreken === 1 ? "maand" : "maanden"}, doorgerekend naar 12`,
             },
           ].map((item, i) => (
             <div
@@ -172,7 +172,7 @@ export default function TaxContent() {
             <p className="label" style={{ margin: 0, position: "sticky", top: 80 }}>Berekening</p>
           </div>
           <div style={{ borderLeft: "0.5px solid rgba(0,0,0,0.1)", paddingLeft: 32 }}>
-            <BreakdownSection title="Winstberekening">
+            <BreakdownSection title={`Winstberekening — dit jaar tot nu toe (${projection.maandenVerstreken} ${projection.maandenVerstreken === 1 ? "maand" : "maanden"})`}>
               <BreakdownLine label="Omzet (excl. BTW)" value={projection.brutoOmzet} />
               <BreakdownLine label="Kosten" value={-projection.kosten} negative />
               <BreakdownLine label="Afschrijvingen" value={-projection.afschrijvingen} negative />
@@ -579,7 +579,7 @@ function DepreciationTableRow({ row }: { row: DepreciationRow }) {
         <span className="label">{row.omschrijving}</span>
         <br />
         <span style={{ fontSize: "var(--text-body-xs)", opacity: 0.4 }}>
-          {new Date(row.aanschafDatum).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}
+          {new Date(row.aanschafDatum).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Amsterdam" })}
         </span>
       </Td>
       <Td style={{ textAlign: "right" }}><span className="mono-amount">{formatCurrency(row.aanschafprijs)}</span></Td>
@@ -908,17 +908,7 @@ function VoorlopigeAanslagSection({ year }: { year: number }) {
         <h2 className="section-header" style={{ margin: 0 }}>Voorlopige aanslagen</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="label-strong"
-          style={{
-            padding: "12px 24px",
-            border: "1px solid var(--color-black)",
-            borderRadius: 9999,
-            background: "transparent",
-            cursor: "pointer",
-            fontSize: 10,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-          }}
+          className="btn-secondary"
         >
           {showForm ? "Annuleer" : "+ Betaling toevoegen"}
         </button>

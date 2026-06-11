@@ -21,6 +21,8 @@ import { InvoiceRecipientSection } from "./InvoiceRecipientSection";
 import { InvoiceLinesSection } from "./InvoiceLinesSection";
 import { InvoiceFormActions } from "./InvoiceFormActions";
 import { MobileInvoiceWizard } from "./MobileInvoiceWizard";
+import { scrollToFirstInvalidField, scrollToElement } from "@/lib/utils/focus-error";
+import { formatTime } from "@/lib/format";
 
 interface InvoiceFormProps {
   invoiceId?: string;
@@ -54,6 +56,13 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
   const [clientFieldError, setClientFieldError] = useState<string | null>(null);
   const [showNewClient, setShowNewClient] = useState(false);
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // De foutmelding staat boven het formulier, de knoppen onderaan — breng
+  // de melding in beeld zodra die verschijnt.
+  useEffect(() => {
+    if (error) scrollToElement(errorRef.current);
+  }, [error]);
 
   const clientId = useInvoiceStore((s) => s.clientId);
   const setClientId = useInvoiceStore((s) => s.setClientId);
@@ -146,6 +155,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
   const handleSave = async (andPreview: boolean) => {
     if (!clientId) {
       setClientFieldError(t.invoices.selectClient);
+      scrollToFirstInvalidField();
       return;
     }
     if (!invoiceNumber) {
@@ -193,9 +203,11 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       style={{ maxWidth: "100%" }}
     >
-      {error && (
-        <ErrorMessage style={{ marginBottom: 40 }}>{error}</ErrorMessage>
-      )}
+      <div ref={errorRef}>
+        {error && (
+          <ErrorMessage style={{ marginBottom: 40 }}>{error}</ErrorMessage>
+        )}
+      </div>
 
       {/* ── Recipient: Large and focused ── */}
       <InvoiceRecipientSection
@@ -266,7 +278,7 @@ function DesktopInvoiceForm({ invoiceId }: InvoiceFormProps) {
         <p className="mono-amount" style={{ fontSize: 10, opacity: 0.4, marginTop: 40, textAlign: "center", letterSpacing: "0.04em" }}>
           {savingDraft
             ? t.common.saving
-            : `${t.invoices.lastSavedAt} ${new Date(lastSavedAt!).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}`}
+            : `${t.invoices.lastSavedAt} ${formatTime(lastSavedAt)}`}
         </p>
       )}
     </motion.div>

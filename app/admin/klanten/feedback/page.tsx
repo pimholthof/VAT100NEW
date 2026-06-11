@@ -17,6 +17,7 @@ import { AdminStatePanel } from "../../AdminStatePanel";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("nl-NL", {
+    timeZone: "Europe/Amsterdam",
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -33,7 +34,7 @@ function formatDayHeader(iso: string): string {
     a.getDate() === b.getDate();
   if (sameDay(d, today)) return "Vandaag";
   if (sameDay(d, yesterday)) return "Gisteren";
-  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
+  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long", timeZone: "Europe/Amsterdam" });
 }
 
 function formatRelative(iso: string): string {
@@ -45,7 +46,7 @@ function formatRelative(iso: string): string {
   if (hours < 24) return `${hours}u`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d`;
-  return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+  return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" });
 }
 
 type FilterMode = "all" | "unanswered";
